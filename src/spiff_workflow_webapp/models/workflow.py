@@ -1,17 +1,17 @@
+"""Workflow."""
 import enum
 
 import marshmallow
 from crc import db
 from crc import ma
-from marshmallow import EXCLUDE
-from marshmallow import fields
-from marshmallow import INCLUDE
 from marshmallow import post_load
 from sqlalchemy import func
 from sqlalchemy.orm import deferred
 
 
 class WorkflowSpecCategory:
+    """WorkflowSpecCategory."""
+
     def __init__(self, id, display_name, display_order=0, admin=False):
         """__init__."""
         self.id = (
@@ -34,7 +34,11 @@ class WorkflowSpecCategory:
 
 
 class WorkflowSpecCategorySchema(ma.Schema):
+    """WorkflowSpecCategorySchema."""
+
     class Meta:
+        """Meta."""
+
         model = WorkflowSpecCategory
         fields = ["id", "display_name", "display_order", "admin"]
 
@@ -45,6 +49,8 @@ class WorkflowSpecCategorySchema(ma.Schema):
 
 
 class WorkflowSpecInfo:
+    """WorkflowSpecInfo."""
+
     def __init__(
         self,
         id,
@@ -55,11 +61,12 @@ class WorkflowSpecInfo:
         library=False,
         primary_file_name="",
         primary_process_id="",
-        libraries=[],
+        libraries=None,
         category_id="",
         display_order=0,
         is_review=False,
     ):
+        """__init__."""
         self.id = id  # Sting unique id
         self.display_name = display_name
         self.description = description
@@ -70,10 +77,14 @@ class WorkflowSpecInfo:
         self.primary_file_name = primary_file_name
         self.primary_process_id = primary_process_id
         self.is_review = is_review
-        self.libraries = libraries
         self.category_id = category_id
 
+        if libraries is None:
+            libraries = []
+        self.libraries = libraries
+
     def __eq__(self, other):
+        """__eq__."""
         if not isinstance(other, WorkflowSpecInfo):
             return False
         if other.id == self.id:
@@ -82,7 +93,11 @@ class WorkflowSpecInfo:
 
 
 class WorkflowSpecInfoSchema(ma.Schema):
+    """WorkflowSpecInfoSchema."""
+
     class Meta:
+        """Meta."""
+
         model = WorkflowSpecInfo
 
     id = marshmallow.fields.String(required=True)
@@ -100,10 +115,13 @@ class WorkflowSpecInfoSchema(ma.Schema):
 
     @post_load
     def make_spec(self, data, **kwargs):
+        """Make_spec."""
         return WorkflowSpecInfo(**data)
 
 
 class WorkflowState(enum.Enum):
+    """WorkflowState."""
+
     hidden = "hidden"
     disabled = "disabled"
     required = "required"
@@ -112,14 +130,18 @@ class WorkflowState(enum.Enum):
 
     @classmethod
     def has_value(cls, value):
+        """Has_value."""
         return value in cls._value2member_map_
 
     @staticmethod
     def list():
+        """List."""
         return list(map(lambda c: c.value, WorkflowState))
 
 
 class WorkflowStatus(enum.Enum):
+    """WorkflowStatus."""
+
     not_started = "not_started"
     user_input_required = "user_input_required"
     waiting = "waiting"
@@ -128,6 +150,8 @@ class WorkflowStatus(enum.Enum):
 
 
 class WorkflowModel(db.Model):
+    """WorkflowModel."""
+
     __tablename__ = "workflow"
     id = db.Column(db.Integer, primary_key=True)
     bpmn_workflow_json = deferred(db.Column(db.JSON))

@@ -1,9 +1,12 @@
+"""Data_store."""
 from crc import db
 from flask_marshmallow.sqla import SQLAlchemyAutoSchema
 from sqlalchemy import func
 
 
 class DataStoreModel(db.Model):
+    """DataStoreModel."""
+
     __tablename__ = "data_store"
     id = db.Column(db.Integer, primary_key=True)
     last_updated = db.Column(db.DateTime(timezone=True), server_default=func.now())
@@ -18,7 +21,11 @@ class DataStoreModel(db.Model):
 
 
 class DataStoreSchema(SQLAlchemyAutoSchema):
+    """DataStoreSchema."""
+
     class Meta:
+        """Meta."""
+
         model = DataStoreModel
         load_instance = True
         include_fk = True

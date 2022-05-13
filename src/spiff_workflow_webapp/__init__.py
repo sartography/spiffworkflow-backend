@@ -1,3 +1,4 @@
+"""__init__."""
 from flask import Flask
 
 from .routes.api import api

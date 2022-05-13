@@ -1,3 +1,4 @@
+"""Data_store_service."""
 from crc import session
 from crc.models.data_store import DataStoreModel
 from crc.models.workflow import WorkflowModel
@@ -8,6 +9,8 @@ from spiff_workflow_webapp.api.api_error import ApiError
 
 
 class DataStoreBase:
+    """DataStoreBase."""
+
     def set_validate_common(
         self, task_id, study_id, workflow_id, script_name, user_id, file_id, *args
     ):
@@ -44,10 +47,12 @@ class DataStoreBase:
     def get_validate_common(
         self, script_name, study_id=None, user_id=None, file_id=None, *args
     ):
-        # This method uses a temporary validation_data_store that is only available for the current validation request.
-        # This allows us to set data_store values during validation that don't affect the real data_store.
-        # For data_store `gets`, we first look in the temporary validation_data_store.
-        # If we don't find an entry in validation_data_store, we look in the real data_store.
+        """This method uses a temporary validation_data_store that is only available for the current validation request.
+
+        This allows us to set data_store values during validation that don't affect the real data_store.
+        For data_store `gets`, we first look in the temporary validation_data_store.
+        If we don't find an entry in validation_data_store, we look in the real data_store.
+        """
         key = args[0]
         if script_name == "study_data_get":
             # If it's in the validation data store, return it
@@ -107,7 +112,7 @@ class DataStoreBase:
     def set_data_common(
         self, task_spec, study_id, user_id, workflow_id, script_name, file_id, *args
     ):
-
+        """Set_data_common."""
         self.check_args_2(args, script_name=script_name)
         key = args[0]
         value = args[1]
@@ -162,6 +167,7 @@ class DataStoreBase:
         return dsm.value
 
     def get_data_common(self, study_id, user_id, script_name, file_id=None, *args):
+        """Get_data_common."""
         self.check_args(args, 2, script_name)
         record = (
             session.query(DataStoreModel)
@@ -177,6 +183,7 @@ class DataStoreBase:
 
     @staticmethod
     def get_multi_common(study_id, user_id, file_id=None):
+        """Get_multi_common."""
         results = session.query(DataStoreModel).filter_by(
             study_id=study_id, user_id=user_id, file_id=file_id
         )
@@ -184,7 +191,7 @@ class DataStoreBase:
 
     @staticmethod
     def delete_data_store(study_id, user_id, file_id, *args):
-
+        """Delete_data_store."""
         query = session.query(DataStoreModel).filter(DataStoreModel.key == args[0])
         if user_id:
             query = query.filter(DataStoreModel.user_id == user_id)
@@ -200,8 +207,10 @@ class DataStoreBase:
     @staticmethod
     def delete_extra_data_stores(records):
         """We had a bug where we created new records instead of updating existing records.
+
         We use this to clean up all the extra records.
-        We may remove this method in the future."""
+        We may remove this method in the future.
+        """
         for record in records:
             session.query(DataStoreModel).filter(
                 DataStoreModel.id == record.id
