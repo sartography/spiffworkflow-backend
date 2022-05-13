@@ -1,16 +1,22 @@
 import enum
 
 import marshmallow
-from marshmallow import EXCLUDE, post_load, fields, INCLUDE
+from crc import db
+from crc import ma
+from marshmallow import EXCLUDE
+from marshmallow import fields
+from marshmallow import INCLUDE
+from marshmallow import post_load
 from sqlalchemy import func
 from sqlalchemy.orm import deferred
 
-from crc import db, ma
 
-
-class WorkflowSpecCategory(object):
+class WorkflowSpecCategory:
     def __init__(self, id, display_name, display_order=0, admin=False):
-        self.id = id  # A unique string name, lower case, under scores (ie, 'my_category')
+        """__init__."""
+        self.id = (
+            id  # A unique string name, lower case, under scores (ie, 'my_category')
+        )
         self.display_name = display_name
         self.display_order = display_order
         self.admin = admin
@@ -19,6 +25,7 @@ class WorkflowSpecCategory(object):
         self.meta = None  # For storing category metadata
 
     def __eq__(self, other):
+        """__eq__."""
         if not isinstance(other, WorkflowSpecCategory):
             return False
         if other.id == self.id:
@@ -33,13 +40,26 @@ class WorkflowSpecCategorySchema(ma.Schema):
 
     @post_load
     def make_cat(self, data, **kwargs):
+        """Make_cat."""
         return WorkflowSpecCategory(**data)
 
 
-class WorkflowSpecInfo(object):
-    def __init__(self, id, display_name, description,  is_master_spec=False,
-                 standalone=False, library=False, primary_file_name='', primary_process_id='',
-                 libraries=[], category_id="", display_order=0, is_review=False):
+class WorkflowSpecInfo:
+    def __init__(
+        self,
+        id,
+        display_name,
+        description,
+        is_master_spec=False,
+        standalone=False,
+        library=False,
+        primary_file_name="",
+        primary_process_id="",
+        libraries=[],
+        category_id="",
+        display_order=0,
+        is_review=False,
+    ):
         self.id = id  # Sting unique id
         self.display_name = display_name
         self.description = description
@@ -64,6 +84,7 @@ class WorkflowSpecInfo(object):
 class WorkflowSpecInfoSchema(ma.Schema):
     class Meta:
         model = WorkflowSpecInfo
+
     id = marshmallow.fields.String(required=True)
     display_name = marshmallow.fields.String(required=True)
     description = marshmallow.fields.String()
@@ -107,12 +128,12 @@ class WorkflowStatus(enum.Enum):
 
 
 class WorkflowModel(db.Model):
-    __tablename__ = 'workflow'
+    __tablename__ = "workflow"
     id = db.Column(db.Integer, primary_key=True)
     bpmn_workflow_json = deferred(db.Column(db.JSON))
     status = db.Column(db.Enum(WorkflowStatus))
-    study_id = db.Column(db.Integer, db.ForeignKey('study.id'))
-    study = db.relationship("StudyModel", backref='workflow', lazy='select')
+    study_id = db.Column(db.Integer, db.ForeignKey("study.id"))
+    study = db.relationship("StudyModel", backref="workflow", lazy="select")
     workflow_spec_id = db.Column(db.String)
     total_tasks = db.Column(db.Integer, default=0)
     completed_tasks = db.Column(db.Integer, default=0)
