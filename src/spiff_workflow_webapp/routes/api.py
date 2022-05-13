@@ -1,9 +1,11 @@
 """Api."""
-from flask import Blueprint
 import os
 
+from flask import Blueprint
+
 from ..models.user import User
-from spiff_workflow_webapp.spiff_workflow_connector import parse, run
+from spiff_workflow_webapp.spiff_workflow_connector import parse
+from spiff_workflow_webapp.spiff_workflow_connector import run
 
 api = Blueprint("api", __name__)
 
@@ -16,8 +18,8 @@ def create_user(name):
     return {"user": user.name}
 
 
-@api.route("/run_process", defaults={'answer': None, 'task_identifier': None})
-@api.route("/run_process/<task_identifier>", defaults={'answer': None})
+@api.route("/run_process", defaults={"answer": None, "task_identifier": None})
+@api.route("/run_process/<task_identifier>", defaults={"answer": None})
 @api.route("/run_process/<task_identifier>/<answer>")
 def run_process(task_identifier, answer):
     """Run_process."""
@@ -48,10 +50,14 @@ def run_process(task_identifier, answer):
     # content = request.json
     homedir = os.environ.get("HOME")
     process = "order_product"
-    dmn = [f"{homedir}/projects/github/sartography/SpiffExample/bpmn/product_prices.dmn",
-           f"{homedir}/projects/github/sartography/SpiffExample/bpmn/shipping_costs.dmn"]
-    bpmn = [f"{homedir}/projects/github/sartography/SpiffExample/bpmn/multiinstance.bpmn",
-            f"{homedir}/projects/github/sartography/SpiffExample/bpmn/call_activity_multi.bpmn"]
+    dmn = [
+        f"{homedir}/projects/github/sartography/SpiffExample/bpmn/product_prices.dmn",
+        f"{homedir}/projects/github/sartography/SpiffExample/bpmn/shipping_costs.dmn",
+    ]
+    bpmn = [
+        f"{homedir}/projects/github/sartography/SpiffExample/bpmn/multiinstance.bpmn",
+        f"{homedir}/projects/github/sartography/SpiffExample/bpmn/call_activity_multi.bpmn",
+    ]
 
     # try:
     #     if args.restore is not None:

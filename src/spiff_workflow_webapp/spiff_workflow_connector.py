@@ -4,7 +4,6 @@ import json
 import sys
 import traceback
 
-# from custom_script_engine import CustomScriptEngine
 from jinja2 import Template
 from SpiffWorkflow.bpmn.serializer.workflow import BpmnWorkflowSerializer
 from SpiffWorkflow.bpmn.specs.events.event_types import CatchingEvent
@@ -19,6 +18,8 @@ from SpiffWorkflow.camunda.specs.UserTask import UserTask
 from SpiffWorkflow.dmn.parser.BpmnDmnParser import BpmnDmnParser
 from SpiffWorkflow.dmn.serializer.task_spec_converters import BusinessRuleTaskConverter
 from SpiffWorkflow.task import Task
+
+# from custom_script_engine import CustomScriptEngine
 
 wf_spec_converter = BpmnWorkflowSerializer.configure_workflow_spec_converter(
     [UserTaskConverter, BusinessRuleTaskConverter]
@@ -143,7 +144,7 @@ def run(workflow, task_identifier=None, answer=None):
             formatted_options[str(idx + 1)] = option
 
         if task_identifier is None:
-            return(formatted_options)
+            return formatted_options
 
         # selected = None
         # while selected not in options and selected not in ["", "D", "d", "exit"]:
