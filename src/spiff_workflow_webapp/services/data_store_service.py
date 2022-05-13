@@ -3,9 +3,10 @@ from crc import session
 from crc.models.data_store import DataStoreModel
 from crc.models.workflow import WorkflowModel
 from flask import g
+import sqlalchemy
 from sqlalchemy import desc
-
 from spiff_workflow_webapp.api.api_error import ApiError
+from typing import Any
 
 
 class DataStoreBase:
@@ -91,7 +92,7 @@ class DataStoreBase:
             )
 
     @staticmethod
-    def check_args(args, maxlen=1, script_name="study_data_get"):
+    def check_args(args: Any, maxlen: int = 1, script_name: str = "study_data_get") -> None:
         """Check_args."""
         if len(args) < 1 or len(args) > maxlen:
             raise ApiError(
@@ -101,7 +102,7 @@ class DataStoreBase:
             )
 
     @staticmethod
-    def check_args_2(args, script_name="study_data_set"):
+    def check_args_2(args: Tuple[str, str], script_name: str = "study_data_set"):
         """Check_args_2."""
         if len(args) != 2:
             raise ApiError(
@@ -166,7 +167,7 @@ class DataStoreBase:
 
         return dsm.value
 
-    def get_data_common(self, study_id, user_id, script_name, file_id=None, *args):
+    def get_data_common(self, study_id: str, user_id: str, script_name: str, file_id: (str | None) = None, *args: Any) -> Any:
         """Get_data_common."""
         self.check_args(args, 2, script_name)
         record = (
@@ -182,7 +183,7 @@ class DataStoreBase:
                 return args[1]
 
     @staticmethod
-    def get_multi_common(study_id, user_id, file_id=None):
+    def get_multi_common(study_id: str, user_id: str, file_id: (str | None) = None) -> sqlalchemy.orm.Query:
         """Get_multi_common."""
         results = session.query(DataStoreModel).filter_by(
             study_id=study_id, user_id=user_id, file_id=file_id
@@ -190,7 +191,7 @@ class DataStoreBase:
         return results
 
     @staticmethod
-    def delete_data_store(study_id, user_id, file_id, *args):
+    def delete_data_store(study_id: str, user_id: str, file_id: str, *args: Any) -> None:
         """Delete_data_store."""
         query = session.query(DataStoreModel).filter(DataStoreModel.key == args[0])
         if user_id:
@@ -205,7 +206,7 @@ class DataStoreBase:
             session.commit()
 
     @staticmethod
-    def delete_extra_data_stores(records):
+    def delete_extra_data_stores(records: list[DataStoreModel]) -> None:
         """We had a bug where we created new records instead of updating existing records.
 
         We use this to clean up all the extra records.

@@ -3,9 +3,9 @@ import json
 from datetime import datetime
 from typing import Any
 
-from crc.models.data_store import DataStoreModel
-from crc.models.data_store import DataStoreSchema
-from crc.services.data_store_service import DataStoreBase
+from spiff_workflow_webapp.models.data_store import DataStoreModel
+from spiff_workflow_webapp.models.data_store import DataStoreSchema
+from spiff_workflow_webapp.services.data_store_service import DataStoreBase
 from flask import Blueprint
 from sqlalchemy.orm import Session  # type: ignore
 
