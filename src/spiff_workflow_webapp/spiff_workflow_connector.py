@@ -4,7 +4,7 @@ import json
 import sys
 import traceback
 
-from custom_script_engine import CustomScriptEngine
+# from custom_script_engine import CustomScriptEngine
 from jinja2 import Template
 from SpiffWorkflow.bpmn.serializer.workflow import BpmnWorkflowSerializer
 from SpiffWorkflow.bpmn.specs.events.event_types import CatchingEvent
@@ -39,7 +39,7 @@ def parse(process, bpmn_files, dmn_files):
     parser.add_bpmn_files(bpmn_files)
     if dmn_files:
         parser.add_dmn_files(dmn_files)
-    return BpmnWorkflow(parser.get_spec(process), script_engine=CustomScriptEngine)
+    return BpmnWorkflow(parser.get_spec(process))
 
 
 def select_option(prompt, options):
@@ -69,9 +69,10 @@ def format_task(task, include_state=True):
     return f"{lane} {task.task_spec.description} ({task.task_spec.name}) {state}"
 
 
-def complete_user_task(task):
+def complete_user_task(task, answer=None):
     """Complete_user_task."""
     display_task(task)
+    required_user_input_fields = {}
     if task.data is None:
         task.data = {}
 
@@ -79,14 +80,18 @@ def complete_user_task(task):
         if isinstance(field, EnumFormField):
             option_map = {opt.name: opt.id for opt in field.options}
             options = "(" + ", ".join(option_map) + ")"
-            prompt = f"{field.label} {options} "
-            option = select_option(prompt, option_map.keys())
-            response = option_map[option]
+            if answer is None:
+                required_user_input_fields[field.label] = options
+            else:
+                response = option_map[answer]
         else:
-            response = input(f"{field.label} ")
-            if field.type == "long":
-                response = int(response)
+            if answer is None:
+                required_user_input_fields[field.label] = "(1..)"
+            else:
+                if field.type == "long":
+                    response = int(answer)
         task.update_data_var(field.id, response)
+    return required_user_input_fields
 
 
 def complete_manual_task(task):
@@ -121,43 +126,50 @@ def print_state(workflow):
             print(format_task(task))
 
 
-def run(workflow, step):
+def run(workflow, task_identifier=None, answer=None):
     """Run."""
+    step = True
     workflow.do_engine_steps()
 
     while not workflow.is_completed():
 
         ready_tasks = workflow.get_ready_user_tasks()
         options = {}
-        print()
+        formatted_options = {}
+
         for idx, task in enumerate(ready_tasks):
             option = format_task(task, False)
             options[str(idx + 1)] = task
-            print(f"{idx + 1}. {option}")
+            formatted_options[str(idx + 1)] = option
 
-        selected = None
-        while selected not in options and selected not in ["", "D", "d", "exit"]:
-            selected = input(
-                "Select task to complete, enter to wait, or D to dump the workflow state: "
-            )
+        if task_identifier is None:
+            return(formatted_options)
 
-        if selected.lower() == "d":
-            filename = input("Enter filename: ")
-            state = serializer.serialize_json(workflow)
-            with open(filename, "w") as dump:
-                dump.write(state)
-        elif selected == "exit":
-            exit()
-        elif selected != "":
-            next_task = options[selected]
-            if isinstance(next_task.task_spec, UserTask):
-                complete_user_task(next_task)
-                next_task.complete()
-            elif isinstance(next_task.task_spec, ManualTask):
-                complete_manual_task(next_task)
-                next_task.complete()
+        # selected = None
+        # while selected not in options and selected not in ["", "D", "d", "exit"]:
+        #     selected = input(
+        #         "Select task to complete, enter to wait, or D to dump the workflow state: "
+        #     )
+
+        # if selected.lower() == "d":
+        #     filename = input("Enter filename: ")
+        #     state = serializer.serialize_json(workflow)
+        #     with open(filename, "w") as dump:
+        #         dump.write(state)
+        # elif selected == "exit":
+        #     exit()
+        next_task = options[task_identifier]
+        if isinstance(next_task.task_spec, UserTask):
+            if answer is None:
+                return complete_user_task(next_task)
             else:
+                complete_user_task(next_task, answer)
                 next_task.complete()
+        elif isinstance(next_task.task_spec, ManualTask):
+            complete_manual_task(next_task)
+            next_task.complete()
+        else:
+            next_task.complete()
 
         workflow.refresh_waiting_tasks()
         workflow.do_engine_steps()
