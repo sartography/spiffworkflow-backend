@@ -1,0 +1,97 @@
+[tool.poetry]
+name = "spiff-workflow-webapp"
+version = "0.0.0"
+description = "Spiff Workflow Webapp"
+authors = ["Jason Lantz <sartography@users.noreply.github.com>"]
+license = "MIT"
+readme = "README.rst"
+homepage = "https://github.com/sartography/spiff-workflow-webapp"
+repository = "https://github.com/sartography/spiff-workflow-webapp"
+documentation = "https://spiff-workflow-webapp.readthedocs.io"
+classifiers = [
+    "Development Status :: 1 - Planning",
+]
+
+[tool.poetry.urls]
+Changelog = "https://github.com/sartography/spiff-workflow-webapp/releases"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+click = "^8.0.1"
+flask = "*"
+flask-admin = "*"
+flask-bcrypt = "*"
+flask-cors = "*"
+flask-mail = "*"
+flask-marshmallow = "*"
+flask-migrate = "*"
+flask-restful = "*"
+werkzeug = "*"
+spiffworkflow = {git = "https://github.com/sartography/SpiffWorkflow", rev = "main"}
+sentry-sdk = "0.14.4"
+sphinx-autoapi = "^1.8.4"
+
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.5"
+coverage = {extras = ["toml"], version = "^6.1"}
+safety = "^1.10.3"
+mypy = "^0.910"
+typeguard = "^2.13.2"
+xdoctest = {extras = ["colors"], version = "^1.0.0"}
+sphinx = "^4.3.0"
+sphinx-autobuild = ">=2021.3.14"
+pre-commit = "^2.15.0"
+flake8 = "^4.0.1"
+black = ">=21.10b0"
+flake8-bandit = "^2.1.2"
+
+# 1.7.3 broke us. https://github.com/PyCQA/bandit/issues/841
+bandit = "1.7.2"
+
+flake8-bugbear = "^22.4.25"
+flake8-docstrings = "^1.6.0"
+flake8-rst-docstrings = "^0.2.3"
+pep8-naming = "^0.12.1"
+darglint = "^1.8.1"
+reorder-python-imports = "^3.1.0"
+pre-commit-hooks = "^4.0.1"
+sphinx-click = "^4.0.3"
+Pygments = "^2.10.0"
+pyupgrade = "^2.29.1"
+furo = ">=2021.11.12"
+
+[tool.poetry.scripts]
+spiff-workflow-webapp = "spiff_workflow_webapp.__main__:main"
+
+[tool.coverage.paths]
+source = ["src", "*/site-packages"]
+tests = ["tests", "*/tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["spiff_workflow_webapp", "tests"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 50
+
+[tool.mypy]
+strict = true
+disallow_any_generics = false
+warn_unreachable = true
+pretty = true
+show_column_numbers = true
+show_error_codes = true
+show_error_context = true
+
+# We get 'error: Module has no attribute "set_context"' for sentry-sdk without this option
+implicit_reexport = true
+
+# allow for subdirs to NOT require __init__.py
+namespace_packages = true
+explicit_package_bases = false
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

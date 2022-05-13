@@ -1,0 +1,12 @@
+{
+  "_template": "gh:cjolowicz/cookiecutter-hypermodern-python",
+  "author": "Sartography",
+  "development_status": "Development Status :: 1 - Planning",
+  "email": "sartography@users.noreply.github.com",
+  "friendly_name": "Spiff Workflow Webapp",
+  "github_user": "sartography",
+  "license": "MIT",
+  "package_name": "spiff_workflow_webapp",
+  "project_name": "spiff-workflow-webapp",
+  "version": "0.0.1"
+}
