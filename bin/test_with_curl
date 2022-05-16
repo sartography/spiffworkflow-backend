@@ -12,7 +12,7 @@ if [[ "${1:-}" == "c" ]]; then
 elif grep -qE '^[0-9]$' <<<"${1:-}" ; then
   curl --fail localhost:5000/run_process -H "Content-type: application/json" -X POST -d "{ \"task_identifier\": \"${1}\"}"
 else
-  rm -rf currentstate.json
+  ./bin/recreate_db
   curl --fail localhost:5000/run_process -H "Content-type: application/json" -X POST -d '{ "task_identifier": "1", "answer": {"Product Name": "G", "Quantity": "2"}}'
   curl --fail localhost:5000/run_process -H "Content-type: application/json" -X POST -d '{ "task_identifier": "1", "answer": {"Sleeve Type": "Short"}}'
   curl --fail localhost:5000/run_process -H "Content-type: application/json" -X POST -d '{ "task_identifier": "1", "answer": {"Continue shopping?": "N"}}'

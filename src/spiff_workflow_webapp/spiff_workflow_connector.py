@@ -19,8 +19,11 @@ from SpiffWorkflow.dmn.parser.BpmnDmnParser import BpmnDmnParser
 from SpiffWorkflow.dmn.serializer.task_spec_converters import BusinessRuleTaskConverter
 from SpiffWorkflow.task import Task
 
-from spiff_workflow_webapp.extensions import db
+from flask_bpmn.models.db import db
 from spiff_workflow_webapp.models.process_model import ProcessModel
+
+from flask_bpmn.models.group import GroupModel
+from spiff_workflow_webapp.models.cart import CartModel
 
 # from custom_script_engine import CustomScriptEngine
 
