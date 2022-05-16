@@ -19,6 +19,9 @@ from SpiffWorkflow.dmn.parser.BpmnDmnParser import BpmnDmnParser
 from SpiffWorkflow.dmn.serializer.task_spec_converters import BusinessRuleTaskConverter
 from SpiffWorkflow.task import Task
 
+from spiff_workflow_webapp.extensions import db
+from spiff_workflow_webapp.models.process_model import ProcessModel
+
 # from custom_script_engine import CustomScriptEngine
 
 wf_spec_converter = BpmnWorkflowSerializer.configure_workflow_spec_converter(
@@ -41,15 +44,6 @@ def parse(process, bpmn_files, dmn_files):
     if dmn_files:
         parser.add_dmn_files(dmn_files)
     return BpmnWorkflow(parser.get_spec(process))
-
-
-def select_option(prompt, options):
-    """Select_option."""
-    option = input(prompt)
-    while option not in options:
-        print("Invalid selection")
-        option = input(prompt)
-    return option
 
 
 def display_task(task):
@@ -84,29 +78,30 @@ def complete_user_task(task, answer=None):
             if answer is None:
                 required_user_input_fields[field.label] = options
             else:
-                response = option_map[answer]
+                response = option_map[answer[field.label]]
+        elif field.type == "string":
+            if answer is None:
+                required_user_input_fields[field.label] = "STRING"
+            else:
+                response = answer[field.label]
         else:
             if answer is None:
                 required_user_input_fields[field.label] = "(1..)"
             else:
                 if field.type == "long":
-                    response = int(answer)
-        task.update_data_var(field.id, response)
+                    response = int(answer[field.label])
+        if answer:
+            task.update_data_var(field.id, response)
     return required_user_input_fields
-
-
-def complete_manual_task(task):
-    """Complete_manual_task."""
-    display_task(task)
-    input("Press any key to mark task complete")
 
 
 def print_state(workflow):
     """Print_state."""
     task = workflow.last_task
-    print("\nLast Task")
-    print(format_task(task))
-    print(json.dumps(task.data, indent=2, separators=[", ", ": "]))
+    # print("\nLast Task")
+    # print(format_task(task))
+    # print(json.dumps(task.data, indent=2, separators=[", ", ": "]))
+    return_json = {"last_task": format_task(task)}
 
     display_types = (UserTask, ManualTask, ScriptTask, ThrowingEvent, CatchingEvent)
     all_tasks = [
@@ -118,13 +113,14 @@ def print_state(workflow):
         task for task in all_tasks if task.state in [Task.READY, Task.WAITING]
     ]
 
-    print("\nUpcoming Tasks")
+    return_json['upcoming_tasks'] = []
     for _idx, task in enumerate(upcoming_tasks):
-        print(format_task(task))
+        return_json['upcoming_tasks'].append(format_task(task))
 
-    if input("\nShow all tasks? ").lower() == "y":
-        for _idx, task in enumerate(all_tasks):
-            print(format_task(task))
+    # if input("\nShow all tasks? ").lower() == "y":
+    #     for _idx, task in enumerate(all_tasks):
+    #         print(format_task(task))
+    return return_json
 
 
 def run(workflow, task_identifier=None, answer=None):
@@ -146,19 +142,6 @@ def run(workflow, task_identifier=None, answer=None):
         if task_identifier is None:
             return formatted_options
 
-        # selected = None
-        # while selected not in options and selected not in ["", "D", "d", "exit"]:
-        #     selected = input(
-        #         "Select task to complete, enter to wait, or D to dump the workflow state: "
-        #     )
-
-        # if selected.lower() == "d":
-        #     filename = input("Enter filename: ")
-        #     state = serializer.serialize_json(workflow)
-        #     with open(filename, "w") as dump:
-        #         dump.write(state)
-        # elif selected == "exit":
-        #     exit()
         next_task = options[task_identifier]
         if isinstance(next_task.task_spec, UserTask):
             if answer is None:
@@ -167,18 +150,34 @@ def run(workflow, task_identifier=None, answer=None):
                 complete_user_task(next_task, answer)
                 next_task.complete()
         elif isinstance(next_task.task_spec, ManualTask):
-            complete_manual_task(next_task)
             next_task.complete()
         else:
             next_task.complete()
 
         workflow.refresh_waiting_tasks()
         workflow.do_engine_steps()
+        tasks_status = {}
         if step:
-            print_state(workflow)
+            tasks_status = print_state(workflow)
 
-    print("\nWorkflow Data")
-    print(json.dumps(workflow.data, indent=2, separators=[", ", ": "]))
+        ready_tasks = workflow.get_ready_user_tasks()
+        formatted_options = {}
+        for idx, task in enumerate(ready_tasks):
+            option = format_task(task, False)
+            formatted_options[str(idx + 1)] = option
+
+        state = serializer.serialize_json(workflow)
+        process_model = ProcessModel.query.filter().first()
+        if process_model is None:
+            process_model = ProcessModel()
+        process_model.bpmn_json = state
+        db.session.add(process_model)
+        db.session.commit()
+
+        # with open("currentstate.json", "w") as dump:
+        #     dump.write(state)
+        tasks_status["next_activity"] = formatted_options
+        return tasks_status
 
 
 if __name__ == "__main__":
