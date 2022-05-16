@@ -8,3 +8,6 @@
 /docs/_build/
 /src/*.egg-info/
 __pycache__/
+
+# we will probably want this committed at some point
+/migrations
