@@ -12,6 +12,6 @@ class UserModel(db.Model):
     name = db.Column(db.String(50))
     email = db.Column(db.String(50))
     user_group_assignments = relationship(
-        "UserGroupAssignmentModel", cascade="all, delete"
+        "UserGroupAssignmentModel", cascade="delete"
     )
-    groups = relationship("GroupModel", secondary="user_group_assignment")
+    groups = relationship("GroupModel", viewonly=True, secondary="user_group_assignment", overlaps="user_group_assignments,users")

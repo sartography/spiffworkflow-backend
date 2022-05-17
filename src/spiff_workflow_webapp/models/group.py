@@ -11,6 +11,6 @@ class GroupModel(FlaskBpmnGroupModel):
     __table_args__ = {"extend_existing": True}
     new_name_two = db.Column(db.String(255))
     user_group_assignments = relationship(
-        "UserGroupAssignmentModel", cascade="all, delete"
+        "UserGroupAssignmentModel", cascade="delete"
     )
-    users = relationship("UserModel", secondary="user_group_assignment")
+    users = relationship("UserModel", viewonly=True, secondary="user_group_assignment", overlaps="user_group_assignments,users")

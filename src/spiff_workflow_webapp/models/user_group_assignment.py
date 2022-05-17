@@ -17,5 +17,5 @@ class UserGroupAssignmentModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(ForeignKey(UserModel.id), nullable=False)
     group_id = db.Column(ForeignKey(GroupModel.id), nullable=False)
-    group = relationship("GroupModel")
-    user = relationship("UserModel")
+    group = relationship("GroupModel", overlaps="groups,user_group_assignments,users")
+    user = relationship("UserModel", overlaps="groups,user_group_assignments,users")
