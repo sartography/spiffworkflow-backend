@@ -1,8 +1,8 @@
 """Test User Blueprint."""
-
 import json
-from spiff_workflow_webapp.models.user import UserModel
+
 from spiff_workflow_webapp.models.group import GroupModel
+from spiff_workflow_webapp.models.user import UserModel
 
 
 def test_user_can_be_created_and_deleted(client):
@@ -78,7 +78,11 @@ def test_create_returns_an_error_if_group_exists(client):
 def test_user_can_be_assigned_to_a_group(client):
     user = create_user(client, "joe")
     group = create_group(client, "administrators")
-    response = client.post("/assign_user_to_group", content_type='application/json', data=json.dumps({"user_id": user.id, "group_id": group.id}))
+    response = client.post(
+        "/assign_user_to_group",
+        content_type="application/json",
+        data=json.dumps({"user_id": user.id, "group_id": group.id}),
+    )
     assert response.status_code == 201
     user = UserModel.query.filter_by(id=user.id).first()
     assert len(user.user_group_assignments) == 1

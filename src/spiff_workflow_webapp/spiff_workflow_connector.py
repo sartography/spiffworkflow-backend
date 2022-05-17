@@ -1,9 +1,5 @@
 """Spiff Workflow Connector."""
-import argparse
-import json
-import sys
-import traceback
-
+from flask_bpmn.models.db import db
 from jinja2 import Template
 from SpiffWorkflow.bpmn.serializer.workflow import BpmnWorkflowSerializer
 from SpiffWorkflow.bpmn.specs.events.event_types import CatchingEvent
@@ -19,7 +15,6 @@ from SpiffWorkflow.dmn.parser.BpmnDmnParser import BpmnDmnParser
 from SpiffWorkflow.dmn.serializer.task_spec_converters import BusinessRuleTaskConverter
 from SpiffWorkflow.task import Task
 
-from flask_bpmn.models.db import db
 from spiff_workflow_webapp.models.process_model import ProcessModel
 
 # from custom_script_engine import CustomScriptEngine
@@ -113,9 +108,9 @@ def print_state(workflow):
         task for task in all_tasks if task.state in [Task.READY, Task.WAITING]
     ]
 
-    return_json['upcoming_tasks'] = []
+    return_json["upcoming_tasks"] = []
     for _idx, task in enumerate(upcoming_tasks):
-        return_json['upcoming_tasks'].append(format_task(task))
+        return_json["upcoming_tasks"].append(format_task(task))
 
     # if input("\nShow all tasks? ").lower() == "y":
     #     for _idx, task in enumerate(all_tasks):
