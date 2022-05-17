@@ -4,7 +4,7 @@ import os
 from flask import Blueprint
 from flask import request
 
-from ..models.user import User
+from ..models.user import UserModel
 from spiff_workflow_webapp.spiff_workflow_connector import parse
 from spiff_workflow_webapp.spiff_workflow_connector import run
 
@@ -18,14 +18,6 @@ wf_spec_converter = BpmnWorkflowSerializer.configure_workflow_spec_converter([ U
 serializer = BpmnWorkflowSerializer(wf_spec_converter)
 
 api = Blueprint("api", __name__)
-
-
-@api.route("/user/<name>")
-def create_user(name):
-    """Create_user."""
-    user = User.query.filter_by(name=name).first()
-
-    return {"user": user.name}
 
 
 @api.route("/run_process", methods=['POST'])

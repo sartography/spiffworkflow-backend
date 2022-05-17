@@ -32,6 +32,9 @@ sentry-sdk = "0.14.4"
 sphinx-autoapi = "^1.8.4"
 flask-bpmn = {develop = true, path = "/home/jason/projects/github/sartography/flask-bpmn"}
 mysql-connector-python = "^8.0.29"
+pytest-flask = "^1.2.0"
+pytest-flask-sqlalchemy = "^1.1.0"
+psycopg2 = "^2.9.3"
 
 
 [tool.poetry.dev-dependencies]

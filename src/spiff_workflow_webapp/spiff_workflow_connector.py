@@ -22,9 +22,6 @@ from SpiffWorkflow.task import Task
 from flask_bpmn.models.db import db
 from spiff_workflow_webapp.models.process_model import ProcessModel
 
-from flask_bpmn.models.group import GroupModel
-from spiff_workflow_webapp.models.cart import CartModel
-
 # from custom_script_engine import CustomScriptEngine
 
 wf_spec_converter = BpmnWorkflowSerializer.configure_workflow_spec_converter(
@@ -181,41 +178,3 @@ def run(workflow, task_identifier=None, answer=None):
         #     dump.write(state)
         tasks_status["next_activity"] = formatted_options
         return tasks_status
-
-
-if __name__ == "__main__":
-
-    parser = argparse.ArgumentParser("Simple BPMN runner")
-    parser.add_argument(
-        "-p", "--process", dest="process", help="The top-level BPMN Process ID"
-    )
-    parser.add_argument(
-        "-b", "--bpmn", dest="bpmn", nargs="+", help="BPMN files to load"
-    )
-    parser.add_argument("-d", "--dmn", dest="dmn", nargs="*", help="DMN files to load")
-    parser.add_argument(
-        "-r",
-        "--restore",
-        dest="restore",
-        metavar="FILE",
-        help="Restore state from %(metavar)s",
-    )
-    parser.add_argument(
-        "-s",
-        "--step",
-        dest="step",
-        action="store_true",
-        help="Display state after each step",
-    )
-    args = parser.parse_args()
-
-    try:
-        if args.restore is not None:
-            with open(args.restore) as state:
-                wf = serializer.deserialize_json(state.read())
-        else:
-            wf = parse(args.process, args.bpmn, args.dmn)
-        run(wf, args.step)
-    except Exception:
-        sys.stderr.write(traceback.format_exc())
-        sys.exit(1)

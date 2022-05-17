@@ -7,12 +7,18 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
-rm -rf migrations/
-rm -f ./src/spiff_workflow_webapp/db.sqlite3
+tasks=""
+if [[ "${1:-}" == "clean" ]]; then
+  tasks="$tasks init"
 
-mysql -uroot -e "DROP DATABASE IF EXISTS spiff_workflow_webapp_development"
-mysql -uroot -e "CREATE DATABASE spiff_workflow_webapp_development"
+  rm -rf migrations/
+  rm -f ./src/spiff_workflow_webapp/db.sqlite3
 
-for task in init migrate upgrade ; do
+  mysql -uroot -e "DROP DATABASE IF EXISTS spiff_workflow_webapp_development"
+  mysql -uroot -e "CREATE DATABASE spiff_workflow_webapp_development"
+fi
+tasks="$tasks migrate upgrade"
+
+for task in $tasks ; do
   FLASK_ENV=development FLASK_APP=src/spiff_workflow_webapp poetry run flask db "$task"
 done

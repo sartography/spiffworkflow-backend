@@ -3,6 +3,6 @@ from sqlalchemy.orm import deferred
 
 
 class ProcessModel(db.Model):
-    __tablename__ = 'process_models'
+    __tablename__ = 'process_model'
     id = db.Column(db.Integer, primary_key=True)
     bpmn_json = deferred(db.Column(db.JSON))
