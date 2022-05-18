@@ -41,6 +41,7 @@ class Parser(BpmnDmnParser):  # type: ignore
 
 class ProcessStatus(TypedDict, total=False):
     """ProcessStatus."""
+
     last_task: str
     upcoming_tasks: List[str]
     next_activity: Dict[str, str]

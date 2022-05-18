@@ -1,6 +1,6 @@
 """Api."""
-import os
 import json
+import os
 
 from flask import Blueprint
 from flask import request
@@ -53,4 +53,6 @@ def run_process() -> Response:
 
     response = run(workflow, content.get("task_identifier"), content.get("answer"))
 
-    return Response(json.dumps({"response": response}), status=200, mimetype="application/json")
+    return Response(
+        json.dumps({"response": response}), status=200, mimetype="application/json"
+    )

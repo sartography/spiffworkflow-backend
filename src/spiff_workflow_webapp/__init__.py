@@ -1,6 +1,7 @@
 """__init__."""
 import flask.app
 from flask import Flask
+from flask_bpmn.api.api_error import api_error_blueprint
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import migrate
 
@@ -23,5 +24,6 @@ def create_app() -> flask.app.Flask:
 
     app.register_blueprint(user_blueprint)
     app.register_blueprint(api_blueprint)
+    app.register_blueprint(api_error_blueprint)
 
     return app

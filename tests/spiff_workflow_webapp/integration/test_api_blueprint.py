@@ -1,9 +1,11 @@
 """Test Api Blueprint."""
 import json
+from typing import Union
 
-from flask_bpmn.models.db import db
-from spiff_workflow_webapp.models.process_model import ProcessModel
 from flask.testing import FlaskClient
+from flask_bpmn.models.db import db
+
+from spiff_workflow_webapp.models.process_model import ProcessModel
 
 
 def test_user_can_be_created_and_deleted(client: FlaskClient) -> None:
@@ -34,12 +36,15 @@ def test_user_can_be_created_and_deleted(client: FlaskClient) -> None:
         db.session.commit()
 
 
-def run_task(client: FlaskClient, request_body: dict, last_response: str) -> None:
+def run_task(
+    client: FlaskClient, request_body: dict, last_response: Union[None, str]
+) -> None:
     """Run_task."""
-    response = client.post("/run_process",
-                           content_type="application/json",
-                           data=json.dumps(request_body),
-                           )
+    response = client.post(
+        "/run_process",
+        content_type="application/json",
+        data=json.dumps(request_body),
+    )
     current_response = response.data
     if last_response is not None:
         assert last_response != current_response

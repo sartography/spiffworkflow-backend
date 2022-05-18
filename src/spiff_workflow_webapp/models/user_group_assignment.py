@@ -1,13 +1,13 @@
 """UserGroupAssignment."""
 from flask_bpmn.models.db import db
-from sqlalchemy import ForeignKey
-from sqlalchemy.orm import relationship
+from sqlalchemy import ForeignKey  # type: ignore
+from sqlalchemy.orm import relationship  # type: ignore
 
 from spiff_workflow_webapp.models.group import GroupModel
 from spiff_workflow_webapp.models.user import UserModel
 
 
-class UserGroupAssignmentModel(db.Model):
+class UserGroupAssignmentModel(db.Model):  # type: ignore
     """UserGroupAssignmentModel."""
 
     __tablename__ = "user_group_assignment"

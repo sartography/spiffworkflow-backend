@@ -609,7 +609,7 @@ werkzeug = "*"
 type = "git"
 url = "https://github.com/sartography/flask-bpmn"
 reference = "main"
-resolved_reference = "9d102ccc9783146d4619faf53ab8aac225654d07"
+resolved_reference = "9d0911c9bc1e33160b9decadfa1b67f673406ac2"
 
 [[package]]
 name = "flask-cors"

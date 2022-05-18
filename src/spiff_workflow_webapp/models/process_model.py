@@ -1,9 +1,9 @@
 """Process_model."""
 from flask_bpmn.models.db import db
-from sqlalchemy.orm import deferred
+from sqlalchemy.orm import deferred  # type: ignore
 
 
-class ProcessModel(db.Model):
+class ProcessModel(db.Model):  # type: ignore
     """ProcessModel."""
 
     __tablename__ = "process_model"

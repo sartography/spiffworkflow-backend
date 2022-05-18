@@ -1,9 +1,9 @@
 """User."""
 from flask_bpmn.models.db import db
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship  # type: ignore
 
 
-class UserModel(db.Model):
+class UserModel(db.Model):  # type: ignore
     """UserModel."""
 
     __tablename__ = "user"
