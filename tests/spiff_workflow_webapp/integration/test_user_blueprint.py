@@ -1,9 +1,10 @@
 """Test User Blueprint."""
 import json
 
+from flask.testing import FlaskClient
+
 from spiff_workflow_webapp.models.group import GroupModel
 from spiff_workflow_webapp.models.user import UserModel
-from flask.testing import FlaskClient
 
 
 def test_user_can_be_created_and_deleted(client: FlaskClient) -> None:
@@ -144,7 +145,9 @@ def delete_group(client: FlaskClient, group_name: str) -> None:
     assert group is None
 
 
-def assign_user_to_group(client: FlaskClient, user: UserModel, group: GroupModel) -> None:
+def assign_user_to_group(
+    client: FlaskClient, user: UserModel, group: GroupModel
+) -> None:
     response = client.post(
         "/assign_user_to_group",
         content_type="application/json",
@@ -156,7 +159,9 @@ def assign_user_to_group(client: FlaskClient, user: UserModel, group: GroupModel
     assert user.user_group_assignments[0].group_id == group.id
 
 
-def remove_user_from_group(client: FlaskClient, user: UserModel, group: GroupModel) -> None:
+def remove_user_from_group(
+    client: FlaskClient, user: UserModel, group: GroupModel
+) -> None:
     response = client.post(
         "remove_user_from_group",
         content_type="application/json",

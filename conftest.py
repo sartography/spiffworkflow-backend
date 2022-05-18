@@ -1,8 +1,8 @@
 """Conftest."""
 import pytest
+from flask.app import Flask
 
 from spiff_workflow_webapp import create_app
-from flask.app import Flask
 
 
 @pytest.fixture(scope="session")

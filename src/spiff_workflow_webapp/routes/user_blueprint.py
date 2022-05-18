@@ -1,6 +1,7 @@
 """Main."""
 import json
 
+import flask.wrappers
 from flask import Blueprint
 from flask import request
 from flask import Response
@@ -10,7 +11,6 @@ from sqlalchemy.exc import IntegrityError
 from spiff_workflow_webapp.models.group import GroupModel
 from spiff_workflow_webapp.models.user import UserModel
 from spiff_workflow_webapp.models.user_group_assignment import UserGroupAssignmentModel
-import flask.wrappers
 
 user_blueprint = Blueprint("main", __name__)
 

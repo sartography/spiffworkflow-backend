@@ -1,5 +1,8 @@
 """Api."""
 import os
+from typing import Dict
+from typing import List
+from typing import Union
 
 from flask import Blueprint
 from flask import request
@@ -21,7 +24,9 @@ api_blueprint = Blueprint("api", __name__)
 
 
 @api_blueprint.route("/run_process", methods=["POST"])
-def run_process():
+def run_process() -> Dict[
+    str, Union[Dict[str, Union[str, List[str], Dict[str, str]]], Dict[str, str]]
+]:
     """Run_process."""
     content = request.json
 

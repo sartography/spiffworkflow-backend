@@ -1,6 +1,11 @@
 """Spiff Workflow Connector."""
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Union
+
 from flask_bpmn.models.db import db
-from jinja2 import Template
 from SpiffWorkflow.bpmn.serializer.workflow import BpmnWorkflowSerializer
 from SpiffWorkflow.bpmn.specs.events.event_types import CatchingEvent
 from SpiffWorkflow.bpmn.specs.events.event_types import ThrowingEvent
@@ -14,6 +19,7 @@ from SpiffWorkflow.camunda.specs.UserTask import UserTask
 from SpiffWorkflow.dmn.parser.BpmnDmnParser import BpmnDmnParser
 from SpiffWorkflow.dmn.serializer.task_spec_converters import BusinessRuleTaskConverter
 from SpiffWorkflow.task import Task
+from SpiffWorkflow.task import TaskState
 
 from spiff_workflow_webapp.models.process_model import ProcessModel
 
@@ -32,7 +38,7 @@ class Parser(BpmnDmnParser):
     OVERRIDE_PARSER_CLASSES.update(CamundaParser.OVERRIDE_PARSER_CLASSES)
 
 
-def parse(process, bpmn_files, dmn_files):
+def parse(process: str, bpmn_files: List[str], dmn_files: List[str]) -> BpmnWorkflow:
     """Parse."""
     parser = Parser()
     parser.add_bpmn_files(bpmn_files)
@@ -41,15 +47,7 @@ def parse(process, bpmn_files, dmn_files):
     return BpmnWorkflow(parser.get_spec(process))
 
 
-def display_task(task):
-    """Display_task."""
-    print(f"\n{task.task_spec.description}")
-    if task.task_spec.documentation is not None:
-        template = Template(task.task_spec.documentation)
-        print(template.render(task.data))
-
-
-def format_task(task, include_state=True):
+def format_task(task: Task, include_state: bool = True) -> str:
     """Format_task."""
     if hasattr(task.task_spec, "lane") and task.task_spec.lane is not None:
         lane = f"[{task.task_spec.lane}]"
@@ -59,9 +57,10 @@ def format_task(task, include_state=True):
     return f"{lane} {task.task_spec.description} ({task.task_spec.name}) {state}"
 
 
-def complete_user_task(task, answer=None):
+def complete_user_task(
+    task: Task, answer: Optional[Dict[str, str]] = None
+) -> Dict[Any, Any]:
     """Complete_user_task."""
-    display_task(task)
     required_user_input_fields = {}
     if task.data is None:
         task.data = {}
@@ -90,12 +89,9 @@ def complete_user_task(task, answer=None):
     return required_user_input_fields
 
 
-def print_state(workflow):
+def get_state(workflow: BpmnWorkflow) -> Dict[str, Union[str, List[str]]]:
     """Print_state."""
     task = workflow.last_task
-    # print("\nLast Task")
-    # print(format_task(task))
-    # print(json.dumps(task.data, indent=2, separators=[", ", ": "]))
     return_json = {"last_task": format_task(task)}
 
     display_types = (UserTask, ManualTask, ScriptTask, ThrowingEvent, CatchingEvent)
@@ -105,20 +101,21 @@ def print_state(workflow):
         if isinstance(task.task_spec, display_types)
     ]
     upcoming_tasks = [
-        task for task in all_tasks if task.state in [Task.READY, Task.WAITING]
+        task for task in all_tasks if task.state in [TaskState.READY, TaskState.WAITING]
     ]
 
     return_json["upcoming_tasks"] = []
     for _idx, task in enumerate(upcoming_tasks):
         return_json["upcoming_tasks"].append(format_task(task))
 
-    # if input("\nShow all tasks? ").lower() == "y":
-    #     for _idx, task in enumerate(all_tasks):
-    #         print(format_task(task))
     return return_json
 
 
-def run(workflow, task_identifier=None, answer=None):
+def run(
+    workflow: BpmnWorkflow,
+    task_identifier: Optional[str] = None,
+    answer: Optional[Dict[str, str]] = None,
+) -> Dict[str, Union[str, List[str], Dict[str, str]]]:
     """Run."""
     step = True
     workflow.do_engine_steps()
@@ -153,7 +150,7 @@ def run(workflow, task_identifier=None, answer=None):
         workflow.do_engine_steps()
         tasks_status = {}
         if step:
-            tasks_status = print_state(workflow)
+            tasks_status = get_state(workflow)
 
         ready_tasks = workflow.get_ready_user_tasks()
         formatted_options = {}
@@ -169,7 +166,5 @@ def run(workflow, task_identifier=None, answer=None):
         db.session.add(process_model)
         db.session.commit()
 
-        # with open("currentstate.json", "w") as dump:
-        #     dump.write(state)
         tasks_status["next_activity"] = formatted_options
         return tasks_status
