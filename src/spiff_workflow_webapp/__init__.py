@@ -5,9 +5,10 @@ from flask_bpmn.models.db import migrate
 
 from spiff_workflow_webapp.routes.api import api
 from spiff_workflow_webapp.routes.user_blueprint import user_blueprint
+import flask.app
 
 
-def create_app():
+def create_app() -> flask.app.Flask:
     """Create_app."""
     app = Flask(__name__)
     # app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite3"

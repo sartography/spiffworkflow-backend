@@ -10,12 +10,13 @@ from sqlalchemy.exc import IntegrityError
 from spiff_workflow_webapp.models.group import GroupModel
 from spiff_workflow_webapp.models.user import UserModel
 from spiff_workflow_webapp.models.user_group_assignment import UserGroupAssignmentModel
+import flask.wrappers
 
 user_blueprint = Blueprint("main", __name__)
 
 
 @user_blueprint.route("/user/<username>", methods=["GET"])
-def create_user(username):
+def create_user(username: str) -> flask.wrappers.Response:
     """Create_user."""
     user = UserModel.query.filter_by(username=username).first()
     if user is not None:
@@ -42,7 +43,7 @@ def create_user(username):
 
 
 @user_blueprint.route("/user/<username>", methods=["DELETE"])
-def delete_user(username):
+def delete_user(username: str) -> flask.wrappers.Response:
     """Delete_user."""
     user = UserModel.query.filter_by(username=username).first()
     if user is None:
@@ -59,7 +60,7 @@ def delete_user(username):
 
 
 @user_blueprint.route("/group/<group_name>", methods=["GET"])
-def create_group(group_name):
+def create_group(group_name: str) -> flask.wrappers.Response:
     """Create_group."""
     group = GroupModel.query.filter_by(name=group_name).first()
     if group is not None:
@@ -86,7 +87,7 @@ def create_group(group_name):
 
 
 @user_blueprint.route("/group/<group_name>", methods=["DELETE"])
-def delete_group(group_name):
+def delete_group(group_name: str) -> flask.wrappers.Response:
     """Delete_group."""
     group = GroupModel.query.filter_by(name=group_name).first()
     if group is None:
@@ -103,7 +104,7 @@ def delete_group(group_name):
 
 
 @user_blueprint.route("/assign_user_to_group", methods=["POST"])
-def assign_user_to_group():
+def assign_user_to_group() -> flask.wrappers.Response:
     """Assign_user_to_group."""
     user = get_user_from_request()
     group = get_group_from_request()
@@ -130,7 +131,7 @@ def assign_user_to_group():
 
 
 @user_blueprint.route("/remove_user_from_group", methods=["POST"])
-def remove_user_from_group():
+def remove_user_from_group() -> flask.wrappers.Response:
     """Remove_user_from_group."""
     user = get_user_from_request()
     group = get_group_from_request()
@@ -155,7 +156,7 @@ def remove_user_from_group():
     )
 
 
-def get_user_from_request():
+def get_user_from_request() -> UserModel:
     """Get_user_from_request."""
     user_id = request.json.get("user_id")
 
@@ -174,7 +175,7 @@ def get_user_from_request():
     return user
 
 
-def get_group_from_request():
+def get_group_from_request() -> GroupModel:
     """Get_group_from_request."""
     group_id = request.json.get("group_id")
 

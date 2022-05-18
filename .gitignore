@@ -8,6 +8,7 @@
 /docs/_build/
 /src/*.egg-info/
 __pycache__/
+monkeytype.sqlite3
 
 # we will probably want this committed at some point
 /migrations
