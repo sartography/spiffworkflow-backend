@@ -1,9 +1,10 @@
 """Group."""
 from flask_bpmn.models.db import db
+from flask_bpmn.models.group import FlaskBpmnGroupModel
 from sqlalchemy.orm import relationship  # type: ignore
 
 
-class GroupModel(db.Model):  # type: ignore
+class GroupModel(FlaskBpmnGroupModel):  # type: ignore
     """GroupModel."""
 
     __tablename__ = "group"
