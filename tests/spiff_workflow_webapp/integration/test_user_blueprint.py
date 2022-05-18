@@ -78,17 +78,39 @@ def test_create_returns_an_error_if_group_exists(client):
 def test_user_can_be_assigned_to_a_group(client):
     user = create_user(client, "joe")
     group = create_group(client, "administrators")
-    response = client.post(
-        "/assign_user_to_group",
-        content_type="application/json",
-        data=json.dumps({"user_id": user.id, "group_id": group.id}),
-    )
-    assert response.status_code == 201
-    user = UserModel.query.filter_by(id=user.id).first()
-    assert len(user.user_group_assignments) == 1
-    assert user.user_group_assignments[0].group_id == group.id
+    assign_user_to_group(client, user, group)
     delete_user(client, user.username)
     delete_group(client, group.name)
+
+
+def test_user_can_be_removed_from_a_group(client):
+    user = create_user(client, "joe")
+    group = create_group(client, "administrators")
+    assign_user_to_group(client, user, group)
+    remove_user_from_group(client, user, group)
+    delete_user(client, user.username)
+    delete_group(client, group.name)
+
+
+def test_acceptance(client):
+    # Create a user U
+    user = create_user(client, 'U')
+    # Create a group G
+    group_g = create_group(client, 'G')
+    # Assign user U to group G
+    assign_user_to_group(client, user, group_g)
+    # Delete group G
+    delete_group(client, group_g.name)
+    # Create group H
+    group_h = create_group(client, 'H')
+    # Assign user U to group H
+    assign_user_to_group(client, user, group_h)
+    # Unassign user U from group H
+    remove_user_from_group(client, user, group_h)
+    # Delete group H
+    delete_group(client, group_h.name)
+    # Delete user U
+    delete_user(client, user.username)
 
 
 def create_user(client, username):
@@ -119,3 +141,26 @@ def delete_group(client, group_name):
     assert response.status_code == 204
     group = GroupModel.query.filter_by(name=group_name).first()
     assert group is None
+
+
+def assign_user_to_group(client, user, group):
+    response = client.post(
+        "/assign_user_to_group",
+        content_type="application/json",
+        data=json.dumps({"user_id": user.id, "group_id": group.id}),
+    )
+    assert response.status_code == 201
+    user = UserModel.query.filter_by(id=user.id).first()
+    assert len(user.user_group_assignments) == 1
+    assert user.user_group_assignments[0].group_id == group.id
+
+
+def remove_user_from_group(client, user, group):
+    response = client.post(
+        "remove_user_from_group",
+        content_type="application/json",
+        data=json.dumps({"user_id": user.id, "group_id": group.id}),
+    )
+    assert response.status_code == 204
+    user = UserModel.query.filter_by(id=user.id).first()
+    assert len(user.user_group_assignments) == 0
