@@ -94,15 +94,15 @@ def test_user_can_be_removed_from_a_group(client):
 
 def test_acceptance(client):
     # Create a user U
-    user = create_user(client, 'U')
+    user = create_user(client, "U")
     # Create a group G
-    group_g = create_group(client, 'G')
+    group_g = create_group(client, "G")
     # Assign user U to group G
     assign_user_to_group(client, user, group_g)
     # Delete group G
     delete_group(client, group_g.name)
     # Create group H
-    group_h = create_group(client, 'H')
+    group_h = create_group(client, "H")
     # Assign user U to group H
     assign_user_to_group(client, user, group_h)
     # Unassign user U from group H

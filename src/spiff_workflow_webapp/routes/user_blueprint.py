@@ -156,6 +156,7 @@ def remove_user_from_group():
 
 
 def get_user_from_request():
+    """Get_user_from_request."""
     user_id = request.json.get("user_id")
 
     if user_id is None:
@@ -174,6 +175,7 @@ def get_user_from_request():
 
 
 def get_group_from_request():
+    """Get_group_from_request."""
     group_id = request.json.get("group_id")
 
     if group_id is None:

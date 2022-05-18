@@ -1,4 +1,4 @@
-"""process_model."""
+"""Process_model."""
 from flask_bpmn.models.db import db
 from sqlalchemy.orm import deferred
 
