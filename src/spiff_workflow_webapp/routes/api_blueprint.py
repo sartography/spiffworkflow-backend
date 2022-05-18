@@ -17,10 +17,10 @@ wf_spec_converter = BpmnWorkflowSerializer.configure_workflow_spec_converter(
 )
 serializer = BpmnWorkflowSerializer(wf_spec_converter)
 
-api = Blueprint("api", __name__)
+api_blueprint = Blueprint("api", __name__)
 
 
-@api.route("/run_process", methods=["POST"])
+@api_blueprint.route("/run_process", methods=["POST"])
 def run_process():
     """Run_process."""
     content = request.json

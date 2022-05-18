@@ -3,7 +3,7 @@ from flask import Flask
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import migrate
 
-from spiff_workflow_webapp.routes.api import api
+from spiff_workflow_webapp.routes.api_blueprint import api_blueprint
 from spiff_workflow_webapp.routes.user_blueprint import user_blueprint
 import flask.app
 
@@ -22,6 +22,6 @@ def create_app() -> flask.app.Flask:
     migrate.init_app(app, db)
 
     app.register_blueprint(user_blueprint)
-    app.register_blueprint(api)
+    app.register_blueprint(api_blueprint)
 
     return app
