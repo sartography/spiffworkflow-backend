@@ -6,7 +6,7 @@ from flask import Blueprint
 from flask import request
 from flask import Response
 from flask_bpmn.models.db import db
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError  # type: ignore
 
 from spiff_workflow_webapp.models.group import GroupModel
 from spiff_workflow_webapp.models.user import UserModel
@@ -156,9 +156,16 @@ def remove_user_from_group() -> flask.wrappers.Response:
     )
 
 
+def get_value_from_request_json(key):
+    """Get_value_from_request_json."""
+    if request.json is None:
+        return None
+    return request.json.get(key)
+
+
 def get_user_from_request() -> UserModel:
     """Get_user_from_request."""
-    user_id = request.json.get("user_id")
+    user_id = get_value_from_request_json("user_id")
 
     if user_id is None:
         return Response(
@@ -177,7 +184,7 @@ def get_user_from_request() -> UserModel:
 
 def get_group_from_request() -> GroupModel:
     """Get_group_from_request."""
-    group_id = request.json.get("group_id")
+    group_id = get_value_from_request_json("group_id")
 
     if group_id is None:
         return Response(

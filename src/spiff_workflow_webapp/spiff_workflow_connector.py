@@ -6,20 +6,21 @@ from typing import Optional
 from typing import Union
 
 from flask_bpmn.models.db import db
-from SpiffWorkflow.bpmn.serializer.workflow import BpmnWorkflowSerializer
-from SpiffWorkflow.bpmn.specs.events.event_types import CatchingEvent
+from SpiffWorkflow.bpmn.serializer.workflow import BpmnWorkflowSerializer  # type: ignore
+from SpiffWorkflow.bpmn.specs.events.event_types import CatchingEvent  # type: ignore
 from SpiffWorkflow.bpmn.specs.events.event_types import ThrowingEvent
-from SpiffWorkflow.bpmn.specs.ManualTask import ManualTask
-from SpiffWorkflow.bpmn.specs.ScriptTask import ScriptTask
-from SpiffWorkflow.bpmn.workflow import BpmnWorkflow
-from SpiffWorkflow.camunda.parser.CamundaParser import CamundaParser
-from SpiffWorkflow.camunda.serializer.task_spec_converters import UserTaskConverter
-from SpiffWorkflow.camunda.specs.UserTask import EnumFormField
+from SpiffWorkflow.bpmn.specs.ManualTask import ManualTask  # type: ignore
+from SpiffWorkflow.bpmn.specs.ScriptTask import ScriptTask  # type: ignore
+from SpiffWorkflow.bpmn.workflow import BpmnWorkflow  # type: ignore
+from SpiffWorkflow.camunda.parser.CamundaParser import CamundaParser  # type: ignore
+from SpiffWorkflow.camunda.serializer.task_spec_converters import UserTaskConverter  # type: ignore
+from SpiffWorkflow.camunda.specs.UserTask import EnumFormField  # type: ignore
 from SpiffWorkflow.camunda.specs.UserTask import UserTask
-from SpiffWorkflow.dmn.parser.BpmnDmnParser import BpmnDmnParser
-from SpiffWorkflow.dmn.serializer.task_spec_converters import BusinessRuleTaskConverter
-from SpiffWorkflow.task import Task
+from SpiffWorkflow.dmn.parser.BpmnDmnParser import BpmnDmnParser  # type: ignore
+from SpiffWorkflow.dmn.serializer.task_spec_converters import BusinessRuleTaskConverter  # type: ignore
+from SpiffWorkflow.task import Task  # type: ignore
 from SpiffWorkflow.task import TaskState
+from typing_extensions import TypedDict
 
 from spiff_workflow_webapp.models.process_model import ProcessModel
 
@@ -31,11 +32,18 @@ wf_spec_converter = BpmnWorkflowSerializer.configure_workflow_spec_converter(
 serializer = BpmnWorkflowSerializer(wf_spec_converter)
 
 
-class Parser(BpmnDmnParser):
+class Parser(BpmnDmnParser):  # type: ignore
     """Parser."""
 
     OVERRIDE_PARSER_CLASSES = BpmnDmnParser.OVERRIDE_PARSER_CLASSES
     OVERRIDE_PARSER_CLASSES.update(CamundaParser.OVERRIDE_PARSER_CLASSES)
+
+
+class ProcessStatus(TypedDict, total=False):
+    """ProcessStatus."""
+    last_task: str
+    upcoming_tasks: List[str]
+    next_activity: Dict[str, str]
 
 
 def parse(process: str, bpmn_files: List[str], dmn_files: List[str]) -> BpmnWorkflow:
@@ -89,10 +97,11 @@ def complete_user_task(
     return required_user_input_fields
 
 
-def get_state(workflow: BpmnWorkflow) -> Dict[str, Union[str, List[str]]]:
+def get_state(workflow: BpmnWorkflow) -> ProcessStatus:
     """Print_state."""
     task = workflow.last_task
-    return_json = {"last_task": format_task(task)}
+
+    return_json: ProcessStatus = {"last_task": format_task(task), "upcoming_tasks": []}
 
     display_types = (UserTask, ManualTask, ScriptTask, ThrowingEvent, CatchingEvent)
     all_tasks = [
@@ -104,7 +113,6 @@ def get_state(workflow: BpmnWorkflow) -> Dict[str, Union[str, List[str]]]:
         task for task in all_tasks if task.state in [TaskState.READY, TaskState.WAITING]
     ]
 
-    return_json["upcoming_tasks"] = []
     for _idx, task in enumerate(upcoming_tasks):
         return_json["upcoming_tasks"].append(format_task(task))
 
@@ -115,12 +123,13 @@ def run(
     workflow: BpmnWorkflow,
     task_identifier: Optional[str] = None,
     answer: Optional[Dict[str, str]] = None,
-) -> Dict[str, Union[str, List[str], Dict[str, str]]]:
+) -> Union[ProcessStatus, Dict[str, str]]:
     """Run."""
     step = True
     workflow.do_engine_steps()
+    tasks_status = ProcessStatus()
 
-    while not workflow.is_completed():
+    if not workflow.is_completed():
 
         ready_tasks = workflow.get_ready_user_tasks()
         options = {}
@@ -148,7 +157,6 @@ def run(
 
         workflow.refresh_waiting_tasks()
         workflow.do_engine_steps()
-        tasks_status = {}
         if step:
             tasks_status = get_state(workflow)
 
@@ -167,4 +175,5 @@ def run(
         db.session.commit()
 
         tasks_status["next_activity"] = formatted_options
-        return tasks_status
+
+    return tasks_status
