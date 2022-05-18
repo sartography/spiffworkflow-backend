@@ -874,7 +874,7 @@ python-versions = ">=3.6"
 name = "libcst"
 version = "0.4.3"
 description = "A concrete syntax tree with AST-like properties for Python 3.5, 3.6, 3.7, 3.8, 3.9, and 3.10 programs."
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 
@@ -966,7 +966,7 @@ python-versions = "*"
 name = "monkeytype"
 version = "22.2.0"
 description = "Generating type annotations from sampled production types"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6"
 
@@ -996,7 +996,7 @@ python2 = ["typed-ast (>=1.4.0,<1.5.0)"]
 name = "mypy-extensions"
 version = "0.4.3"
 description = "Experimental type system extensions for programs checked with the mypy typechecker."
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 
@@ -1756,7 +1756,7 @@ python-versions = ">=3.7"
 name = "typing-inspect"
 version = "0.7.1"
 description = "Runtime inspection utilities for typing module."
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 
@@ -1913,7 +1913,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "13e7ee9cddd2f8491459d0d7ea92195b1ca3812b6ce08d73871b4d3bc0efd224"
+content-hash = "7ac8a215dc434df70aa91359d5a1cd8458ca30eb0d104bad326442e3f592f813"
 
 [metadata.files]
 alabaster = [
