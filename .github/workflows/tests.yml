@@ -18,7 +18,18 @@ jobs:
           - { python: "3.9", os: "ubuntu-latest", session: "mypy" }
           - { python: "3.8", os: "ubuntu-latest", session: "mypy" }
           - { python: "3.7", os: "ubuntu-latest", session: "mypy" }
-          - { python: "3.10", os: "ubuntu-latest", session: "tests" }
+          # - {
+          #     python: "3.10",
+          #     os: "ubuntu-latest",
+          #     session: "tests",
+          #     database: "mysql",
+          #   }
+          - {
+              python: "3.10",
+              os: "ubuntu-latest",
+              session: "tests",
+              database: "sqlite",
+            }
           - { python: "3.9", os: "ubuntu-latest", session: "tests" }
           - { python: "3.8", os: "ubuntu-latest", session: "tests" }
           - { python: "3.7", os: "ubuntu-latest", session: "tests" }
@@ -30,6 +41,7 @@ jobs:
 
     env:
       NOXSESSION: ${{ matrix.session }}
+      TEST_DATABASE_TYPE: ${{ matrix.database }}
       FORCE_COLOR: "1"
       PRE_COMMIT_COLOR: "always"
 

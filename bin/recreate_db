@@ -16,9 +16,13 @@ if [[ "${1:-}" == "clean" ]]; then
 
   mysql -uroot -e "DROP DATABASE IF EXISTS spiff_workflow_webapp_development"
   mysql -uroot -e "CREATE DATABASE spiff_workflow_webapp_development"
+  mysql -uroot -e "DROP DATABASE IF EXISTS spiff_workflow_webapp_testing"
+  mysql -uroot -e "CREATE DATABASE spiff_workflow_webapp_testing"
 fi
 tasks="$tasks migrate upgrade"
 
 for task in $tasks ; do
   FLASK_ENV=development FLASK_APP=src/spiff_workflow_webapp poetry run flask db "$task"
 done
+
+FLASK_ENV=testing FLASK_APP=src/spiff_workflow_webapp poetry run flask db upgrade

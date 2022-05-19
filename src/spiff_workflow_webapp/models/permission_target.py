@@ -1,5 +1,6 @@
 """PermissionTarget."""
 from flask_bpmn.models.db import db
+
 # from sqlalchemy import ForeignKey  # type: ignore
 # from sqlalchemy.orm import relationship  # type: ignore
 
