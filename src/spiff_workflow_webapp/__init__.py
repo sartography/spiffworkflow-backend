@@ -12,10 +12,10 @@ from spiff_workflow_webapp.routes.user_blueprint import user_blueprint
 def create_app() -> flask.app.Flask:
     """Create_app."""
     app = Flask(__name__)
-    # app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite3"
-    app.config[
-        "SQLALCHEMY_DATABASE_URI"
-    ] = "mysql+mysqlconnector://root:@localhost/spiff_workflow_webapp_development"
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite3"
+    # app.config[
+    #     "SQLALCHEMY_DATABASE_URI"
+    # ] = "mysql+mysqlconnector://root:@localhost/spiff_workflow_webapp_development"
     # app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://crc_user:crc_pass@localhost:5432/spiff_test"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
