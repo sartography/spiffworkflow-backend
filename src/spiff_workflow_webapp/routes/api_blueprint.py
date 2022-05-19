@@ -10,7 +10,6 @@ from SpiffWorkflow.bpmn.serializer.workflow import BpmnWorkflowSerializer  # typ
 from SpiffWorkflow.camunda.serializer.task_spec_converters import UserTaskConverter  # type: ignore
 from SpiffWorkflow.dmn.serializer.task_spec_converters import BusinessRuleTaskConverter  # type: ignore
 
-from spiff_workflow_webapp.config import project_root
 from spiff_workflow_webapp.models.process_model import ProcessModel
 from spiff_workflow_webapp.spiff_workflow_connector import parse
 from spiff_workflow_webapp.spiff_workflow_connector import run
@@ -35,7 +34,7 @@ def run_process() -> Response:
             mimetype="application/json",
         )
 
-    bpmn_spec_dir = os.path.join(project_root, current_app.config["BPMN_SPEC_DIR"])
+    bpmn_spec_dir = os.path.join(current_app.config["PROJECT_ROOT"], current_app.config["BPMN_SPEC_DIR"])
     process = "order_product"
     dmn = [
         os.path.join(bpmn_spec_dir, "product_prices.dmn"),
