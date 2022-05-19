@@ -34,7 +34,7 @@ def run_process() -> Response:
             mimetype="application/json",
         )
 
-    bpmn_spec_dir = os.path.join(current_app.config["PROJECT_ROOT"], current_app.config["BPMN_SPEC_DIR"])
+    bpmn_spec_dir = current_app.config["BPMN_SPEC_ABSOLUTE_DIR"]
     process = "order_product"
     dmn = [
         os.path.join(bpmn_spec_dir, "product_prices.dmn"),

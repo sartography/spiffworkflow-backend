@@ -10,4 +10,3 @@ else:
     )
 
 TESTING = True
-BPMN_SPEC_DIR = "tests/spiff_workflow_webapp/files/bpmn_specs"
