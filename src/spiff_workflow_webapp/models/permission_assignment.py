@@ -2,8 +2,8 @@
 import enum
 
 from flask_bpmn.models.db import db
-from sqlalchemy import Enum
-from sqlalchemy import ForeignKey  # type: ignore
+from sqlalchemy import Enum  # type: ignore
+from sqlalchemy import ForeignKey
 
 from spiff_workflow_webapp.models.permission import PermissionModel
 from spiff_workflow_webapp.models.permission_target import PermissionTargetModel

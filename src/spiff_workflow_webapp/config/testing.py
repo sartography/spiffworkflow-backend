@@ -5,7 +5,9 @@ import os
 if os.environ.get("TEST_DATABASE_TYPE") == "sqlite":
     SQLALCHEMY_DATABASE_URI = "sqlite:///db.sqlite3"
 else:
-    SQLALCHEMY_DATABASE_URI = "mysql+mysqlconnector://root:@localhost/spiff_workflow_webapp_testing"
+    SQLALCHEMY_DATABASE_URI = (
+        "mysql+mysqlconnector://root:@localhost/spiff_workflow_webapp_testing"
+    )
 
 TESTING = True
 BPMN_SPEC_DIR = "tests/spiff_workflow_webapp/files/bpmn_specs"
