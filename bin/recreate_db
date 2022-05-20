@@ -13,14 +13,11 @@ if [[ "${1:-}" == "clean" ]]; then
 
   rm -rf migrations/
 
-  # if [[ "${TEST_DATABASE_TYPE:-}" == "sqlite" ]]; then
-  #   rm -f ./src/spiff_workflow_webapp/db.sqlite3
-  # else
-  #   mysql -uroot -e "DROP DATABASE IF EXISTS spiff_workflow_webapp_development"
-  #   mysql -uroot -e "CREATE DATABASE spiff_workflow_webapp_development"
-  #   mysql -uroot -e "DROP DATABASE IF EXISTS spiff_workflow_webapp_testing"
-  #   mysql -uroot -e "CREATE DATABASE spiff_workflow_webapp_testing"
-  # fi
+  rm -f ./src/spiff_workflow_webapp/db.sqlite3
+  mysql -uroot -e "DROP DATABASE IF EXISTS spiff_workflow_webapp_development"
+  mysql -uroot -e "CREATE DATABASE spiff_workflow_webapp_development"
+  mysql -uroot -e "DROP DATABASE IF EXISTS spiff_workflow_webapp_testing"
+  mysql -uroot -e "CREATE DATABASE spiff_workflow_webapp_testing"
 fi
 tasks="$tasks migrate upgrade"
 
