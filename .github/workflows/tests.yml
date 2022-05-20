@@ -143,7 +143,7 @@ jobs:
           container port: 3306
           mysql version: "8.0"
           mysql database: "spiff_workflow_webapp_testing"
-          mysql root password: "password"
+          mysql root password:
         if: matrix.database == 'mysql'
 
       - name: Run Nox

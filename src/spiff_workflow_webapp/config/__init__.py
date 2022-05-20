@@ -23,7 +23,7 @@ def setup_config(app: Flask) -> None:
     else:
         app.config[
             "SQLALCHEMY_DATABASE_URI"
-        ] = f"mysql+mysqlconnector://root:password@localhost/spiff_workflow_webapp_{app.env}"
+        ] = f"mysql+mysqlconnector://root:@localhost/spiff_workflow_webapp_{app.env}"
 
     try:
         app.config.from_object("spiff_workflow_webapp.config." + app.env)
