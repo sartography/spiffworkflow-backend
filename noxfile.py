@@ -159,6 +159,9 @@ def typeguard(session: Session) -> None:
     """Runtime type checking using Typeguard."""
     session.install(".")
     session.install("pytest", "typeguard", "pygments")
+    session.env["FLASK_APP"] = "src/spiff_workflow_webapp"
+    session.env["FLASK_ENV"] = "testing"
+    session.run("flask", "db", "upgrade")
     session.env["RUN_TYPEGUARD"] = "true"
     session.run("pytest", *session.posargs)
 
