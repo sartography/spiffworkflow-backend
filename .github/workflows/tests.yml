@@ -160,9 +160,6 @@ jobs:
 
       - name: Run Nox
         run: |
-          ls -l .
-          pwd
-          ./bin/recreate_db clean
           nox --force-color --python=${{ matrix.python }}
 
       - name: Upload coverage data

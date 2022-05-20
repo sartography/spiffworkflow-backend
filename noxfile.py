@@ -132,6 +132,9 @@ def tests(session: Session) -> None:
     session.install(".")
     session.install("coverage[toml]", "pytest", "pygments")
     try:
+        session.run("ls")
+        session.run("pwd")
+        session.run("./bin/recreate_db", "clean")
         session.run("coverage", "run", "--parallel", "-m", "pytest", *session.posargs)
     finally:
         if session.interactive:
