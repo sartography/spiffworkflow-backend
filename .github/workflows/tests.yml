@@ -77,6 +77,7 @@ jobs:
       TEST_DATABASE_TYPE: ${{ matrix.database }}
       FORCE_COLOR: "1"
       PRE_COMMIT_COLOR: "always"
+      MYSQL_PASSWORD: password
 
     steps:
       - name: Check out the repository
@@ -143,8 +144,7 @@ jobs:
           container port: 3306
           mysql version: "8.0"
           mysql database: "spiff_workflow_webapp_testing"
-          mysql root password:
-          mysql allow empty password: yes
+          mysql root password: password
         if: matrix.database == 'mysql'
 
       - name: Run Nox
