@@ -1,6 +1,7 @@
 """Main."""
 import json
 from typing import Any
+from typing import Final
 
 import flask.wrappers
 from flask import Blueprint
@@ -13,6 +14,8 @@ from sqlalchemy.exc import IntegrityError  # type: ignore
 from spiff_workflow_webapp.models.group import GroupModel
 from spiff_workflow_webapp.models.user import UserModel
 from spiff_workflow_webapp.models.user_group_assignment import UserGroupAssignmentModel
+
+APPLICATION_JSON: Final = "application/json"
 
 user_blueprint = Blueprint("main", __name__)
 
@@ -39,9 +42,7 @@ def create_user(username: str) -> flask.wrappers.Response:
         ) from exception
 
     db.session.commit()
-    return Response(
-        json.dumps({"id": user.id}), status=201, mimetype="application/json"
-    )
+    return Response(json.dumps({"id": user.id}), status=201, mimetype=APPLICATION_JSON)
 
 
 @user_blueprint.route("/user/<username>", methods=["DELETE"])
@@ -60,7 +61,7 @@ def delete_user(username: str) -> flask.wrappers.Response:
     db.session.delete(user)
     db.session.commit()
 
-    return Response(json.dumps({"ok": True}), status=204, mimetype="application/json")
+    return Response(json.dumps({"ok": True}), status=204, mimetype=APPLICATION_JSON)
 
 
 @user_blueprint.route("/group/<group_name>", methods=["GET"])
@@ -85,9 +86,7 @@ def create_group(group_name: str) -> flask.wrappers.Response:
         ) from exception
     db.session.commit()
 
-    return Response(
-        json.dumps({"id": group.id}), status=201, mimetype="application/json"
-    )
+    return Response(json.dumps({"id": group.id}), status=201, mimetype=APPLICATION_JSON)
 
 
 @user_blueprint.route("/group/<group_name>", methods=["DELETE"])
@@ -106,7 +105,7 @@ def delete_group(group_name: str) -> flask.wrappers.Response:
     db.session.delete(group)
     db.session.commit()
 
-    return Response(json.dumps({"ok": True}), status=204, mimetype="application/json")
+    return Response(json.dumps({"ok": True}), status=204, mimetype=APPLICATION_JSON)
 
 
 @user_blueprint.route("/assign_user_to_group", methods=["POST"])
@@ -134,7 +133,7 @@ def assign_user_to_group() -> flask.wrappers.Response:
     return Response(
         json.dumps({"id": user_group_assignment.id}),
         status=201,
-        mimetype="application/json",
+        mimetype=APPLICATION_JSON,
     )
 
 
@@ -162,7 +161,7 @@ def remove_user_from_group() -> flask.wrappers.Response:
     return Response(
         json.dumps({"ok": True}),
         status=204,
-        mimetype="application/json",
+        mimetype=APPLICATION_JSON,
     )
 
 
