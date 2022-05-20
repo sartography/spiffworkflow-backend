@@ -132,8 +132,9 @@ def tests(session: Session) -> None:
     session.install(".")
     session.install("coverage[toml]", "pytest", "pygments")
     try:
+        session.env["FLASK_APP"] = "src/spiff_workflow_webapp"
         session.env["FLASK_ENV"] = "testing"
-        session.run("flask", "upgrade")
+        session.run("flask", "db", "upgrade")
         session.run("coverage", "run", "--parallel", "-m", "pytest", *session.posargs)
     finally:
         if session.interactive:

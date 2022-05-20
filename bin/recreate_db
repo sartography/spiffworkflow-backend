@@ -13,7 +13,7 @@ if [[ "${1:-}" == "clean" ]]; then
 
   rm -rf migrations/
 
-  rm -f ./src/spiff_workflow_webapp/db.sqlite3
+  rm -f ./src/spiff_workflow_webapp/db*.sqlite3
   mysql -uroot -e "DROP DATABASE IF EXISTS spiff_workflow_webapp_development"
   mysql -uroot -e "CREATE DATABASE spiff_workflow_webapp_development"
   mysql -uroot -e "DROP DATABASE IF EXISTS spiff_workflow_webapp_testing"
