@@ -80,16 +80,23 @@ jobs:
 
     services:
       mysql:
-        image: mysql:8.0
+        image: mariadb:10.3
         env:
-          MYSQL_DATABASE: spiff_workflow_webapp_testing
-          # MYSQL_ALLOW_EMPTY_PASSWORD: yes
-          # MYSQL_USER: root
-          MYSQL_PASSWORD: password
-          # MYSQL_ROOT_PASSWORD: 
+          MYSQL_ROOT_PASSWORD: root
         ports:
-          - 3306:3306
+        - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+      # mysql:
+      #   image: mysql:8.0
+      #   env:
+      #     MYSQL_DATABASE: spiff_workflow_webapp_testing
+      #     # MYSQL_ALLOW_EMPTY_PASSWORD: yes
+      #     # MYSQL_USER: root
+      #     MYSQL_PASSWORD: password
+      #     MYSQL_ROOT_PASSWORD: password
+      #   ports:
+      #     - 3306:3306
+      #   options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
       - name: Check out the repository
