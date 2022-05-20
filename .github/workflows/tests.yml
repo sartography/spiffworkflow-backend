@@ -61,7 +61,10 @@ jobs:
               database: "sqlite",
             }
           - {
-              python: "3.10",
+              # typeguard 2.13.3 is broken with TypeDict in 3.10.
+              # probably the next release fixes it.
+              # https://github.com/agronholm/typeguard/issues/242
+              python: "3.9",
               os: "ubuntu-latest",
               session: "typeguard",
               database: "sqlite",

@@ -3,8 +3,16 @@ import os
 
 import pytest
 from flask.app import Flask
+from typeguard.importhook import install_import_hook
 
-from spiff_workflow_webapp import create_app
+
+# We need to call this before importing spiff_workflow_webapp
+# otherwise typeguard cannot work. hence the noqa: E402
+if os.environ.get("RUN_TYPEGUARD") == "true":
+    install_import_hook(packages="spiff_workflow_webapp")
+
+
+from spiff_workflow_webapp import create_app  # noqa: E402
 
 
 @pytest.fixture(scope="session")
