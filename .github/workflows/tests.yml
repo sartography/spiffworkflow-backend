@@ -82,7 +82,9 @@ jobs:
       mysql:
         image: mariadb:10.3
         env:
-          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: spiff_workflow_webapp_testing
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+          MYSQL_ROOT_PASSWORD:
         ports:
         - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
