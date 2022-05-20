@@ -144,6 +144,7 @@ jobs:
           mysql version: "8.0"
           mysql database: "spiff_workflow_webapp_testing"
           mysql root password:
+          mysql allow empty password: yes
         if: matrix.database == 'mysql'
 
       - name: Run Nox
