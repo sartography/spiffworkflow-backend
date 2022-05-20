@@ -1,4 +1,6 @@
 """__init__."""
+import os
+
 import flask.app
 from flask import Flask
 from flask_bpmn.api.api_error import api_error_blueprint
@@ -12,7 +14,12 @@ from spiff_workflow_webapp.routes.user_blueprint import user_blueprint
 
 def create_app() -> flask.app.Flask:
     """Create_app."""
-    app = Flask(__name__)
+    # We need to create the sqlite database in a known location.
+    # If we rely on the app.instance_path without setting an environment
+    # variable, it will be one thing when we run flask db upgrade in the
+    # noxfile and another thing when the tests actually run.
+    # instance_path is described more at https://flask.palletsprojects.com/en/2.1.x/config/
+    app = Flask(__name__, instance_path=os.environ.get("FLASK_INSTANCE_PATH"))
 
     setup_config(app)
     db.init_app(app)

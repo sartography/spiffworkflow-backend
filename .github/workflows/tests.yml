@@ -78,18 +78,6 @@ jobs:
       FORCE_COLOR: "1"
       PRE_COMMIT_COLOR: "always"
 
-    # services:
-    #   mysql:
-    #     if: matrix.database == 'mysql'
-    #     image: mariadb:10.3
-    #     env:
-    #       MYSQL_DATABASE: spiff_workflow_webapp_testing
-    #       MYSQL_ALLOW_EMPTY_PASSWORD: yes
-    #       MYSQL_ROOT_PASSWORD:
-    #     ports:
-    #       - 3306:3306
-    #     options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
-
     steps:
       - name: Check out the repository
         uses: actions/checkout@v3.0.2
@@ -147,24 +135,16 @@ jobs:
           key: ${{ steps.pre-commit-cache.outputs.result }}-${{ hashFiles('.pre-commit-config.yaml') }}
           restore-keys: |
             ${{ steps.pre-commit-cache.outputs.result }}-
-      
+
       - name: Setup Mysql
         uses: mirromutth/mysql-action@v1.1
         with:
           host port: 3306
           container port: 3306
-          mysql version: '8.0'
-          mysql database: 'spiff_workflow_webapp_testing'
-          mysql root password: 'password'
+          mysql version: "8.0"
+          mysql database: "spiff_workflow_webapp_testing"
+          mysql root password: "password"
         if: matrix.database == 'mysql'
-        # image: mariadb:10.3
-        # env:
-        #   MYSQL_DATABASE: spiff_workflow_webapp_testing
-        #   MYSQL_ALLOW_EMPTY_PASSWORD: yes
-        #   MYSQL_ROOT_PASSWORD:
-        # ports:
-        #   - 3306:3306
-        # options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
       - name: Run Nox
         run: |

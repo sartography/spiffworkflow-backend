@@ -34,6 +34,14 @@ nox.options.sessions = (
 )
 
 
+def setup_database(session: Session):
+    """Run database migrations against the database."""
+    session.env["FLASK_INSTANCE_PATH"] = os.path.join(os.getcwd(), "instance")
+    session.env["FLASK_APP"] = "src/spiff_workflow_webapp"
+    session.env["FLASK_ENV"] = "testing"
+    session.run("flask", "db", "upgrade")
+
+
 def activate_virtualenv_in_precommit_hooks(session: Session) -> None:
     """Activate virtualenv in hooks installed by pre-commit.
 
@@ -132,9 +140,7 @@ def tests(session: Session) -> None:
     session.install(".")
     session.install("coverage[toml]", "pytest", "pygments")
     try:
-        session.env["FLASK_APP"] = "src/spiff_workflow_webapp"
-        session.env["FLASK_ENV"] = "testing"
-        session.run("flask", "db", "upgrade")
+        setup_database(session)
         session.run("coverage", "run", "--parallel", "-m", "pytest", *session.posargs)
     finally:
         if session.interactive:
@@ -159,9 +165,7 @@ def typeguard(session: Session) -> None:
     """Runtime type checking using Typeguard."""
     session.install(".")
     session.install("pytest", "typeguard", "pygments")
-    session.env["FLASK_APP"] = "src/spiff_workflow_webapp"
-    session.env["FLASK_ENV"] = "testing"
-    session.run("flask", "db", "upgrade")
+    setup_database(session)
     session.env["RUN_TYPEGUARD"] = "true"
     session.run("pytest", *session.posargs)
 
