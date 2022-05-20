@@ -157,6 +157,7 @@ def typeguard(session: Session) -> None:
     session.install(".")
     session.install("pytest", "typeguard", "pygments")
     session.env["RUN_TYPEGUARD"] = "true"
+    session.env["TEST_DATABASE_TYPE"] = session.env.get("TEST_DATABASE_TYPE")
     session.run("pytest", *session.posargs)
 
 
