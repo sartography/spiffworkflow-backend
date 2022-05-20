@@ -28,7 +28,7 @@ def test_user_can_be_created_and_deleted(client: FlaskClient) -> None:
         {"task_identifier": "1", "answer": {"Was the order shipped?": "Y"}},
     ]
     for task in tasks:
-        run_task(client, task, last_response)
+        last_response = run_task(client, task, last_response)
 
     process_model = ProcessModel.query.filter().first()
     if process_model is not None:
@@ -38,7 +38,7 @@ def test_user_can_be_created_and_deleted(client: FlaskClient) -> None:
 
 def run_task(
     client: FlaskClient, request_body: dict, last_response: Union[None, str]
-) -> None:
+) -> Union[str, None]:
     """Run_task."""
     response = client.post(
         "/run_process",
@@ -48,5 +48,5 @@ def run_task(
     current_response = response.data
     if last_response is not None:
         assert last_response != current_response
-    last_response = current_response
     assert response.status_code == 200
+    return current_response
