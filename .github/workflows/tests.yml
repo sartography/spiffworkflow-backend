@@ -6,7 +6,7 @@ on:
 
 jobs:
   tests:
-    name: ${{ matrix.session }} ${{ matrix.python }} / ${{ matrix.os }}
+    name: ${{ matrix.session }} ${{ matrix.python }} / ${{ matrix.os }} ${{ matrix.database }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
