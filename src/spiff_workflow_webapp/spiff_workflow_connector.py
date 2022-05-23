@@ -156,7 +156,9 @@ def create_process_instance() -> ProcessInstanceModel:
     if user is None:
         user = create_user()
 
-    process_instance = ProcessInstanceModel(process_model_id=process_model.id, process_initiator_id=user.id)
+    process_instance = ProcessInstanceModel(
+        process_model_id=process_model.id, process_initiator_id=user.id
+    )
     db.session.add(process_instance)
     db.session.commit()
 

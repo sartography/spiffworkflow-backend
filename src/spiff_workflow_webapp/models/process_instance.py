@@ -1,11 +1,11 @@
 """Process_instance."""
 from flask_bpmn.models.db import db
-from sqlalchemy.orm import deferred  # type: ignore
 from sqlalchemy import ForeignKey  # type: ignore
+from sqlalchemy.orm import deferred  # type: ignore
 from sqlalchemy.orm import relationship
 
-from spiff_workflow_webapp.models.user import UserModel
 from spiff_workflow_webapp.models.process_model import ProcessModel
+from spiff_workflow_webapp.models.user import UserModel
 
 
 class ProcessInstanceModel(db.Model):  # type: ignore
