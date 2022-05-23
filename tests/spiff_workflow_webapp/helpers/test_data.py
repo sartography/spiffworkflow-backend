@@ -1,6 +1,6 @@
 """User."""
-
 from typing import Any
+
 from flask_bpmn.models.db import db
 
 from spiff_workflow_webapp.models.process_group import ProcessGroupModel
