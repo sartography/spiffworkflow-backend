@@ -10,4 +10,5 @@ set -o errtrace -o errexit -o nounset -o pipefail
 if [[ -z "${FLASK_ENV:-}" ]]; then
   export FLASK_ENV=development
 fi
+
 FLASK_APP=src/spiff_workflow_webapp poetry run flask run

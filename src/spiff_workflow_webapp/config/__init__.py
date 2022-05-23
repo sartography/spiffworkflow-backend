@@ -16,7 +16,7 @@ def setup_config(app: Flask) -> None:
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config.from_object("spiff_workflow_webapp.config.default")
 
-    if os.environ.get("TEST_DATABASE_TYPE") == "sqlite":
+    if os.environ.get("SPIFF_DATABASE_TYPE") == "sqlite":
         app.config[
             "SQLALCHEMY_DATABASE_URI"
         ] = f"sqlite:///{app.instance_path}/db_{app.env}.sqlite3"
@@ -29,9 +29,10 @@ def setup_config(app: Flask) -> None:
             "SQLALCHEMY_DATABASE_URI"
         ] = f"mysql+mysqlconnector://root:{mysql_pswd}@localhost/spiff_workflow_webapp_{app.env}"
 
+    env_config_module = "spiff_workflow_webapp.config." + app.env
     try:
-        app.config.from_object("spiff_workflow_webapp.config." + app.env)
+        app.config.from_object(env_config_module)
     except ImportStringError as exception:
-        raise Exception(
-            "Cannot find config file for FLASK_ENV: " + app.env
+        raise ModuleNotFoundError(
+            f"Cannot find config module: {env_config_module}"
         ) from exception

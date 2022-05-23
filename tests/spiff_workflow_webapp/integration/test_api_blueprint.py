@@ -5,13 +5,13 @@ from typing import Union
 from flask.testing import FlaskClient
 from flask_bpmn.models.db import db
 
-from spiff_workflow_webapp.models.process_model import ProcessModel
+from spiff_workflow_webapp.models.process_instance import ProcessInstanceModel
 
 
 def test_user_can_be_created_and_deleted(client: FlaskClient) -> None:
-    process_model = ProcessModel.query.filter().first()
-    if process_model is not None:
-        db.session.delete(process_model)
+    process_instance = ProcessInstanceModel.query.filter().first()
+    if process_instance is not None:
+        db.session.delete(process_instance)
         db.session.commit()
 
     last_response = None
@@ -30,9 +30,9 @@ def test_user_can_be_created_and_deleted(client: FlaskClient) -> None:
     for task in tasks:
         run_task(client, task, last_response)
 
-    process_model = ProcessModel.query.filter().first()
-    if process_model is not None:
-        db.session.delete(process_model)
+    process_instance = ProcessInstanceModel.query.filter().first()
+    if process_instance is not None:
+        db.session.delete(process_instance)
         db.session.commit()
 
 

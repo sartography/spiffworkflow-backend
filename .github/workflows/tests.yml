@@ -67,7 +67,7 @@ jobs:
 
     env:
       NOXSESSION: ${{ matrix.session }}
-      TEST_DATABASE_TYPE: ${{ matrix.database }}
+      SPIFF_DATABASE_TYPE: ${{ matrix.database }}
       FORCE_COLOR: "1"
       PRE_COMMIT_COLOR: "always"
       MYSQL_PASSWORD: password

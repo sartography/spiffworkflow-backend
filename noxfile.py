@@ -36,7 +36,9 @@ nox.options.sessions = (
 
 def setup_database(session: Session) -> None:
     """Run database migrations against the database."""
-    session.env["FLASK_INSTANCE_PATH"] = os.path.join(os.getcwd(), "instance")
+    session.env["FLASK_INSTANCE_PATH"] = os.path.join(
+        os.getcwd(), "instance", "testing"
+    )
     session.env["FLASK_APP"] = "src/spiff_workflow_webapp"
     session.env["FLASK_ENV"] = "testing"
     session.run("flask", "db", "upgrade")

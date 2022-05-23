@@ -10,7 +10,7 @@ from SpiffWorkflow.bpmn.serializer.workflow import BpmnWorkflowSerializer  # typ
 from SpiffWorkflow.camunda.serializer.task_spec_converters import UserTaskConverter  # type: ignore
 from SpiffWorkflow.dmn.serializer.task_spec_converters import BusinessRuleTaskConverter  # type: ignore
 
-from spiff_workflow_webapp.models.process_model import ProcessModel
+from spiff_workflow_webapp.models.process_instance import ProcessInstanceModel
 from spiff_workflow_webapp.spiff_workflow_connector import parse
 from spiff_workflow_webapp.spiff_workflow_connector import run
 
@@ -46,11 +46,11 @@ def run_process() -> Response:
     ]
 
     workflow = None
-    process_model = ProcessModel.query.filter().first()
-    if process_model is None:
+    process_instance = ProcessInstanceModel.query.filter().first()
+    if process_instance is None:
         workflow = parse(process, bpmn, dmn)
     else:
-        workflow = serializer.deserialize_json(process_model.bpmn_json)
+        workflow = serializer.deserialize_json(process_instance.bpmn_json)
 
     response = run(workflow, content.get("task_identifier"), content.get("answer"))
 
