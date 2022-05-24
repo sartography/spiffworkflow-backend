@@ -68,33 +68,43 @@ def format_task(task: Task, include_state: bool = True) -> str:
     return f"{lane} {task.task_spec.description} ({task.task_spec.name}) {state}"
 
 
+def process_field(
+    field: Any, answer: Union[dict, None], required_user_input_fields: Dict[str, str]
+) -> Union[str, None]:
+    """Handles the complexities of figuring out what to do about each necessary user field."""
+    response = None
+    if isinstance(field, EnumFormField):
+        option_map = {opt.name: opt.id for opt in field.options}
+        options = "(" + ", ".join(option_map) + ")"
+        if answer is None:
+            required_user_input_fields[field.label] = options
+        else:
+            response = option_map[answer[field.label]]
+    elif field.type == "string":
+        if answer is None:
+            required_user_input_fields[field.label] = "STRING"
+        else:
+            response = answer[field.label]
+    else:
+        if answer is None:
+            required_user_input_fields[field.label] = "(1..)"
+        else:
+            if field.type == "long":
+                response = int(answer[field.label])
+
+    return response
+
+
 def complete_user_task(
     task: Task, answer: Optional[Dict[str, str]] = None
 ) -> Dict[Any, Any]:
     """Complete_user_task."""
-    required_user_input_fields = {}
     if task.data is None:
         task.data = {}
 
+    required_user_input_fields: Dict[str, str] = {}
     for field in task.task_spec.form.fields:
-        if isinstance(field, EnumFormField):
-            option_map = {opt.name: opt.id for opt in field.options}
-            options = "(" + ", ".join(option_map) + ")"
-            if answer is None:
-                required_user_input_fields[field.label] = options
-            else:
-                response = option_map[answer[field.label]]
-        elif field.type == "string":
-            if answer is None:
-                required_user_input_fields[field.label] = "STRING"
-            else:
-                response = answer[field.label]
-        else:
-            if answer is None:
-                required_user_input_fields[field.label] = "(1..)"
-            else:
-                if field.type == "long":
-                    response = int(answer[field.label])
+        response = process_field(field, answer, required_user_input_fields)
         if answer:
             task.update_data_var(field.id, response)
     return required_user_input_fields
