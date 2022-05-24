@@ -70,7 +70,7 @@ def format_task(task: Task, include_state: bool = True) -> str:
 
 def process_field(
     field: Any, answer: Union[dict, None], required_user_input_fields: Dict[str, str]
-) -> Union[str, None]:
+) -> Union[str, int, None]:
     """Handles the complexities of figuring out what to do about each necessary user field."""
     response = None
     if isinstance(field, EnumFormField):
