@@ -7,6 +7,7 @@ repos:
         language: system
         types: [python]
         require_serial: true
+        exclude: ^migrations/
       - id: check-added-large-files
         name: Check for added large files
         entry: check-added-large-files
@@ -33,6 +34,7 @@ repos:
         language: system
         types: [python]
         require_serial: true
+        exclude: ^migrations/
       - id: pyupgrade
         name: pyupgrade
         description: Automatically upgrade syntax for newer versions.
@@ -46,12 +48,14 @@ repos:
         language: system
         types: [python]
         args: [--application-directories=src]
+        exclude: ^migrations/
       - id: trailing-whitespace
         name: Trim Trailing Whitespace
         entry: trailing-whitespace-fixer
         language: system
         types: [text]
         stages: [commit, push, manual]
+        exclude: ^migrations/
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v2.4.1
     hooks:
