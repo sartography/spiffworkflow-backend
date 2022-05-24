@@ -10,7 +10,7 @@ from spiff_workflow_webapp.models.user import UserModel
 def find_or_create_user(username: str = "user1") -> Any:
     user = UserModel.query.filter_by(username=username).first()
     if user is None:
-        user = UserModel(username="user1")
+        user = UserModel(username=username)
         db.session.add(user)
         db.session.commit()
 
@@ -20,7 +20,7 @@ def find_or_create_user(username: str = "user1") -> Any:
 def find_or_create_process_group(name: str = "group1") -> Any:
     process_group = ProcessGroupModel.query.filter_by(name=name).first()
     if process_group is None:
-        process_group = ProcessGroupModel(name="group1")
+        process_group = ProcessGroupModel(name=name)
         db.session.add(process_group)
         db.session.commit()
 
