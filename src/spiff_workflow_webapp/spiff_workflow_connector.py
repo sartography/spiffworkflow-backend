@@ -22,9 +22,7 @@ from SpiffWorkflow.task import Task  # type: ignore
 from SpiffWorkflow.task import TaskState
 from typing_extensions import TypedDict
 
-from spiff_workflow_webapp.models.process_group import ProcessGroupModel
 from spiff_workflow_webapp.models.process_instance import ProcessInstanceModel
-from spiff_workflow_webapp.models.process_model import ProcessModel
 from spiff_workflow_webapp.models.user import UserModel
 
 
@@ -141,33 +139,14 @@ def create_user() -> UserModel:
     return user
 
 
-def create_process_model() -> ProcessModel:
-    """Create_process_model."""
-    process_group = ProcessGroupModel.query.filter().first()
-    if process_group is None:
-        process_group = ProcessGroupModel(name="group1")
-        db.session.add(process_group)
-        db.session.commit()
-
-    process_model = ProcessModel(process_group_id=process_group.id)
-    db.session.add(process_model)
-    db.session.commit()
-
-    return process_model
-
-
 def create_process_instance() -> ProcessInstanceModel:
     """Create_process_instance."""
-    process_model = ProcessModel.query.filter().first()
-    if process_model is None:
-        process_model = create_process_model()
-
     user = UserModel.query.filter().first()
     if user is None:
         user = create_user()
 
     process_instance = ProcessInstanceModel(
-        process_model_id=process_model.id, process_initiator_id=user.id
+        process_model_identifier="process_model1", process_initiator_id=user.id
     )
     db.session.add(process_instance)
     db.session.commit()

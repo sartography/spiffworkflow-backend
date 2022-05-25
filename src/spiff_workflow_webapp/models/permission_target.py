@@ -3,9 +3,9 @@ from flask_bpmn.models.db import db
 from sqlalchemy import ForeignKey  # type: ignore
 from sqlalchemy.schema import CheckConstraint  # type: ignore
 
-from spiff_workflow_webapp.models.process_group import ProcessGroupModel
+# from spiff_workflow_webapp.models.process_group import ProcessGroupModel
 from spiff_workflow_webapp.models.process_instance import ProcessInstanceModel
-from spiff_workflow_webapp.models.process_model import ProcessModel
+# from spiff_workflow_webapp.models.process_model import ProcessModel
 
 
 class PermissionTargetModel(db.Model):  # type: ignore
@@ -19,6 +19,6 @@ class PermissionTargetModel(db.Model):  # type: ignore
     )
 
     id = db.Column(db.Integer, primary_key=True)
-    process_group_id = db.Column(ForeignKey(ProcessGroupModel.id), nullable=True)
-    process_model_id = db.Column(ForeignKey(ProcessModel.id), nullable=True)
-    process_instance_id = db.Column(ForeignKey(ProcessInstanceModel.id), nullable=True)
+    # process_group_id = db.Column(ForeignKey(ProcessGroupModel.id), nullable=True)
+    # process_model_id = db.Column(ForeignKey(ProcessModel.id), nullable=True)
+    # process_instance_id = db.Column(ForeignKey(ProcessInstanceModel.id), nullable=True)
