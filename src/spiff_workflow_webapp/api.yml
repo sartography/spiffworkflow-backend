@@ -54,6 +54,111 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/WorkflowSpec"
+  /workflow-specification/{spec_id}/file:
+    parameters:
+      - name: spec_id
+        in: path
+        required: true
+        description: The unique id of an existing workflow specification to validate.
+        schema:
+          type: string
+    # get:
+    #   operationId: spiff_workflow_webapp.api.process_api_blueprint.get_files
+    #   summary: Provide a list of workflow spec files for the given workflow_spec_id. IMPORTANT, only includes metadata, not the file content.
+    #   tags:
+    #     - Spec Files
+    #   responses:
+    #     '200':
+    #       description: An array of file descriptions (not the file content)
+    #       content:
+    #         application/json:
+    #          schema:
+    #            type: array
+    #            items:
+    #              $ref: "#/components/schemas/File"
+    post:
+      operationId: spiff_workflow_webapp.routes.process_api_blueprint.add_file
+      summary: Add a new workflow spec file
+      tags:
+        - Spec Files
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Metadata about the uploaded file, but not the file content.
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/File"
+  /workflow-specification/{spec_id}/file/{file_name}:
+    parameters:
+      - name: spec_id
+        in: path
+        required: true
+        description: The unique id of an existing workflow specification to validate.
+        schema:
+          type: string
+      - name: file_name
+        in: path
+        required: true
+        description: The id of the spec file
+        schema:
+          type: string
+    get:
+      operationId: spiff_workflow_webapp.routes.process_api_blueprint.get_file
+      summary: Returns metadata about the file
+      tags:
+        - Spec Files
+      responses:
+        '200':
+          description: Returns the file information requested.
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/File"
+    # put:
+    #   operationId: crc.api.spec_file.update
+    #   summary: updates the given file to be the primary file and process, if so specified.
+    #   tags:
+    #     - Spec Files
+    #   parameters:
+    #     - name: is_primary
+    #       in: query
+    #       required: true
+    #       description: Whether to make this the primary file for the workflow.
+    #       schema:
+    #         type: boolean
+    #   requestBody:
+    #     description: Log Pagination Request
+    #     required: false
+    #     content:
+    #       application/json:
+    #         schema:
+    #           $ref: '#/components/schemas/File'
+    #   responses:
+    #     '200':
+    #       description: Returns the file information.
+    #       content:
+    #         application/json:
+    #           schema:
+    #             $ref: "#components/schemas/File"
+    # delete:
+    #   operationId: crc.api.spec_file.delete
+    #   summary: Removes an existing workflow spec file.
+    #   tags:
+    #     - Spec Files
+    #   responses:
+    #     '204':
+    #       description: The file was removed.
+
+
 
 
 components:

@@ -1,5 +1,6 @@
 """File."""
 import enum
+from marshmallow import Schema, INCLUDE
 
 
 class FileType(enum.Enum):
@@ -82,3 +83,25 @@ class File(object):
         # fixme:  How to track the user id?
         instance.data_store = {}
         return instance
+
+
+class FileSchema(Schema):
+    class Meta:
+        model = File
+        fields = ["id", "name", "content_type", "workflow_id",
+                  "irb_doc_code", "last_modified", "type", "archived",
+                  "size", "data_store", "document", "user_uid", "url"]
+        unknown = INCLUDE
+    # url = Method("get_url")
+    #
+    # def get_url(self, obj):
+    #     token = 'not_available'
+    #     if hasattr(obj, 'id') and obj.id is not None:
+    #         file_url = url_for("/v1_0.crc_api_file_get_file_data_link", file_id=obj.id, _external=True)
+    #         if hasattr(flask.g, 'user'):
+    #             token = flask.g.user.encode_auth_token()
+    #         url = file_url + '?auth_token=' + urllib.parse.quote_plus(token)
+    #         return url
+    #     else:
+    #         return ""
+    #

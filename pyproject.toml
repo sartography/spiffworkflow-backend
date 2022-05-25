@@ -38,6 +38,7 @@ pytest-flask-sqlalchemy = "^1.1.0"
 psycopg2 = "^2.9.3"
 typing-extensions = "^4.2.0"
 connexion = "^2.13.1"
+lxml = "^4.8.0"
 
 
 [tool.poetry.dev-dependencies]
