@@ -11,13 +11,13 @@ class DataStoreModel(db.Model):
     __tablename__ = "data_store"
     id = db.Column(db.Integer, primary_key=True)
     last_updated = db.Column(db.DateTime(timezone=True), server_default=func.now())
-    key = db.Column(db.String, nullable=False)
+    key = db.Column(db.String(50), nullable=False)
     process_instance_id = db.Column(db.Integer)
-    task_spec = db.Column(db.String)
-    spec_id = db.Column(db.String)
-    user_id = db.Column(db.String, nullable=True)
+    task_spec = db.Column(db.String(50))
+    spec_id = db.Column(db.String(50))
+    user_id = db.Column(db.String(50), nullable=True)
     file_id = db.Column(db.Integer, db.ForeignKey("file.id"), nullable=True)
-    value = db.Column(db.String)
+    value = db.Column(db.String(50))
 
 
 class DataStoreSchema(SQLAlchemyAutoSchema):

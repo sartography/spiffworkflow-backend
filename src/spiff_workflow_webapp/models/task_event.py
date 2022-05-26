@@ -24,21 +24,21 @@ class TaskEventModel(db.Model):
     """TaskEventModel."""
     __tablename__ = 'task_event'
     id = db.Column(db.Integer, primary_key=True)
-    user_uid = db.Column(db.String, nullable=False)  # In some cases the unique user id may not exist in the db yet.
+    user_uid = db.Column(db.String(50), nullable=False)  # In some cases the unique user id may not exist in the db yet.
     process_instance_id = db.Column(db.Integer, db.ForeignKey('process_instance.id'), nullable=False)
-    spec_version = db.Column(db.String)
-    action = db.Column(db.String)
-    task_id = db.Column(db.String)
-    task_name = db.Column(db.String)
-    task_title = db.Column(db.String)
-    task_type = db.Column(db.String)
-    task_state = db.Column(db.String)
-    task_lane = db.Column(db.String)
+    spec_version = db.Column(db.String(50))
+    action = db.Column(db.String(50))
+    task_id = db.Column(db.String(50))
+    task_name = db.Column(db.String(50))
+    task_title = db.Column(db.String(50))
+    task_type = db.Column(db.String(50))
+    task_state = db.Column(db.String(50))
+    task_lane = db.Column(db.String(50))
     form_data = db.Column(db.JSON)  # And form data submitted when the task was completed.
-    mi_type = db.Column(db.String)
+    mi_type = db.Column(db.String(50))
     mi_count = db.Column(db.Integer)
     mi_index = db.Column(db.Integer)
-    process_name = db.Column(db.String)
+    process_name = db.Column(db.String(50))
     date = db.Column(db.DateTime(timezone=True), default=func.now())
 
 

@@ -14,19 +14,19 @@ class FileModel(db.Model):
     """FileModel."""
     __tablename__ = 'file'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, nullable=False)
-    type = db.Column(db.String, nullable=False)
-    content_type = db.Column(db.String, nullable=False)
+    name = db.Column(db.String(50), nullable=False)
+    type = db.Column(db.String(50), nullable=False)
+    content_type = db.Column(db.String(50), nullable=False)
     process_instance_id = db.Column(db.Integer, db.ForeignKey('process_instance.id'), nullable=True)
-    task_spec = db.Column(db.String, nullable=True)
-    irb_doc_code = db.Column(db.String, nullable=False)  # Code reference to the documents.xlsx reference file.
+    task_spec = db.Column(db.String(50), nullable=True)
+    irb_doc_code = db.Column(db.String(50), nullable=False)  # Code reference to the documents.xlsx reference file.
     data_stores = relationship(DataStoreModel, cascade="all,delete", backref="file")
-    md5_hash = db.Column(db.String, unique=False, nullable=False)
+    md5_hash = db.Column(db.String(50), unique=False, nullable=False)
     data = deferred(db.Column(db.LargeBinary))  # Don't load it unless you have to.
     size = db.Column(db.Integer, default=0)
     date_modified = db.Column(db.DateTime(timezone=True), onupdate=func.now())
     date_created = db.Column(db.DateTime(timezone=True), server_default=func.now())
-    user_uid = db.Column(db.String, db.ForeignKey('user.uid'), nullable=True)
+    user_uid = db.Column(db.String(50), db.ForeignKey('user.uid'), nullable=True)
     archived = db.Column(db.Boolean, default=False)
 
 

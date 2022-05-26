@@ -9,6 +9,7 @@ from flask_bpmn.models.db import db
 from sqlalchemy import ForeignKey  # type: ignore
 from sqlalchemy.orm import deferred  # type: ignore
 from sqlalchemy.orm import relationship
+from sqlalchemy import func
 
 from SpiffWorkflow.navigation import NavItem
 
@@ -60,10 +61,11 @@ class ProcessInstanceModel(db.Model):  # type: ignore
 
     __tablename__ = "process_instance"
     id = db.Column(db.Integer, primary_key=True)
-    process_model_identifier = db.Column(db.String, nullable=False, index=True)
+    process_model_identifier = db.Column(db.String(50), nullable=False, index=True)
     bpmn_json = deferred(db.Column(db.JSON))
     start_in_seconds = db.Column(db.Integer)
     end_in_seconds = db.Column(db.Integer)
+    last_updated = db.Column(db.DateTime(timezone=True), server_default=func.now())
     process_initiator_id = db.Column(ForeignKey(UserModel.id), nullable=False)
     process_initiator = relationship("UserModel")
     status = db.Column(db.Enum(ProcessInstanceStatus))
@@ -73,14 +75,14 @@ class ProcessInstanceApi(object):
     """ProcessInstanceApi."""
 
     def __init__(self, id, status, next_task, navigation,
-                 process_model_id, total_tasks, completed_tasks,
+                 process_model_identifier, total_tasks, completed_tasks,
                  last_updated, is_review, title, study_id, state):
         """__init__."""
         self.id = id
         self.status = status
         self.next_task = next_task  # The next task that requires user input.
         self.navigation = navigation
-        self.process_model_id = process_model_id
+        self.process_model_identifier = process_model_identifier
         self.total_tasks = total_tasks
         self.completed_tasks = completed_tasks
         self.last_updated = last_updated
@@ -96,7 +98,7 @@ class ProcessInstanceApiSchema(Schema):
         """Meta."""
         model = ProcessInstanceApi
         fields = ["id", "status", "next_task", "navigation",
-                  "process_model_id", "total_tasks", "completed_tasks",
+                  "process_model_identifier", "total_tasks", "completed_tasks",
                   "last_updated", "is_review", "title", "study_id", "state"]
         unknown = INCLUDE
 
@@ -109,7 +111,7 @@ class ProcessInstanceApiSchema(Schema):
     def make_process_instance(self, data, **kwargs):
         """Make_process_instance."""
         keys = ['id', 'status', 'next_task', 'navigation',
-                'process_model_id', "total_tasks", "completed_tasks",
+                'process_model_identifier', "total_tasks", "completed_tasks",
                 "last_updated", "is_review", "title", "study_id", "state"]
         filtered_fields = {key: data[key] for key in keys}
         filtered_fields['next_task'] = TaskSchema().make_task(data['next_task'])
@@ -122,7 +124,7 @@ class ProcessInstanceMetadata(object):
     def __init__(self, id, display_name=None, description=None, spec_version=None,
                  category_id=None, category_display_name=None, state=None,
                  status: ProcessInstanceStatus = None, total_tasks=None, completed_tasks=None,
-                 is_review=None, display_order=None, state_message=None, process_model_id=None):
+                 is_review=None, display_order=None, state_message=None, process_model_identifier=None):
         """__init__."""
         self.id = id
         self.display_name = display_name
@@ -137,7 +139,7 @@ class ProcessInstanceMetadata(object):
         self.completed_tasks = completed_tasks
         self.is_review = is_review
         self.display_order = display_order
-        self.process_model_id = process_model_id
+        self.process_model_identifier = process_model_identifier
 
     @classmethod
     def from_process_instance(cls, process_instance: ProcessInstanceModel, spec: ProcessModelInfo):
@@ -154,7 +156,7 @@ class ProcessInstanceMetadata(object):
             completed_tasks=process_instance.completed_tasks,
             is_review=spec.is_review,
             display_order=spec.display_order,
-            process_model_id=process_instance.process_model_id
+            process_model_identifier=process_instance.process_model_identifier
         )
         return instance
 

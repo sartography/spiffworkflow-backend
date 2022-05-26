@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: dec9751e0e3d
+Revision ID: 66f831b534a2
 Revises: 
-Create Date: 2022-05-26 16:18:46.472592
+Create Date: 2022-05-26 17:06:14.377939
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'dec9751e0e3d'
+revision = '66f831b534a2'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -43,10 +43,11 @@ def upgrade():
     )
     op.create_table('process_instance',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('process_model_identifier', sa.String(), nullable=False),
+    sa.Column('process_model_identifier', sa.String(length=50), nullable=False),
     sa.Column('bpmn_json', sa.JSON(), nullable=True),
     sa.Column('start_in_seconds', sa.Integer(), nullable=True),
     sa.Column('end_in_seconds', sa.Integer(), nullable=True),
+    sa.Column('last_updated', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
     sa.Column('process_initiator_id', sa.Integer(), nullable=False),
     sa.Column('status', sa.Enum('not_started', 'user_input_required', 'waiting', 'complete', 'erroring', name='processinstancestatus'), nullable=True),
     sa.ForeignKeyConstraint(['process_initiator_id'], ['user.id'], ),
@@ -64,18 +65,18 @@ def upgrade():
     )
     op.create_table('file',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('name', sa.String(), nullable=False),
-    sa.Column('type', sa.String(), nullable=False),
-    sa.Column('content_type', sa.String(), nullable=False),
+    sa.Column('name', sa.String(length=50), nullable=False),
+    sa.Column('type', sa.String(length=50), nullable=False),
+    sa.Column('content_type', sa.String(length=50), nullable=False),
     sa.Column('process_instance_id', sa.Integer(), nullable=True),
-    sa.Column('task_spec', sa.String(), nullable=True),
-    sa.Column('irb_doc_code', sa.String(), nullable=False),
-    sa.Column('md5_hash', sa.String(), nullable=False),
+    sa.Column('task_spec', sa.String(length=50), nullable=True),
+    sa.Column('irb_doc_code', sa.String(length=50), nullable=False),
+    sa.Column('md5_hash', sa.String(length=50), nullable=False),
     sa.Column('data', sa.LargeBinary(), nullable=True),
     sa.Column('size', sa.Integer(), nullable=True),
     sa.Column('date_modified', sa.DateTime(timezone=True), nullable=True),
     sa.Column('date_created', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-    sa.Column('user_uid', sa.String(), nullable=True),
+    sa.Column('user_uid', sa.String(length=50), nullable=True),
     sa.Column('archived', sa.Boolean(), nullable=True),
     sa.ForeignKeyConstraint(['process_instance_id'], ['process_instance.id'], ),
     sa.ForeignKeyConstraint(['user_uid'], ['user.uid'], ),
@@ -83,21 +84,21 @@ def upgrade():
     )
     op.create_table('task_event',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('user_uid', sa.String(), nullable=False),
+    sa.Column('user_uid', sa.String(length=50), nullable=False),
     sa.Column('process_instance_id', sa.Integer(), nullable=False),
-    sa.Column('spec_version', sa.String(), nullable=True),
-    sa.Column('action', sa.String(), nullable=True),
-    sa.Column('task_id', sa.String(), nullable=True),
-    sa.Column('task_name', sa.String(), nullable=True),
-    sa.Column('task_title', sa.String(), nullable=True),
-    sa.Column('task_type', sa.String(), nullable=True),
-    sa.Column('task_state', sa.String(), nullable=True),
-    sa.Column('task_lane', sa.String(), nullable=True),
+    sa.Column('spec_version', sa.String(length=50), nullable=True),
+    sa.Column('action', sa.String(length=50), nullable=True),
+    sa.Column('task_id', sa.String(length=50), nullable=True),
+    sa.Column('task_name', sa.String(length=50), nullable=True),
+    sa.Column('task_title', sa.String(length=50), nullable=True),
+    sa.Column('task_type', sa.String(length=50), nullable=True),
+    sa.Column('task_state', sa.String(length=50), nullable=True),
+    sa.Column('task_lane', sa.String(length=50), nullable=True),
     sa.Column('form_data', sa.JSON(), nullable=True),
-    sa.Column('mi_type', sa.String(), nullable=True),
+    sa.Column('mi_type', sa.String(length=50), nullable=True),
     sa.Column('mi_count', sa.Integer(), nullable=True),
     sa.Column('mi_index', sa.Integer(), nullable=True),
-    sa.Column('process_name', sa.String(), nullable=True),
+    sa.Column('process_name', sa.String(length=50), nullable=True),
     sa.Column('date', sa.DateTime(timezone=True), nullable=True),
     sa.ForeignKeyConstraint(['process_instance_id'], ['process_instance.id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -105,13 +106,13 @@ def upgrade():
     op.create_table('data_store',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('last_updated', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-    sa.Column('key', sa.String(), nullable=False),
+    sa.Column('key', sa.String(length=50), nullable=False),
     sa.Column('process_instance_id', sa.Integer(), nullable=True),
-    sa.Column('task_spec', sa.String(), nullable=True),
-    sa.Column('spec_id', sa.String(), nullable=True),
-    sa.Column('user_id', sa.String(), nullable=True),
+    sa.Column('task_spec', sa.String(length=50), nullable=True),
+    sa.Column('spec_id', sa.String(length=50), nullable=True),
+    sa.Column('user_id', sa.String(length=50), nullable=True),
     sa.Column('file_id', sa.Integer(), nullable=True),
-    sa.Column('value', sa.String(), nullable=True),
+    sa.Column('value', sa.String(length=50), nullable=True),
     sa.ForeignKeyConstraint(['file_id'], ['file.id'], ),
     sa.PrimaryKeyConstraint('id')
     )

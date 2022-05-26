@@ -24,7 +24,7 @@ from SpiffWorkflow.specs import WorkflowSpec
 from flask_bpmn.models.db import db
 from flask_bpmn.api.api_error import ApiError
 
-from spiff_workflow_webapp.models.file import FileModel, FileType, File
+from spiff_workflow_webapp.models.file import File, FileType
 from spiff_workflow_webapp.models.task_event import TaskEventModel, TaskAction
 from spiff_workflow_webapp.models.user import UserModelSchema
 from spiff_workflow_webapp.models.process_model import ProcessModelInfo
@@ -109,7 +109,7 @@ class ProcessInstanceProcessor(object):
         self.process_model_service = ProcessModelService()
         spec = None
         if process_instance_model.bpmn_json is None:
-            spec_info = self.process_model_service.get_spec(process_instance_model.process_model_id)
+            spec_info = self.process_model_service.get_spec(process_instance_model.process_model_identifier)
             if spec_info is None:
                 raise (ApiError("missing_spec", "The spec this process_instance references does not currently exist."))
             self.spec_files = SpecFileService.get_files(spec_info, include_libraries=True)
@@ -125,7 +125,7 @@ class ProcessInstanceProcessor(object):
                     test_spec = wf_json['spec']
                     task_size = "{:.2f}".format(len(json.dumps(task_tree).encode('utf-8')) / MB)
                     spec_size = "{:.2f}".format(len(json.dumps(test_spec).encode('utf-8')) / MB)
-                    message = 'Workflow ' + process_instance_model.process_model_id + \
+                    message = 'Workflow ' + process_instance_model.process_model_identifier + \
                         ' JSON Size is over 1MB:{0:.2f} MB'.format(json_size)
                     message += f"\n  Task Size: {task_size}"
                     message += f"\n  Spec Size: {spec_size}"
@@ -145,7 +145,7 @@ class ProcessInstanceProcessor(object):
                                     check_sub_specs(my_spec['spec'], indent + 5)
                     check_sub_specs(test_spec, 5)
 
-        self.process_model_id = process_instance_model.process_model_id
+        self.process_model_identifier = process_instance_model.process_model_identifier
 
         try:
             self.bpmn_process_instance = self.__get_bpmn_process_instance(process_instance_model, spec, validate_only)
@@ -161,7 +161,8 @@ class ProcessInstanceProcessor(object):
                     # database model to which it is associated, and scripts running within the model
                     # can then load data as needed.
                 self.bpmn_process_instance.data[ProcessInstanceProcessor.PROCESS_INSTANCE_ID_KEY] = process_instance_model.id
-                process_instance_model.bpmn_json = ProcessInstanceProcessor._serializer.serialize_json(self.bpmn_process_instance)
+                process_instance_model.bpmn_json = ProcessInstanceProcessor._serializer.serialize_json(
+                    self.bpmn_process_instance)
 
                 self.save()
 
@@ -169,7 +170,7 @@ class ProcessInstanceProcessor(object):
             raise ApiError(code="unexpected_process_instance_structure",
                            message="Failed to deserialize process_instance"
                                    " '%s'  due to a mis-placed or missing task '%s'" %
-                                   (self.process_model_id, str(ke))) from ke
+                                   (self.process_model_identifier, str(ke))) from ke
 
     @staticmethod
     def add_user_info_to_process_instance(bpmn_process_instance):
@@ -229,11 +230,12 @@ class ProcessInstanceProcessor(object):
         if process_instance_model.bpmn_json:
             version = ProcessInstanceProcessor._serializer.get_version(process_instance_model.bpmn_json)
             if(version == ProcessInstanceProcessor.SERIALIZER_VERSION):
-                bpmn_process_instance = ProcessInstanceProcessor._serializer.deserialize_json(process_instance_model.bpmn_json)
+                bpmn_process_instance = ProcessInstanceProcessor._serializer.deserialize_json(
+                    process_instance_model.bpmn_json)
             else:
                 bpmn_process_instance = ProcessInstanceProcessor.\
                     _old_serializer.deserialize_process_instance(process_instance_model.bpmn_json,
-                                                         process_model=spec)
+                                                                 process_model=spec)
             bpmn_process_instance.script_engine = ProcessInstanceProcessor._script_engine
         else:
             bpmn_process_instance = BpmnWorkflow(spec, script_engine=ProcessInstanceProcessor._script_engine)

@@ -1,7 +1,7 @@
 """APIs for dealing with process groups, process models, and process instances."""
 
 import connexion
-from flask import Blueprint
+from flask import Blueprint, g
 
 # from SpiffWorkflow.bpmn.serializer.workflow import BpmnWorkflowSerializer  # type: ignore
 # from SpiffWorkflow.camunda.serializer.task_spec_converters import UserTaskConverter  # type: ignore
@@ -64,7 +64,7 @@ def create_process_instance(spec_id):
 
     processor.do_engine_steps()
     processor.save()
-    ProcessInstanceService.update_task_assignments(processor)
+    # ProcessInstanceService.update_task_assignments(processor)
 
-    workflow_api_model = ProcessInstanceService.processor_to_workflow_api(processor)
+    workflow_api_model = ProcessInstanceService.processor_to_process_instance_api(processor)
     return ProcessInstanceApiSchema().dump(workflow_api_model)

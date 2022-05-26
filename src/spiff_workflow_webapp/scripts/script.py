@@ -61,7 +61,7 @@ class Script(object):
         subclasses = Script.get_all_subclasses()
         for x in range(len(subclasses)):
             subclass = subclasses[x]
-            execlist[subclass.__module__.split('.')[-1]] = make_closure(subclass, task, 
+            execlist[subclass.__module__.split('.')[-1]] = make_closure(subclass, task,
                                                                         workflow_id)
         return execlist
 
@@ -84,7 +84,7 @@ class Script(object):
         subclasses = Script.get_all_subclasses()
         for x in range(len(subclasses)):
             subclass = subclasses[x]
-            execlist[subclass.__module__.split('.')[-1]] = make_closure_validate(subclass, task, 
+            execlist[subclass.__module__.split('.')[-1]] = make_closure_validate(subclass, task,
                                                                                  workflow_id)
         return execlist
 

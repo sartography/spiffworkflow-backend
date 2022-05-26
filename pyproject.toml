@@ -41,6 +41,7 @@ connexion = "^2.13.1"
 lxml = "^4.8.0"
 marshmallow-enum = "^1.5.1"
 marshmallow-sqlalchemy = "^0.28.0"
+PyJWT = "^2.4.0"
 
 
 [tool.poetry.dev-dependencies]
