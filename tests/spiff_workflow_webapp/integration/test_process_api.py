@@ -19,20 +19,34 @@ from tests.spiff_workflow_webapp.helpers.test_data import load_test_spec
 @pytest.fixture()
 def with_bpmn_file_cleanup():
     """Process_group_resource."""
-    print("setup")
-    process_model_service = ProcessModelService()
-    if os.path.exists(process_model_service.root_path()):
-        shutil.rmtree(process_model_service.root_path())
-
-    yield "resource"
-
-    print("teardown")
-    if os.path.exists(process_model_service.root_path()):
-        shutil.rmtree(process_model_service.root_path())
+    try:
+        yield
+    finally:
+        process_model_service = ProcessModelService()
+        if os.path.exists(process_model_service.root_path()):
+            shutil.rmtree(process_model_service.root_path())
 
 
-def test_add_new_process_modelification(client: FlaskClient, with_bpmn_file_cleanup):
-    """Test_add_new_process_modelification."""
+# phase 1: req_id: 7.1 Deploy process
+def test_add_new_process_model(app, client: FlaskClient, with_bpmn_file_cleanup):
+    """Test_add_new_process_model."""
+    create_process_model(app, client)
+    create_spec_file(app, client)
+
+# def test_get_process_model(self):
+#
+#     load_test_spec('random_fact')
+#     rv = client.get('/v1.0/workflow-specification/random_fact', headers=logged_in_headers())
+#     assert_success(rv)
+#     json_data = json.loads(rv.get_data(as_text=True))
+#     api_spec = WorkflowSpecInfoSchema().load(json_data)
+#
+#     fs_spec = process_model_service.get_spec('random_fact')
+#     assert(WorkflowSpecInfoSchema().dump(fs_spec) == json_data)
+#
+
+
+def create_process_model(app, client: FlaskClient):
     process_model_service = ProcessModelService()
     assert(0 == len(process_model_service.get_specs()))
     assert(0 == len(process_model_service.get_process_groups()))
@@ -53,25 +67,11 @@ def test_add_new_process_modelification(client: FlaskClient, with_bpmn_file_clea
     assert(0 == fs_spec.display_order)
     assert(1 == len(process_model_service.get_process_groups()))
 
-# def test_get_process_modelification(self):
-#
-#     load_test_spec('random_fact')
-#     rv = client.get('/v1.0/workflow-specification/random_fact', headers=logged_in_headers())
-#     assert_success(rv)
-#     json_data = json.loads(rv.get_data(as_text=True))
-#     api_spec = WorkflowSpecInfoSchema().load(json_data)
-#
-#     fs_spec = process_model_service.get_spec('random_fact')
-#     assert(WorkflowSpecInfoSchema().dump(fs_spec) == json_data)
-#
-
-
-def test_create_spec_file(app, client: FlaskClient, with_bpmn_file_cleanup):
+def create_spec_file(app, client: FlaskClient):
     """Test_create_spec_file."""
     spec = load_test_spec(app, 'random_fact')
     data = {'file': (io.BytesIO(b"abcdef"), 'random_fact.svg')}
-    rv = client.post('/v1.0/workflow-specification/%s/file' % spec.id, data=data, follow_redirects=True,
-                  content_type='multipart/form-data')
+    rv = client.post('/v1.0/workflow-specification/%s/file' % spec.id, data=data, follow_redirects=True, content_type='multipart/form-data')
 
     assert rv.status_code == 200
     assert(rv.get_data() is not None)

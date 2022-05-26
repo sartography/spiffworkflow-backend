@@ -1,6 +1,33 @@
 """File."""
 import enum
 from marshmallow import Schema, INCLUDE
+from sqlalchemy import func
+from sqlalchemy.orm import deferred  # type: ignore
+from sqlalchemy.orm import relationship
+
+from flask_bpmn.models.db import db
+
+from spiff_workflow_webapp.models.data_store import DataStoreModel
+
+
+class FileModel(db.Model):
+    """FileModel."""
+    __tablename__ = 'file'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, nullable=False)
+    type = db.Column(db.String, nullable=False)
+    content_type = db.Column(db.String, nullable=False)
+    workflow_id = db.Column(db.Integer, db.ForeignKey('workflow.id'), nullable=True)
+    task_spec = db.Column(db.String, nullable=True)
+    irb_doc_code = db.Column(db.String, nullable=False)  # Code reference to the documents.xlsx reference file.
+    data_stores = relationship(DataStoreModel, cascade="all,delete", backref="file")
+    md5_hash = db.Column(db.String, unique=False, nullable=False)
+    data = deferred(db.Column(db.LargeBinary))  # Don't load it unless you have to.
+    size = db.Column(db.Integer, default=0)
+    date_modified = db.Column(db.DateTime(timezone=True), onupdate=func.now())
+    date_created = db.Column(db.DateTime(timezone=True), server_default=func.now())
+    user_uid = db.Column(db.String, db.ForeignKey('user.uid'), nullable=True)
+    archived = db.Column(db.Boolean, default=False)
 
 
 class FileType(enum.Enum):
@@ -86,7 +113,9 @@ class File(object):
 
 
 class FileSchema(Schema):
+    """FileSchema."""
     class Meta:
+        """Meta."""
         model = File
         fields = ["id", "name", "content_type", "workflow_id",
                   "irb_doc_code", "last_modified", "type", "archived",

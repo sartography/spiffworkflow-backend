@@ -1,5 +1,4 @@
 """Process_model."""
-from flask_bpmn.models.db import db
 from marshmallow import Schema, post_load
 import marshmallow
 from sqlalchemy import ForeignKey  # type: ignore

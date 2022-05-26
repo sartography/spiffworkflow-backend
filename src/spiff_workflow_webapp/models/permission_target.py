@@ -4,7 +4,6 @@ from sqlalchemy import ForeignKey  # type: ignore
 from sqlalchemy.schema import CheckConstraint  # type: ignore
 
 # from spiff_workflow_webapp.models.process_group import ProcessGroupModel
-from spiff_workflow_webapp.models.process_instance import ProcessInstanceModel
 # from spiff_workflow_webapp.models.process_model import ProcessModel
 
 

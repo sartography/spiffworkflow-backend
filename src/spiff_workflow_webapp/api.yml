@@ -38,7 +38,7 @@ paths:
     #             items:
     #               $ref: "#/components/schemas/WorkflowSpec"
     post:
-      operationId: spiff_workflow_webapp.routes.process_api_blueprint.add_workflow_specification
+      operationId: spiff_workflow_webapp.routes.process_api_blueprint.add_process_model
       summary: Creates a new workflow specification with the given parameters.
       tags:
         - Workflow Specifications
@@ -97,6 +97,67 @@ paths:
             application/json:
               schema:
                 $ref: "#components/schemas/File"
+  /workflow-specification/{spec_id}:
+    parameters:
+      - name: spec_id
+        in: path
+        required: true
+        description: The unique id of an existing workflow specification.
+        schema:
+          type: string
+    # get:
+    #   operationId: crc.api.workflow.get_workflow_specification
+    #   summary: Returns a single workflow specification
+    #   tags:
+    #     - Workflow Specifications
+    #   responses:
+    #     '200':
+    #       description: Workflow specification.
+    #       content:
+    #         application/json:
+    #           schema:
+    #             $ref: "#/components/schemas/WorkflowSpec"
+    post:
+      operationId: crc.api.workflow.get_workflow_from_spec
+      summary: Creates a workflow from a workflow spec and returns the workflow
+      tags:
+        - Workflow Specifications
+      responses:
+        '200':
+          description: Workflow generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Workflow"
+    # put:
+    #   operationId: crc.api.workflow.update_workflow_specification
+    #   security:
+    #     - auth_admin: ['secret']
+    #   summary: Modifies an existing workflow specification with the given parameters.
+    #   tags:
+    #     - Workflow Specifications
+    #   requestBody:
+    #     content:
+    #       application/json:
+    #         schema:
+    #           $ref: '#/components/schemas/WorkflowSpec'
+    #   responses:
+    #     '200':
+    #       description: Workflow specification created successfully.
+    #       content:
+    #         application/json:
+    #           schema:
+    #             $ref: "#/components/schemas/WorkflowSpec"
+    # delete:
+    #   operationId: crc.api.workflow.delete_workflow_specification
+    #   security:
+    #     - auth_admin: ['secret']
+    #   summary: Removes an existing workflow specification
+    #   tags:
+    #     - Workflow Specifications
+    #   responses:
+    #     '204':
+    #       description: The workflow specification has been removed.
   /workflow-specification/{spec_id}/file/{file_name}:
     parameters:
       - name: spec_id

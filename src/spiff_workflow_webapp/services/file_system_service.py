@@ -134,6 +134,7 @@ class FileSystemService(object):
 
     @staticmethod
     def to_file_object(file_name: str, file_path: str) -> File:
+        """To_file_object."""
         file_type = FileSystemService.file_type(file_name)
         content_type = CONTENT_TYPES[file_type.name]
         last_modified = FileSystemService._last_modified(file_path)

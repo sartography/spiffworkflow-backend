@@ -1,4 +1,5 @@
 """User."""
+from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from flask_bpmn.models.db import db
 from sqlalchemy.orm import relationship  # type: ignore
 
@@ -18,3 +19,12 @@ class UserModel(db.Model):  # type: ignore
         secondary="user_group_assignment",
         overlaps="user_group_assignments,users",
     )
+
+
+class UserModelSchema(SQLAlchemyAutoSchema):
+    """UserModelSchema."""
+    class Meta:
+        """Meta."""
+        model = UserModel
+        load_instance = True
+        include_relationships = True

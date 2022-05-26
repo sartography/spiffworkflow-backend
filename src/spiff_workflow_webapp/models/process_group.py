@@ -1,5 +1,4 @@
 """Process_group."""
-from flask_bpmn.models.db import db
 from marshmallow import Schema, post_load
 
 

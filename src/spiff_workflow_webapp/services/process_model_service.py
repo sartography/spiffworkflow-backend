@@ -1,4 +1,4 @@
-"""process_model_service."""
+"""Process_model_service."""
 import json
 import os
 import shutil
@@ -9,15 +9,14 @@ from spiff_workflow_webapp.models.process_group import ProcessGroup, ProcessGrou
 from spiff_workflow_webapp.services.file_system_service import FileSystemService
 
 
-# class ProcessModelService(FileSystemService):
 class ProcessModelService(FileSystemService):
     """ProcessModelService."""
 
     """This is a way of persisting json files to the file system in a way that mimics the data
     as it would have been stored in the database. This is specific to Workflow Specifications, and
-     Workflow Specification process_groups.
-     We do this, so we can easily drop in a new configuration on the file system, and change all
-      the workflow specs at once, or manage those file in a git repository. """
+    Workflow Specification process_groups.
+    We do this, so we can easily drop in a new configuration on the file system, and change all
+    the workflow specs at once, or manage those file in a git repository. """
 
     GROUP_SCHEMA = ProcessGroupSchema()
     WF_SCHEMA = ProcessModelInfoSchema()
@@ -122,12 +121,14 @@ class ProcessModelService(FileSystemService):
         return cat_list
 
     def get_libraries(self) -> List[ProcessModelInfo]:
+        """Get_libraries."""
         cat = self.get_process_group(self.LIBRARY_SPECS)
         if not cat:
             return []
         return cat.specs
 
     def get_standalones(self) -> List[ProcessModelInfo]:
+        """Get_standalones."""
         cat = self.get_process_group(self.STAND_ALONE_SPECS)
         if not cat:
             return []

@@ -1,4 +1,4 @@
-import datetime
+"""Spec_file_service."""
 import os
 import shutil
 from typing import List
@@ -15,6 +15,7 @@ from spiff_workflow_webapp.services.file_system_service import FileSystemService
 
 
 class SpecFileService(FileSystemService):
+    """SpecFileService."""
 
     """We store spec files on the file system. This allows us to take advantage of Git for
        syncing and versioning.
@@ -23,7 +24,7 @@ class SpecFileService(FileSystemService):
 
     @staticmethod
     def get_files(workflow_spec: ProcessModelInfo, file_name=None, include_libraries=False) -> List[File]:
-        """ Returns all files associated with a workflow specification """
+        """ Returns all files associated with a workflow specification."""
         path = SpecFileService.workflow_path(workflow_spec)
         files = SpecFileService._get_files(path, file_name)
         if include_libraries:
@@ -34,11 +35,13 @@ class SpecFileService(FileSystemService):
 
     @staticmethod
     def add_file(workflow_spec: ProcessModelInfo, file_name: str, binary_data: bytearray) -> File:
+        """Add_file."""
         # Same as update
         return SpecFileService.update_file(workflow_spec, file_name, binary_data)
 
     @staticmethod
     def update_file(workflow_spec: ProcessModelInfo, file_name: str, binary_data) -> File:
+        """Update_file."""
         SpecFileService.assert_valid_file_name(file_name)
         file_path = SpecFileService.file_path(workflow_spec, file_name)
         SpecFileService.write_file_data_to_system(file_path, binary_data)
@@ -52,6 +55,7 @@ class SpecFileService(FileSystemService):
 
     @staticmethod
     def get_data(workflow_spec: ProcessModelInfo, file_name: str):
+        """Get_data."""
         file_path = SpecFileService.file_path(workflow_spec, file_name)
         if not os.path.exists(file_path):
             # If the file isn't here, it may be in a library
@@ -68,20 +72,24 @@ class SpecFileService(FileSystemService):
 
     @staticmethod
     def file_path(spec: ProcessModelInfo, file_name: str):
+        """File_path."""
         return os.path.join(SpecFileService.workflow_path(spec), file_name)
 
     @staticmethod
     def last_modified(spec: ProcessModelInfo, file_name: str):
+        """Last_modified."""
         path = SpecFileService.file_path(spec, file_name)
         return FileSystemService._last_modified(path)
 
     @staticmethod
     def timestamp(spec: ProcessModelInfo, file_name: str):
+        """Timestamp."""
         path = SpecFileService.file_path(spec, file_name)
         return FileSystemService._timestamp(path)
 
     @staticmethod
     def delete_file(spec, file_name):
+        """Delete_file."""
         # Fixme: Remember to remove the lookup files when the spec file is removed.
         # lookup_files = session.query(LookupFileModel).filter_by(file_model_id=file_id).all()
         # for lf in lookup_files:
@@ -92,12 +100,14 @@ class SpecFileService(FileSystemService):
 
     @staticmethod
     def delete_all_files(spec):
+        """Delete_all_files."""
         dir_path = SpecFileService.workflow_path(spec)
         if os.path.exists(dir_path):
             shutil.rmtree(dir_path)
 
     @staticmethod
     def set_primary_bpmn(workflow_spec: ProcessModelInfo, file_name: str, binary_data=None):
+        """Set_primary_bpmn."""
         # If this is a BPMN, extract the process id, and determine if it is contains swim lanes.
         extension = SpecFileService.get_extension(file_name)
         file_type = FileType[extension]
@@ -137,6 +147,7 @@ class SpecFileService(FileSystemService):
 
     @staticmethod
     def get_process_id(et_root: etree.Element):
+        """Get_process_id."""
         process_elements = []
         for child in et_root:
             if child.tag.endswith('process') and child.attrib.get('isExecutable', False):

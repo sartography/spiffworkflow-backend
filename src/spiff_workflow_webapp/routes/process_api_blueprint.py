@@ -10,68 +10,17 @@ from flask import Blueprint
 from flask_bpmn.api.api_error import ApiError
 
 from spiff_workflow_webapp.models.process_model import ProcessModelInfoSchema
+from spiff_workflow_webapp.models.process_instance import ProcessInstanceApiSchema
 from spiff_workflow_webapp.services.process_model_service import ProcessModelService
+from spiff_workflow_webapp.services.process_instance_service import ProcessInstanceService
 from spiff_workflow_webapp.services.spec_file_service import SpecFileService
 from spiff_workflow_webapp.models.file import FileSchema, FileType
-# from spiff_workflow_webapp.spiff_workflow_connector import parse
-# from spiff_workflow_webapp.spiff_workflow_connector import run
-
-
-# wf_spec_converter = BpmnWorkflowSerializer.configure_workflow_spec_converter(
-#     [UserTaskConverter, BusinessRuleTaskConverter]
-# )
-# serializer = BpmnWorkflowSerializer(wf_spec_converter)
 
 process_api_blueprint = Blueprint("process_api", __name__)
 
-# ALLOWED_EXTENSIONS = {'bpmn', 'dmn'}
-#
-#
-# @process_api_blueprint.route("/process_models/deploy", methods=["POST"])
-# def deploy_model() -> Response:
-#     """Deploys the bpmn xml file."""
-#     if 'file' not in request.files:
-#         raise (
-#             ApiError(
-#                 code="file_not_given",
-#                 message="File was not given.",
-#                 status_code=400,
-#             )
-#         )
-#     file = request.files['file']
-#     if file.filename == '':
-#         raise (
-#             ApiError(
-#                 code="file_not_given",
-#                 message="File was not given.",
-#                 status_code=400,
-#             )
-#         )
-#     if file and allowed_file(file.filename):
-#         filename = secure_filename(file.filename)
-#         file.save(os.path.join(current_app.config['BPMN_SPEC_ABSOLUTE_DIR'], filename))
-#         return Response(
-#             json.dumps({"status": "successful", "id": ""}),
-#             status=201,
-#             mimetype="application/json",
-#         )
-#     # content = request.json
-#     # if content is None:
-#     #     return Response(
-#     #         json.dumps({"error": "The bpmn xml could not be retrieved from the post body."}),
-#     #         status=400,
-#     #         mimetype="application/json",
-#     #     )
-#     #
-#
-#
-# def allowed_file(filename):
-#     return '.' in filename and \
-#            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-
-def add_workflow_specification(body):
-    """Add_workflow_specification."""
+def add_process_model(body):
+    """Add_process_model."""
     spec = ProcessModelInfoSchema().load(body)
     spec_service = ProcessModelService()
     process_group = spec_service.get_process_group(spec.process_group_id)
@@ -84,6 +33,7 @@ def add_workflow_specification(body):
 
 
 def get_file(spec_id, file_name):
+    """Get_file."""
     workflow_spec_service = ProcessModelService()
     workflow_spec = workflow_spec_service.get_spec(spec_id)
     files = SpecFileService.get_files(workflow_spec, file_name)
@@ -95,6 +45,7 @@ def get_file(spec_id, file_name):
 
 
 def add_file(spec_id):
+    """Add_file."""
     workflow_spec_service = ProcessModelService()
     workflow_spec = workflow_spec_service.get_spec(spec_id)
     file = connexion.request.files['file']
@@ -105,14 +56,14 @@ def add_file(spec_id):
     return FileSchema().dump(file)
 
 
-# def get_workflow_specification(spec_id):
-#     """Get_workflow_specification."""
-#     spec_service = ProcessModelService()
-#     if spec_id is None:
-#         raise ApiError('unknown_spec', 'Please provide a valid Workflow Specification ID.')
-#     spec = spec_service.get_spec(spec_id)
-#
-#     if spec is None:
-#         raise ApiError('unknown_spec', 'The Workflow Specification "' + spec_id + '" is not recognized.')
-#
-#     return ProcessModelInfoSchema().dump(spec)
+def create_process_instance(spec_id):
+    """Create_process_instance."""
+    workflow_model = ProcessInstanceService.create_process_instance(spec_id, g.user)
+    processor = WorkflowProcessor(workflow_model)
+
+    processor.do_engine_steps()
+    processor.save()
+    ProcessInstanceService.update_task_assignments(processor)
+
+    workflow_api_model = ProcessInstanceService.processor_to_workflow_api(processor)
+    return ProcessInstanceApiSchema().dump(workflow_api_model)
