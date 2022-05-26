@@ -1,13 +1,13 @@
 """Task_event."""
+
+from __future__ import annotations
+
 import enum
 
 from marshmallow import INCLUDE, fields, Schema
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 
 from flask_bpmn.models.db import db
-from spiff_workflow_webapp.models.process_instance import ProcessInstanceMetadataSchema
-from crc.models.workflow import WorkflowModel
-from crc.services.ldap_service import LdapService
 from sqlalchemy import func
 
 
@@ -55,12 +55,11 @@ class TaskEventModelSchema(SQLAlchemyAutoSchema):
 class TaskEvent(object):
     """TaskEvent."""
 
-    def __init__(self, model: TaskEventModel, process_instance: WorkflowModel):
+    def __init__(self, model: TaskEventModel, process_instance: "ProcessInstanceModel"):
         """__init__."""
         self.id = model.id
         self.process_instance = process_instance
         self.user_uid = model.user_uid
-        self.user_display = LdapService.user_info(model.user_uid).display_name
         self.action = model.action
         self.task_id = model.task_id
         self.task_title = model.task_title
@@ -74,12 +73,12 @@ class TaskEvent(object):
 class TaskEventSchema(Schema):
     """TaskEventSchema."""
 
-    process_instance = fields.Nested(ProcessInstanceMetadataSchema, dump_only=True)
+    process_instance = fields.Nested("ProcessInstanceMetadataSchema", dump_only=True)
     task_lane = fields.String(allow_none=True, required=False)
 
     class Meta:
         """Meta."""
         model = TaskEvent
-        additional = ["id", "user_uid", "user_display", "action", "task_id", "task_title",
+        additional = ["id", "user_uid", "action", "task_id", "task_title",
                       "task_name", "task_type", "task_state", "task_lane", "date"]
         unknown = INCLUDE

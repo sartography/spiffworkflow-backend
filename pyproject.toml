@@ -39,6 +39,8 @@ psycopg2 = "^2.9.3"
 typing-extensions = "^4.2.0"
 connexion = "^2.13.1"
 lxml = "^4.8.0"
+marshmallow-enum = "^1.5.1"
+marshmallow-sqlalchemy = "^0.28.0"
 
 
 [tool.poetry.dev-dependencies]

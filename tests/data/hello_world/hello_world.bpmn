@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_0ixyfs0" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="3.5.0">
+  <bpmn:process id="Process_HelloWorld" name="Hello World Process" isExecutable="true">
+    <bpmn:documentation>This workflow asks for a name and says hello</bpmn:documentation>
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>SequenceFlow_0qyd2b7</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_0qyd2b7" sourceRef="StartEvent_1" targetRef="Task_GetName" />
+    <bpmn:userTask id="Task_GetName" name="Get Name" camunda:formKey="Name">
+      <bpmn:documentation>Hello</bpmn:documentation>
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="name" label="'Name'"  type="string" defaultValue="World" />
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0qyd2b7</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1h46b40</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="SequenceFlow_1h46b40" sourceRef="Task_GetName" targetRef="Task_SayHello" />
+    <bpmn:manualTask id="Task_SayHello" name="Say Hello">
+      <bpmn:documentation>Hello {{name}}</bpmn:documentation>
+      <bpmn:incoming>SequenceFlow_1h46b40</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0lqrc6e</bpmn:outgoing>
+    </bpmn:manualTask>
+    <bpmn:endEvent id="EndEvent_1l03lqw">
+      <bpmn:incoming>SequenceFlow_0lqrc6e</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_0lqrc6e" sourceRef="Task_SayHello" targetRef="EndEvent_1l03lqw" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_HelloWorld">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="179" y="99" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0qyd2b7_di" bpmnElement="SequenceFlow_0qyd2b7">
+        <di:waypoint x="215" y="117" />
+        <di:waypoint x="270" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="UserTask_0fbucz7_di" bpmnElement="Task_GetName">
+        <dc:Bounds x="270" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1h46b40_di" bpmnElement="SequenceFlow_1h46b40">
+        <di:waypoint x="370" y="117" />
+        <di:waypoint x="430" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ManualTask_1tia2zr_di" bpmnElement="Task_SayHello">
+        <dc:Bounds x="430" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_1l03lqw_di" bpmnElement="EndEvent_1l03lqw">
+        <dc:Bounds x="592" y="99" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0lqrc6e_di" bpmnElement="SequenceFlow_0lqrc6e">
+        <di:waypoint x="530" y="117" />
+        <di:waypoint x="592" y="117" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

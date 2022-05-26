@@ -1,11 +1,9 @@
 """User_service."""
 from flask import g
 
-import crc.api.user
-from crc import session
-from crc.api.common import ApiError
-from crc.services.ldap_service import LdapService
-from crc.models.user import UserModel, AdminSessionModel
+from flask_bpmn.models.db import db
+from flask_bpmn.api.api_error import ApiError
+from spiff_workflow_webapp.models.user import UserModel, AdminSessionModel
 
 
 class UserService(object):
@@ -73,20 +71,15 @@ class UserService(object):
 
         if UserService.is_different_user(uid):
             # Impersonate the user if the given uid is valid.
-
-            # If the user is not in the User table, add them to it
-            ldap_info = LdapService().user_info(uid)
-            crc.api.user._upsert_user(ldap_info)
-
-            impersonate_user = session.query(UserModel).filter(UserModel.uid == uid).first()
+            impersonate_user = db.session.query(UserModel).filter(UserModel.uid == uid).first()
 
             if impersonate_user is not None:
                 g.impersonate_user = impersonate_user
 
                 # Store the uid and user session token.
-                session.query(AdminSessionModel).filter(AdminSessionModel.token == g.token).delete()
-                session.add(AdminSessionModel(token=g.token, admin_impersonate_uid=uid))
-                session.commit()
+                db.session.query(AdminSessionModel).filter(AdminSessionModel.token == g.token).delete()
+                db.session.add(AdminSessionModel(token=g.token, admin_impersonate_uid=uid))
+                db.session.commit()
             else:
                 raise ApiError("invalid_uid", "The uid provided is not valid.")
 
@@ -102,13 +95,15 @@ class UserService(object):
 
         admin_session: AdminSessionModel = UserService.get_admin_session()
         if admin_session:
-            session.delete(admin_session)
-            session.commit()
+            db.session.delete(admin_session)
+            db.session.commit()
 
     @staticmethod
     def in_list(uids, allow_admin_impersonate=False):
-        """Returns true if the current user's id is in the given list of ids.  False if there
-        is no user, or the user is not in the list."""
+        """Returns true if the current user's id is in the given list of ids.
+
+        False if there is no user, or the user is not in the list.
+        """
         if UserService.has_user():  # If someone is logged in, lock tasks that don't belong to them.
             user = UserService.current_user(allow_admin_impersonate)
             if user.uid in uids:
@@ -119,7 +114,7 @@ class UserService(object):
     def get_admin_session() -> AdminSessionModel:
         """Get_admin_session."""
         if UserService.user_is_admin():
-            return session.query(AdminSessionModel).filter(AdminSessionModel.token == g.token).first()
+            return db.session.query(AdminSessionModel).filter(AdminSessionModel.token == g.token).first()
         else:
             raise ApiError("unauthorized", "You do not have permissions to do this.", status_code=403)
 
@@ -130,6 +125,6 @@ class UserService(object):
             admin_session = UserService.get_admin_session()
 
             if admin_session is not None:
-                return session.query(UserModel).filter(UserModel.uid == admin_session.admin_impersonate_uid).first()
+                return db.session.query(UserModel).filter(UserModel.uid == admin_session.admin_impersonate_uid).first()
         else:
             raise ApiError("unauthorized", "You do not have permissions to do this.", status_code=403)

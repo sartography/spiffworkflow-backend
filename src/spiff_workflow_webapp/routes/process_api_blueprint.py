@@ -13,6 +13,7 @@ from spiff_workflow_webapp.models.process_model import ProcessModelInfoSchema
 from spiff_workflow_webapp.models.process_instance import ProcessInstanceApiSchema
 from spiff_workflow_webapp.services.process_model_service import ProcessModelService
 from spiff_workflow_webapp.services.process_instance_service import ProcessInstanceService
+from spiff_workflow_webapp.services.process_instance_processor import ProcessInstanceProcessor
 from spiff_workflow_webapp.services.spec_file_service import SpecFileService
 from spiff_workflow_webapp.models.file import FileSchema, FileType
 
@@ -58,8 +59,8 @@ def add_file(spec_id):
 
 def create_process_instance(spec_id):
     """Create_process_instance."""
-    workflow_model = ProcessInstanceService.create_process_instance(spec_id, g.user)
-    processor = WorkflowProcessor(workflow_model)
+    process_instance = ProcessInstanceService.create_process_instance(spec_id, g.user)
+    processor = ProcessInstanceProcessor(process_instance)
 
     processor.do_engine_steps()
     processor.save()

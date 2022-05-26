@@ -13,7 +13,7 @@ from spiff_workflow_webapp.models.process_group import ProcessGroup
 from spiff_workflow_webapp.services.process_model_service import ProcessModelService
 from spiff_workflow_webapp.models.file import FileType
 
-from tests.spiff_workflow_webapp.helpers.test_data import load_test_spec
+from tests.spiff_workflow_webapp.helpers.test_data import load_test_spec, find_or_create_user
 
 
 @pytest.fixture()
@@ -44,6 +44,18 @@ def test_add_new_process_model(app, client: FlaskClient, with_bpmn_file_cleanup)
 #     fs_spec = process_model_service.get_spec('random_fact')
 #     assert(WorkflowSpecInfoSchema().dump(fs_spec) == json_data)
 #
+
+
+def test_get_workflow_from_workflow_spec(app, client: FlaskClient, with_bpmn_file_cleanup):
+    # create_process_model(app, client)
+    # create_spec_file(app, client)
+
+    user = find_or_create_user()
+    spec = load_test_spec(app, 'hello_world')
+    rv = client.post(f'/v1.0/workflow-specification/{spec.id}')
+    assert rv.status_code == 200
+    assert('hello_world' == rv.json['workflow_spec_id'])
+    assert('Task_GetName' == rv.json['next_task']['name'])
 
 
 def create_process_model(app, client: FlaskClient):

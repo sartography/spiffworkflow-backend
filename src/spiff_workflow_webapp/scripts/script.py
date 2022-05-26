@@ -21,13 +21,13 @@ class Script(object):
         raise ApiError("invalid_script",
                        "This script does not supply a description.")
 
-    def do_task(self, task, study_id, workflow_id, *args, **kwargs):
+    def do_task(self, task, workflow_id, *args, **kwargs):
         """Do_task."""
         raise ApiError("invalid_script",
                        "This is an internal error. The script you are trying to execute '%s' " % self.__class__.__name__
                        + "does not properly implement the do_task function.")
 
-    def do_task_validate_only(self, task, study_id, workflow_id, *args, **kwargs):
+    def do_task_validate_only(self, task, workflow_id, *args, **kwargs):
         """Do_task_validate_only."""
         raise ApiError("invalid_script",
                        "This is an internal error. The script you are trying to execute '%s' " % self.__class__.__name__
@@ -35,7 +35,7 @@ class Script(object):
                        + "but does not make external calls or database updates.")
 
     @staticmethod
-    def generate_augmented_list(task, study_id, workflow_id):
+    def generate_augmented_list(task, workflow_id):
         """This makes a dictionary of lambda functions that are closed over the class instance that they represent.
 
         This is passed into PythonScriptParser as a list of helper functions that are
@@ -45,7 +45,7 @@ class Script(object):
         We may be able to remove the task for each of these calls if we are not using it other than potentially
         updating the task data.
         """
-        def make_closure(subclass, task, study_id, workflow_id):
+        def make_closure(subclass, task, workflow_id):
             """Yes - this is black magic.
 
             Essentially, we want to build a list of all of the submodules (i.e. email, user_data_get, etc)
@@ -56,17 +56,17 @@ class Script(object):
             that we created.
             """
             instance = subclass()
-            return lambda *ar, **kw: subclass.do_task(instance, task, study_id, workflow_id, *ar, **kw)
+            return lambda *ar, **kw: subclass.do_task(instance, task, workflow_id, *ar, **kw)
         execlist = {}
         subclasses = Script.get_all_subclasses()
         for x in range(len(subclasses)):
             subclass = subclasses[x]
-            execlist[subclass.__module__.split('.')[-1]] = make_closure(subclass, task, study_id,
+            execlist[subclass.__module__.split('.')[-1]] = make_closure(subclass, task, 
                                                                         workflow_id)
         return execlist
 
     @staticmethod
-    def generate_augmented_validate_list(task, study_id, workflow_id):
+    def generate_augmented_validate_list(task, workflow_id):
         """This makes a dictionary of lambda functions that are closed over the class instance that they represent.
 
         This is passed into PythonScriptParser as a list of helper functions that are
@@ -76,15 +76,15 @@ class Script(object):
         We may be able to remove the task for each of these calls if we are not using it other than potentially
         updating the task data.
         """
-        def make_closure_validate(subclass, task, study_id, workflow_id):
+        def make_closure_validate(subclass, task, workflow_id):
             """Make_closure_validate."""
             instance = subclass()
-            return lambda *a, **b: subclass.do_task_validate_only(instance, task, study_id, workflow_id, *a, **b)
+            return lambda *a, **b: subclass.do_task_validate_only(instance, task, workflow_id, *a, **b)
         execlist = {}
         subclasses = Script.get_all_subclasses()
         for x in range(len(subclasses)):
             subclass = subclasses[x]
-            execlist[subclass.__module__.split('.')[-1]] = make_closure_validate(subclass, task, study_id,
+            execlist[subclass.__module__.split('.')[-1]] = make_closure_validate(subclass, task, 
                                                                                  workflow_id)
         return execlist
 

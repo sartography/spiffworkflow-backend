@@ -3,9 +3,6 @@ from flask_bpmn.models.db import db
 from sqlalchemy import ForeignKey  # type: ignore
 from sqlalchemy.orm import relationship  # type: ignore
 
-from spiff_workflow_webapp.models.group import GroupModel
-from spiff_workflow_webapp.models.user import UserModel
-
 
 class UserGroupAssignmentModel(db.Model):  # type: ignore
     """UserGroupAssignmentModel."""
@@ -15,7 +12,7 @@ class UserGroupAssignmentModel(db.Model):  # type: ignore
         db.UniqueConstraint("user_id", "group_id", name="user_group_assignment_unique"),
     )
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(ForeignKey(UserModel.id), nullable=False)
-    group_id = db.Column(ForeignKey(GroupModel.id), nullable=False)
+    user_id = db.Column(ForeignKey("user.id"), nullable=False)
+    group_id = db.Column(ForeignKey("group.id"), nullable=False)
     group = relationship("GroupModel", overlaps="groups,user_group_assignments,users")
     user = relationship("UserModel", overlaps="groups,user_group_assignments,users")

@@ -12,7 +12,7 @@ class DataStoreModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     last_updated = db.Column(db.DateTime(timezone=True), server_default=func.now())
     key = db.Column(db.String, nullable=False)
-    workflow_id = db.Column(db.Integer)
+    process_instance_id = db.Column(db.Integer)
     task_spec = db.Column(db.String)
     spec_id = db.Column(db.String)
     user_id = db.Column(db.String, nullable=True)

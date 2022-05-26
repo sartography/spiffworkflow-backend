@@ -1,21 +1,24 @@
 """User."""
 import os
+from typing import Any
+from flask_bpmn.models.db import db
 
 
 from spiff_workflow_webapp.models.process_group import ProcessGroup
+from spiff_workflow_webapp.models.user import UserModel
 from spiff_workflow_webapp.services.process_model_service import ProcessModelService
 
 from tests.spiff_workflow_webapp.helpers.example_data import ExampleDataLoader
 
 
-# def find_or_create_user(username: str = "test_user1") -> Any:
-#     user = UserModel.query.filter_by(username=username).first()
-#     if user is None:
-#         user = UserModel(username=username)
-#         db.session.add(user)
-#         db.session.commit()
-#
-#     return user
+def find_or_create_user(username: str = "test_user1") -> Any:
+    user = UserModel.query.filter_by(username=username).first()
+    if user is None:
+        user = UserModel(username=username)
+        db.session.add(user)
+        db.session.commit()
+
+    return user
 #
 #
 # def find_or_create_process_group(name: str = "test_group1") -> Any:

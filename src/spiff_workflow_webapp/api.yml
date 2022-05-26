@@ -6,8 +6,10 @@ info:
     name: MIT
 servers:
   - url: http://localhost:5000/v1.0
-# security:
-#   - jwt: ['secret']
+security:
+  - jwt: ['secret']
+
+
 paths:
   /workflow-specification:
     # get:
@@ -118,7 +120,7 @@ paths:
     #           schema:
     #             $ref: "#/components/schemas/WorkflowSpec"
     post:
-      operationId: crc.api.workflow.get_workflow_from_spec
+      operationId: spiff_workflow_webapp.routes.process_api_blueprint.create_process_instance
       summary: Creates a workflow from a workflow spec and returns the workflow
       tags:
         - Workflow Specifications
@@ -219,10 +221,13 @@ paths:
     #     '204':
     #       description: The file was removed.
 
-
-
-
 components:
+  securitySchemes:
+    jwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      x-bearerInfoFunc: spiff_workflow_webapp.routes.user.verify_token
   schemas:
     User:
       properties:

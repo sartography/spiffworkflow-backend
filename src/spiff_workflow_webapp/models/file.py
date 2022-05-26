@@ -17,7 +17,7 @@ class FileModel(db.Model):
     name = db.Column(db.String, nullable=False)
     type = db.Column(db.String, nullable=False)
     content_type = db.Column(db.String, nullable=False)
-    workflow_id = db.Column(db.Integer, db.ForeignKey('workflow.id'), nullable=True)
+    process_instance_id = db.Column(db.Integer, db.ForeignKey('process_instance.id'), nullable=True)
     task_spec = db.Column(db.String, nullable=True)
     irb_doc_code = db.Column(db.String, nullable=False)  # Code reference to the documents.xlsx reference file.
     data_stores = relationship(DataStoreModel, cascade="all,delete", backref="file")
@@ -86,7 +86,7 @@ class File(object):
         self.content_type = None
         self.name = None
         self.content_type = None
-        self.workflow_id = None
+        self.process_instance_id = None
         self.irb_doc_code = None
         self.type = None
         self.document = {}
@@ -117,7 +117,7 @@ class FileSchema(Schema):
     class Meta:
         """Meta."""
         model = File
-        fields = ["id", "name", "content_type", "workflow_id",
+        fields = ["id", "name", "content_type", "process_instance_id",
                   "irb_doc_code", "last_modified", "type", "archived",
                   "size", "data_store", "document", "user_uid", "url"]
         unknown = INCLUDE
