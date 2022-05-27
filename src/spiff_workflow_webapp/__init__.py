@@ -7,6 +7,7 @@ from flask_bpmn.api.api_error import api_error_blueprint
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import migrate
 
+from spiff_workflow_webapp.routes.admin_blueprint.admin_blueprint import admin_blueprint
 from spiff_workflow_webapp.config import setup_config
 from spiff_workflow_webapp.routes.api_blueprint import api_blueprint
 from spiff_workflow_webapp.routes.process_api_blueprint import process_api_blueprint
@@ -32,7 +33,7 @@ def create_app() -> flask.app.Flask:
     app.register_blueprint(api_blueprint)
     app.register_blueprint(process_api_blueprint)
     app.register_blueprint(api_error_blueprint)
-
+    app.register_blueprint(admin_blueprint, url_prefix="/admin")
     connexion_app.add_api("api.yml", base_path='/v1.0')
 
     return app

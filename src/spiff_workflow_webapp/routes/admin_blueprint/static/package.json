@@ -1,0 +1,14 @@
+{
+  "name": "spiff-workflow-webapp",
+  "version": "0.0.0",
+  "description": "Serve up Spiff Workflows to the World!",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bpmn-js": "^9.1.0"
+  }
+}
