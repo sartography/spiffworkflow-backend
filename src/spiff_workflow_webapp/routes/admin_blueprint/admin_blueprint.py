@@ -26,8 +26,8 @@ def view_bpmn(process_model_id, file_id):
     bpmn_xml = SpecFileService.get_data(process_model, files[0].name)
     return render_template('view.html', bpmn_xml=bpmn_xml.decode("utf-8") )
 
-@admin_blueprint.route("/run/<process_model_id>/<file_id>", methods=["GET"])
-def run_bpmn(process_model_id, file_id):
+@admin_blueprint.route("/run/<process_model_id>", methods=["GET"])
+def run_bpmn(process_model_id):
     user = find_or_create_user('Mr. Test') # Fixme - sheesh!
     process_instance = ProcessInstanceService.create_process_instance(process_model_id, user)
     processor = ProcessInstanceProcessor(process_instance)
@@ -38,8 +38,13 @@ def run_bpmn(process_model_id, file_id):
     files = SpecFileService.get_files(process_model)
     bpmn_xml = SpecFileService.get_data(process_model, files[0].name)
 
-    return render_template('view.html', bpmn_xml=bpmn_xml.decode("utf-8"), result=result)
+    return render_template('view.html', bpmn_xml=bpmn_xml.decode("utf-8"), result=result,
+                           process_model_id=process_model_id)
 
+@admin_blueprint.route("/process_models", methods=["GET"])
+def listProcessModels():
+    models = ProcessModelService().get_specs()
+    return render_template('process_models.html', models=models)
 
 def find_or_create_user(username: str = "test_user1") -> Any:
     user = UserModel.query.filter_by(username=username).first()
@@ -48,3 +53,4 @@ def find_or_create_user(username: str = "test_user1") -> Any:
         db.session.add(user)
         db.session.commit()
     return user
+

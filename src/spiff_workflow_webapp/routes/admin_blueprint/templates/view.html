@@ -47,7 +47,10 @@
   </head>
   <body>
     <div id="result">{{ result }}</div>
+    <button type="button" onclick="window.location.href='{{ url_for( 'admin.listProcessModels' , table='Y' ) }}';">Display Table Y</button>
+    <button type="button" onclick="window.location.href='{{ url_for( 'admin.run_bpmn' , process_model_id=process_model_id ) }}';">Run</button>
     <div id="canvas"></div>
+
     <meta id="bpmn_xml" data-name="{{bpmn_xml}}">
     <script>
 
