@@ -1,4 +1,5 @@
 .mypy_cache/
+/.idea/
 /.coverage
 /.coverage.*
 /.nox/

@@ -74,22 +74,20 @@ class ProcessInstanceModel(db.Model):  # type: ignore
 class ProcessInstanceApi(object):
     """ProcessInstanceApi."""
 
-    def __init__(self, id, status, next_task, navigation,
+    def __init__(self, id, status, next_task,
                  process_model_identifier, total_tasks, completed_tasks,
-                 last_updated, is_review, title, study_id, state):
+                 last_updated, is_review, title):
         """__init__."""
         self.id = id
         self.status = status
         self.next_task = next_task  # The next task that requires user input.
-        self.navigation = navigation
+#        self.navigation = navigation  fixme:  would be a hotness.
         self.process_model_identifier = process_model_identifier
         self.total_tasks = total_tasks
         self.completed_tasks = completed_tasks
         self.last_updated = last_updated
         self.title = title
         self.is_review = is_review
-        self.study_id = study_id or ''
-        self.state = state
 
 
 class ProcessInstanceApiSchema(Schema):
