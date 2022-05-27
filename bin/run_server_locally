@@ -13,7 +13,7 @@ fi
 
 if [[ -z "${BPMN_SPEC_ABSOLUTE_DIR:-}" ]]; then
   script_dir="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-  export BPMN_SPEC_ABSOLUTE_DIR="$script_dir/../../spiff-workflow-models"
+  export BPMN_SPEC_ABSOLUTE_DIR="$script_dir/../../sample-process-models"
 fi
 
 
