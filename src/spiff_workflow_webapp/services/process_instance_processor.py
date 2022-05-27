@@ -47,29 +47,11 @@ class CustomBpmnScriptEngine(PythonScriptEngine):
         """Evaluate."""
         return self._evaluate(expression, task.data, task)
 
-    def __get_augment_methods(self, task):
-        """__get_augment_methods."""
-        methods = []
-        if task:
-            process_instance = ProcessInstanceProcessor.find_top_level_process_instance(task)
-            if ProcessInstanceProcessor.PROCESS_INSTANCE_ID_KEY in process_instance.data:
-                process_instance_id = process_instance.data[ProcessInstanceProcessor.PROCESS_INSTANCE_ID_KEY]
-            else:
-                process_instance_id = None
-
-            if process_instance.data[ProcessInstanceProcessor.VALIDATION_PROCESS_KEY]:
-                methods = Script.generate_augmented_validate_list(task, process_instance_id)
-            else:
-                methods = Script.generate_augmented_list(task, process_instance_id)
-        return methods
 
     def _evaluate(self, expression, context, task=None, external_methods=None):
         """Evaluate the given expression, within the context of the given task and return the result."""
-        methods = self.__get_augment_methods(task)
-        if(external_methods):
-            methods.update(external_methods)
         try:
-            return super()._evaluate(expression, context, task, methods)
+            return super()._evaluate(expression, context, task, {})
         except Exception as exception:
             raise WorkflowTaskExecException(task,
                                             "Error evaluating expression "
@@ -78,8 +60,7 @@ class CustomBpmnScriptEngine(PythonScriptEngine):
     def execute(self, task: SpiffTask, script, data):
         """Execute."""
         try:
-            augment_methods = self.__get_augment_methods(task)
-            super().execute(task, script, data, external_methods=augment_methods)
+            super().execute(task, script, data)
         except WorkflowException as e:
             raise e
         except Exception as e:

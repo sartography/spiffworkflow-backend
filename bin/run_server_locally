@@ -16,5 +16,4 @@ if [[ -z "${BPMN_SPEC_ABSOLUTE_DIR:-}" ]]; then
   export BPMN_SPEC_ABSOLUTE_DIR="$script_dir/../../sample-process-models"
 fi
 
-
 FLASK_APP=src/spiff_workflow_webapp poetry run flask run
