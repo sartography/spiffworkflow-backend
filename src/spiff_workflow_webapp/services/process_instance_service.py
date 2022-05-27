@@ -3,6 +3,8 @@
 from datetime import datetime
 from flask_bpmn.models.db import db
 
+from SpiffWorkflow import NavItem
+from typing import List
 from SpiffWorkflow.util.deep_merge import DeepMerge
 
 from spiff_workflow_webapp.models.process_instance import ProcessInstanceModel, ProcessInstanceStatus, ProcessInstanceApi
@@ -29,14 +31,14 @@ class ProcessInstanceService():
         """Returns an API model representing the state of the current process_instance, if requested, and
         possible, next_task is set to the current_task."""
         navigation = processor.bpmn_process_instance.get_deep_nav_list()
-        ProcessInstanceService.update_navigation(navigation, processor)
+        # ProcessInstanceService.update_navigation(navigation, processor)
         spec_service = ProcessModelService()
         spec = spec_service.get_spec(processor.process_model_id)
         process_instance_api = ProcessInstanceApi(
             id=processor.get_process_instance_id(),
             status=processor.get_status(),
             next_task=None,
-            navigation=navigation,
+            # navigation=navigation,
             process_model_identifier=processor.process_model_identifier,
             total_tasks=len(navigation),
             completed_tasks=processor.process_instance_model.completed_tasks,
@@ -62,3 +64,23 @@ class ProcessInstanceService():
             #     process_instance_api.next_task.state = ProcessInstanceService.TASK_STATE_LOCKED
 
         return process_instance_api
+
+    @staticmethod
+    def update_navigation(navigation: List[NavItem], processor: ProcessInstanceProcessor):
+        # Recursive function to walk down through children, and clean up descriptions, and statuses
+        for nav_item in navigation:
+            spiff_task = processor.bpmn_workflow.get_task(nav_item.task_id)
+            if spiff_task:
+                nav_item.description = WorkflowService.__calculate_title(spiff_task)
+                user_uids = WorkflowService.get_users_assigned_to_task(processor, spiff_task)
+                if (isinstance(spiff_task.task_spec, UserTask) or isinstance(spiff_task.task_spec, ManualTask)) \
+                        and not UserService.in_list(user_uids, allow_admin_impersonate=True):
+                    nav_item.state = WorkflowService.TASK_STATE_LOCKED
+            else:
+                # Strip off the first word in the description, to meet guidlines for BPMN.
+                if nav_item.description:
+                    if nav_item.description is not None and ' ' in nav_item.description:
+                        nav_item.description = nav_item.description.partition(' ')[2]
+
+            # Recurse here
+            WorkflowService.update_navigation(nav_item.children, processor)

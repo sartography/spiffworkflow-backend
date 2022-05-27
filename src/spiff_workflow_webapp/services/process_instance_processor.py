@@ -225,6 +225,23 @@ class ProcessInstanceProcessor(object):
         db.session.commit()
 
     @staticmethod
+    def __get_bpmn_workflow(process_instance_model: ProcessInstanceModel, spec: WorkflowSpec = None, validate_only=False):
+        if process_instance_model.bpmn_workflow_json:
+            version = ProcessInstanceProcessor._serializer.get_version(process_instance_model.bpmn_workflow_json)
+            if(version == ProcessInstanceProcessor.SERIALIZER_VERSION):
+                bpmn_workflow = ProcessInstanceProcessor._serializer.deserialize_json(process_instance_model.bpmn_workflow_json)
+            else:
+                bpmn_workflow = ProcessInstanceProcessor.\
+                    _old_serializer.deserialize_workflow(process_instance_model.bpmn_workflow_json,
+                                                         workflow_spec=spec)
+            bpmn_workflow.script_engine = ProcessInstanceProcessor._script_engine
+        else:
+            bpmn_workflow = BpmnWorkflow(spec, script_engine=ProcessInstanceProcessor._script_engine)
+            bpmn_workflow.data[ProcessInstanceProcessor.PROCESS_INSTANCE_ID_KEY] = process_instance_model.study_id
+            bpmn_workflow.data[ProcessInstanceProcessor.VALIDATION_PROCESS_KEY] = validate_only
+        return bpmn_workflow
+
+    @staticmethod
     def __get_bpmn_process_instance(process_instance_model: ProcessInstanceModel, spec: WorkflowSpec = None, validate_only=False):
         """__get_bpmn_process_instance."""
         if process_instance_model.bpmn_json:
