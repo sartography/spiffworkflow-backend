@@ -4,8 +4,9 @@
     <meta charset="UTF-8" />
     <title>Hello World</title>
 
-    <script src="{{ url_for('admin.static', filename='node_modules/bpmn-js/dist/bpmn-viewer.development.js') }}"></script>
-
+    <!--
+    <script src="{{ url_for('admin.static', filename='node_modules/bpmn-js/dist/bpmn-modeler.development.js') }}"></script>
+       -->
     <!-- viewer distro (without pan and zoom) -->
     <!--
     <script src="https://unpkg.com/bpmn-js@9.1.0/dist/bpmn-viewer.development.js"></script>
@@ -21,9 +22,21 @@
     <script src="https://unpkg.com/jquery@3.3.1/dist/jquery.js"></script>
 
     <!-- example styles -->
+   <!-- required modeler styles -->
+    <link rel="stylesheet" href="https://unpkg.com/bpmn-js@9.1.0/dist/assets/bpmn-js.css">
+    <link rel="stylesheet" href="https://unpkg.com/bpmn-js@9.1.0/dist/assets/diagram-js.css">
+    <link rel="stylesheet" href="https://unpkg.com/bpmn-js@9.1.0/dist/assets/bpmn-font/css/bpmn.css">
+
+    <!-- modeler distro -->
+    <script src="https://unpkg.com/bpmn-js@9.1.0/dist/bpmn-modeler.development.js"></script>
+
+    <!-- needed for this example only -->
+    <script src="https://unpkg.com/jquery@3.3.1/dist/jquery.js"></script>
+
+    <!-- example styles -->
     <style>
       html, body, #canvas {
-        height: 90%;
+        height: 100%;
         padding: 0;
         margin: 0;
       }
@@ -43,6 +56,12 @@
       .needs-discussion:not(.djs-connection) .djs-visual > :nth-child(1) {
         stroke: rgba(66, 180, 21, 0.7) !important; /* color elements as red */
       }
+
+      #save-button {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+      }
     </style>
   </head>
   <body>
@@ -50,21 +69,57 @@
     <button type="button" onclick="window.location.href='{{ url_for( 'admin.listProcessModels' ) }}';">List</button>
     <button type="button" onclick="window.location.href='{{ url_for( 'admin.run_bpmn' , process_model_id=process_model_id ) }}';">Run</button>
     <button type="button" onclick="window.location.href='{{ url_for( 'admin.edit_bpmn' , process_model_id=process_model_id ) }}';">Edit</button>
+    <button type="button" onclick="exportDiagram()" >print to console</button>
     <div id="canvas"></div>
 
     <meta id="bpmn_xml" data-name="{{bpmn_xml}}">
+    <meta id="process_model_id" data-name="{{process_model_id}}">
     <script>
 
-      var diagramUrl = 'https://cdn.staticaly.com/gh/bpmn-io/bpmn-js-examples/dfceecba/starter/diagram.bpmn';
-
-      // viewer instance
-      var bpmnViewer = new BpmnJS({
-        container: '#canvas'
+      // modeler instance
+      var bpmnModeler = new BpmnJS({
+        container: '#canvas',
+        keyboard: {
+          bindTo: window
+        }
       });
 
+      /**
+       * Save diagram contents and print them to the console.
+       */
+      async function exportDiagram() {
+
+        try {
+
+          var data = await bpmnModeler.saveXML({ format: true });
+          var process_model_id = $('#process_model_id').data().name;
+          console.log("The data is", data)
+            //POST request with body equal on data in JSON format
+            fetch('../save/' + process_model_id, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'text/xml',
+              },
+              body: data.xml
+            })
+            .then((response) => response.json())
+            //Then with the data from the response in JSON...
+            .then((data) => {
+              console.log('Success:', data);
+            })
+            //Then with the error genereted...
+            .catch((error) => {
+              console.error('Error:', error);
+            });
+
+          alert('Diagram exported. Check the developer tools!');
+        } catch (err) {
+          console.error('could not save BPMN 2.0 diagram', err);
+        }
+      }
 
       /**
-       * Open diagram in our viewer instance.
+       * Open diagram in our modeler instance.
        *
        * @param {String} bpmnXML diagram to display
        */
@@ -73,11 +128,11 @@
         // import diagram
         try {
 
-          await bpmnViewer.importXML(bpmnXML);
+          await bpmnModeler.importXML(bpmnXML);
 
-          // access viewer components
-          var canvas = bpmnViewer.get('canvas');
-          var overlays = bpmnViewer.get('overlays');
+          // access modeler components
+          var canvas = bpmnModeler.get('canvas');
+          var overlays = bpmnModeler.get('overlays');
 
 
           // zoom to fit full viewport
@@ -99,25 +154,13 @@
           console.error('could not import BPMN 2.0 diagram', err);
         }
       }
+
       var bpmn_xml = $('#bpmn_xml').data();
       openDiagram(bpmn_xml.name)
 
-      // load external diagram file via AJAX and open it
-      //$.get(diagramUrl, openDiagram, 'text');
+      // wire save button
+      $('#save-button').click(exportDiagram);
     </script>
     <!--
-      Thanks for trying out our BPMN toolkit!
-      If you'd like to learn more about what our library,
-      continue with some more basic examples:
-      * https://github.com/bpmn-io/bpmn-js-examples/overlays
-      * https://github.com/bpmn-io/bpmn-js-examples/interaction
-      * https://github.com/bpmn-io/bpmn-js-examples/colors
-      * https://github.com/bpmn-io/bpmn-js-examples/commenting
-      To get a bit broader overview over how bpmn-js works,
-      follow our walkthrough:
-      * https://bpmn.io/toolkit/bpmn-js/walkthrough/
-      Related starters:
-      * https://raw.githubusercontent.com/bpmn-io/bpmn-js-examples/starter/modeler.html
-    -->
   </body>
 </html>

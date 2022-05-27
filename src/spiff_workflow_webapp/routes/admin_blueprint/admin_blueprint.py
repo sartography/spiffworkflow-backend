@@ -2,8 +2,10 @@
 from typing import Any
 
 import connexion
+import requests
 from flask import Blueprint, g, render_template
 from flask_bpmn.models.db import db
+from flask import request
 
 from spiff_workflow_webapp.models.user import UserModel
 from spiff_workflow_webapp.services.process_instance_processor import ProcessInstanceProcessor
@@ -23,7 +25,7 @@ def hello_world():
 def view_bpmn(process_model_id, file_id):
     process_model = ProcessModelService().get_spec(process_model_id)
     files = SpecFileService.get_files(process_model)
-    bpmn_xml = SpecFileService.get_data(process_model, files[0].name)
+    bpmn_xml = SpecFileService.get_data(process_model, process_model.primary_file_name)
     return render_template('view.html', bpmn_xml=bpmn_xml.decode("utf-8") )
 
 @admin_blueprint.route("/run/<process_model_id>", methods=["GET"])
@@ -36,10 +38,29 @@ def run_bpmn(process_model_id):
 
     process_model = ProcessModelService().get_spec(process_model_id)
     files = SpecFileService.get_files(process_model)
-    bpmn_xml = SpecFileService.get_data(process_model, files[0].name)
+    bpmn_xml = SpecFileService.get_data(process_model, process_model.primary_file_name)
 
     return render_template('view.html', bpmn_xml=bpmn_xml.decode("utf-8"), result=result,
                            process_model_id=process_model_id)
+
+@admin_blueprint.route("/edit/<process_model_id>", methods=["GET"])
+def edit_bpmn(process_model_id):
+    process_model = ProcessModelService().get_spec(process_model_id)
+    files = SpecFileService.get_files(process_model)
+    bpmn_xml = SpecFileService.get_data(process_model, process_model.primary_file_name)
+
+    return render_template('edit.html', bpmn_xml=bpmn_xml.decode("utf-8"),
+                           process_model_id=process_model_id)
+
+@admin_blueprint.route("/save/<process_model_id>", methods=["POST"])
+def save_bpmn(process_model_id):
+    process_model = ProcessModelService().get_spec(process_model_id)
+    primary_file = SpecFileService.get_files(process_model, process_model.primary_file_name)
+    SpecFileService.update_file(process_model, process_model.primary_file_name, request.get_data())
+    bpmn_xml = SpecFileService.get_data(process_model, process_model.primary_file_name)
+    return render_template('edit.html', bpmn_xml=bpmn_xml.decode("utf-8"),
+                           process_model_id=process_model_id)
+
 
 @admin_blueprint.route("/process_models", methods=["GET"])
 def listProcessModels():
