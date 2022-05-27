@@ -36,4 +36,7 @@ def create_app() -> flask.app.Flask:
     app.register_blueprint(admin_blueprint, url_prefix="/admin")
     connexion_app.add_api("api.yml", base_path='/v1.0')
 
+    for name, value in app.config.items():
+        print(f"{name} = {value}")
+
     return app

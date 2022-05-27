@@ -11,4 +11,10 @@ if [[ -z "${FLASK_ENV:-}" ]]; then
   export FLASK_ENV=development
 fi
 
+if [[ -z "${BPMN_SPEC_ABSOLUTE_DIR:-}" ]]; then
+  script_dir="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+  export BPMN_SPEC_ABSOLUTE_DIR="$script_dir/../../spiff-workflow-models"
+fi
+
+
 FLASK_APP=src/spiff_workflow_webapp poetry run flask run
