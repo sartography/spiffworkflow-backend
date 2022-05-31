@@ -1,18 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Process Models</title>
-</head>
-<body>
-<h1>Process Models</h1>
-     <table>
-         <tbody>
-         {# here we iterate over every item in our list#}
-         {% for pm in models %}
-             <tr><td><a href="{{ url_for('admin.run_bpmn', process_model_id=pm.id) }}">{{ pm.display_name }}</a></td></tr>
-         {% endfor %}
-         </tbody>
-     </table>
-</body>
-</html>
+{% extends "layout.html" %}
+{% block title %}Process Models{% endblock %}
+{% block content %}
+<table>
+  <tbody>
+    {# here we iterate over every item in our list#}
+    {% for pm in models %}
+    <tr><td><a href="{{ url_for('admin.run_bpmn', process_model_id=pm.id) }}">{{ pm.display_name }}</a></td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

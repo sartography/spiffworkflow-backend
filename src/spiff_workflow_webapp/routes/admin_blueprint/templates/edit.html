@@ -1,25 +1,7 @@
-<!DOCTYPE html>
-<html>
-<head>
+{% extends "layout.html" %}
+{% block title %}Process Model Edit: {{ process_model.id }}{% endblock %}
+{% block head %}
     <meta charset="UTF-8" />
-    <title>Hello World</title>
-
-    <!--
-    <script src="{{ url_for('admin.static', filename='node_modules/bpmn-js/dist/bpmn-modeler.development.js') }}"></script>
-       -->
-    <!-- viewer distro (without pan and zoom) -->
-    <!--
-    <script src="https://unpkg.com/bpmn-js@9.1.0/dist/bpmn-viewer.development.js"></script>
-    -->
-
-    <!-- required viewer styles -->
-    <link rel="stylesheet" href="https://unpkg.com/bpmn-js@9.1.0/dist/assets/bpmn-js.css">
-
-    <!-- viewer distro (with pan and zoom) -->
-    <script src="https://unpkg.com/bpmn-js@9.1.0/dist/bpmn-navigated-viewer.development.js"></script>
-
-    <!-- needed for this example only -->
-    <script src="https://unpkg.com/jquery@3.3.1/dist/jquery.js"></script>
 
     <!-- example styles -->
    <!-- required modeler styles -->
@@ -63,13 +45,11 @@
         left: 20px;
       }
     </style>
-  </head>
-  <body>
+  {% endblock %}
+  {% block content %}
     <div id="result">{{ result }}</div>
-    <button type="button" onclick="window.location.href='{{ url_for( 'admin.list_process_models' ) }}';">List</button>
-    <button type="button" onclick="window.location.href='{{ url_for( 'admin.run_bpmn' , process_model_id=process_model_id ) }}';">Run</button>
-    <button type="button" onclick="window.location.href='{{ url_for( 'admin.edit_bpmn' , process_model_id=process_model_id ) }}';">Edit</button>
-    <button type="button" onclick="exportDiagram()" >print to console</button>
+    <button type="button" onclick="window.location.href='{{ url_for( 'admin.process_model_show', process_model_id=process_model.id ) }}';">Back</button>
+    <button type="button" onclick="exportDiagram()" >Save</button>
     <div id="canvas"></div>
 
     <meta id="bpmn_xml" data-name="{{bpmn_xml}}">
@@ -161,6 +141,4 @@
       // wire save button
       $('#save-button').click(exportDiagram);
     </script>
-    <!--
-  </body>
-</html>
+  {% endblock %}

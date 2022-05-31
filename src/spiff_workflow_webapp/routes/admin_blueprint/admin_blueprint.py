@@ -42,8 +42,7 @@ def run_bpmn(process_model_id):
     SpecFileService.get_files(process_model)
     bpmn_xml = SpecFileService.get_data(process_model, process_model.primary_file_name)
 
-    return render_template('view.html', bpmn_xml=bpmn_xml.decode("utf-8"), result=result,
-                           process_model_id=process_model_id)
+    return render_template('process_model_show.html', process_model=process_model, bpmn_xml=bpmn_xml, result=result)
 
 
 @admin_blueprint.route("/edit/<process_model_id>", methods=["GET"])
@@ -54,7 +53,7 @@ def edit_bpmn(process_model_id):
     bpmn_xml = SpecFileService.get_data(process_model, process_model.primary_file_name)
 
     return render_template('edit.html', bpmn_xml=bpmn_xml.decode("utf-8"),
-                           process_model_id=process_model_id)
+                           process_model=process_model)
 
 
 @admin_blueprint.route("/save/<process_model_id>", methods=["POST"])

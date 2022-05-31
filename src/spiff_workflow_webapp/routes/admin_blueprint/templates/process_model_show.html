@@ -1,32 +1,32 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8" />
-    <title>{{ process_model.id }}</title>
+{% extends "layout.html" %}
+{% block title %}Process Model: {{ process_model.id }}{% endblock %}
+{% block head %}
+{{ super() }}
+<meta charset="UTF-8" />
 
-    <script src="{{ url_for('admin.static', filename='node_modules/bpmn-js/dist/bpmn-viewer.development.js') }}"></script>
+<script src="{{ url_for('admin.static', filename='node_modules/bpmn-js/dist/bpmn-viewer.development.js') }}"></script>
 
-    <!-- viewer distro (without pan and zoom) -->
-    <!--
-    <script src="https://unpkg.com/bpmn-js@9.1.0/dist/bpmn-viewer.development.js"></script>
-    -->
+<!-- viewer distro (without pan and zoom) -->
+<!--
+  <script src="https://unpkg.com/bpmn-js@9.1.0/dist/bpmn-viewer.development.js"></script>
+  -->
 
-    <!-- required viewer styles -->
-    <link rel="stylesheet" href="https://unpkg.com/bpmn-js@9.1.0/dist/assets/bpmn-js.css">
+  <!-- required viewer styles -->
+  <link rel="stylesheet" href="https://unpkg.com/bpmn-js@9.1.0/dist/assets/bpmn-js.css">
 
-    <!-- viewer distro (with pan and zoom) -->
-    <script src="https://unpkg.com/bpmn-js@9.1.0/dist/bpmn-navigated-viewer.development.js"></script>
+  <!-- viewer distro (with pan and zoom) -->
+  <script src="https://unpkg.com/bpmn-js@9.1.0/dist/bpmn-navigated-viewer.development.js"></script>
 
-    <!-- needed for this example only -->
-    <script src="https://unpkg.com/jquery@3.3.1/dist/jquery.js"></script>
+  <!-- needed for this example only -->
+  <script src="https://unpkg.com/jquery@3.3.1/dist/jquery.js"></script>
 
-    <!-- example styles -->
-    <style>
-      html, body, #canvas {
-        height: 90%;
-        padding: 0;
-        margin: 0;
-      }
+  <!-- example styles -->
+  <style>
+html, body, #canvas {
+  height: 90%;
+  padding: 0;
+  margin: 0;
+}
 
       .diagram-note {
         background-color: rgba(66, 180, 21, 0.7);
@@ -43,81 +43,80 @@
       .needs-discussion:not(.djs-connection) .djs-visual > :nth-child(1) {
         stroke: rgba(66, 180, 21, 0.7) !important; /* color elements as red */
       }
-    </style>
-  </head>
-  <body>
-    <div id="result">{{ result }}</div>
-    <button type="button" onclick="window.location.href='{{ url_for( 'admin.list_process_models' ) }}';">List</button>
-    <button type="button" onclick="window.location.href='{{ url_for( 'admin.run_bpmn' , process_model_id=process_model.id ) }}';">Run</button>
-    <button type="button" onclick="window.location.href='{{ url_for( 'admin.edit_bpmn' , process_model_id=process_model.id ) }}';">Edit</button>
-    <div id="canvas"></div>
+  </style>
+  {% endblock %}
+  {% block content %}
+  <div id="result">{{ result }}</div>
+  <button type="button" onclick="window.location.href='{{ url_for( 'admin.process_group_show', process_group_id=process_model.process_group_id ) }}';">Back</button>
+  <button type="button" onclick="window.location.href='{{ url_for( 'admin.run_bpmn' , process_model_id=process_model.id ) }}';">Run</button>
+  <button type="button" onclick="window.location.href='{{ url_for( 'admin.edit_bpmn' , process_model_id=process_model.id ) }}';">Edit</button>
+  <div id="canvas"></div>
 
-    <meta id="bpmn_xml" data-name="{{bpmn_xml}}">
-    <script>
+  <meta id="bpmn_xml" data-name="{{bpmn_xml}}">
+  <script>
 
-      var diagramUrl = 'https://cdn.staticaly.com/gh/bpmn-io/bpmn-js-examples/dfceecba/starter/diagram.bpmn';
+    var diagramUrl = 'https://cdn.staticaly.com/gh/bpmn-io/bpmn-js-examples/dfceecba/starter/diagram.bpmn';
 
-      // viewer instance
-      var bpmnViewer = new BpmnJS({
-        container: '#canvas'
-      });
-
-
-      /**
-       * Open diagram in our viewer instance.
-       *
-       * @param {String} bpmnXML diagram to display
-       */
-      async function openDiagram(bpmnXML) {
-
-        // import diagram
-        try {
-
-          await bpmnViewer.importXML(bpmnXML);
-
-          // access viewer components
-          var canvas = bpmnViewer.get('canvas');
-          var overlays = bpmnViewer.get('overlays');
+        // viewer instance
+        var bpmnViewer = new BpmnJS({
+              container: '#canvas'
+            });
 
 
-          // zoom to fit full viewport
-          canvas.zoom('fit-viewport');
+        /**
+             * Open diagram in our viewer instance.
+             *
+             * @param {String} bpmnXML diagram to display
+             */
+        async function openDiagram(bpmnXML) {
 
-          // attach an overlay to a node
-          overlays.add('SCAN_OK', 'note', {
-            position: {
-              bottom: 0,
-              right: 0
-            },
-            html: '<div class="diagram-note">Mixed up the labels?</div>'
-          });
+              // import diagram
+              try {
 
-          // add marker
-          canvas.addMarker('SCAN_OK', 'needs-discussion');
-        } catch (err) {
+                    await bpmnViewer.importXML(bpmnXML);
 
-          console.error('could not import BPMN 2.0 diagram', err);
-        }
-      }
-      var bpmn_xml = $('#bpmn_xml').data();
-      openDiagram(bpmn_xml.name)
+                    // access viewer components
+                    var canvas = bpmnViewer.get('canvas');
+                    var overlays = bpmnViewer.get('overlays');
 
-      // load external diagram file via AJAX and open it
-      //$.get(diagramUrl, openDiagram, 'text');
-    </script>
-    <!--
-      Thanks for trying out our BPMN toolkit!
-      If you'd like to learn more about what our library,
-      continue with some more basic examples:
-      * https://github.com/bpmn-io/bpmn-js-examples/overlays
-      * https://github.com/bpmn-io/bpmn-js-examples/interaction
-      * https://github.com/bpmn-io/bpmn-js-examples/colors
-      * https://github.com/bpmn-io/bpmn-js-examples/commenting
-      To get a bit broader overview over how bpmn-js works,
-      follow our walkthrough:
-      * https://bpmn.io/toolkit/bpmn-js/walkthrough/
-      Related starters:
-      * https://raw.githubusercontent.com/bpmn-io/bpmn-js-examples/starter/modeler.html
-    -->
-  </body>
-</html>
+
+                    // zoom to fit full viewport
+                    canvas.zoom('fit-viewport');
+
+                    // attach an overlay to a node
+                    overlays.add('SCAN_OK', 'note', {
+                          position: {
+                                bottom: 0,
+                                right: 0
+                              },
+                          html: '<div class="diagram-note">Mixed up the labels?</div>'
+                        });
+
+                    // add marker
+                    canvas.addMarker('SCAN_OK', 'needs-discussion');
+                  } catch (err) {
+
+                        console.error('could not import BPMN 2.0 diagram', err);
+                      }
+            }
+        var bpmn_xml = $('#bpmn_xml').data();
+        openDiagram(bpmn_xml.name)
+
+        // load external diagram file via AJAX and open it
+        //$.get(diagramUrl, openDiagram, 'text');
+  </script>
+  <!--
+    Thanks for trying out our BPMN toolkit!
+    If you'd like to learn more about what our library,
+    continue with some more basic examples:
+    * https://github.com/bpmn-io/bpmn-js-examples/overlays
+    * https://github.com/bpmn-io/bpmn-js-examples/interaction
+    * https://github.com/bpmn-io/bpmn-js-examples/colors
+    * https://github.com/bpmn-io/bpmn-js-examples/commenting
+    To get a bit broader overview over how bpmn-js works,
+    follow our walkthrough:
+    * https://bpmn.io/toolkit/bpmn-js/walkthrough/
+    Related starters:
+    * https://raw.githubusercontent.com/bpmn-io/bpmn-js-examples/starter/modeler.html
+  -->
+  {% endblock %}
