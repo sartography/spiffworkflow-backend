@@ -142,18 +142,18 @@ class SpecFileService(FileSystemService):
                     "invalid_xml",
                     "Failed to parse xml: " + str(xse),
                     file_name=file_name,
-                )
+                ) from xse
             except ValidationException as ve:
                 if ve.args[0].find("No executable process tag found") >= 0:
                     raise ApiError(
                         code="missing_executable_option",
                         message="No executable process tag found. Please make sure the Executable option is set in the workflow.",
-                    )
+                    ) from ve
                 else:
                     raise ApiError(
                         code="validation_error",
                         message=f"There was an error validating your workflow. Original message is: {ve}",
-                    )
+                    ) from ve
         else:
             raise ApiError(
                 "invalid_xml",
@@ -163,9 +163,7 @@ class SpecFileService(FileSystemService):
 
     @staticmethod
     def has_swimlane(et_root: etree.Element):
-        """
-        Look through XML and determine if there are any lanes present that have a label.
-        """
+        """Look through XML and determine if there are any lanes present that have a label."""
         elements = et_root.xpath(
             "//bpmn:lane",
             namespaces={"bpmn": "http://www.omg.org/spec/BPMN/20100524/MODEL"},

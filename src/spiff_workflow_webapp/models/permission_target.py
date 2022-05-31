@@ -1,7 +1,8 @@
 """PermissionTarget."""
 from flask_bpmn.models.db import db
-from sqlalchemy import ForeignKey  # type: ignore
 from sqlalchemy.schema import CheckConstraint  # type: ignore
+
+# from sqlalchemy import ForeignKey  # type: ignore
 
 # from spiff_workflow_webapp.models.process_group import ProcessGroupModel
 # from spiff_workflow_webapp.models.process_model import ProcessModel

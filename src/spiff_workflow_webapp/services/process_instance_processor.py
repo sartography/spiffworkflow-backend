@@ -115,19 +115,19 @@ class ProcessInstanceProcessor:
             )
             spec = self.get_spec(self.spec_files, spec_info)
         else:
-            B = len(process_instance_model.bpmn_json.encode("utf-8"))
-            MB = float(1024**2)
-            json_size = B / MB
+            bpmn_json_length = len(process_instance_model.bpmn_json.encode("utf-8"))
+            megabyte = float(1024**2)
+            json_size = bpmn_json_length / megabyte
             if json_size > 1:
                 wf_json = json.loads(process_instance_model.bpmn_json)
                 if "spec" in wf_json and "tasks" in wf_json:
                     task_tree = wf_json["tasks"]
                     test_spec = wf_json["spec"]
                     task_size = "{:.2f}".format(
-                        len(json.dumps(task_tree).encode("utf-8")) / MB
+                        len(json.dumps(task_tree).encode("utf-8")) / megabyte
                     )
                     spec_size = "{:.2f}".format(
-                        len(json.dumps(test_spec).encode("utf-8")) / MB
+                        len(json.dumps(test_spec).encode("utf-8")) / megabyte
                     )
                     message = (
                         "Workflow "
@@ -142,7 +142,9 @@ class ProcessInstanceProcessor:
                         """Check_sub_specs."""
                         for my_spec_name in test_spec["task_specs"]:
                             my_spec = test_spec["task_specs"][my_spec_name]
-                            my_spec_size = len(json.dumps(my_spec).encode("utf-8")) / MB
+                            my_spec_size = (
+                                len(json.dumps(my_spec).encode("utf-8")) / megabyte
+                            )
                             if my_spec_size > 0.1 or show_all:
                                 current_app.logger.warning(
                                     (" " * indent)

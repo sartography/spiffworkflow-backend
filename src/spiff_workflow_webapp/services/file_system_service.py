@@ -166,11 +166,11 @@ class FileSystemService:
         try:
             file_type = FileType[extension]
             content_type = CONTENT_TYPES[file_type.name]
-        except KeyError:
+        except KeyError as exception:
             raise ApiError(
                 "invalid_type",
                 f"Invalid File Type: {extension}, for file {item.name}",
-            )
+            ) from exception
         stats = item.stat()
         file_size = stats.st_size
         last_modified = FileSystemService._last_modified(item.path)

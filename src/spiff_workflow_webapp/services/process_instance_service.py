@@ -43,8 +43,10 @@ class ProcessInstanceService:
     def processor_to_process_instance_api(
         processor: ProcessInstanceProcessor, next_task=None
     ):
-        """Returns an API model representing the state of the current process_instance, if requested, and
-        possible, next_task is set to the current_task."""
+        """Returns an API model representing the state of the current process_instance.
+
+        If requested, and possible, next_task is set to the current_task.
+        """
         navigation = processor.bpmn_process_instance.get_deep_nav_list()
         # ProcessInstanceService.update_navigation(navigation, processor)
         spec_service = ProcessModelService()
@@ -132,7 +134,7 @@ class ProcessInstanceService:
                 return latest_event.form_data
             else:
                 missing_form_error = (
-                    f"We have lost data for workflow {workflow_id}, "
+                    f"We have lost data for workflow {process_instance_id}, "
                     f"task {spiff_task.task_spec.name}, it is not in the task event model, "
                     f"and it should be."
                 )

@@ -11,11 +11,16 @@ from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from sqlalchemy import func
 
 
+if False:
+    # for forward-reference type-checking:
+    from spiff_workflow_webapp.models.process_instance import ProcessInstanceModel
+
+
 class TaskAction(enum.Enum):
     """TaskAction."""
 
     COMPLETE = "COMPLETE"
-    TOKEN_RESET = "TOKEN_RESET"
+    TOKEN_RESET = "TOKEN_RESET"  # noqa: S105
     HARD_RESET = "HARD_RESET"
     SOFT_RESET = "SOFT_RESET"
     ASSIGNMENT = "ASSIGNMENT"  # Whenever the lane changes between tasks we assign the task to specific user.

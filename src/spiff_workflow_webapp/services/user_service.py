@@ -27,8 +27,8 @@ class UserService:
     def admin_is_impersonating():
         """Admin_is_impersonating."""
         if UserService.user_is_admin():
-            adminSession: AdminSessionModel = UserService.get_admin_session()
-            return adminSession is not None
+            admin_session: AdminSessionModel = UserService.get_admin_session()
+            return admin_session is not None
 
         else:
             raise ApiError(

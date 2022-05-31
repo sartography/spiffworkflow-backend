@@ -12,9 +12,9 @@ from spiff_workflow_webapp.models.user import UserModel
 
 
 def verify_token(token=None):
-    """
-    Verifies the token for the user (if provided). If in production environment and token is not provided,
-    gets user from the SSO headers and returns their token.
+    """Verifies the token for the user (if provided).
+
+    If in production environment and token is not provided, gets user from the SSO headers and returns their token.
 
     Args:
         token: Optional[str]
@@ -22,8 +22,8 @@ def verify_token(token=None):
     Returns:
         token: str
 
-    Raises:
-        ApiError.  If not on production and token is not valid, returns an 'invalid_token' 403 error.
+    Raises:  # noqa: DAR401
+        ApiError:  If not on production and token is not valid, returns an 'invalid_token' 403 error.
         If on production and user is not authenticated, returns a 'no_user' 403 error.
     """
     failure_error = ApiError(
@@ -40,7 +40,7 @@ def verify_token(token=None):
             # If the user is valid, store the token for this session
             if g.user:
                 g.token = token
-        except:
+        except Exception:
             raise failure_error
         if g.user is not None:
             return token_info

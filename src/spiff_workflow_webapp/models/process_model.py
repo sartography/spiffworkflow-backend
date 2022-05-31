@@ -2,19 +2,6 @@
 import marshmallow
 from marshmallow import post_load
 from marshmallow import Schema
-from sqlalchemy import ForeignKey  # type: ignore
-
-# from spiff_workflow_webapp.models.process_group import ProcessGroupModel
-
-
-# class ProcessModel(db.Model):  # type: ignore
-#     """ProcessModel."""
-#
-#     __tablename__ = "process_model"
-#     id = db.Column(db.Integer, primary_key=True)
-#     process_group_id = db.Column(ForeignKey(ProcessGroupModel.id), nullable=False)
-#     version = db.Column(db.Integer, nullable=False, default=1)
-#     name = db.Column(db.String(50))
 
 
 class ProcessModelInfo:

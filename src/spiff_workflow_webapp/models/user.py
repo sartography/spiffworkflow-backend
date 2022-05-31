@@ -29,8 +29,8 @@ class UserModel(db.Model):  # type: ignore
     )
 
     def encode_auth_token(self):
-        """
-        Generates the Auth Token
+        """Generates the Auth Token.
+
         :return: string
         """
         # hours = float(app.config['TOKEN_AUTH_TTL_HOURS'])
@@ -51,8 +51,8 @@ class UserModel(db.Model):  # type: ignore
 
     @staticmethod
     def decode_auth_token(auth_token):
-        """
-        Decodes the auth token
+        """Decodes the auth token.
+
         :param auth_token:
         :return: integer|string
         """
@@ -61,16 +61,16 @@ class UserModel(db.Model):  # type: ignore
                 auth_token, current_app.config.get("SECRET_KEY"), algorithms="HS256"
             )
             return payload
-        except jwt.ExpiredSignatureError:
+        except jwt.ExpiredSignatureError as exception:
             raise ApiError(
                 "token_expired",
                 "The Authentication token you provided expired and must be renewed.",
-            )
-        except jwt.InvalidTokenError:
+            ) from exception
+        except jwt.InvalidTokenError as exception:
             raise ApiError(
                 "token_invalid",
                 "The Authentication token you provided is invalid. You need a new token. ",
-            )
+            ) from exception
 
 
 class UserModelSchema(Schema):
