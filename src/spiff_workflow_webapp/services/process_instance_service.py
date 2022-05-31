@@ -74,6 +74,7 @@ class ProcessInstanceService():
 
     @staticmethod
     def update_navigation(navigation: List[NavItem], processor: ProcessInstanceProcessor):
+        """Update_navigation."""
         # Recursive function to walk down through children, and clean up descriptions, and statuses
         for nav_item in navigation:
             spiff_task = processor.bpmn_workflow.get_task(nav_item.task_id)

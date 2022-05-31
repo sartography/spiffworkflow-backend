@@ -29,7 +29,6 @@ from spiff_workflow_webapp.models.task_event import TaskEventModel, TaskAction
 from spiff_workflow_webapp.models.user import UserModelSchema
 from spiff_workflow_webapp.models.process_model import ProcessModelInfo
 from spiff_workflow_webapp.models.process_instance import ProcessInstanceModel, ProcessInstanceStatus
-from spiff_workflow_webapp.scripts.script import Script
 from spiff_workflow_webapp.services.spec_file_service import SpecFileService
 # from crc.services.user_file_service import UserFileService
 from spiff_workflow_webapp.services.user_service import UserService
@@ -46,7 +45,6 @@ class CustomBpmnScriptEngine(PythonScriptEngine):
     def evaluate(self, task, expression):
         """Evaluate."""
         return self._evaluate(expression, task.data, task)
-
 
     def _evaluate(self, expression, context, task=None, external_methods=None):
         """Evaluate the given expression, within the context of the given task and return the result."""
@@ -207,10 +205,12 @@ class ProcessInstanceProcessor(object):
 
     @staticmethod
     def __get_bpmn_workflow(process_instance_model: ProcessInstanceModel, spec: WorkflowSpec = None, validate_only=False):
+        """__get_bpmn_workflow."""
         if process_instance_model.bpmn_workflow_json:
             version = ProcessInstanceProcessor._serializer.get_version(process_instance_model.bpmn_workflow_json)
             if(version == ProcessInstanceProcessor.SERIALIZER_VERSION):
-                bpmn_workflow = ProcessInstanceProcessor._serializer.deserialize_json(process_instance_model.bpmn_workflow_json)
+                bpmn_workflow = ProcessInstanceProcessor._serializer.deserialize_json(
+                    process_instance_model.bpmn_workflow_json)
             else:
                 bpmn_workflow = ProcessInstanceProcessor.\
                     _old_serializer.deserialize_workflow(process_instance_model.bpmn_workflow_json,
