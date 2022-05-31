@@ -1,7 +1,7 @@
 """APIs for dealing with process groups, process models, and process instances."""
 from typing import Any
 
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, redirect, url_for
 from flask_bpmn.models.db import db
 from flask import request
 
@@ -46,6 +46,29 @@ def process_model_show_file(process_model_id, file_name):
     files = SpecFileService.get_files(process_model, extension_filter="bpmn")
     return render_template('process_model_show.html', process_model=process_model, bpmn_xml=bpmn_xml, files=files, current_file_name=file_name)
 
+
+@admin_blueprint.route("/process-models/<process_model_id>/upload-file", methods=["POST"])
+def process_model_upload_file(process_model_id):
+    """Process_model_upload_file."""
+    process_model = ProcessModelService().get_spec(process_model_id)
+    bpmn_xml = SpecFileService.get_data(process_model, file_name)
+    files = SpecFileService.get_files(process_model, extension_filter="bpmn")
+
+    if 'file' not in request.files:
+            flash('No file part')
+            return redirect(url_for('admin.process_model_show', process_model_id=process_model.id))
+    file = request.files['file']
+    # If the user does not select a file, the browser submits an
+    # empty file without a filename.
+    if file.filename == '':
+        flash('No selected file')
+        return redirect(request.url)
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        return redirect(url_for('download_file', name=filename))
+
+    return render_template('process_model_show.html', process_model=process_model, bpmn_xml=bpmn_xml, files=files, current_file_name=file_name)
 
 @admin_blueprint.route("/process_models/<process_model_id>/edit", methods=["GET"])
 def process_model_edit(process_model_id):

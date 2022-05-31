@@ -65,6 +65,11 @@ html, body, #canvas {
   </ul>
   {% endif %}
 
+  <form method=post action="/admin/process-models/{{process_model.id}}/upload-file" enctype=multipart/form-data>
+    <input type=file name=file>
+    <input type=submit value=Upload>
+  </form>
+
   <div id="canvas"></div>
 
   <meta id="bpmn_xml" data-name="{{bpmn_xml}}">
