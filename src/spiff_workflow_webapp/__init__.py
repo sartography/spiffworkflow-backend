@@ -24,6 +24,8 @@ def create_app() -> flask.app.Flask:
     connexion_app = connexion.FlaskApp(__name__, server_args={"instance_path": os.environ.get("FLASK_INSTANCE_PATH")})
     app = connexion_app.app
     app.config['CONNEXION_APP'] = connexion_app
+    app.secret_key = 'super secret key'
+    app.config['SESSION_TYPE'] = 'filesystem'
 
     setup_config(app)
     db.init_app(app)

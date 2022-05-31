@@ -49,8 +49,8 @@ def add_file(spec_id):
     """Add_file."""
     workflow_spec_service = ProcessModelService()
     workflow_spec = workflow_spec_service.get_spec(spec_id)
-    file = connexion.request.files['file']
-    file = SpecFileService.add_file(workflow_spec, file.filename, file.stream.read())
+    request_file = connexion.request.files['file']
+    file = SpecFileService.add_file(workflow_spec, request_file.filename, request_file.stream.read())
     if not workflow_spec.primary_process_id and file.type == FileType.bpmn.value:
         SpecFileService.set_primary_bpmn(workflow_spec, file.name)
         workflow_spec_service.update_spec(workflow_spec)
