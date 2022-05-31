@@ -4,8 +4,10 @@ import os
 import shutil
 from typing import List
 
-from spiff_workflow_webapp.models.process_model import ProcessModelInfo, ProcessModelInfoSchema
-from spiff_workflow_webapp.models.process_group import ProcessGroup, ProcessGroupSchema
+from spiff_workflow_webapp.models.process_group import ProcessGroup
+from spiff_workflow_webapp.models.process_group import ProcessGroupSchema
+from spiff_workflow_webapp.models.process_model import ProcessModelInfo
+from spiff_workflow_webapp.models.process_model import ProcessModelInfoSchema
 from spiff_workflow_webapp.services.file_system_service import FileSystemService
 
 
@@ -61,7 +63,9 @@ class ProcessModelService(FileSystemService):
 
     def get_master_spec(self):
         """Get_master_spec."""
-        path = os.path.join(FileSystemService.root_path(), FileSystemService.MASTER_SPECIFICATION)
+        path = os.path.join(
+            FileSystemService.root_path(), FileSystemService.MASTER_SPECIFICATION
+        )
         if os.path.exists(path):
             return self.__scan_spec(path, FileSystemService.MASTER_SPECIFICATION)
 
@@ -81,7 +85,9 @@ class ProcessModelService(FileSystemService):
                         for sd in spec_dirs:
                             if sd.name == spec_id:
                                 # Now we have the process_group direcotry, and spec directory
-                                process_group = self.__scan_process_group(process_group_dir)
+                                process_group = self.__scan_process_group(
+                                    process_group_dir
+                                )
                                 return self.__scan_spec(sd.path, sd.name, process_group)
 
     def get_specs(self):
@@ -97,9 +103,9 @@ class ProcessModelService(FileSystemService):
         specs = spec.process_group.specs
         specs.sort(key=lambda w: w.display_order)
         index = specs.index(spec)
-        if direction == 'up' and index > 0:
+        if direction == "up" and index > 0:
             specs[index - 1], specs[index] = specs[index], specs[index - 1]
-        if direction == 'down' and index < len(specs) - 1:
+        if direction == "down" and index < len(specs) - 1:
             specs[index + 1], specs[index] = specs[index], specs[index + 1]
         return self.cleanup_workflow_spec_display_order(spec.process_group)
 
@@ -169,9 +175,9 @@ class ProcessModelService(FileSystemService):
         """Reorder_workflow_spec_process_group."""
         cats = self.get_process_groups()  # Returns an ordered list
         index = cats.index(cat)
-        if direction == 'up' and index > 0:
+        if direction == "up" and index > 0:
             cats[index - 1], cats[index] = cats[index], cats[index - 1]
-        if direction == 'down' and index < len(cats) - 1:
+        if direction == "down" and index < len(cats) - 1:
             cats[index + 1], cats[index] = cats[index], cats[index + 1]
         index = 0
         for process_group in cats:
@@ -198,7 +204,7 @@ class ProcessModelService(FileSystemService):
         with os.scandir(FileSystemService.root_path()) as directory_items:
             process_groups = []
             for item in directory_items:
-                if item.is_dir() and not item.name[0] == '.':
+                if item.is_dir() and not item.name[0] == ".":
                     if item.name == self.REFERENCE_FILES:
                         continue
                     elif item.name == self.MASTER_SPECIFICATION:
@@ -218,14 +224,21 @@ class ProcessModelService(FileSystemService):
                 data = json.load(cat_json)
                 cat = self.GROUP_SCHEMA.load(data)
         else:
-            cat = ProcessGroup(id=dir_item.name, display_name=dir_item.name, display_order=10000, admin=False)
+            cat = ProcessGroup(
+                id=dir_item.name,
+                display_name=dir_item.name,
+                display_order=10000,
+                admin=False,
+            )
             with open(cat_path, "w") as wf_json:
                 json.dump(self.GROUP_SCHEMA.dump(cat), wf_json, indent=4)
         with os.scandir(dir_item.path) as workflow_dirs:
             cat.specs = []
             for item in workflow_dirs:
                 if item.is_dir():
-                    cat.specs.append(self.__scan_spec(item.path, item.name, process_group=cat))
+                    cat.specs.append(
+                        self.__scan_spec(item.path, item.name, process_group=cat)
+                    )
             cat.specs.sort(key=lambda w: w.display_order)
         return cat
 
@@ -235,8 +248,8 @@ class ProcessModelService(FileSystemService):
         # Add in the Workflows for each process_group
         # Fixme: moved fro the Study Service
         workflow_metas = []
-#        for workflow in workflow_models:
-#            workflow_metas.append(WorkflowMetadata.from_workflow(workflow))
+        #        for workflow in workflow_models:
+        #            workflow_metas.append(WorkflowMetadata.from_workflow(workflow))
         return workflow_metas
 
     def __scan_spec(self, path, name, process_group=None):
@@ -249,10 +262,19 @@ class ProcessModelService(FileSystemService):
                 data = json.load(wf_json)
                 spec = self.WF_SCHEMA.load(data)
         else:
-            spec = ProcessModelInfo(id=name, library=False, standalone=False, is_master_spec=is_master,
-                                    display_name=name, description="", primary_process_id="",
-                                    primary_file_name="", display_order=0, is_review=False,
-                                    libraries=[])
+            spec = ProcessModelInfo(
+                id=name,
+                library=False,
+                standalone=False,
+                is_master_spec=is_master,
+                display_name=name,
+                description="",
+                primary_process_id="",
+                primary_file_name="",
+                display_order=0,
+                is_review=False,
+                libraries=[],
+            )
             with open(spec_path, "w") as wf_json:
                 json.dump(self.WF_SCHEMA.dump(spec), wf_json, indent=4)
         if process_group:

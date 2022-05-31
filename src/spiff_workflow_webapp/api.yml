@@ -7,8 +7,7 @@ info:
 servers:
   - url: http://localhost:5000/v1.0
 security:
-  - jwt: ['secret']
-
+  - jwt: ["secret"]
 
 paths:
   /workflow-specification:
@@ -48,9 +47,9 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/WorkflowSpec'
+              $ref: "#/components/schemas/WorkflowSpec"
       responses:
-        '200':
+        "200":
           description: Workflow specification created successfully.
           content:
             application/json:
@@ -93,7 +92,7 @@ paths:
                   type: string
                   format: binary
       responses:
-        '200':
+        "200":
           description: Metadata about the uploaded file, but not the file content.
           content:
             application/json:
@@ -125,7 +124,7 @@ paths:
       tags:
         - Workflow Specifications
       responses:
-        '200':
+        "200":
           description: Workflow generated successfully
           content:
             application/json:
@@ -180,7 +179,7 @@ paths:
       tags:
         - Spec Files
       responses:
-        '200':
+        "200":
           description: Returns the file information requested.
           content:
             application/json:
@@ -255,84 +254,83 @@ components:
       properties:
         workflow_spec_id:
           type: string
-          example : top_level_workflow
-        date_created :
+          example: top_level_workflow
+        date_created:
           type: string
-          example : 2020-12-09 16:55:12.951500+00:00
-        location :
-          type : string
-          example : remote
-        new :
-          type : boolean
-          example : false
+          example: 2020-12-09 16:55:12.951500+00:00
+        location:
+          type: string
+          example: remote
+        new:
+          type: boolean
+          example: false
     WorkflowSpecFilesList:
       properties:
         file_model_id:
-          type : integer
-          example : 171
-        workflow_spec_id :
+          type: integer
+          example: 171
+        workflow_spec_id:
           type: string
-          example : top_level_workflow
-        filename :
+          example: top_level_workflow
+        filename:
           type: string
-          example : data_security_plan.dmn
-        date_created :
+          example: data_security_plan.dmn
+        date_created:
           type: string
-          example : 2020-12-01 13:58:12.420333+00:00
+          example: 2020-12-01 13:58:12.420333+00:00
         type:
-          type : string
-          example : dmn
-        primary :
-          type : boolean
-          example : false
+          type: string
+          example: dmn
+        primary:
+          type: boolean
+          example: false
         content_type:
           type: string
-          example : text/xml
+          example: text/xml
         primary_process_id:
-          type : string
-          example : null
+          type: string
+          example: null
         md5_hash:
           type: string
           example: f12e2bbd-a20c-673b-ccb8-a8a1ea9c5b7b
 
-
     WorkflowSpecFilesDiff:
       properties:
-        filename :
+        filename:
           type: string
-          example : data_security_plan.dmn
-        date_created :
+          example: data_security_plan.dmn
+        date_created:
           type: string
-          example : 2020-12-01 13:58:12.420333+00:00
+          example: 2020-12-01 13:58:12.420333+00:00
         type:
-          type : string
-          example : dmn
-        primary :
-          type : boolean
-          example : false
+          type: string
+          example: dmn
+        primary:
+          type: boolean
+          example: false
         content_type:
           type: string
-          example : text/xml
+          example: text/xml
         primary_process_id:
-          type : string
-          example : null
+          type: string
+          example: null
         md5_hash:
           type: string
           example: f12e2bbd-a20c-673b-ccb8-a8a1ea9c5b7b
         location:
-          type : string
-          example : remote
+          type: string
+          example: remote
         new:
           type: boolean
-          example : false
+          example: false
     WorkflowSpecAll:
       properties:
-        workflow_spec_id :
+        workflow_spec_id:
           type: string
-          example : acaf1258-43b4-437e-8846-f612afa66811
-        date_created :
+          example: acaf1258-43b4-437e-8846-f612afa66811
+        date_created:
           type: string
-          example : 2020-12-01 13:58:12.420333+00:00
+          example: 2020-12-01 13:58:12.420333+00:00
         md5_hash:
           type: string
           example: c30fd597f21715018eab12f97f9d4956
@@ -353,7 +351,7 @@ components:
           example: dhf8r
         status:
           type: string
-          enum: ['in_progress', 'hold', 'open_for_enrollment', 'abandoned']
+          enum: ["in_progress", "hold", "open_for_enrollment", "abandoned"]
           example: done
         sponsor:
           type: string
@@ -503,7 +501,7 @@ components:
           format: int64
         status:
           type: string
-          enum: ['new','user_input_required','waiting','complete']
+          enum: ["new", "user_input_required", "waiting", "complete"]
         navigation:
           type: array
           items:
@@ -527,9 +525,9 @@ components:
 
       example:
         id: 291234
-        status: 'user_input_required'
-        workflow_spec_id: 'random_fact'
-        spec_version: 'v1.1 [22,23]'
+        status: "user_input_required"
+        workflow_spec_id: "random_fact"
+        spec_version: "v1.1 [22,23]"
         is_latest_spec: True
         next_task:
           id: study_identification
@@ -559,7 +557,7 @@ components:
           type: object
         multi_instance_type:
           type: string
-          enum: ['none', 'looping', 'parallel', 'sequential']
+          enum: ["none", "looping", "parallel", "sequential"]
         multi_instance_count:
           type: number
         multi_instance_index:
@@ -613,91 +611,91 @@ components:
                   value: "model.my_enum_field_value === 'something'"
     PaginatedTaskLog:
       properties:
-          code:
-            example: "email_sent"
-            type: string
-          level:
-            example: "warning"
-            type: string
-          user:
-            example: "email_sent"
-            type: string
-          page:
-            type: integer
-            example: 0
-          per_page:
-            type: integer
-            example: 10
-          sort_column:
-            type: string
-            example: "timestamp"
-          sort_reverse:
-            type: boolean
-            example: false
+        code:
+          example: "email_sent"
+          type: string
+        level:
+          example: "warning"
+          type: string
+        user:
+          example: "email_sent"
+          type: string
+        page:
+          type: integer
+          example: 0
+        per_page:
+          type: integer
+          example: 10
+        sort_column:
+          type: string
+          example: "timestamp"
+        sort_reverse:
+          type: boolean
+          example: false
+        items:
+          type: array
           items:
-            type: array
-            items:
-              $ref: "#/components/schemas/TaskLog"
-          has_next:
-            type: boolean
-            example: true
-          has_prev:
-            type: boolean
-            example: false
+            $ref: "#/components/schemas/TaskLog"
+        has_next:
+          type: boolean
+          example: true
+        has_prev:
+          type: boolean
+          example: false
     TaskLog:
       properties:
-          level:
-            type: string
-            example: "info"
-          code:
-            example: "email_sent"
-            type: string
-          message:
-            example: "Approval email set to Jake in Accounting"
-            type: string
-          workflow_id:
-            example: 42
-            type: integer
-          study_id:
-            example: 187
-            type: integer
-          user_uid:
-            example: "dhf8r"
-            type: string
-          timestamp:
-            type: string
-            format: date_time
-            example: "2021-01-07T11:36:40.001Z"
+        level:
+          type: string
+          example: "info"
+        code:
+          example: "email_sent"
+          type: string
+        message:
+          example: "Approval email set to Jake in Accounting"
+          type: string
+        workflow_id:
+          example: 42
+          type: integer
+        study_id:
+          example: 187
+          type: integer
+        user_uid:
+          example: "dhf8r"
+          type: string
+        timestamp:
+          type: string
+          format: date_time
+          example: "2021-01-07T11:36:40.001Z"
     TaskEvent:
       properties:
-          workflow:
-            $ref: "#/components/schemas/Workflow"
-          study:
-            $ref: "#/components/schemas/Study"
-          workflow_sec:
-            $ref: "#/components/schemas/WorkflowSpec"
-          spec_version:
-            type: string
-          action:
-            type: string
-          task_id:
-            type: string
-          task_type:
-            type: string
-          task_lane:
-            type: string
-          form_data:
-            type: object
-          mi_type:
-            type: string
-          mi_count:
-            type: integer
-          mi_index:
-            type: integer
-          process_name:
-            type: string
-          date:
-            type: string
+        workflow:
+          $ref: "#/components/schemas/Workflow"
+        study:
+          $ref: "#/components/schemas/Study"
+        workflow_sec:
+          $ref: "#/components/schemas/WorkflowSpec"
+        spec_version:
+          type: string
+        action:
+          type: string
+        task_id:
+          type: string
+        task_type:
+          type: string
+        task_lane:
+          type: string
+        form_data:
+          type: object
+        mi_type:
+          type: string
+        mi_count:
+          type: integer
+        mi_index:
+          type: integer
+        process_name:
+          type: string
+        date:
+          type: string
     Form:
       properties:
         key:
@@ -749,7 +747,7 @@ components:
           readOnly: true
         type:
           type: string
-          enum: ['string', 'long', 'boolean', 'date', 'enum']
+          enum: ["string", "long", "boolean", "date", "enum"]
           readOnly: true
         label:
           type: string
@@ -855,7 +853,16 @@ components:
           example: 4
         state:
           type: string
-          enum: ['FUTURE', 'WAITING', 'READY', 'CANCELLED', 'COMPLETED','LIKELY','MAYBE']
+          enum:
+            [
+              "FUTURE",
+              "WAITING",
+              "READY",
+              "CANCELLED",
+              "COMPLETED",
+              "LIKELY",
+              "MAYBE",
+            ]
           readOnly: true
         is_decision:
           type: boolean
@@ -893,9 +900,9 @@ components:
           example: 5
     GitRepo:
       properties:
-#        remote:
-#          type: string
-#          example: sartography/crconnect-workflow-specs
+        #        remote:
+        #          type: string
+        #          example: sartography/crconnect-workflow-specs
         directory:
           type: string
           example: /home/cr-connect/sync_files
@@ -907,8 +914,7 @@ components:
           example: staging
         changes:
           type: array
-          example: ['file_1.txt', 'file_2.txt']
+          example: ["file_1.txt", "file_2.txt"]
         untracked:
           type: array
-          example: ['a_file.txt', 'b_file.txt']
-
+          example: ["a_file.txt", "b_file.txt"]

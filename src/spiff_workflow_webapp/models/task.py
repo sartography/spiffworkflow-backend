@@ -1,11 +1,12 @@
 """Task."""
 import enum
+
 import marshmallow
 from marshmallow import Schema
 from marshmallow_enum import EnumField
 
 
-class Task(object):
+class Task:
     """Task."""
 
     ##########################################################################
@@ -22,15 +23,17 @@ class Task(object):
     FIELD_TYPE_BOOLEAN = "boolean"
     FIELD_TYPE_DATE = "date"
     FIELD_TYPE_ENUM = "enum"
-    FIELD_TYPE_TEXTAREA = "textarea"    # textarea: Multiple lines of text
+    FIELD_TYPE_TEXTAREA = "textarea"  # textarea: Multiple lines of text
     FIELD_TYPE_AUTO_COMPLETE = "autocomplete"
     FIELD_TYPE_FILE = "file"
     FIELD_TYPE_FILES = "files"  # files: Multiple files
     FIELD_TYPE_TEL = "tel"  # tel: Phone number
     FIELD_TYPE_EMAIL = "email"  # email: Email address
-    FIELD_TYPE_URL = "url"   # url: Website address
+    FIELD_TYPE_URL = "url"  # url: Website address
 
-    FIELD_PROP_AUTO_COMPLETE_MAX = "autocomplete_num"  # Not used directly, passed in from the front end.
+    FIELD_PROP_AUTO_COMPLETE_MAX = (
+        "autocomplete_num"  # Not used directly, passed in from the front end.
+    )
 
     # Required field
     FIELD_CONSTRAINT_REQUIRED = "required"
@@ -62,7 +65,9 @@ class Task(object):
 
     # File specific field properties
     FIELD_PROP_DOC_CODE = "doc_code"  # to associate a file upload field with a doc code
-    FIELD_PROP_FILE_DATA = "file_data"  # to associate a bit of data with a specific file upload file.
+    FIELD_PROP_FILE_DATA = (
+        "file_data"  # to associate a bit of data with a specific file upload file.
+    )
 
     # Additional properties
     FIELD_PROP_ENUM_TYPE = "enum_type"
@@ -77,9 +82,23 @@ class Task(object):
 
     ##########################################################################
 
-    def __init__(self, id, name, title, type, state, lane, form, documentation, data,
-                 multi_instance_type, multi_instance_count, multi_instance_index,
-                 process_name, properties):
+    def __init__(
+        self,
+        id,
+        name,
+        title,
+        type,
+        state,
+        lane,
+        form,
+        documentation,
+        data,
+        multi_instance_type,
+        multi_instance_count,
+        multi_instance_index,
+        process_name,
+        properties,
+    ):
         """__init__."""
         self.id = id
         self.name = name
@@ -90,25 +109,36 @@ class Task(object):
         self.documentation = documentation
         self.data = data
         self.lane = lane
-        self.multi_instance_type = multi_instance_type  # Some tasks have a repeat behavior.
-        self.multi_instance_count = multi_instance_count  # This is the number of times the task could repeat.
-        self.multi_instance_index = multi_instance_index  # And the index of the currently repeating task.
+        self.multi_instance_type = (
+            multi_instance_type  # Some tasks have a repeat behavior.
+        )
+        self.multi_instance_count = (
+            multi_instance_count  # This is the number of times the task could repeat.
+        )
+        self.multi_instance_index = (
+            multi_instance_index  # And the index of the currently repeating task.
+        )
         self.process_name = process_name
         self.properties = properties  # Arbitrary extension properties from BPMN editor.
 
     @classmethod
     def valid_property_names(cls):
         """Valid_property_names."""
-        return [value for name, value in vars(cls).items() if name.startswith('FIELD_PROP')]
+        return [
+            value for name, value in vars(cls).items() if name.startswith("FIELD_PROP")
+        ]
 
     @classmethod
     def valid_field_types(cls):
         """Valid_field_types."""
-        return [value for name, value in vars(cls).items() if name.startswith('FIELD_TYPE')]
+        return [
+            value for name, value in vars(cls).items() if name.startswith("FIELD_TYPE")
+        ]
 
 
 class MultiInstanceType(enum.Enum):
     """MultiInstanceType."""
+
     none = "none"
     looping = "looping"
     parallel = "parallel"
@@ -117,49 +147,85 @@ class MultiInstanceType(enum.Enum):
 
 class OptionSchema(Schema):
     """OptionSchema."""
+
     class Meta:
         """Meta."""
+
         fields = ["id", "name", "data"]
 
 
 class ValidationSchema(Schema):
     """ValidationSchema."""
+
     class Meta:
         """Meta."""
+
         fields = ["name", "config"]
 
 
 class FormFieldPropertySchema(Schema):
     """FormFieldPropertySchema."""
+
     class Meta:
         """Meta."""
+
         fields = ["id", "value"]
 
 
 class FormFieldSchema(Schema):
     """FormFieldSchema."""
+
     class Meta:
         """Meta."""
-        fields = ["id", "type", "label", "default_value", "options", "validation", "properties", "value"]
+
+        fields = [
+            "id",
+            "type",
+            "label",
+            "default_value",
+            "options",
+            "validation",
+            "properties",
+            "value",
+        ]
 
     default_value = marshmallow.fields.String(required=False, allow_none=True)
     options = marshmallow.fields.List(marshmallow.fields.Nested(OptionSchema))
     validation = marshmallow.fields.List(marshmallow.fields.Nested(ValidationSchema))
-    properties = marshmallow.fields.List(marshmallow.fields.Nested(FormFieldPropertySchema))
+    properties = marshmallow.fields.List(
+        marshmallow.fields.Nested(FormFieldPropertySchema)
+    )
 
 
 class FormSchema(Schema):
     """FormSchema."""
+
     key = marshmallow.fields.String(required=True, allow_none=False)
     fields = marshmallow.fields.List(marshmallow.fields.Nested(FormFieldSchema))
 
 
 class TaskSchema(Schema):
     """TaskSchema."""
+
     class Meta:
         """Meta."""
-        fields = ["id", "name", "title", "type", "state", "lane", "form", "documentation", "data", "multi_instance_type",
-                  "multi_instance_count", "multi_instance_index", "process_name", "properties"]
+
+        fields = [
+            "id",
+            "name",
+            "title",
+            "type",
+            "state",
+            "lane",
+            "form",
+            "documentation",
+            "data",
+            "multi_instance_type",
+            "multi_instance_count",
+            "multi_instance_index",
+            "process_name",
+            "properties",
+        ]
 
     multi_instance_type = EnumField(MultiInstanceType)
     documentation = marshmallow.fields.String(required=False, allow_none=True)

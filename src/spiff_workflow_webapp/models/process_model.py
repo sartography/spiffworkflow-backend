@@ -1,6 +1,7 @@
 """Process_model."""
-from marshmallow import Schema, post_load
 import marshmallow
+from marshmallow import post_load
+from marshmallow import Schema
 from sqlalchemy import ForeignKey  # type: ignore
 
 # from spiff_workflow_webapp.models.process_group import ProcessGroupModel
@@ -16,7 +17,7 @@ from sqlalchemy import ForeignKey  # type: ignore
 #     name = db.Column(db.String(50))
 
 
-class ProcessModelInfo(object):
+class ProcessModelInfo:
     """ProcessModelInfo."""
 
     def __init__(
@@ -63,9 +64,12 @@ class ProcessModelInfo(object):
 
 class ProcessModelInfoSchema(Schema):
     """ProcessModelInfoSchema."""
+
     class Meta:
         """Meta."""
+
         model = ProcessModelInfo
+
     id = marshmallow.fields.String(required=True)
     display_name = marshmallow.fields.String(required=True)
     description = marshmallow.fields.String()

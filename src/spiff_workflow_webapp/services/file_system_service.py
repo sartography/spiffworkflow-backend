@@ -4,14 +4,16 @@ import os
 from typing import List
 
 import pytz
-
 from flask import current_app
 from flask_bpmn.api.api_error import ApiError
-from spiff_workflow_webapp.models.file import FileType, CONTENT_TYPES, File
+
+from spiff_workflow_webapp.models.file import CONTENT_TYPES
+from spiff_workflow_webapp.models.file import File
+from spiff_workflow_webapp.models.file import FileType
 from spiff_workflow_webapp.models.process_model import ProcessModelInfo
 
 
-class FileSystemService(object):
+class FileSystemService:
     """FileSystemService."""
 
     """ Simple Service meant for extension that provides some useful
@@ -29,9 +31,9 @@ class FileSystemService(object):
     def root_path():
         """Root_path."""
         # fixme: allow absolute files
-        dir_name = current_app.config['BPMN_SPEC_ABSOLUTE_DIR']
+        dir_name = current_app.config["BPMN_SPEC_ABSOLUTE_DIR"]
         app_root = current_app.root_path
-        return os.path.join(app_root, '..', dir_name)
+        return os.path.join(app_root, "..", dir_name)
 
     @staticmethod
     def process_group_path(name: str):
@@ -41,7 +43,9 @@ class FileSystemService(object):
     @staticmethod
     def library_path(name: str):
         """Library_path."""
-        return os.path.join(FileSystemService.root_path(), FileSystemService.LIBRARY_SPECS, name)
+        return os.path.join(
+            FileSystemService.root_path(), FileSystemService.LIBRARY_SPECS, name
+        )
 
     @staticmethod
     def process_group_path_for_spec(spec):
@@ -49,18 +53,26 @@ class FileSystemService(object):
         if spec.is_master_spec:
             return os.path.join(FileSystemService.root_path())
         elif spec.library:
-            process_group_path = FileSystemService.process_group_path(FileSystemService.LIBRARY_SPECS)
+            process_group_path = FileSystemService.process_group_path(
+                FileSystemService.LIBRARY_SPECS
+            )
         elif spec.standalone:
-            process_group_path = FileSystemService.process_group_path(FileSystemService.STAND_ALONE_SPECS)
+            process_group_path = FileSystemService.process_group_path(
+                FileSystemService.STAND_ALONE_SPECS
+            )
         else:
-            process_group_path = FileSystemService.process_group_path(spec.process_group_id)
+            process_group_path = FileSystemService.process_group_path(
+                spec.process_group_id
+            )
         return process_group_path
 
     @staticmethod
     def workflow_path(spec: ProcessModelInfo):
         """Workflow_path."""
         if spec.is_master_spec:
-            return os.path.join(FileSystemService.root_path(), FileSystemService.MASTER_SPECIFICATION)
+            return os.path.join(
+                FileSystemService.root_path(), FileSystemService.MASTER_SPECIFICATION
+            )
         else:
             process_group_path = FileSystemService.process_group_path_for_spec(spec)
             return os.path.join(process_group_path, spec.id)
@@ -77,7 +89,7 @@ class FileSystemService(object):
     def write_file_data_to_system(file_path, file_data):
         """Write_file_data_to_system."""
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        with open(file_path, 'wb') as f_handle:
+        with open(file_path, "wb") as f_handle:
             f_handle.write(file_data)
 
     @staticmethod
@@ -91,9 +103,12 @@ class FileSystemService(object):
         """Assert_valid_file_name."""
         file_extension = FileSystemService.get_extension(file_name)
         if file_extension not in FileType._member_names_:
-            raise ApiError('unknown_extension',
-                           'The file you provided does not have an accepted extension:'
-                           + file_extension, status_code=404)
+            raise ApiError(
+                "unknown_extension",
+                "The file you provided does not have an accepted extension:"
+                + file_extension,
+                status_code=404,
+            )
 
     @staticmethod
     def _timestamp(file_path: str):
@@ -122,7 +137,7 @@ class FileSystemService(object):
         items = os.scandir(file_path)
         for item in items:
             if item.is_file():
-                if item.name.startswith('.'):
+                if item.name.startswith("."):
                     continue  # Ignore hidden files
                 if item.name == FileSystemService.WF_JSON_FILE:
                     continue  # Ignore the json files.
@@ -139,7 +154,9 @@ class FileSystemService(object):
         content_type = CONTENT_TYPES[file_type.name]
         last_modified = FileSystemService._last_modified(file_path)
         size = os.path.getsize(file_path)
-        file = File.from_file_system(file_name, file_type, content_type, last_modified, size)
+        file = File.from_file_system(
+            file_name, file_type, content_type, last_modified, size
+        )
         return file
 
     @staticmethod
@@ -150,8 +167,13 @@ class FileSystemService(object):
             file_type = FileType[extension]
             content_type = CONTENT_TYPES[file_type.name]
         except KeyError:
-            raise ApiError("invalid_type", "Invalid File Type: %s, for file %s" % (extension, item.name))
+            raise ApiError(
+                "invalid_type",
+                f"Invalid File Type: {extension}, for file {item.name}",
+            )
         stats = item.stat()
         file_size = stats.st_size
         last_modified = FileSystemService._last_modified(item.path)
-        return File.from_file_system(item.name, file_type, content_type, last_modified, file_size)
+        return File.from_file_system(
+            item.name, file_type, content_type, last_modified, file_size
+        )

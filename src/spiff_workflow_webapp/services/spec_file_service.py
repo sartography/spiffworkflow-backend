@@ -4,12 +4,11 @@ import shutil
 from typing import List
 
 from flask_bpmn.api.api_error import ApiError
-from spiff_workflow_webapp.models.file import File, FileType
-
+from lxml import etree
 from SpiffWorkflow.bpmn.parser.ValidationException import ValidationException
 
-from lxml import etree
-
+from spiff_workflow_webapp.models.file import File
+from spiff_workflow_webapp.models.file import FileType
 from spiff_workflow_webapp.models.process_model import ProcessModelInfo
 from spiff_workflow_webapp.services.file_system_service import FileSystemService
 
@@ -23,8 +22,13 @@ class SpecFileService(FileSystemService):
     """
 
     @staticmethod
-    def get_files(workflow_spec: ProcessModelInfo, file_name=None, include_libraries=False, extension_filter="") -> List[File]:
-        """ Returns all files associated with a workflow specification."""
+    def get_files(
+        workflow_spec: ProcessModelInfo,
+        file_name=None,
+        include_libraries=False,
+        extension_filter="",
+    ) -> List[File]:
+        """Returns all files associated with a workflow specification."""
         path = SpecFileService.workflow_path(workflow_spec)
         files = SpecFileService._get_files(path, file_name)
         if include_libraries:
@@ -38,13 +42,17 @@ class SpecFileService(FileSystemService):
         return files
 
     @staticmethod
-    def add_file(workflow_spec: ProcessModelInfo, file_name: str, binary_data: bytearray) -> File:
+    def add_file(
+        workflow_spec: ProcessModelInfo, file_name: str, binary_data: bytearray
+    ) -> File:
         """Add_file."""
         # Same as update
         return SpecFileService.update_file(workflow_spec, file_name, binary_data)
 
     @staticmethod
-    def update_file(workflow_spec: ProcessModelInfo, file_name: str, binary_data) -> File:
+    def update_file(
+        workflow_spec: ProcessModelInfo, file_name: str, binary_data
+    ) -> File:
         """Update_file."""
         SpecFileService.assert_valid_file_name(file_name)
         file_path = SpecFileService.file_path(workflow_spec, file_name)
@@ -69,8 +77,11 @@ class SpecFileService(FileSystemService):
                 if os.path.exists(file_path):
                     break
         if not os.path.exists(file_path):
-            raise ApiError("unknown_file", f"No file found with name {file_name} in {workflow_spec.display_name}")
-        with open(file_path, 'rb') as f_handle:
+            raise ApiError(
+                "unknown_file",
+                f"No file found with name {file_name} in {workflow_spec.display_name}",
+            )
+        with open(file_path, "rb") as f_handle:
             spec_file_data = f_handle.read()
         return spec_file_data
 
@@ -110,7 +121,9 @@ class SpecFileService(FileSystemService):
             shutil.rmtree(dir_path)
 
     @staticmethod
-    def set_primary_bpmn(workflow_spec: ProcessModelInfo, file_name: str, binary_data=None):
+    def set_primary_bpmn(
+        workflow_spec: ProcessModelInfo, file_name: str, binary_data=None
+    ):
         """Set_primary_bpmn."""
         # If this is a BPMN, extract the process id, and determine if it is contains swim lanes.
         extension = SpecFileService.get_extension(file_name)
@@ -125,27 +138,41 @@ class SpecFileService(FileSystemService):
                 workflow_spec.is_review = SpecFileService.has_swimlane(bpmn)
 
             except etree.XMLSyntaxError as xse:
-                raise ApiError("invalid_xml", "Failed to parse xml: " + str(xse), file_name=file_name)
+                raise ApiError(
+                    "invalid_xml",
+                    "Failed to parse xml: " + str(xse),
+                    file_name=file_name,
+                )
             except ValidationException as ve:
-                if ve.args[0].find('No executable process tag found') >= 0:
-                    raise ApiError(code='missing_executable_option',
-                                   message='No executable process tag found. Please make sure the Executable option is set in the workflow.')
+                if ve.args[0].find("No executable process tag found") >= 0:
+                    raise ApiError(
+                        code="missing_executable_option",
+                        message="No executable process tag found. Please make sure the Executable option is set in the workflow.",
+                    )
                 else:
-                    raise ApiError(code='validation_error',
-                                   message=f'There was an error validating your workflow. Original message is: {ve}')
+                    raise ApiError(
+                        code="validation_error",
+                        message=f"There was an error validating your workflow. Original message is: {ve}",
+                    )
         else:
-            raise ApiError("invalid_xml", "Only a BPMN can be the primary file.", file_name=file_name)
+            raise ApiError(
+                "invalid_xml",
+                "Only a BPMN can be the primary file.",
+                file_name=file_name,
+            )
 
     @staticmethod
     def has_swimlane(et_root: etree.Element):
         """
         Look through XML and determine if there are any lanes present that have a label.
         """
-        elements = et_root.xpath('//bpmn:lane',
-                                 namespaces={'bpmn': 'http://www.omg.org/spec/BPMN/20100524/MODEL'})
+        elements = et_root.xpath(
+            "//bpmn:lane",
+            namespaces={"bpmn": "http://www.omg.org/spec/BPMN/20100524/MODEL"},
+        )
         retval = False
         for el in elements:
-            if el.get('name'):
+            if el.get("name"):
                 retval = True
         return retval
 
@@ -154,11 +181,13 @@ class SpecFileService(FileSystemService):
         """Get_process_id."""
         process_elements = []
         for child in et_root:
-            if child.tag.endswith('process') and child.attrib.get('isExecutable', False):
+            if child.tag.endswith("process") and child.attrib.get(
+                "isExecutable", False
+            ):
                 process_elements.append(child)
 
         if len(process_elements) == 0:
-            raise ValidationException('No executable process tag found')
+            raise ValidationException("No executable process tag found")
 
         # There are multiple root elements
         if len(process_elements) > 1:
@@ -167,9 +196,11 @@ class SpecFileService(FileSystemService):
             for e in process_elements:
                 this_element: etree.Element = e
                 for child_element in list(this_element):
-                    if child_element.tag.endswith('startEvent'):
-                        return this_element.attrib['id']
+                    if child_element.tag.endswith("startEvent"):
+                        return this_element.attrib["id"]
 
-            raise ValidationException('No start event found in %s' % et_root.attrib['id'])
+            raise ValidationException(
+                "No start event found in %s" % et_root.attrib["id"]
+            )
 
-        return process_elements[0].attrib['id']
+        return process_elements[0].attrib["id"]

@@ -9,6 +9,7 @@ from spiff_workflow_webapp.models.process_instance import ProcessInstanceModel
 
 
 def test_user_can_be_created_and_deleted(client: FlaskClient) -> None:
+    """Test_user_can_be_created_and_deleted."""
     process_instance = ProcessInstanceModel.query.filter().first()
     if process_instance is not None:
         db.session.delete(process_instance)

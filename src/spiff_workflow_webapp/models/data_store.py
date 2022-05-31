@@ -1,8 +1,7 @@
 """Data_store."""
+from flask_bpmn.models.db import db
 from flask_marshmallow.sqla import SQLAlchemyAutoSchema
 from sqlalchemy import func
-
-from flask_bpmn.models.db import db
 
 
 class DataStoreModel(db.Model):

@@ -9,6 +9,7 @@ from spiff_workflow_webapp.models.user import UserModel
 
 
 def test_acceptance(client: FlaskClient) -> None:
+    """Test_acceptance."""
     # Create a user U
     user = create_user(client, "U")
     # Create a group G
@@ -30,6 +31,7 @@ def test_acceptance(client: FlaskClient) -> None:
 
 
 def test_user_can_be_created_and_deleted(client: FlaskClient) -> None:
+    """Test_user_can_be_created_and_deleted."""
     username = "joe"
     response = client.get(f"/user/{username}")
     assert response.status_code == 201
@@ -43,12 +45,14 @@ def test_user_can_be_created_and_deleted(client: FlaskClient) -> None:
 
 
 def test_delete_returns_an_error_if_user_is_not_found(client: FlaskClient) -> None:
+    """Test_delete_returns_an_error_if_user_is_not_found."""
     username = "joe"
     response = client.delete(f"/user/{username}")
     assert response.status_code == 400
 
 
 def test_create_returns_an_error_if_user_exists(client: FlaskClient) -> None:
+    """Test_create_returns_an_error_if_user_exists."""
     username = "joe"
     response = client.get(f"/user/{username}")
     assert response.status_code == 201
@@ -65,6 +69,7 @@ def test_create_returns_an_error_if_user_exists(client: FlaskClient) -> None:
 
 
 def test_group_can_be_created_and_deleted(client: FlaskClient) -> None:
+    """Test_group_can_be_created_and_deleted."""
     group_name = "administrators"
     response = client.get(f"/group/{group_name}")
     assert response.status_code == 201
@@ -78,12 +83,14 @@ def test_group_can_be_created_and_deleted(client: FlaskClient) -> None:
 
 
 def test_delete_returns_an_error_if_group_is_not_found(client: FlaskClient) -> None:
+    """Test_delete_returns_an_error_if_group_is_not_found."""
     group_name = "administrators"
     response = client.delete(f"/group/{group_name}")
     assert response.status_code == 400
 
 
 def test_create_returns_an_error_if_group_exists(client: FlaskClient) -> None:
+    """Test_create_returns_an_error_if_group_exists."""
     group_name = "administrators"
     response = client.get(f"/group/{group_name}")
     assert response.status_code == 201
@@ -100,6 +107,7 @@ def test_create_returns_an_error_if_group_exists(client: FlaskClient) -> None:
 
 
 def test_user_can_be_assigned_to_a_group(client: FlaskClient) -> None:
+    """Test_user_can_be_assigned_to_a_group."""
     user = create_user(client, "joe")
     group = create_group(client, "administrators")
     assign_user_to_group(client, user, group)
@@ -108,6 +116,7 @@ def test_user_can_be_assigned_to_a_group(client: FlaskClient) -> None:
 
 
 def test_user_can_be_removed_from_a_group(client: FlaskClient) -> None:
+    """Test_user_can_be_removed_from_a_group."""
     user = create_user(client, "joe")
     group = create_group(client, "administrators")
     assign_user_to_group(client, user, group)
@@ -117,6 +126,7 @@ def test_user_can_be_removed_from_a_group(client: FlaskClient) -> None:
 
 
 def create_user(client: FlaskClient, username: str) -> Any:
+    """Create_user."""
     response = client.get(f"/user/{username}")
     assert response.status_code == 201
     user = UserModel.query.filter_by(username=username).first()
@@ -125,6 +135,7 @@ def create_user(client: FlaskClient, username: str) -> Any:
 
 
 def delete_user(client: FlaskClient, username: str) -> None:
+    """Delete_user."""
     response = client.delete(f"/user/{username}")
     assert response.status_code == 204
     user = UserModel.query.filter_by(username=username).first()
@@ -132,6 +143,7 @@ def delete_user(client: FlaskClient, username: str) -> None:
 
 
 def create_group(client: FlaskClient, group_name: str) -> Any:
+    """Create_group."""
     response = client.get(f"/group/{group_name}")
     assert response.status_code == 201
     group = GroupModel.query.filter_by(name=group_name).first()
@@ -140,6 +152,7 @@ def create_group(client: FlaskClient, group_name: str) -> Any:
 
 
 def delete_group(client: FlaskClient, group_name: str) -> None:
+    """Delete_group."""
     response = client.delete(f"/group/{group_name}")
     assert response.status_code == 204
     group = GroupModel.query.filter_by(name=group_name).first()
@@ -149,6 +162,7 @@ def delete_group(client: FlaskClient, group_name: str) -> None:
 def assign_user_to_group(
     client: FlaskClient, user: UserModel, group: GroupModel
 ) -> None:
+    """Assign_user_to_group."""
     response = client.post(
         "/assign_user_to_group",
         content_type="application/json",
@@ -163,6 +177,7 @@ def assign_user_to_group(
 def remove_user_from_group(
     client: FlaskClient, user: UserModel, group: GroupModel
 ) -> None:
+    """Remove_user_from_group."""
     response = client.post(
         "remove_user_from_group",
         content_type="application/json",

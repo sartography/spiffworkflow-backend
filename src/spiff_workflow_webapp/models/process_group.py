@@ -1,5 +1,6 @@
 """Process_group."""
-from marshmallow import Schema, post_load
+from marshmallow import post_load
+from marshmallow import Schema
 
 
 # class ProcessGroupModel(db.Model):  # type: ignore
@@ -15,9 +16,7 @@ class ProcessGroup:
 
     def __init__(self, id, display_name, display_order=0, admin=False):
         """__init__."""
-        self.id = (
-            id  # A unique string name, lower case, under scores (ie, 'my_group')
-        )
+        self.id = id  # A unique string name, lower case, under scores (ie, 'my_group')
         self.display_name = display_name
         self.display_order = display_order
         self.admin = admin

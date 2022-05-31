@@ -1,14 +1,14 @@
 """User."""
 import jwt
-from marshmallow import Schema
 import marshmallow
 from flask import current_app
-from flask_bpmn.models.db import db
 from flask_bpmn.api.api_error import ApiError
+from flask_bpmn.models.db import db
+from marshmallow import Schema
 from sqlalchemy.orm import relationship  # type: ignore
 
-from spiff_workflow_webapp.models.user_group_assignment import UserGroupAssignmentModel
 from spiff_workflow_webapp.models.group import GroupModel
+from spiff_workflow_webapp.models.user_group_assignment import UserGroupAssignmentModel
 
 
 class UserModel(db.Model):  # type: ignore
@@ -37,12 +37,12 @@ class UserModel(db.Model):  # type: ignore
         payload = {
             # 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=hours, minutes=0, seconds=0),
             # 'iat': datetime.datetime.utcnow(),
-            'sub': self.uid
+            "sub": self.uid
         }
         return jwt.encode(
             payload,
-            current_app.config.get('SECRET_KEY'),
-            algorithm='HS256',
+            current_app.config.get("SECRET_KEY"),
+            algorithm="HS256",
         )
 
     def is_admin(self):
@@ -57,29 +57,41 @@ class UserModel(db.Model):  # type: ignore
         :return: integer|string
         """
         try:
-            payload = jwt.decode(auth_token, current_app.config.get('SECRET_KEY'), algorithms='HS256')
+            payload = jwt.decode(
+                auth_token, current_app.config.get("SECRET_KEY"), algorithms="HS256"
+            )
             return payload
         except jwt.ExpiredSignatureError:
-            raise ApiError('token_expired', 'The Authentication token you provided expired and must be renewed.')
+            raise ApiError(
+                "token_expired",
+                "The Authentication token you provided expired and must be renewed.",
+            )
         except jwt.InvalidTokenError:
-            raise ApiError('token_invalid', 'The Authentication token you provided is invalid. You need a new token. ')
+            raise ApiError(
+                "token_invalid",
+                "The Authentication token you provided is invalid. You need a new token. ",
+            )
 
 
 class UserModelSchema(Schema):
     """UserModelSchema."""
+
     class Meta:
         """Meta."""
+
         model = UserModel
         # load_instance = True
         # include_relationships = False
         # exclude = ("UserGroupAssignment",)
+
     id = marshmallow.fields.String(required=True)
     username = marshmallow.fields.String(required=True)
 
 
 class AdminSessionModel(db.Model):
     """AdminSessionModel."""
-    __tablename__ = 'admin_session'
+
+    __tablename__ = "admin_session"
     id = db.Column(db.Integer, primary_key=True)
     token = db.Column(db.String(50), unique=True)
     admin_impersonate_uid = db.Column(db.String(50))
