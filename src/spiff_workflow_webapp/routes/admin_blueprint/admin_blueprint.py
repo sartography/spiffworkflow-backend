@@ -68,9 +68,31 @@ def save_bpmn(process_model_id):
                            process_model_id=process_model_id)
 
 
-@admin_blueprint.route("/process_models", methods=["GET"])
-def listProcessModels():
-    """ListProcessModels."""
+@admin_blueprint.route("/process-groups/<process_group_id>", methods=["GET"])
+def process_group_show(process_group_id):
+    """Show_process_group."""
+    process_group = ProcessModelService().get_process_group(process_group_id)
+    return render_template('process_group_show.html', process_group=process_group)
+
+
+@admin_blueprint.route("/process-groups", methods=["GET"])
+def list_process_groups():
+    """List_process_groups."""
+    process_groups = ProcessModelService().get_process_groups()
+    return render_template('process_groups.html', process_groups=process_groups)
+
+
+@admin_blueprint.route("/process-models/<process_model_id>", methods=["GET"])
+def process_model_show(process_model_id):
+    """Show_process_model."""
+    process_model = ProcessModelService().get_spec(process_model_id)
+    bpmn_xml = SpecFileService.get_data(process_model, process_model.primary_file_name)
+    return render_template('process_model_show.html', process_model=process_model, bpmn_xml=bpmn_xml)
+
+
+@admin_blueprint.route("/process-models", methods=["GET"])
+def list_process_models():
+    """List_process_models."""
     models = ProcessModelService().get_specs()
     return render_template('process_models.html', models=models)
 

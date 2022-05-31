@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Process Group Show</title>
+</head>
+<body>
+  <h1>{{ process_group.id }}</h1>
+     <table>
+         <tbody>
+         {# here we iterate over every item in our list#}
+         {% for process_model in process_group.specs %}
+             <tr><td><a href="{{ url_for('admin.process_model_show', process_model_id=process_model.id) }}">{{ process_model.display_name }}</a></td></tr>
+         {% endfor %}
+         </tbody>
+     </table>
+</body>
+</html>
