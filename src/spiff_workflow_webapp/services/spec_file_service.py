@@ -23,7 +23,7 @@ class SpecFileService(FileSystemService):
     """
 
     @staticmethod
-    def get_files(workflow_spec: ProcessModelInfo, file_name=None, include_libraries=False) -> List[File]:
+    def get_files(workflow_spec: ProcessModelInfo, file_name=None, include_libraries=False, extension_filter="") -> List[File]:
         """ Returns all files associated with a workflow specification."""
         path = SpecFileService.workflow_path(workflow_spec)
         files = SpecFileService._get_files(path, file_name)
@@ -31,6 +31,10 @@ class SpecFileService(FileSystemService):
             for lib_name in workflow_spec.libraries:
                 lib_path = SpecFileService.library_path(lib_name)
                 files.extend(SpecFileService._get_files(lib_path, file_name))
+
+        if extension_filter != "":
+            files = filter(lambda file: file.name.endswith(extension_filter), files)
+
         return files
 
     @staticmethod

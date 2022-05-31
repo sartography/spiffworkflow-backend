@@ -49,7 +49,22 @@ html, body, #canvas {
   <div id="result">{{ result }}</div>
   <button type="button" onclick="window.location.href='{{ url_for( 'admin.process_group_show', process_group_id=process_model.process_group_id ) }}';">Back</button>
   <button type="button" onclick="window.location.href='{{ url_for( 'admin.process_model_run' , process_model_id=process_model.id ) }}';">Run</button>
-  <button type="button" onclick="window.location.href='{{ url_for( 'admin.process_model_edit' , process_model_id=process_model.id ) }}';">Edit</button>
+
+  {% if files %}
+  <h3>BPMN Files</h3>
+  <ul>
+  {% for file in files %}
+  <li>
+  <a href="{{ url_for('admin.process_model_show_file', process_model_id=process_model.id, file_name=file.name) }}">{{ file.name }}</a>
+  {% if file.name == current_file_name %}
+    (current)
+  {% endif %}
+
+  </li>
+  {% endfor %}
+  </ul>
+  {% endif %}
+
   <div id="canvas"></div>
 
   <meta id="bpmn_xml" data-name="{{bpmn_xml}}">

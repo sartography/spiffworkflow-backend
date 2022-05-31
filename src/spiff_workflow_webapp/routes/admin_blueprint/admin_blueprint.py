@@ -24,7 +24,6 @@ def process_model_run(process_model_id):
     result = processor.get_data()
 
     process_model = ProcessModelService().get_spec(process_model_id)
-    SpecFileService.get_files(process_model)
     bpmn_xml = SpecFileService.get_data(process_model, process_model.primary_file_name)
 
     return render_template('process_model_show.html', process_model=process_model, bpmn_xml=bpmn_xml, result=result)
@@ -34,7 +33,6 @@ def process_model_run(process_model_id):
 def process_model_edit(process_model_id):
     """Edit_bpmn."""
     process_model = ProcessModelService().get_spec(process_model_id)
-    SpecFileService.get_files(process_model)
     bpmn_xml = SpecFileService.get_data(process_model, process_model.primary_file_name)
 
     return render_template('process_model_edit.html', bpmn_xml=bpmn_xml.decode("utf-8"),
@@ -45,20 +43,19 @@ def process_model_edit(process_model_id):
 def process_model_save(process_model_id):
     """Process_model_save."""
     process_model = ProcessModelService().get_spec(process_model_id)
-    SpecFileService.get_files(process_model, process_model.primary_file_name)
     SpecFileService.update_file(process_model, process_model.primary_file_name, request.get_data())
     bpmn_xml = SpecFileService.get_data(process_model, process_model.primary_file_name)
     return render_template('process_model_edit.html', bpmn_xml=bpmn_xml.decode("utf-8"),
                            process_model=process_model)
 
 
-@admin_blueprint.route("/process-models/<process_model_id>/<file_id>", methods=["GET"])
-def process_model_show_file(process_model_id, file_id):
+@admin_blueprint.route("/process-models/<process_model_id>/<file_name>", methods=["GET"])
+def process_model_show_file(process_model_id, file_name):
     """Process_model_show_file."""
     process_model = ProcessModelService().get_spec(process_model_id)
-    SpecFileService.get_files(process_model)
-    bpmn_xml = SpecFileService.get_data(process_model, file_id)
-    return render_template('process_model_show.html', process_model=process_model, bpmn_xml=bpmn_xml)
+    bpmn_xml = SpecFileService.get_data(process_model, file_name)
+    files = SpecFileService.get_files(process_model, extension_filter="bpmn")
+    return render_template('process_model_show.html', process_model=process_model, bpmn_xml=bpmn_xml, files=files, current_file_name=file_name)
 
 
 @admin_blueprint.route("/process-groups/<process_group_id>", methods=["GET"])
@@ -79,8 +76,10 @@ def process_groups_list():
 def process_model_show(process_model_id):
     """Show_process_model."""
     process_model = ProcessModelService().get_spec(process_model_id)
-    bpmn_xml = SpecFileService.get_data(process_model, process_model.primary_file_name)
-    return render_template('process_model_show.html', process_model=process_model, bpmn_xml=bpmn_xml)
+    files = SpecFileService.get_files(process_model, extension_filter="bpmn")
+    current_file_name = process_model.primary_file_name
+    bpmn_xml = SpecFileService.get_data(process_model, current_file_name)
+    return render_template('process_model_show.html', process_model=process_model, bpmn_xml=bpmn_xml, files=files, current_file_name=current_file_name)
 
 
 def find_or_create_user(username: str = "test_user1") -> Any:
