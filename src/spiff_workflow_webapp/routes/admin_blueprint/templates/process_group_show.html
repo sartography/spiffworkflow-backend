@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 {% block title %}Process Group: {{ process_group.id }}{% endblock %}
 {% block content %}
-<button type="button" onclick="window.location.href='{{ url_for( 'admin.list_process_groups') }}';">Back</button>
+<button type="button" onclick="window.location.href='{{ url_for( 'admin.process_groups_list') }}';">Back</button>
 <table>
   <tbody>
     {# here we iterate over every item in our list#}

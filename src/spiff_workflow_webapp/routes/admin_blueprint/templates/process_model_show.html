@@ -48,8 +48,8 @@ html, body, #canvas {
   {% block content %}
   <div id="result">{{ result }}</div>
   <button type="button" onclick="window.location.href='{{ url_for( 'admin.process_group_show', process_group_id=process_model.process_group_id ) }}';">Back</button>
-  <button type="button" onclick="window.location.href='{{ url_for( 'admin.run_bpmn' , process_model_id=process_model.id ) }}';">Run</button>
-  <button type="button" onclick="window.location.href='{{ url_for( 'admin.edit_bpmn' , process_model_id=process_model.id ) }}';">Edit</button>
+  <button type="button" onclick="window.location.href='{{ url_for( 'admin.process_model_run' , process_model_id=process_model.id ) }}';">Run</button>
+  <button type="button" onclick="window.location.href='{{ url_for( 'admin.process_model_edit' , process_model_id=process_model.id ) }}';">Edit</button>
   <div id="canvas"></div>
 
   <meta id="bpmn_xml" data-name="{{bpmn_xml}}">

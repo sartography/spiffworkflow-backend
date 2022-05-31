@@ -53,7 +53,7 @@
     <div id="canvas"></div>
 
     <meta id="bpmn_xml" data-name="{{bpmn_xml}}">
-    <meta id="process_model_id" data-name="{{process_model_id}}">
+    <meta id="process_model_id" data-name="{{process_model.id}}">
     <script>
 
       // modeler instance
@@ -75,7 +75,7 @@
           var process_model_id = $('#process_model_id').data().name;
           console.log("The data is", data)
             //POST request with body equal on data in JSON format
-            fetch('../save/' + process_model_id, {
+            fetch('/admin/process-models/' + process_model_id + '/save' , {
               method: 'POST',
               headers: {
                 'Content-Type': 'text/xml',
