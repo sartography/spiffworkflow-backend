@@ -136,7 +136,7 @@ jobs:
           host port: 3306
           container port: 3306
           mysql version: "8.0"
-          mysql database: "spiff_workflow_webapp_testing"
+          mysql database: "spiffworkflow_backend_testing"
           mysql root password: password
         if: matrix.database == 'mysql'
 

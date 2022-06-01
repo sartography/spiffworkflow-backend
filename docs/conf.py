@@ -2,7 +2,7 @@
 from datetime import datetime
 
 
-project = "Spiff Workflow Webapp"
+project = "Spiffworkflow Backend"
 author = "Sartography"
 copyright = f"{datetime.now().year}, {author}"
 extensions = [

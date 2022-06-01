@@ -2,7 +2,7 @@
 import pytest
 from click.testing import CliRunner
 
-from spiff_workflow_webapp import __main__
+from spiffworkflow_backend import __main__
 
 
 @pytest.fixture

@@ -2,8 +2,8 @@ Reference
 =========
 
 
-spiff_workflow_webapp
+spiffworkflow_backend
 ----------
 
-.. automodule:: spiff_workflow_webapp
+.. automodule:: spiffworkflow_backend
    :members:

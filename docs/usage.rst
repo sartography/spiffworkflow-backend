@@ -1,6 +1,6 @@
 Usage
 =====
 
-.. click:: spiff_workflow_webapp.__main__:main
-   :prog: spiff-workflow-webapp
+.. click:: spiffworkflow_backend.__main__:main
+   :prog: spiffworkflow-backend
    :nested: full

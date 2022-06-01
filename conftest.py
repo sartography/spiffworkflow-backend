@@ -5,15 +5,15 @@ import pytest
 from flask.app import Flask
 
 
-# We need to call this before importing spiff_workflow_webapp
+# We need to call this before importing spiffworkflow_backend
 # otherwise typeguard cannot work. hence the noqa: E402
 if os.environ.get("RUN_TYPEGUARD") == "true":
     from typeguard.importhook import install_import_hook
 
-    install_import_hook(packages="spiff_workflow_webapp")
+    install_import_hook(packages="spiffworkflow_backend")
 
 
-from spiff_workflow_webapp import create_app  # noqa: E402
+from spiffworkflow_backend import create_app  # noqa: E402
 
 
 @pytest.fixture(scope="session")
@@ -26,7 +26,7 @@ def app() -> Flask:
     # different places and this allows us to know exactly where we are at the start
     app.config["BPMN_SPEC_ABSOLUTE_DIR"] = (
         os.path.join(os.path.dirname(__file__))
-        + "/tests/spiff_workflow_webapp/files/bpmn_specs"
+        + "/tests/spiffworkflow_backend/files/bpmn_specs"
     )
 
     return app

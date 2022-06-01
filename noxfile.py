@@ -20,7 +20,7 @@ except ImportError:
     raise SystemExit(dedent(message)) from None
 
 
-package = "spiff_workflow_webapp"
+package = "spiffworkflow_backend"
 python_versions = ["3.10", "3.9", "3.8"]
 nox.needs_version = ">= 2021.6.6"
 nox.options.sessions = (
@@ -39,7 +39,7 @@ def setup_database(session: Session) -> None:
     session.env["FLASK_INSTANCE_PATH"] = os.path.join(
         os.getcwd(), "instance", "testing"
     )
-    session.env["FLASK_APP"] = "src/spiff_workflow_webapp"
+    session.env["FLASK_APP"] = "src/spiffworkflow_backend"
     session.env["FLASK_ENV"] = "testing"
     session.run("flask", "db", "upgrade")
 

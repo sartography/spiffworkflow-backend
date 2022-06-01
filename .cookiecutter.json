@@ -3,10 +3,10 @@
   "author": "Sartography",
   "development_status": "Development Status :: 1 - Planning",
   "email": "sartography@users.noreply.github.com",
-  "friendly_name": "Spiff Workflow Webapp",
+  "friendly_name": "Spiffworkflow Backend",
   "github_user": "sartography",
   "license": "MIT",
-  "package_name": "spiff_workflow_webapp",
-  "project_name": "spiff-workflow-webapp",
+  "package_name": "spiffworkflow_backend",
+  "project_name": "spiffworkflow-backend",
   "version": "0.0.1"
 }

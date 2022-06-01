@@ -13,4 +13,4 @@
    contributing
    Code of Conduct <codeofconduct>
    License <license>
-   Changelog <https://github.com/sartography/spiff-workflow-webapp/releases>
+   Changelog <https://github.com/sartography/spiffworkflow-backend/releases>

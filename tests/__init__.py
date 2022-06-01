@@ -1,1 +1,1 @@
-"""Test suite for the spiff_workflow_webapp package."""
+"""Test suite for the spiffworkflow_backend package."""
