@@ -26,8 +26,12 @@ def create_app() -> flask.app.Flask:
     )
     app = connexion_app.app
     app.config["CONNEXION_APP"] = connexion_app
-    app.secret_key = "super secret key"
     app.config["SESSION_TYPE"] = "filesystem"
+
+    if os.environ.get("FLASK_SESSION_SECRET_KEY") is None:
+        raise KeyError("Cannot find the secret_key from the environment. Please set FLASK_SESSION_SECRET_KEY")
+
+    app.secret_key = os.environ.get("FLASK_SESSION_SECRET_KEY")
 
     setup_config(app)
     db.init_app(app)
@@ -39,8 +43,5 @@ def create_app() -> flask.app.Flask:
     app.register_blueprint(api_error_blueprint)
     app.register_blueprint(admin_blueprint, url_prefix="/admin")
     connexion_app.add_api("api.yml", base_path="/v1.0")
-
-    for name, value in app.config.items():
-        print(f"{name} = {value}")
 
     return app

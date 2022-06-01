@@ -16,18 +16,21 @@ def setup_config(app: Flask) -> None:
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config.from_object("spiffworkflow_backend.config.default")
 
-    if os.environ.get("SPIFF_DATABASE_TYPE") == "sqlite":
-        app.config[
-            "SQLALCHEMY_DATABASE_URI"
-        ] = f"sqlite:///{app.instance_path}/db_{app.env}.sqlite3"
+    if os.environ.get("DATABASE_URI") is None:
+        if os.environ.get("SPIFF_DATABASE_TYPE") == "sqlite":
+            app.config[
+                "SQLALCHEMY_DATABASE_URI"
+            ] = f"sqlite:///{app.instance_path}/db_{app.env}.sqlite3"
+        else:
+            # use pswd to trick flake8 with hardcoded passwords
+            db_pswd = os.environ.get("DB_PASSWORD")
+            if db_pswd is None:
+                db_pswd = ""
+            app.config[
+                "SQLALCHEMY_DATABASE_URI"
+            ] = f"mysql+mysqlconnector://root:{db_pswd}@localhost/spiffworkflow_backend_{app.env}"
     else:
-        # use pswd to trick flake8 with hardcoded passwords
-        mysql_pswd = os.environ.get("MYSQL_PASSWORD")
-        if mysql_pswd is None:
-            mysql_pswd = ""
-        app.config[
-            "SQLALCHEMY_DATABASE_URI"
-        ] = f"mysql+mysqlconnector://root:{mysql_pswd}@localhost/spiffworkflow_backend_{app.env}"
+        app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URI")
 
     env_config_module = "spiffworkflow_backend.config." + app.env
     try:

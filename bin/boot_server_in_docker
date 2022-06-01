@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+# run migrations
+export FLASK_APP=/app/src/spiffworkflow_backend
+
+if [ "${DOWNGRADE_DB:-}" = "true" ]; then
+  echo 'Downgrading database...'
+  poetry run flask db downgrade
+fi
+
+if [ "${UPGRADE_DB:-}" = "true" ]; then
+  echo 'Upgrading database...'
+  poetry run flask db upgrade
+fi
+
+port="${PORT0:-}"
+if [[ -z "$port" ]]; then
+  port=7000
+fi
+
+# THIS MUST BE THE LAST COMMAND!
+if [ "${APPLICATION_ROOT:-}" = "/" ]; then
+  exec poetry run gunicorn --bind "0.0.0.0:$PORT0" wsgi:app
+else
+  exec poetry run gunicorn -e SCRIPT_NAME="$APPLICATION_ROOT" --bind "0.0.0.0:$PORT0" wsgi:app
+fi

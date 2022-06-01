@@ -7,15 +7,9 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
-if [[ -z "${FLASK_ENV:-}" ]]; then
-  export FLASK_ENV=development
-fi
-
 if [[ -z "${BPMN_SPEC_ABSOLUTE_DIR:-}" ]]; then
   script_dir="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
   export BPMN_SPEC_ABSOLUTE_DIR="$script_dir/../../sample-process-models"
 fi
 
-export FLASK_SESSION_SECRET_KEY=super_secret_key
-
-FLASK_APP=src/spiffworkflow_backend poetry run flask run
+docker compose up --build

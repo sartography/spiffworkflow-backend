@@ -1,0 +1,43 @@
+version: "3.8"
+services:
+  db:
+    container_name: db
+    image: mysql:8.0.29
+    cap_add:
+      - SYS_NICE
+    restart: always
+    environment:
+      - MYSQL_DATABASE=spiffworkflow_backend_staging
+      - MYSQL_ROOT_PASSWORD=St4g3Th1515
+    ports:
+      - '7001:3306'
+    volumes:
+      - spiffworkflow_backend:/var/lib/mysql
+
+  spiffworkflow-backend:
+    container_name: spiffworkflow-backend
+    # command: tail -f /etc/hostname
+    depends_on:
+       - db
+    # image: sartography/cr-connect-workflow:dev
+    build:
+      context: .
+    environment:
+      - APPLICATION_ROOT=/
+      - FLASK_ENV=staging
+      - FLASK_SESSION_SECRET_KEY=super_secret_key
+      - DEVELOPMENT=true
+      - LDAP_URL=mock
+      - PORT0=7000
+      - PRODUCTION=false
+      - UPGRADE_DB=true
+      - DATABASE_URI=mysql+mysqlconnector://root:St4g3Th1515@db/spiffworkflow_backend_staging
+      - BPMN_SPEC_ABSOLUTE_DIR=/app/process_models
+    ports:
+      - "7000:7000"
+    volumes:
+      - ${BPMN_SPEC_ABSOLUTE_DIR}:/app/process_models
+
+volumes:
+  spiffworkflow_backend:
+    driver: local
