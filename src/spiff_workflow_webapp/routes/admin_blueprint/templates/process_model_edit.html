@@ -67,7 +67,6 @@ process_model.id }}{% endblock %} {% block head %}
 <div id="canvas"></div>
 
 <meta id="bpmn_xml" data-name="{{bpmn_xml}}" />
-<meta id="process_model_id" data-name="{{process_model.id}}" />
 <script>
   // modeler instance
   var bpmnModeler = new BpmnJS({
@@ -83,10 +82,8 @@ process_model.id }}{% endblock %} {% block head %}
   async function exportDiagram() {
     try {
       var data = await bpmnModeler.saveXML({ format: true });
-      var process_model_id = $("#process_model_id").data().name;
-      console.log("The data is", data);
       //POST request with body equal on data in JSON format
-      fetch("/admin/process-models/" + process_model_id + "/save", {
+        fetch("/admin/process-models/{{ process_model.id }}/save/{{ file_name }}", {
         method: "POST",
         headers: {
           "Content-Type": "text/xml",
@@ -142,6 +139,8 @@ process_model.id }}{% endblock %} {% block head %}
     }
   }
 
+  // trying to use the python variable bpmn_xml directly causes the xml to have escape sequences
+  // and using the meta tag seems to help with that
   var bpmn_xml = $("#bpmn_xml").data();
   openDiagram(bpmn_xml.name);
 
