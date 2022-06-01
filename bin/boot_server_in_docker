@@ -25,9 +25,11 @@ if [[ -z "$port" ]]; then
   port=7000
 fi
 
-# THIS MUST BE THE LAST COMMAND!
-if [ "${APPLICATION_ROOT:-}" = "/" ]; then
-  exec poetry run gunicorn --bind "0.0.0.0:$PORT0" wsgi:app
-else
-  exec poetry run gunicorn -e SCRIPT_NAME="$APPLICATION_ROOT" --bind "0.0.0.0:$PORT0" wsgi:app
+additional_args=""
+
+if [[ "${APPLICATION_ROOT:-}" != "/" ]]; then
+  additional_args="${additional_args} -e SCRIPT_NAME=${APPLICATION_ROOT}"
 fi
+
+# THIS MUST BE THE LAST COMMAND!
+exec poetry run gunicorn ${additional_args} --bind "0.0.0.0:$PORT0" --workers=3 --timeout 90 --log-level debug wsgi:app

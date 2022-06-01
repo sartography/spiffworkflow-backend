@@ -13,6 +13,8 @@ services:
       - '7001:3306'
     volumes:
       - spiffworkflow_backend:/var/lib/mysql
+    healthcheck:
+      test:  mysql --user=root --password=St4g3Th1515 -e 'select 1' spiffworkflow_backend_staging
 
   spiffworkflow-backend:
     container_name: spiffworkflow-backend

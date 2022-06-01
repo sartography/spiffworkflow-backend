@@ -12,4 +12,9 @@ if [[ -z "${BPMN_SPEC_ABSOLUTE_DIR:-}" ]]; then
   export BPMN_SPEC_ABSOLUTE_DIR="$script_dir/../../sample-process-models"
 fi
 
-docker compose up --build
+additional_args=""
+if [[ "${RUN_WITH_DAEMON:-}" != "false" ]]; then
+  additional_args="${additional_args} -d"
+fi
+
+docker compose up --build $additional_args
