@@ -1,12 +1,13 @@
 """Test Permissions."""
 from flask.app import Flask
 from flask_bpmn.models.db import db
-# from tests.spiffworkflow_backend.helpers.test_data import find_or_create_process_group
 from tests.spiffworkflow_backend.helpers.test_data import find_or_create_user
 
+from spiffworkflow_backend.models.principal import PrincipalModel
+
+# from tests.spiffworkflow_backend.helpers.test_data import find_or_create_process_group
 # from spiffworkflow_backend.models.permission_assignment import PermissionAssignmentModel
 # from spiffworkflow_backend.models.permission_target import PermissionTargetModel
-from spiffworkflow_backend.models.principal import PrincipalModel
 
 
 def test_user_can_be_given_permission_to_administer_process_group(app: Flask) -> None:

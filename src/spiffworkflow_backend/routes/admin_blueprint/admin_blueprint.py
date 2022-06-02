@@ -115,13 +115,13 @@ def process_model_edit(process_model_id, file_name):
     )
 
 
-@admin_blueprint.route("/process-models/<process_model_id>/save/<file_name>", methods=["POST"])
+@admin_blueprint.route(
+    "/process-models/<process_model_id>/save/<file_name>", methods=["POST"]
+)
 def process_model_save(process_model_id, file_name):
     """Process_model_save."""
     process_model = ProcessModelService().get_spec(process_model_id)
-    SpecFileService.update_file(
-        process_model, file_name, request.get_data()
-    )
+    SpecFileService.update_file(process_model, file_name, request.get_data())
     bpmn_xml = SpecFileService.get_data(process_model, process_model.primary_file_name)
     return render_template(
         "process_model_edit.html",

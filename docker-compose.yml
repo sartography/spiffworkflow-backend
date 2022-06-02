@@ -10,17 +10,17 @@ services:
       - MYSQL_DATABASE=spiffworkflow_backend_staging
       - MYSQL_ROOT_PASSWORD=St4g3Th1515
     ports:
-      - '7001:3306'
+      - "7001:3306"
     volumes:
       - spiffworkflow_backend:/var/lib/mysql
     healthcheck:
-      test:  mysql --user=root --password=St4g3Th1515 -e 'select 1' spiffworkflow_backend_staging
+      test: mysql --user=root --password=St4g3Th1515 -e 'select 1' spiffworkflow_backend_staging
 
   spiffworkflow-backend:
     container_name: spiffworkflow-backend
     # command: tail -f /etc/hostname
     depends_on:
-       - db
+      - db
     # image: sartography/cr-connect-workflow:dev
     build:
       context: .
