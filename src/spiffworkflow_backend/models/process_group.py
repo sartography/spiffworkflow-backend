@@ -44,6 +44,6 @@ class ProcessGroupSchema(Schema):
     )
 
     @post_load
-    def make_cat(self, data, **kwargs):
-        """Make_cat."""
+    def make_process_group(self, data, **kwargs):
+        """Make_process_group."""
         return ProcessGroup(**data)

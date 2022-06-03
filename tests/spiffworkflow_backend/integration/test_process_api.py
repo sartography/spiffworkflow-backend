@@ -99,15 +99,15 @@ def create_process_model(app, client: FlaskClient):
     process_model_service = ProcessModelService()
     assert 0 == len(process_model_service.get_specs())
     assert 0 == len(process_model_service.get_process_groups())
-    cat = ProcessGroup(
+    process_group = ProcessGroup(
         id="test_cat", display_name="Test Category", display_order=0, admin=False
     )
-    process_model_service.add_process_group(cat)
+    process_model_service.add_process_group(process_group)
     spec = ProcessModelInfo(
         id="make_cookies",
         display_name="Cooooookies",
         description="Om nom nom delicious cookies",
-        process_group_id=cat.id,
+        process_group_id=process_group.id,
         standalone=False,
         is_review=False,
         is_master_spec=False,

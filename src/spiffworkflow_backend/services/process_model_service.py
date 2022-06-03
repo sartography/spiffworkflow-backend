@@ -94,8 +94,8 @@ class ProcessModelService(FileSystemService):
         """Get_specs."""
         process_groups = self.get_process_groups()
         process_models = []
-        for cat in process_groups:
-            process_models.extend(cat.process_models)
+        for process_group in process_groups:
+            process_models.extend(process_group.process_models)
         return process_models
 
     def reorder_spec(self, spec: ProcessModelInfo, direction):
@@ -128,17 +128,17 @@ class ProcessModelService(FileSystemService):
 
     def get_libraries(self) -> List[ProcessModelInfo]:
         """Get_libraries."""
-        cat = self.get_process_group(self.LIBRARY_SPECS)
-        if not cat:
+        process_group = self.get_process_group(self.LIBRARY_SPECS)
+        if not process_group:
             return []
-        return cat.process_models
+        return process_group.process_models
 
     def get_standalones(self) -> List[ProcessModelInfo]:
         """Get_standalones."""
-        cat = self.get_process_group(self.STAND_ALONE_SPECS)
-        if not cat:
+        process_group = self.get_process_group(self.STAND_ALONE_SPECS)
+        if not process_group:
             return []
-        return cat.process_models
+        return process_group.process_models
 
     def get_process_group(self, process_group_id):
         """Look for a given process_group, and return it."""
@@ -171,30 +171,30 @@ class ProcessModelService(FileSystemService):
             shutil.rmtree(path)
         self.cleanup_process_group_display_order()
 
-    def reorder_workflow_spec_process_group(self, cat: ProcessGroup, direction):
+    def reorder_workflow_spec_process_group(self, process_group: ProcessGroup, direction):
         """Reorder_workflow_spec_process_group."""
-        cats = self.get_process_groups()  # Returns an ordered list
-        index = cats.index(cat)
+        process_groups = self.get_process_groups()  # Returns an ordered list
+        index = process_groups.index(process_group)
         if direction == "up" and index > 0:
-            cats[index - 1], cats[index] = cats[index], cats[index - 1]
-        if direction == "down" and index < len(cats) - 1:
-            cats[index + 1], cats[index] = cats[index], cats[index + 1]
+            process_groups[index - 1], process_groups[index] = process_groups[index], process_groups[index - 1]
+        if direction == "down" and index < len(process_groups) - 1:
+            process_groups[index + 1], process_groups[index] = process_groups[index], process_groups[index + 1]
         index = 0
-        for process_group in cats:
+        for process_group in process_groups:
             process_group.display_order = index
             self.update_process_group(process_group)
             index += 1
-        return cats
+        return process_groups
 
     def cleanup_process_group_display_order(self):
         """Cleanup_process_group_display_order."""
-        cats = self.get_process_groups()  # Returns an ordered list
+        process_groups = self.get_process_groups()  # Returns an ordered list
         index = 0
-        for process_group in cats:
+        for process_group in process_groups:
             process_group.display_order = index
             self.update_process_group(process_group)
             index += 1
-        return cats
+        return process_groups
 
     def __scan_process_groups(self):
         """__scan_process_groups."""
@@ -222,25 +222,25 @@ class ProcessModelService(FileSystemService):
         if os.path.exists(cat_path):
             with open(cat_path) as cat_json:
                 data = json.load(cat_json)
-                cat = self.GROUP_SCHEMA.load(data)
+                process_group = self.GROUP_SCHEMA.load(data)
         else:
-            cat = ProcessGroup(
+            process_group = ProcessGroup(
                 id=dir_item.name,
                 display_name=dir_item.name,
                 display_order=10000,
                 admin=False,
             )
             with open(cat_path, "w") as wf_json:
-                json.dump(self.GROUP_SCHEMA.dump(cat), wf_json, indent=4)
+                json.dump(self.GROUP_SCHEMA.dump(process_group), wf_json, indent=4)
         with os.scandir(dir_item.path) as workflow_dirs:
-            cat.process_models = []
+            process_group.process_models = []
             for item in workflow_dirs:
                 if item.is_dir():
-                    cat.process_models.append(
-                        self.__scan_spec(item.path, item.name, process_group=cat)
+                    process_group.process_models.append(
+                        self.__scan_spec(item.path, item.name, process_group=process_group)
                     )
-            cat.process_models.sort(key=lambda w: w.display_order)
-        return cat
+            process_group.process_models.sort(key=lambda w: w.display_order)
+        return process_group
 
     @staticmethod
     def _get_workflow_metas(study_id):
