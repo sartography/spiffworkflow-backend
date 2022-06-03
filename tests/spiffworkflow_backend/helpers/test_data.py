@@ -20,16 +20,6 @@ def find_or_create_user(username: str = "test_user1") -> Any:
     return user
 
 
-def find_or_create_process_group(name: str = "test_group1") -> Any:
-    process_group = ProcessGroupModel.query.filter_by(name=name).first()
-    if process_group is None:
-        process_group = ProcessGroupModel(name=name)
-        db.session.add(process_group)
-        db.session.commit()
-
-    return process_group
-
-
 def assure_process_group_exists(process_group_id=None):
     """Assure_process_group_exists."""
     process_group = None
@@ -62,7 +52,7 @@ def load_test_spec(
     process_group = None
     workflow_spec_service = ProcessModelService()
     if process_group_id is None:
-        process_group_id = dir_name
+        process_group_id = "test_process_group_id"
     if not master_spec and not library:
         process_group = assure_process_group_exists(process_group_id)
         process_group_id = process_group.id

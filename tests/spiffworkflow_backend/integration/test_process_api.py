@@ -83,12 +83,15 @@ def test_get_process_groups_when_there_are_some(app, client: FlaskClient, with_b
 
 def test_get_process_group_when_found(app, client: FlaskClient, with_bpmn_file_cleanup):
     user = find_or_create_user()
-    load_test_spec(app, "hello_world")
+    test_process_group_id = "group_id1"
+    process_model_dir_name = "hello_world"
+    load_test_spec(app, process_model_dir_name, process_group_id=test_process_group_id)
     rv = client.get(
-        "/v1.0/process-group/hello_world", headers=logged_in_headers(user)
+        f"/v1.0/process-group/{test_process_group_id}", headers=logged_in_headers(user)
     )
     assert rv.status_code == 200
-    assert rv.json["id"] == "hello_world"
+    assert rv.json["id"] == test_process_group_id
+    assert rv.json["process_models"][0]["id"] == process_model_dir_name
 
 
 def create_process_model(app, client: FlaskClient):

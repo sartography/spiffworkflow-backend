@@ -1,5 +1,6 @@
-{% extends "layout.html" %} {% block title %}Process Group: {{ process_group.id
-}}{% endblock %} {% block content %}
+{% extends "layout.html" %}
+{% block title %}Process Group: {{ process_group.id }}{% endblock %}
+{% block content %}
 <button
   type="button"
   onclick="window.location.href='{{ url_for( 'admin.process_groups_list') }}';"
@@ -8,8 +9,8 @@
 </button>
 <table>
   <tbody>
-    {# here we iterate over every item in our list#} {% for process_model in
-    process_group.specs %}
+    {# here we iterate over every item in our list#}
+    {% for process_model in process_group.specs %}
     <tr>
       <td>
         <a

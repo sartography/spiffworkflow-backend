@@ -18,7 +18,7 @@ class ProcessModelService(FileSystemService):
     as it would have been stored in the database. This is specific to Workflow Specifications, and
     Workflow Specification process_groups.
     We do this, so we can easily drop in a new configuration on the file system, and change all
-    the workflow specs at once, or manage those file in a git repository. """
+    the workflow process_models at once, or manage those file in a git repository. """
 
     GROUP_SCHEMA = ProcessGroupSchema()
     WF_SCHEMA = ProcessModelInfoSchema()
@@ -93,20 +93,20 @@ class ProcessModelService(FileSystemService):
     def get_specs(self):
         """Get_specs."""
         process_groups = self.get_process_groups()
-        specs = []
+        process_models = []
         for cat in process_groups:
-            specs.extend(cat.specs)
-        return specs
+            process_models.extend(cat.process_models)
+        return process_models
 
     def reorder_spec(self, spec: ProcessModelInfo, direction):
         """Reorder_spec."""
-        specs = spec.process_group.specs
-        specs.sort(key=lambda w: w.display_order)
-        index = specs.index(spec)
+        process_models = spec.process_group.process_models
+        process_models.sort(key=lambda w: w.display_order)
+        index = process_models.index(spec)
         if direction == "up" and index > 0:
-            specs[index - 1], specs[index] = specs[index], specs[index - 1]
-        if direction == "down" and index < len(specs) - 1:
-            specs[index + 1], specs[index] = specs[index], specs[index + 1]
+            process_models[index - 1], process_models[index] = process_models[index], process_models[index - 1]
+        if direction == "down" and index < len(process_models) - 1:
+            process_models[index + 1], process_models[index] = process_models[index], process_models[index + 1]
         return self.cleanup_workflow_spec_display_order(spec.process_group)
 
     def cleanup_workflow_spec_display_order(self, process_group):
@@ -114,11 +114,11 @@ class ProcessModelService(FileSystemService):
         index = 0
         if not process_group:
             return []
-        for workflow in process_group.specs:
+        for workflow in process_group.process_models:
             workflow.display_order = index
             self.update_spec(workflow)
             index += 1
-        return process_group.specs
+        return process_group.process_models
 
     def get_process_groups(self) -> List[ProcessGroup]:
         """Returns the process_groups as a list in display order."""
@@ -131,14 +131,14 @@ class ProcessModelService(FileSystemService):
         cat = self.get_process_group(self.LIBRARY_SPECS)
         if not cat:
             return []
-        return cat.specs
+        return cat.process_models
 
     def get_standalones(self) -> List[ProcessModelInfo]:
         """Get_standalones."""
         cat = self.get_process_group(self.STAND_ALONE_SPECS)
         if not cat:
             return []
-        return cat.specs
+        return cat.process_models
 
     def get_process_group(self, process_group_id):
         """Look for a given process_group, and return it."""
@@ -233,13 +233,13 @@ class ProcessModelService(FileSystemService):
             with open(cat_path, "w") as wf_json:
                 json.dump(self.GROUP_SCHEMA.dump(cat), wf_json, indent=4)
         with os.scandir(dir_item.path) as workflow_dirs:
-            cat.specs = []
+            cat.process_models = []
             for item in workflow_dirs:
                 if item.is_dir():
-                    cat.specs.append(
+                    cat.process_models.append(
                         self.__scan_spec(item.path, item.name, process_group=cat)
                     )
-            cat.specs.sort(key=lambda w: w.display_order)
+            cat.process_models.sort(key=lambda w: w.display_order)
         return cat
 
     @staticmethod
