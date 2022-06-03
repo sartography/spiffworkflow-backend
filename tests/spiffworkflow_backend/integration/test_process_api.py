@@ -62,6 +62,25 @@ def test_get_workflow_from_workflow_spec(
     # assert('Task_GetName' == rv.json['next_task']['name'])
 
 
+def test_get_process_groups_when_none(app, client: FlaskClient, with_bpmn_file_cleanup):
+    user = find_or_create_user()
+    rv = client.get(
+        "/v1.0/process-groups", headers=logged_in_headers(user)
+    )
+    assert rv.status_code == 200
+    assert rv.json == []
+
+
+def test_get_process_groups_when_there_are_some(app, client: FlaskClient, with_bpmn_file_cleanup):
+    user = find_or_create_user()
+    load_test_spec(app, "hello_world")
+    rv = client.get(
+        "/v1.0/process-groups", headers=logged_in_headers(user)
+    )
+    assert rv.status_code == 200
+    assert len(rv.json) == 1
+
+
 def create_process_model(app, client: FlaskClient):
     """Create_process_model."""
     process_model_service = ProcessModelService()

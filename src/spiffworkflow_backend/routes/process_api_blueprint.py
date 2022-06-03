@@ -8,6 +8,7 @@ from spiffworkflow_backend.models.file import FileSchema
 from spiffworkflow_backend.models.file import FileType
 from spiffworkflow_backend.models.process_instance import ProcessInstanceApiSchema
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
+from spiffworkflow_backend.models.process_group import ProcessGroupSchema
 from spiffworkflow_backend.services.process_instance_processor import (
     ProcessInstanceProcessor,
 )
@@ -27,13 +28,13 @@ process_api_blueprint = Blueprint("process_api", __name__)
 def add_process_model(body):
     """Add_process_model."""
     spec = ProcessModelInfoSchema().load(body)
-    spec_service = ProcessModelService()
-    process_group = spec_service.get_process_group(spec.process_group_id)
+    process_model_service = ProcessModelService()
+    process_group = process_model_service.get_process_group(spec.process_group_id)
     spec.process_group = process_group
-    workflows = spec_service.cleanup_workflow_spec_display_order(process_group)
+    workflows = process_model_service.cleanup_workflow_spec_display_order(process_group)
     size = len(workflows)
     spec.display_order = size
-    spec_service.add_spec(spec)
+    process_model_service.add_spec(spec)
     return ProcessModelInfoSchema().dump(spec)
 
 
@@ -79,3 +80,10 @@ def create_process_instance(spec_id):
         processor
     )
     return ProcessInstanceApiSchema().dump(workflow_api_model)
+
+
+def process_groups_list():
+    """Process_groups_list."""
+    process_model_service = ProcessModelService()
+    process_groups = process_model_service.get_process_groups()
+    return ProcessGroupSchema(many=True).dump(process_groups)

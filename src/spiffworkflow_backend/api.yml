@@ -10,6 +10,21 @@ security:
   - jwt: ["secret"]
 
 paths:
+  /process-groups:
+    get:
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.process_groups_list
+      summary: get list
+      tags:
+        - Workflow Specifications
+      responses:
+        '200':
+          description: An array of process groups
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WorkflowSpecCategory"
   /workflow-specification:
     # get:
     #   operationId: crc.api.workflow.all_specifications
