@@ -25,6 +25,19 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/WorkflowSpecCategory"
+  /process-group/{process_group_id}:
+    get:
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.process_group_show
+      summary: Returns a single process group
+      tags:
+        - Workflow Specification Category
+      responses:
+        '200':
+          description: Workflow spec category.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowSpecCategory"
   /workflow-specification:
     # get:
     #   operationId: crc.api.workflow.all_specifications

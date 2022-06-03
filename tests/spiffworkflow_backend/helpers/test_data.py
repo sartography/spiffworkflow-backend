@@ -37,8 +37,11 @@ def assure_process_group_exists(process_group_id=None):
     if process_group_id is not None:
         process_group = workflow_spec_service.get_process_group(process_group_id)
     if process_group is None:
+        process_group_id_to_create = "test_process_group"
+        if process_group_id is not None:
+            process_group_id_to_create = process_group_id
         process_group = ProcessGroup(
-            id="test_process_group",
+            id=process_group_id_to_create,
             display_name="Test Workflows",
             admin=False,
             display_order=0,
@@ -58,6 +61,8 @@ def load_test_spec(
     """Loads a spec into the database based on a directory in /tests/data."""
     process_group = None
     workflow_spec_service = ProcessModelService()
+    if process_group_id is None:
+        process_group_id = dir_name
     if not master_spec and not library:
         process_group = assure_process_group_exists(process_group_id)
         process_group_id = process_group.id

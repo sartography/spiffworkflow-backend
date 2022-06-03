@@ -87,3 +87,9 @@ def process_groups_list():
     process_model_service = ProcessModelService()
     process_groups = process_model_service.get_process_groups()
     return ProcessGroupSchema(many=True).dump(process_groups)
+
+
+def process_group_show(process_group_id):
+    """Process_group_show."""
+    process_group = ProcessModelService().get_process_group(process_group_id)
+    return ProcessGroupSchema().dump(process_group)

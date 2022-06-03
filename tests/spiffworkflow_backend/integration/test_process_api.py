@@ -81,6 +81,16 @@ def test_get_process_groups_when_there_are_some(app, client: FlaskClient, with_b
     assert len(rv.json) == 1
 
 
+def test_get_process_group_when_found(app, client: FlaskClient, with_bpmn_file_cleanup):
+    user = find_or_create_user()
+    load_test_spec(app, "hello_world")
+    rv = client.get(
+        "/v1.0/process-group/hello_world", headers=logged_in_headers(user)
+    )
+    assert rv.status_code == 200
+    assert rv.json["id"] == "hello_world"
+
+
 def create_process_model(app, client: FlaskClient):
     """Create_process_model."""
     process_model_service = ProcessModelService()
