@@ -6,12 +6,14 @@ import flask.app
 from flask_bpmn.api.api_error import api_error_blueprint
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import migrate
+from flask_cors import CORS
 
 from spiffworkflow_backend.config import setup_config
 from spiffworkflow_backend.routes.admin_blueprint.admin_blueprint import admin_blueprint
 from spiffworkflow_backend.routes.api_blueprint import api_blueprint
 from spiffworkflow_backend.routes.process_api_blueprint import process_api_blueprint
 from spiffworkflow_backend.routes.user_blueprint import user_blueprint
+from spiffworkflow_backend.models.user import UserModel
 
 
 def create_app() -> flask.app.Flask:
@@ -44,6 +46,10 @@ def create_app() -> flask.app.Flask:
     app.register_blueprint(process_api_blueprint)
     app.register_blueprint(api_error_blueprint)
     app.register_blueprint(admin_blueprint, url_prefix="/admin")
+
+    origins_re = [r"^https?:\/\/%s(.*)" % o.replace('.', '\.') for o in app.config['CORS_ALLOW_ORIGINS']]
+    CORS(app, origins=origins_re)
+
     connexion_app.add_api("api.yml", base_path="/v1.0")
 
     return app

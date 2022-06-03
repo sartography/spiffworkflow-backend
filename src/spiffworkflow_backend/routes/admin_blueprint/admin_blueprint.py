@@ -7,6 +7,7 @@ from flask import redirect
 from flask import render_template
 from flask import request
 from flask import url_for
+from flask import current_app
 from flask_bpmn.models.db import db
 
 from spiffworkflow_backend.models.user import UserModel
@@ -24,6 +25,16 @@ admin_blueprint = Blueprint(
 )
 
 ALLOWED_BPMN_EXTENSIONS = {"bpmn", "dmn"}
+
+
+@admin_blueprint.route("/token", methods=["GET"])
+def token():
+    if current_app.env != "development":
+        return "Not authorized"
+
+    user = UserModel.query.first()
+    auth_token = user.encode_auth_token()
+    return(f"auth_token: {auth_token}")
 
 
 @admin_blueprint.route("/process-groups", methods=["GET"])
