@@ -29,6 +29,7 @@ ALLOWED_BPMN_EXTENSIONS = {"bpmn", "dmn"}
 
 @admin_blueprint.route("/token", methods=["GET"])
 def token():
+    """Token."""
     if current_app.env != "development":
         return "Not authorized"
 

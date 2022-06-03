@@ -13,7 +13,6 @@ from spiffworkflow_backend.routes.admin_blueprint.admin_blueprint import admin_b
 from spiffworkflow_backend.routes.api_blueprint import api_blueprint
 from spiffworkflow_backend.routes.process_api_blueprint import process_api_blueprint
 from spiffworkflow_backend.routes.user_blueprint import user_blueprint
-from spiffworkflow_backend.models.user import UserModel
 
 
 def create_app() -> flask.app.Flask:
