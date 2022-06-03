@@ -33,6 +33,11 @@ def token():
         return "Not authorized"
 
     user = UserModel.query.first()
+    if user is None:
+        user = UserModel(username="test_user1")
+        db.session.add(user)
+        db.session.commit()
+
     auth_token = user.encode_auth_token()
     return(f"auth_token: {auth_token}")
 
