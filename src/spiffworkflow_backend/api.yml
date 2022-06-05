@@ -25,7 +25,7 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/WorkflowSpecCategory"
-  /process-group/{process_group_id}:
+  /process-groups/{process_group_id}:
     get:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.process_group_show
       summary: Returns a single process group
