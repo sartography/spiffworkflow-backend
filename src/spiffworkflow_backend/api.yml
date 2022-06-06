@@ -38,6 +38,19 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/WorkflowSpecCategory"
+  /process-models/{process_model_id}:
+    get:
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.process_model_show
+      summary: Returns a single process model
+      tags:
+        - Workflow Specification
+      responses:
+        '200':
+          description: Workflow spec.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowSpec"
   /workflow-specification:
     # get:
     #   operationId: crc.api.workflow.all_specifications
@@ -77,7 +90,7 @@ paths:
             schema:
               $ref: "#/components/schemas/WorkflowSpec"
       responses:
-        "200":
+        "201":
           description: Workflow specification created successfully.
           content:
             application/json:
@@ -120,7 +133,7 @@ paths:
                   type: string
                   format: binary
       responses:
-        "200":
+        "201":
           description: Metadata about the uploaded file, but not the file content.
           content:
             application/json:
@@ -152,7 +165,7 @@ paths:
       tags:
         - Workflow Specifications
       responses:
-        "200":
+        "201":
           description: Workflow generated successfully
           content:
             application/json:
@@ -187,7 +200,7 @@ paths:
     #   responses:
     #     '204':
     #       description: The workflow specification has been removed.
-  /workflow-specification/{spec_id}/file/{file_name}:
+  /process-models/{spec_id}/file/{file_name}:
     parameters:
       - name: spec_id
         in: path

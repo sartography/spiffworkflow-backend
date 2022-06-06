@@ -37,7 +37,7 @@ class SpecFileService(FileSystemService):
                 files.extend(SpecFileService._get_files(lib_path, file_name))
 
         if extension_filter != "":
-            files = filter(lambda file: file.name.endswith(extension_filter), files)
+            files = list(filter(lambda file: file.name.endswith(extension_filter), files))
 
         return files
 

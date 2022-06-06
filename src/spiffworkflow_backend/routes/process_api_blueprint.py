@@ -1,6 +1,8 @@
 """APIs for dealing with process groups, process models, and process instances."""
 import connexion
+import json
 from flask import Blueprint
+from flask import Response
 from flask import g
 from flask_bpmn.api.api_error import ApiError
 
@@ -9,6 +11,7 @@ from spiffworkflow_backend.models.file import FileType
 from spiffworkflow_backend.models.process_instance import ProcessInstanceApiSchema
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
 from spiffworkflow_backend.models.process_group import ProcessGroupSchema
+from spiffworkflow_backend.models.file import File
 from spiffworkflow_backend.services.process_instance_processor import (
     ProcessInstanceProcessor,
 )
@@ -35,14 +38,15 @@ def add_process_model(body):
     size = len(workflows)
     spec.display_order = size
     process_model_service.add_spec(spec)
-    return ProcessModelInfoSchema().dump(spec)
+    return Response(
+        json.dumps(ProcessModelInfoSchema().dump(spec)), status=201, mimetype="application/json"
+    )
 
 
 def get_file(spec_id, file_name):
     """Get_file."""
-    workflow_spec_service = ProcessModelService()
-    workflow_spec = workflow_spec_service.get_spec(spec_id)
-    files = SpecFileService.get_files(workflow_spec, file_name)
+    process_model = ProcessModelService().get_spec(spec_id)
+    files = SpecFileService.get_files(process_model, file_name)
     if len(files) == 0:
         raise ApiError(
             code="unknown file",
@@ -50,21 +54,27 @@ def get_file(spec_id, file_name):
             f" it does not exist in workflow {spec_id}.",
             status_code=404,
         )
-    return FileSchema().dump(files[0])
+
+    file = files[0]
+    file_contents = SpecFileService.get_data(process_model, file.name)
+    file.file_contents = file_contents
+    return FileSchema().dump(file)
 
 
 def add_file(spec_id):
     """Add_file."""
     workflow_spec_service = ProcessModelService()
-    workflow_spec = workflow_spec_service.get_spec(spec_id)
+    process_model = workflow_spec_service.get_spec(spec_id)
     request_file = connexion.request.files["file"]
     file = SpecFileService.add_file(
-        workflow_spec, request_file.filename, request_file.stream.read()
+        process_model, request_file.filename, request_file.stream.read()
     )
-    if not workflow_spec.primary_process_id and file.type == FileType.bpmn.value:
-        SpecFileService.set_primary_bpmn(workflow_spec, file.name)
-        workflow_spec_service.update_spec(workflow_spec)
-    return FileSchema().dump(file)
+    if not process_model.primary_process_id and file.type == FileType.bpmn.value:
+        SpecFileService.set_primary_bpmn(process_model, file.name)
+        workflow_spec_service.update_spec(process_model)
+    return Response(
+        json.dumps(FileSchema().dump(file)), status=201, mimetype="application/json"
+    )
 
 
 def create_process_instance(spec_id):
@@ -79,13 +89,14 @@ def create_process_instance(spec_id):
     workflow_api_model = ProcessInstanceService.processor_to_process_instance_api(
         processor
     )
-    return ProcessInstanceApiSchema().dump(workflow_api_model)
+    return Response(
+        json.dumps(ProcessInstanceApiSchema().dump(workflow_api_model)), status=201, mimetype="application/json"
+    )
 
 
 def process_groups_list():
     """Process_groups_list."""
-    process_model_service = ProcessModelService()
-    process_groups = process_model_service.get_process_groups()
+    process_groups = ProcessModelService().get_process_groups()
     return ProcessGroupSchema(many=True).dump(process_groups)
 
 
@@ -93,3 +104,21 @@ def process_group_show(process_group_id):
     """Process_group_show."""
     process_group = ProcessModelService().get_process_group(process_group_id)
     return ProcessGroupSchema().dump(process_group)
+
+
+def process_model_show(process_model_id):
+    """Process_model_show."""
+    process_model = ProcessModelService().get_spec(process_model_id)
+    if process_model is None:
+        raise (
+            ApiError(
+                code="process_mode_cannot_be_found",
+                message=f"Process model cannot be found: {process_model_id}",
+                status_code=400,
+            )
+        )
+
+    files = SpecFileService.get_files(process_model, extension_filter="bpmn")
+    process_model.files = files
+    process_model_json = ProcessModelInfoSchema().dump(process_model)
+    return process_model_json

@@ -2,6 +2,11 @@
 import marshmallow
 from marshmallow import post_load
 from marshmallow import Schema
+from dataclasses import dataclass
+from typing import List
+import json
+
+from spiffworkflow_backend.models.file import File
 
 
 class ProcessModelInfo:
@@ -21,6 +26,7 @@ class ProcessModelInfo:
         process_group_id="",
         display_order=0,
         is_review=False,
+        files=None,
     ):
         """__init__."""
         self.id = id  # Sting unique id
@@ -37,8 +43,11 @@ class ProcessModelInfo:
 
         if libraries is None:
             libraries = []
-
         self.libraries = libraries
+
+        if files is None:
+            files = []
+        self.files = files
 
     def __eq__(self, other):
         """__eq__."""
@@ -69,6 +78,9 @@ class ProcessModelInfoSchema(Schema):
     is_review = marshmallow.fields.Boolean(allow_none=True)
     process_group_id = marshmallow.fields.String(allow_none=True)
     libraries = marshmallow.fields.List(marshmallow.fields.String(), allow_none=True)
+    files = marshmallow.fields.List(
+        marshmallow.fields.Nested("FileSchema")
+    )
 
     @post_load
     def make_spec(self, data, **kwargs):

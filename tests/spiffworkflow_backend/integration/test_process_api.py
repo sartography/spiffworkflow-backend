@@ -38,9 +38,9 @@ def test_add_new_process_model(app, client: FlaskClient, with_bpmn_file_cleanup)
 # def test_get_process_model(self):
 #
 #     load_test_spec('random_fact')
-#     rv = client.get('/v1.0/workflow-specification/random_fact', headers=logged_in_headers())
-#     assert_success(rv)
-#     json_data = json.loads(rv.get_data(as_text=True))
+#     response = client.get('/v1.0/workflow-specification/random_fact', headers=logged_in_headers())
+#     assert_success(response)
+#     json_data = json.loads(response.get_data(as_text=True))
 #     api_spec = WorkflowSpecInfoSchema().load(json_data)
 #
 #     fs_spec = process_model_service.get_spec('random_fact')
@@ -54,31 +54,31 @@ def test_get_workflow_from_workflow_spec(
     """Test_get_workflow_from_workflow_spec."""
     user = find_or_create_user()
     spec = load_test_spec(app, "hello_world")
-    rv = client.post(
+    response = client.post(
         f"/v1.0/workflow-specification/{spec.id}", headers=logged_in_headers(user)
     )
-    assert rv.status_code == 200
-    assert "hello_world" == rv.json["process_model_identifier"]
-    # assert('Task_GetName' == rv.json['next_task']['name'])
+    assert response.status_code == 201
+    assert "hello_world" == response.json["process_model_identifier"]
+    # assert('Task_GetName' == response.json['next_task']['name'])
 
 
 def test_get_process_groups_when_none(app, client: FlaskClient, with_bpmn_file_cleanup):
     user = find_or_create_user()
-    rv = client.get(
+    response = client.get(
         "/v1.0/process-groups", headers=logged_in_headers(user)
     )
-    assert rv.status_code == 200
-    assert rv.json == []
+    assert response.status_code == 200
+    assert response.json == []
 
 
 def test_get_process_groups_when_there_are_some(app, client: FlaskClient, with_bpmn_file_cleanup):
     user = find_or_create_user()
     load_test_spec(app, "hello_world")
-    rv = client.get(
+    response = client.get(
         "/v1.0/process-groups", headers=logged_in_headers(user)
     )
-    assert rv.status_code == 200
-    assert len(rv.json) == 1
+    assert response.status_code == 200
+    assert len(response.json) == 1
 
 
 def test_get_process_group_when_found(app, client: FlaskClient, with_bpmn_file_cleanup):
@@ -86,12 +86,36 @@ def test_get_process_group_when_found(app, client: FlaskClient, with_bpmn_file_c
     test_process_group_id = "group_id1"
     process_model_dir_name = "hello_world"
     load_test_spec(app, process_model_dir_name, process_group_id=test_process_group_id)
-    rv = client.get(
-        f"/v1.0/process-group/{test_process_group_id}", headers=logged_in_headers(user)
+    response = client.get(
+        f"/v1.0/process-groups/{test_process_group_id}", headers=logged_in_headers(user)
     )
-    assert rv.status_code == 200
-    assert rv.json["id"] == test_process_group_id
-    assert rv.json["process_models"][0]["id"] == process_model_dir_name
+    assert response.status_code == 200
+    assert response.json["id"] == test_process_group_id
+    assert response.json["process_models"][0]["id"] == process_model_dir_name
+
+
+def test_get_process_model_when_found(app, client: FlaskClient, with_bpmn_file_cleanup):
+    user = find_or_create_user()
+    test_process_group_id = "group_id1"
+    process_model_dir_name = "hello_world"
+    load_test_spec(app, process_model_dir_name, process_group_id=test_process_group_id)
+    response = client.get(
+        f"/v1.0/process-models/{process_model_dir_name}", headers=logged_in_headers(user)
+    )
+    assert response.status_code == 200
+    assert response.json["id"] == process_model_dir_name
+    assert len(response.json["files"]) == 1
+    assert response.json["files"][0]["name"] == "hello_world.bpmn"
+
+
+def test_get_process_model_when_not_found(app, client: FlaskClient, with_bpmn_file_cleanup):
+    user = find_or_create_user()
+    process_model_dir_name = "THIS_NO_EXISTS"
+    response = client.get(
+        f"/v1.0/process-models/{process_model_dir_name}", headers=logged_in_headers(user)
+    )
+    assert response.status_code == 400
+    assert response.json["code"] == "process_mode_cannot_be_found"
 
 
 def create_process_model(app, client: FlaskClient):
@@ -117,13 +141,13 @@ def create_process_model(app, client: FlaskClient):
         primary_file_name="",
     )
     user = find_or_create_user()
-    rv = client.post(
+    response = client.post(
         "/v1.0/workflow-specification",
         content_type="application/json",
         data=json.dumps(ProcessModelInfoSchema().dump(spec)),
         headers=logged_in_headers(user),
     )
-    assert rv.status_code == 200
+    assert response.status_code == 201
 
     fs_spec = process_model_service.get_spec("make_cookies")
     assert spec.display_name == fs_spec.display_name
@@ -136,7 +160,7 @@ def create_spec_file(app, client: FlaskClient):
     spec = load_test_spec(app, "random_fact")
     data = {"file": (io.BytesIO(b"abcdef"), "random_fact.svg")}
     user = find_or_create_user()
-    rv = client.post(
+    response = client.post(
         "/v1.0/workflow-specification/%s/file" % spec.id,
         data=data,
         follow_redirects=True,
@@ -144,16 +168,16 @@ def create_spec_file(app, client: FlaskClient):
         headers=logged_in_headers(user),
     )
 
-    assert rv.status_code == 200
-    assert rv.get_data() is not None
-    file = json.loads(rv.get_data(as_text=True))
+    assert response.status_code == 201
+    assert response.get_data() is not None
+    file = json.loads(response.get_data(as_text=True))
     assert FileType.svg.value == file["type"]
     assert "image/svg+xml" == file["content_type"]
 
-    rv = client.get(
+    response = client.get(
         f"/v1.0/workflow-specification/{spec.id}/file/random_fact.svg",
         headers=logged_in_headers(user),
     )
-    assert rv.status_code == 200
-    file2 = json.loads(rv.get_data(as_text=True))
+    assert response.status_code == 200
+    file2 = json.loads(response.get_data(as_text=True))
     assert file == file2

@@ -1,9 +1,11 @@
 """File."""
 import enum
 
+from dataclasses import dataclass, field
 from flask_bpmn.models.db import db
 from marshmallow import INCLUDE
 from marshmallow import Schema
+from typing import Optional
 from sqlalchemy import func
 from sqlalchemy.orm import deferred  # type: ignore
 from sqlalchemy.orm import relationship
@@ -85,38 +87,28 @@ CONTENT_TYPES = {
 }
 
 
+@dataclass
 class File:
     """File."""
-
-    def __init__(self):
-        """__init__."""
-        self.content_type = None
-        self.name = None
-        self.content_type = None
-        self.process_instance_id = None
-        self.irb_doc_code = None
-        self.type = None
-        self.document = {}
-        self.last_modified = None
-        self.size = None
-        self.data_store = {}
-        self.user_uid = None
-        self.archived = None
+    content_type: str
+    name: str
+    type: str
+    document: dict
+    last_modified: str
+    size: int
+    process_instance_id: Optional[int] = None
+    irb_doc_code: Optional[str] = None
+    data_store: Optional[dict] = field(default_factory=dict)
+    user_uid: Optional[str] = None
+    file_contents: Optional[str] = None
+    archived: bool = False
 
     @classmethod
     def from_file_system(
         cls, file_name, file_type, content_type, last_modified, file_size
     ):
         """From_file_system."""
-        instance = cls()
-        instance.name = file_name
-        instance.content_type = content_type
-        instance.type = file_type.value
-        instance.document = {}
-        instance.last_modified = last_modified
-        instance.size = file_size
-        # fixme:  How to track the user id?
-        instance.data_store = {}
+        instance = cls(name=file_name, content_type=content_type, type=file_type.value, document={}, last_modified=last_modified, size=file_size)
         return instance
 
 
@@ -141,6 +133,7 @@ class FileSchema(Schema):
             "document",
             "user_uid",
             "url",
+            "file_contents",
         ]
         unknown = INCLUDE
 
