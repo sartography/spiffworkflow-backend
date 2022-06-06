@@ -10,7 +10,7 @@ services:
       - MYSQL_DATABASE=spiffworkflow_backend_staging
       - MYSQL_ROOT_PASSWORD=St4g3Th1515
     ports:
-      - "7001:3306"
+      - "3306"
     volumes:
       - spiffworkflow_backend:/var/lib/mysql
     healthcheck:
