@@ -101,6 +101,8 @@ class File:
     data_store: Optional[dict] = field(default_factory=dict)
     user_uid: Optional[str] = None
     file_contents: Optional[str] = None
+    process_model_id: Optional[str] = None
+    process_group_id: Optional[str] = None
     archived: bool = False
 
     @classmethod
@@ -134,6 +136,8 @@ class FileSchema(Schema):
             "user_uid",
             "url",
             "file_contents",
+            "process_model_id",
+            "process_group_id",
         ]
         unknown = INCLUDE
 

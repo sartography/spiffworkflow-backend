@@ -48,6 +48,20 @@ def test_add_new_process_model(app, client: FlaskClient, with_bpmn_file_cleanup)
 #
 
 
+def test_get_file(app, client: FlaskClient, with_bpmn_file_cleanup):
+    user = find_or_create_user()
+    test_process_group_id = "group_id1"
+    process_model_dir_name = "hello_world"
+    load_test_spec(app, process_model_dir_name, process_group_id=test_process_group_id)
+    response = client.get(
+        f"/v1.0/process-models/{process_model_dir_name}/file/hello_world.bpmn", headers=logged_in_headers(user)
+    )
+    assert response.status_code == 200
+    assert response.json["name"] == "hello_world.bpmn"
+    assert response.json["process_group_id"] == "group_id1"
+    assert response.json["process_model_id"] == "hello_world"
+
+
 def test_get_workflow_from_workflow_spec(
     app, client: FlaskClient, with_bpmn_file_cleanup
 ):

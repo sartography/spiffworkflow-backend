@@ -43,43 +43,45 @@ def add_process_model(body):
     )
 
 
-def get_file(spec_id, file_name):
+def get_file(process_model_id, file_name):
     """Get_file."""
-    process_model = ProcessModelService().get_spec(spec_id)
+    process_model = ProcessModelService().get_spec(process_model_id)
     files = SpecFileService.get_files(process_model, file_name)
     if len(files) == 0:
         raise ApiError(
             code="unknown file",
             message=f"No information exists for file {file_name}"
-            f" it does not exist in workflow {spec_id}.",
+            f" it does not exist in workflow {process_model_id}.",
             status_code=404,
         )
 
     file = files[0]
     file_contents = SpecFileService.get_data(process_model, file.name)
     file.file_contents = file_contents
+    file.process_model_id = process_model.id
+    file.process_group_id = process_model.process_group_id
     return FileSchema().dump(file)
 
 
-def add_file(spec_id):
+def add_file(process_model_id):
     """Add_file."""
-    workflow_spec_service = ProcessModelService()
-    process_model = workflow_spec_service.get_spec(spec_id)
+    process_model_service = ProcessModelService()
+    process_model = process_model_service.get_spec(process_model_id)
     request_file = connexion.request.files["file"]
     file = SpecFileService.add_file(
         process_model, request_file.filename, request_file.stream.read()
     )
     if not process_model.primary_process_id and file.type == FileType.bpmn.value:
         SpecFileService.set_primary_bpmn(process_model, file.name)
-        workflow_spec_service.update_spec(process_model)
+        process_model_service.update_spec(process_model)
     return Response(
         json.dumps(FileSchema().dump(file)), status=201, mimetype="application/json"
     )
 
 
-def create_process_instance(spec_id):
+def create_process_instance(process_model_id):
     """Create_process_instance."""
-    process_instance = ProcessInstanceService.create_process_instance(spec_id, g.user)
+    process_instance = ProcessInstanceService.create_process_instance(process_model_id, g.user)
     processor = ProcessInstanceProcessor(process_instance)
 
     processor.do_engine_steps()
