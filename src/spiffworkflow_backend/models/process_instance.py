@@ -1,5 +1,6 @@
 """Process_instance."""
 import enum
+import json
 
 import marshmallow
 from flask_bpmn.models.db import db
@@ -84,6 +85,19 @@ class ProcessInstanceModel(db.Model):  # type: ignore
     process_initiator_id = db.Column(ForeignKey(UserModel.id), nullable=False)
     process_initiator = relationship("UserModel")
     status = db.Column(db.Enum(ProcessInstanceStatus))
+
+    @property
+    def serialized(self):
+        """Return object data in serializeable format"""
+        return {
+            'id': self.id,
+            'process_model_identifier': self.process_model_identifier,
+            'status': self.status.value,
+            'bpmn_json': self.bpmn_json,
+            'start_in_seconds': self.start_in_seconds,
+            'end_in_seconds': self.end_in_seconds,
+            'process_initiator_id': self.process_initiator_id
+        }
 
 
 class ProcessInstanceApi:

@@ -8,7 +8,7 @@ from flask_bpmn.api.api_error import ApiError
 
 from spiffworkflow_backend.models.file import FileSchema
 from spiffworkflow_backend.models.file import FileType
-from spiffworkflow_backend.models.process_instance import ProcessInstanceApiSchema
+from spiffworkflow_backend.models.process_instance import ProcessInstanceApiSchema, ProcessInstanceModel
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
 from spiffworkflow_backend.models.process_group import ProcessGroupSchema
 from spiffworkflow_backend.models.file import File
@@ -81,7 +81,6 @@ def add_file(process_model_id):
 
 def process_instance_create(process_model_id):
     """Create_process_instance."""
-    # import pdb; pdb.set_trace()
     process_instance = ProcessInstanceService.create_process_instance(process_model_id, g.user)
     processor = ProcessInstanceProcessor(process_instance)
 
@@ -97,6 +96,31 @@ def process_instance_create(process_model_id):
     process_instance_metadata["data"] = process_instance_data
     return Response(
         json.dumps(process_instance_metadata), status=201, mimetype="application/json"
+    )
+
+
+def process_instance_list(process_model_id, page=1, per_page=100):
+    process_model = ProcessModelService().get_spec(process_model_id)
+    if process_model is None:
+        raise (
+            ApiError(
+                code="process_mode_cannot_be_found",
+                message=f"Process model cannot be found: {process_model_id}",
+                status_code=400,
+            )
+        )
+
+    process_instances = ProcessInstanceModel.query.filter_by(process_model_identifier=process_model.id).order_by(ProcessInstanceModel.start_in_seconds.desc()).paginate(page, per_page, False)
+
+    serialized_results = []
+    for process_instance in process_instances.items:
+        process_instance_serialized = process_instance.serialized
+        process_instance_serialized["process_group_id"] = process_model.process_group_id
+        serialized_results.append(process_instance_serialized)
+
+    response_json = {"results": serialized_results, "pagination": {"count": len(process_instances.items), "total": process_instances.total, "pages": process_instances.pages}}
+    return Response(
+        json.dumps(response_json), status=200, mimetype="application/json"
     )
 
 

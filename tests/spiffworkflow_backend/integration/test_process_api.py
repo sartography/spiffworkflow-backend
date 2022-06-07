@@ -10,10 +10,12 @@ from tests.spiffworkflow_backend.helpers.test_data import find_or_create_user
 from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
 from tests.spiffworkflow_backend.helpers.test_data import logged_in_headers
 
+from flask_bpmn.models.db import db
 from spiffworkflow_backend.models.file import FileType
 from spiffworkflow_backend.models.process_group import ProcessGroup
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
+from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 
 
@@ -133,12 +135,84 @@ def test_get_process_model_when_not_found(app, client: FlaskClient, with_bpmn_fi
 
 
 def test_process_instance_create(app, client: FlaskClient, with_bpmn_file_cleanup):
-    user = find_or_create_user()
     test_process_group_id = "runs_without_input"
     process_model_dir_name = "sample"
+    user = find_or_create_user()
+    headers = logged_in_headers(user)
+    create_process_instance(app, client, test_process_group_id, process_model_dir_name, headers)
+
+
+def test_process_instance_list_with_default_list(app, client: FlaskClient, with_bpmn_file_cleanup):
+    db.session.query(ProcessInstanceModel).delete()
+    db.session.commit()
+
+    test_process_group_id = "runs_without_input"
+    process_model_dir_name = "sample"
+    user = find_or_create_user()
+    headers = logged_in_headers(user)
+    create_process_instance(app, client, test_process_group_id, process_model_dir_name, headers)
+
+    response = client.get(
+        f"/v1.0/process-models/{process_model_dir_name}/process-instances", headers=logged_in_headers(user)
+    )
+    assert response.status_code == 200
+    assert len(response.json["results"]) == 1
+    assert response.json["pagination"]["count"] == 1
+    assert response.json["pagination"]["pages"] == 1
+    assert response.json["pagination"]["total"] == 1
+
+    process_instance_dict = response.json["results"][0]
+    f = open("bpmn.json", "w")
+    f.write(process_instance_dict["bpmn_json"])
+    f.close()
+    assert type(process_instance_dict["id"]) is int
+    assert process_instance_dict["process_model_identifier"] == process_model_dir_name
+    assert process_instance_dict["process_group_id"] == test_process_group_id
+    assert type(process_instance_dict["start_in_seconds"]) is int
+    assert process_instance_dict["start_in_seconds"] > 0
+    assert type(process_instance_dict["end_in_seconds"]) is int
+    assert process_instance_dict["end_in_seconds"] > 0
+    assert process_instance_dict["start_in_seconds"] <= process_instance_dict["end_in_seconds"]
+    assert process_instance_dict["status"] == "complete"
+
+
+def test_process_instance_list_with_paginated_items(app, client: FlaskClient, with_bpmn_file_cleanup):
+    db.session.query(ProcessInstanceModel).delete()
+    db.session.commit()
+
+    test_process_group_id = "runs_without_input"
+    process_model_dir_name = "sample"
+    user = find_or_create_user()
+    headers = logged_in_headers(user)
+    create_process_instance(app, client, test_process_group_id, process_model_dir_name, headers)
+    create_process_instance(app, client, test_process_group_id, process_model_dir_name, headers)
+    create_process_instance(app, client, test_process_group_id, process_model_dir_name, headers)
+    create_process_instance(app, client, test_process_group_id, process_model_dir_name, headers)
+    create_process_instance(app, client, test_process_group_id, process_model_dir_name, headers)
+
+    response = client.get(
+        f"/v1.0/process-models/{process_model_dir_name}/process-instances?per_page=2&page=3", headers=logged_in_headers(user)
+    )
+    assert response.status_code == 200
+    assert len(response.json["results"]) == 1
+    assert response.json["pagination"]["count"] == 1
+    assert response.json["pagination"]["pages"] == 3
+    assert response.json["pagination"]["total"] == 5
+
+    response = client.get(
+        f"/v1.0/process-models/{process_model_dir_name}/process-instances?per_page=2&page=1", headers=logged_in_headers(user)
+    )
+    assert response.status_code == 200
+    assert len(response.json["results"]) == 2
+    assert response.json["pagination"]["count"] == 2
+    assert response.json["pagination"]["pages"] == 3
+    assert response.json["pagination"]["total"] == 5
+
+
+def create_process_instance(app, client: FlaskClient, test_process_group_id, process_model_dir_name, headers):
     load_test_spec(app, process_model_dir_name, process_group_id=test_process_group_id)
     response = client.post(
-        f"/v1.0/process-models/{process_model_dir_name}", headers=logged_in_headers(user)
+        f"/v1.0/process-models/{process_model_dir_name}", headers=headers
     )
     assert response.status_code == 201
     assert response.json["status"] == "complete"

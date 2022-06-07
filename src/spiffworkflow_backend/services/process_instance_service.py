@@ -1,6 +1,7 @@
 """Process_instance_service."""
 from datetime import datetime
 from typing import List
+import time
 
 from flask import current_app
 from flask_bpmn.models.db import db
@@ -34,6 +35,7 @@ class ProcessInstanceService:
             process_initiator=user,
             process_model_identifier=process_model_identifier,
             last_updated=datetime.now(),
+            start_in_seconds=time.time(),
         )
         db.session.add(process_instance_model)
         db.session.commit()

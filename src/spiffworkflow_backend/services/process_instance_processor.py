@@ -1,5 +1,6 @@
 """Process_instance_processor."""
 import json
+import time
 from datetime import datetime
 from typing import List
 
@@ -180,6 +181,8 @@ class ProcessInstanceProcessor:
                 self.bpmn_process_instance.data[
                     ProcessInstanceProcessor.PROCESS_INSTANCE_ID_KEY
                 ] = process_instance_model.id
+
+                # FIXME: This also seems to happen in the save method below
                 process_instance_model.bpmn_json = (
                     ProcessInstanceProcessor._serializer.serialize_json(
                         self.bpmn_process_instance
@@ -328,13 +331,21 @@ class ProcessInstanceProcessor:
         """Saves the current state of this processor to the database."""
         self.process_instance_model.bpmn_json = self.serialize()
         complete_states = [TaskState.CANCELLED, TaskState.COMPLETED]
-        tasks = list(self.get_all_user_tasks())
+        user_tasks = list(self.get_all_user_tasks())
         self.process_instance_model.status = self.get_status()
-        self.process_instance_model.total_tasks = len(tasks)
+        self.process_instance_model.total_tasks = len(user_tasks)
         self.process_instance_model.completed_tasks = sum(
-            1 for t in tasks if t.state in complete_states
+            1 for t in user_tasks if t.state in complete_states
         )
         self.process_instance_model.last_updated = datetime.utcnow()
+
+        if self.process_instance_model.start_in_seconds is None:
+            self.process_instance_model.start_in_seconds = time.time()
+
+        if self.process_instance_model.end_in_seconds is None:
+            if self.bpmn_process_instance.is_completed():
+                self.process_instance_model.end_in_seconds = time.time()
+
         db.session.add(self.process_instance_model)
         db.session.commit()
 
