@@ -79,8 +79,9 @@ def add_file(process_model_id):
     )
 
 
-def create_process_instance(process_model_id):
+def process_instance_create(process_model_id):
     """Create_process_instance."""
+    # import pdb; pdb.set_trace()
     process_instance = ProcessInstanceService.create_process_instance(process_model_id, g.user)
     processor = ProcessInstanceProcessor(process_instance)
 
@@ -88,11 +89,14 @@ def create_process_instance(process_model_id):
     processor.save()
     # ProcessInstanceService.update_task_assignments(processor)
 
-    workflow_api_model = ProcessInstanceService.processor_to_process_instance_api(
+    process_instance_api = ProcessInstanceService.processor_to_process_instance_api(
         processor
     )
+    process_instance_data = processor.get_data()
+    process_instance_metadata = ProcessInstanceApiSchema().dump(process_instance_api)
+    process_instance_metadata["data"] = process_instance_data
     return Response(
-        json.dumps(ProcessInstanceApiSchema().dump(workflow_api_model)), status=201, mimetype="application/json"
+        json.dumps(process_instance_metadata), status=201, mimetype="application/json"
     )
 
 

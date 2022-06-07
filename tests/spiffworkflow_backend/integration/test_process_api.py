@@ -132,6 +132,22 @@ def test_get_process_model_when_not_found(app, client: FlaskClient, with_bpmn_fi
     assert response.json["code"] == "process_mode_cannot_be_found"
 
 
+def test_process_instance_create(app, client: FlaskClient, with_bpmn_file_cleanup):
+    user = find_or_create_user()
+    test_process_group_id = "runs_without_input"
+    process_model_dir_name = "sample"
+    load_test_spec(app, process_model_dir_name, process_group_id=test_process_group_id)
+    response = client.post(
+        f"/v1.0/process-models/{process_model_dir_name}", headers=logged_in_headers(user)
+    )
+    assert response.status_code == 201
+    assert response.json["status"] == "complete"
+    assert response.json["process_model_identifier"] == "sample"
+    assert response.json["data"]["current_user"]["username"] == "test_user1"
+    assert response.json["data"]["Mike"] == "Awesome"
+    assert response.json["data"]["person"] == "Kevin"
+
+
 def create_process_model(app, client: FlaskClient):
     """Create_process_model."""
     process_model_service = ProcessModelService()

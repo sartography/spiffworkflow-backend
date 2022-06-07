@@ -480,7 +480,7 @@ class ProcessInstanceProcessor:
                 # Assure that we find the end event for this process_instance, and not for any sub-process_instances.
                 if (
                     isinstance(task.task_spec, EndEvent)
-                    and task.process_instance == self.bpmn_process_instance
+                    and task.workflow == self.bpmn_process_instance
                 ):
                     endtasks.append(task)
             return endtasks[-1]

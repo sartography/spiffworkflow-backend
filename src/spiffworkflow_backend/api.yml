@@ -39,33 +39,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/WorkflowSpecCategory"
   /process-models:
-    # get:
-    #   operationId: crc.api.workflow.all_specifications
-    #   summary: Provides a list of workflows specifications that can be added to a study manually. Please note that Protocol Builder will handle this most of the time.
-    #   tags:
-    #     - Workflow Specifications
-    #   parameters :
-    #     - name : libraries
-    #       in : query
-    #       required : false
-    #       description : True if we should return just library schemas
-    #       schema :
-    #         type : boolean
-    #     - name : standalone
-    #       in : query
-    #       required : false
-    #       description : True if we should return just standalone schemas
-    #       schema :
-    #         type : boolean
-    #   responses:
-    #     '200':
-    #       description: An array of workflow specifications
-    #       content:
-    #         application/json:
-    #           schema:
-    #             type: array
-    #             items:
-    #               $ref: "#/components/schemas/WorkflowSpec"
     post:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.add_process_model
       summary: Creates a new workflow specification with the given parameters.
@@ -147,7 +120,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/WorkflowSpec"
     post:
-      operationId: spiffworkflow_backend.routes.process_api_blueprint.create_process_instance
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.process_instance_create
       summary: Creates a workflow from a workflow spec and returns the workflow
       tags:
         - Workflow Specifications
