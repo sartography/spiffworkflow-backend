@@ -39,9 +39,9 @@ class ProcessModelService(FileSystemService):
         with open(json_path, "w") as wf_json:
             json.dump(self.WF_SCHEMA.dump(spec), wf_json, indent=4)
 
-    def delete_spec(self, spec_id: str):
-        """Delete_spec."""
-        spec = self.get_spec(spec_id)
+    def process_model_delete(self, process_model_id: str):
+        """Delete Procecss Model."""
+        spec = self.get_spec(process_model_id)
         if not spec:
             return
         if spec.library:
@@ -170,7 +170,7 @@ class ProcessModelService(FileSystemService):
             json.dump(self.GROUP_SCHEMA.dump(process_group), cat_json, indent=4)
         return process_group
 
-    def delete_process_group(self, process_group_id: str):
+    def process_group_delete(self, process_group_id: str):
         """Delete_process_group."""
         path = self.process_group_path(process_group_id)
         if os.path.exists(path):
