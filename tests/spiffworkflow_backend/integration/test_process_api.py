@@ -38,9 +38,29 @@ def test_add_new_process_model(app, client: FlaskClient, with_bpmn_file_cleanup)
     create_spec_file(app, client)
 
 
-def test_add_process_group(app, client: FlaskClient, with_bpmn_file_cleanup):
+def test_process_model_delete(app, client: FlaskClient, with_bpmn_file_cleanup):
+    create_process_model(app, client)
+
+    # assert we have a model
+    process_model = ProcessModelService().get_spec('make_cookies')
+    assert process_model is not None
+    assert process_model.id == 'make_cookies'
+
+    # delete the model
+    user = find_or_create_user()
+    response = client.delete(f"/v1.0/process-models/{process_model.id}",
+                             headers=logged_in_headers(user)
+                             )
+    assert response.status_code == 204
+
+    # assert we no longer have a model
+    process_model = ProcessModelService().get_spec('make_cookies')
+    assert process_model is None
+
+
+def test_process_group_add(app, client: FlaskClient, with_bpmn_file_cleanup):
     """Test_add_process_group."""
-    category = ProcessGroup(
+    process_group = ProcessGroup(
         id="test", display_name="Another Test Category", display_order=0, admin=False
     )
     user = find_or_create_user()
@@ -48,16 +68,45 @@ def test_add_process_group(app, client: FlaskClient, with_bpmn_file_cleanup):
         "/v1.0/process-groups",
         headers=logged_in_headers(user),
         content_type="application/json",
-        data=json.dumps(ProcessGroupSchema().dump(category)),
+        data=json.dumps(ProcessGroupSchema().dump(process_group)),
     )
     assert response.status_code == 201
 
+    # Check what is returned
     result = ProcessGroupSchema().loads(response.get_data(as_text=True))
-    # TODO: Are we checking to see if this runs?
-    ProcessModelService().get_process_group("test")
     assert result.display_name == "Another Test Category"
     assert result.id == "test"
 
+    # Check what is persisted
+    persisted = ProcessModelService().get_process_group("test")
+    assert persisted.display_name == "Another Test Category"
+    assert persisted.id == 'test'
+
+
+def test_process_group_delete(app, client: FlaskClient, with_bpmn_file_cleanup):
+    process_group_id = "test"
+    process_group_display_name = "My Process Group"
+    # process_group = ProcessGroup(
+    #     id=process_group_id,
+    #     display_name="Test Process Group",
+    #     display_order=0,
+    #     admin=False
+    # )
+    user = find_or_create_user()
+    # response = client.post(
+    #     "/v1.0/process-groups",
+    #     headers=logged_in_headers(user),
+    #     content_type="application/json",
+    #     data=json.dumps(ProcessGroupSchema().dump(process_group)),
+    # )
+    response = create_process_group(client, user, process_group_id, display_name=process_group_display_name)
+    persisted = ProcessModelService().get_process_group(process_group_id)
+    assert persisted is not None
+    assert persisted.id == process_group_id
+
+    client.delete(f"/v1.0/process-models/{process_group_id}")
+
+    print(f'test_process_group_delete: {__name__}')
 
 # def test_get_process_model(self):
 #
@@ -115,14 +164,12 @@ def test_get_file(app, client: FlaskClient, with_bpmn_file_cleanup):
     assert response.json["process_model_id"] == "hello_world"
 
 
-def test_get_workflow_from_workflow_spec(
-    app, client: FlaskClient, with_bpmn_file_cleanup
-):
+def test_get_workflow_from_workflow_spec(app, client: FlaskClient, with_bpmn_file_cleanup):
     """Test_get_workflow_from_workflow_spec."""
     user = find_or_create_user()
     spec = load_test_spec(app, "hello_world")
     response = client.post(
-        f"/v1.0/workflow-specification/{spec.id}", headers=logged_in_headers(user)
+        f"/v1.0/process-models/{spec.id}", headers=logged_in_headers(user)
     )
     assert response.status_code == 201
     assert "hello_world" == response.json["process_model_identifier"]
@@ -137,9 +184,7 @@ def test_get_process_groups_when_none(app, client: FlaskClient, with_bpmn_file_c
     assert response.json == []
 
 
-def test_get_process_groups_when_there_are_some(
-    app, client: FlaskClient, with_bpmn_file_cleanup
-):
+def test_get_process_groups_when_there_are_some(app, client: FlaskClient, with_bpmn_file_cleanup):
     """Test_get_process_groups_when_there_are_some."""
     user = find_or_create_user()
     load_test_spec(app, "hello_world")
@@ -334,7 +379,7 @@ def create_process_model(app, client: FlaskClient):
     )
     user = find_or_create_user()
     response = client.post(
-        "/v1.0/workflow-specification",
+        "/v1.0/process-models",
         content_type="application/json",
         data=json.dumps(ProcessModelInfoSchema().dump(spec)),
         headers=logged_in_headers(user),
@@ -374,3 +419,21 @@ def create_spec_file(app, client: FlaskClient):
     file2 = json.loads(response.get_data(as_text=True))
     assert file["file_contents"] == file2["file_contents"]
     return file
+
+
+def create_process_group(client, user, process_group_id, display_name=''):
+    process_group = ProcessGroup(
+        id=process_group_id,
+        display_name=display_name,
+        display_order=0,
+        admin=False
+    )
+    response = client.post(
+        "/v1.0/process-groups",
+        headers=logged_in_headers(user),
+        content_type="application/json",
+        data=json.dumps(ProcessGroupSchema().dump(process_group)),
+    )
+    assert response.status_code == 201
+    assert response.json['id'] == process_group_id
+    return response
