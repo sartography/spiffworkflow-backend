@@ -6,16 +6,17 @@ import shutil
 
 import pytest
 from flask.testing import FlaskClient
+from flask_bpmn.models.db import db
 from tests.spiffworkflow_backend.helpers.test_data import find_or_create_user
 from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
 from tests.spiffworkflow_backend.helpers.test_data import logged_in_headers
 
-from flask_bpmn.models.db import db
 from spiffworkflow_backend.models.file import FileType
 from spiffworkflow_backend.models.process_group import ProcessGroup
+from spiffworkflow_backend.models.process_group import ProcessGroupSchema
+from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
-from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 
 
@@ -37,6 +38,27 @@ def test_add_new_process_model(app, client: FlaskClient, with_bpmn_file_cleanup)
     create_spec_file(app, client)
 
 
+def test_add_process_group(app, client: FlaskClient, with_bpmn_file_cleanup):
+    """Test_add_process_group."""
+    category = ProcessGroup(
+        id="test", display_name="Another Test Category", display_order=0, admin=False
+    )
+    user = find_or_create_user()
+    response = client.post(
+        "/v1.0/process-groups",
+        headers=logged_in_headers(user),
+        content_type="application/json",
+        data=json.dumps(ProcessGroupSchema().dump(category)),
+    )
+    assert response.status_code == 201
+
+    result = ProcessGroupSchema().loads(response.get_data(as_text=True))
+    # TODO: Are we checking to see if this runs?
+    ProcessModelService().get_process_group("test")
+    assert result.display_name == "Another Test Category"
+    assert result.id == "test"
+
+
 # def test_get_process_model(self):
 #
 #     load_test_spec('random_fact')
@@ -51,6 +73,7 @@ def test_add_new_process_model(app, client: FlaskClient, with_bpmn_file_cleanup)
 
 
 def test_process_model_file_save(app, client: FlaskClient, with_bpmn_file_cleanup):
+    """Test_process_model_file_save."""
     original_file = create_spec_file(app, client)
 
     spec = load_test_spec(app, "random_fact")
@@ -77,12 +100,14 @@ def test_process_model_file_save(app, client: FlaskClient, with_bpmn_file_cleanu
 
 
 def test_get_file(app, client: FlaskClient, with_bpmn_file_cleanup):
+    """Test_get_file."""
     user = find_or_create_user()
     test_process_group_id = "group_id1"
     process_model_dir_name = "hello_world"
     load_test_spec(app, process_model_dir_name, process_group_id=test_process_group_id)
     response = client.get(
-        f"/v1.0/process-models/{process_model_dir_name}/file/hello_world.bpmn", headers=logged_in_headers(user)
+        f"/v1.0/process-models/{process_model_dir_name}/file/hello_world.bpmn",
+        headers=logged_in_headers(user),
     )
     assert response.status_code == 200
     assert response.json["name"] == "hello_world.bpmn"
@@ -105,25 +130,26 @@ def test_get_workflow_from_workflow_spec(
 
 
 def test_get_process_groups_when_none(app, client: FlaskClient, with_bpmn_file_cleanup):
+    """Test_get_process_groups_when_none."""
     user = find_or_create_user()
-    response = client.get(
-        "/v1.0/process-groups", headers=logged_in_headers(user)
-    )
+    response = client.get("/v1.0/process-groups", headers=logged_in_headers(user))
     assert response.status_code == 200
     assert response.json == []
 
 
-def test_get_process_groups_when_there_are_some(app, client: FlaskClient, with_bpmn_file_cleanup):
+def test_get_process_groups_when_there_are_some(
+    app, client: FlaskClient, with_bpmn_file_cleanup
+):
+    """Test_get_process_groups_when_there_are_some."""
     user = find_or_create_user()
     load_test_spec(app, "hello_world")
-    response = client.get(
-        "/v1.0/process-groups", headers=logged_in_headers(user)
-    )
+    response = client.get("/v1.0/process-groups", headers=logged_in_headers(user))
     assert response.status_code == 200
     assert len(response.json) == 1
 
 
 def test_get_process_group_when_found(app, client: FlaskClient, with_bpmn_file_cleanup):
+    """Test_get_process_group_when_found."""
     user = find_or_create_user()
     test_process_group_id = "group_id1"
     process_model_dir_name = "hello_world"
@@ -137,12 +163,14 @@ def test_get_process_group_when_found(app, client: FlaskClient, with_bpmn_file_c
 
 
 def test_get_process_model_when_found(app, client: FlaskClient, with_bpmn_file_cleanup):
+    """Test_get_process_model_when_found."""
     user = find_or_create_user()
     test_process_group_id = "group_id1"
     process_model_dir_name = "hello_world"
     load_test_spec(app, process_model_dir_name, process_group_id=test_process_group_id)
     response = client.get(
-        f"/v1.0/process-models/{process_model_dir_name}", headers=logged_in_headers(user)
+        f"/v1.0/process-models/{process_model_dir_name}",
+        headers=logged_in_headers(user),
     )
     assert response.status_code == 200
     assert response.json["id"] == process_model_dir_name
@@ -150,25 +178,35 @@ def test_get_process_model_when_found(app, client: FlaskClient, with_bpmn_file_c
     assert response.json["files"][0]["name"] == "hello_world.bpmn"
 
 
-def test_get_process_model_when_not_found(app, client: FlaskClient, with_bpmn_file_cleanup):
+def test_get_process_model_when_not_found(
+    app, client: FlaskClient, with_bpmn_file_cleanup
+):
+    """Test_get_process_model_when_not_found."""
     user = find_or_create_user()
     process_model_dir_name = "THIS_NO_EXISTS"
     response = client.get(
-        f"/v1.0/process-models/{process_model_dir_name}", headers=logged_in_headers(user)
+        f"/v1.0/process-models/{process_model_dir_name}",
+        headers=logged_in_headers(user),
     )
     assert response.status_code == 400
     assert response.json["code"] == "process_mode_cannot_be_found"
 
 
 def test_process_instance_create(app, client: FlaskClient, with_bpmn_file_cleanup):
+    """Test_process_instance_create."""
     test_process_group_id = "runs_without_input"
     process_model_dir_name = "sample"
     user = find_or_create_user()
     headers = logged_in_headers(user)
-    create_process_instance(app, client, test_process_group_id, process_model_dir_name, headers)
+    create_process_instance(
+        app, client, test_process_group_id, process_model_dir_name, headers
+    )
 
 
-def test_process_instance_list_with_default_list(app, client: FlaskClient, with_bpmn_file_cleanup):
+def test_process_instance_list_with_default_list(
+    app, client: FlaskClient, with_bpmn_file_cleanup
+):
+    """Test_process_instance_list_with_default_list."""
     db.session.query(ProcessInstanceModel).delete()
     db.session.commit()
 
@@ -176,10 +214,13 @@ def test_process_instance_list_with_default_list(app, client: FlaskClient, with_
     process_model_dir_name = "sample"
     user = find_or_create_user()
     headers = logged_in_headers(user)
-    create_process_instance(app, client, test_process_group_id, process_model_dir_name, headers)
+    create_process_instance(
+        app, client, test_process_group_id, process_model_dir_name, headers
+    )
 
     response = client.get(
-        f"/v1.0/process-models/{process_model_dir_name}/process-instances", headers=logged_in_headers(user)
+        f"/v1.0/process-models/{process_model_dir_name}/process-instances",
+        headers=logged_in_headers(user),
     )
     assert response.status_code == 200
     assert len(response.json["results"]) == 1
@@ -198,11 +239,17 @@ def test_process_instance_list_with_default_list(app, client: FlaskClient, with_
     assert process_instance_dict["start_in_seconds"] > 0
     assert type(process_instance_dict["end_in_seconds"]) is int
     assert process_instance_dict["end_in_seconds"] > 0
-    assert process_instance_dict["start_in_seconds"] <= process_instance_dict["end_in_seconds"]
+    assert (
+        process_instance_dict["start_in_seconds"]
+        <= process_instance_dict["end_in_seconds"]
+    )
     assert process_instance_dict["status"] == "complete"
 
 
-def test_process_instance_list_with_paginated_items(app, client: FlaskClient, with_bpmn_file_cleanup):
+def test_process_instance_list_with_paginated_items(
+    app, client: FlaskClient, with_bpmn_file_cleanup
+):
+    """Test_process_instance_list_with_paginated_items."""
     db.session.query(ProcessInstanceModel).delete()
     db.session.commit()
 
@@ -210,14 +257,25 @@ def test_process_instance_list_with_paginated_items(app, client: FlaskClient, wi
     process_model_dir_name = "sample"
     user = find_or_create_user()
     headers = logged_in_headers(user)
-    create_process_instance(app, client, test_process_group_id, process_model_dir_name, headers)
-    create_process_instance(app, client, test_process_group_id, process_model_dir_name, headers)
-    create_process_instance(app, client, test_process_group_id, process_model_dir_name, headers)
-    create_process_instance(app, client, test_process_group_id, process_model_dir_name, headers)
-    create_process_instance(app, client, test_process_group_id, process_model_dir_name, headers)
+    create_process_instance(
+        app, client, test_process_group_id, process_model_dir_name, headers
+    )
+    create_process_instance(
+        app, client, test_process_group_id, process_model_dir_name, headers
+    )
+    create_process_instance(
+        app, client, test_process_group_id, process_model_dir_name, headers
+    )
+    create_process_instance(
+        app, client, test_process_group_id, process_model_dir_name, headers
+    )
+    create_process_instance(
+        app, client, test_process_group_id, process_model_dir_name, headers
+    )
 
     response = client.get(
-        f"/v1.0/process-models/{process_model_dir_name}/process-instances?per_page=2&page=3", headers=logged_in_headers(user)
+        f"/v1.0/process-models/{process_model_dir_name}/process-instances?per_page=2&page=3",
+        headers=logged_in_headers(user),
     )
     assert response.status_code == 200
     assert len(response.json["results"]) == 1
@@ -226,7 +284,8 @@ def test_process_instance_list_with_paginated_items(app, client: FlaskClient, wi
     assert response.json["pagination"]["total"] == 5
 
     response = client.get(
-        f"/v1.0/process-models/{process_model_dir_name}/process-instances?per_page=2&page=1", headers=logged_in_headers(user)
+        f"/v1.0/process-models/{process_model_dir_name}/process-instances?per_page=2&page=1",
+        headers=logged_in_headers(user),
     )
     assert response.status_code == 200
     assert len(response.json["results"]) == 2
@@ -235,7 +294,10 @@ def test_process_instance_list_with_paginated_items(app, client: FlaskClient, wi
     assert response.json["pagination"]["total"] == 5
 
 
-def create_process_instance(app, client: FlaskClient, test_process_group_id, process_model_dir_name, headers):
+def create_process_instance(
+    app, client: FlaskClient, test_process_group_id, process_model_dir_name, headers
+):
+    """Create_process_instance."""
     load_test_spec(app, process_model_dir_name, process_group_id=test_process_group_id)
     response = client.post(
         f"/v1.0/process-models/{process_model_dir_name}", headers=headers

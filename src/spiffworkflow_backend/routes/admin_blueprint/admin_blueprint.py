@@ -2,12 +2,12 @@
 from typing import Any
 
 from flask import Blueprint
+from flask import current_app
 from flask import flash
 from flask import redirect
 from flask import render_template
 from flask import request
 from flask import url_for
-from flask import current_app
 from flask_bpmn.models.db import db
 
 from spiffworkflow_backend.models.user import UserModel
@@ -40,7 +40,7 @@ def token():
         db.session.commit()
 
     auth_token = user.encode_auth_token()
-    return(f"auth_token: {auth_token}")
+    return f"auth_token: {auth_token}"
 
 
 @admin_blueprint.route("/process-groups", methods=["GET"])

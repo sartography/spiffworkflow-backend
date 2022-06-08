@@ -1,13 +1,15 @@
 """Process_group."""
+import marshmallow
 from marshmallow import post_load
 from marshmallow import Schema
-import marshmallow
 
 
 class ProcessGroup:
     """ProcessGroup."""
 
-    def __init__(self, id, display_name, display_order=0, admin=False, process_models=None):
+    def __init__(
+        self, id, display_name, display_order=0, admin=False, process_models=None
+    ):
         """__init__."""
         self.id = id  # A unique string name, lower case, under scores (ie, 'my_group')
         self.display_name = display_name
@@ -19,7 +21,9 @@ class ProcessGroup:
         if process_models is None:
             process_models = []
 
-        self.process_models = process_models  # For the list of specifications associated with a group
+        self.process_models = (
+            process_models  # For the list of specifications associated with a group
+        )
 
     def __eq__(self, other):
         """__eq__."""
@@ -40,7 +44,9 @@ class ProcessGroupSchema(Schema):
         fields = ["id", "display_name", "display_order", "admin", "process_models"]
 
     process_models = marshmallow.fields.List(
-        marshmallow.fields.Nested("ProcessModelInfoSchema", dump_only=True, required=False)
+        marshmallow.fields.Nested(
+            "ProcessModelInfoSchema", dump_only=True, required=False
+        )
     )
 
     @post_load

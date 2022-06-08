@@ -1,26 +1,26 @@
-import BpmnViewer from 'bpmn-js';
+import BpmnViewer from "bpmn-js";
 
 var viewer = new BpmnViewer({
-  container: '#canvas'
+  container: "#canvas",
 });
 
+viewer
+  .importXML(pizzaDiagram)
+  .then(function (result) {
+    const { warnings } = result;
 
-viewer.importXML(pizzaDiagram).then(function(result) {
+    console.log("success !", warnings);
 
-  const { warnings } = result;
+    viewer.get("canvas").zoom("fit-viewport");
+  })
+  .catch(function (err) {
+    const { warnings, message } = err;
 
-  console.log('success !', warnings);
+    console.log("something went wrong:", warnings, message);
+  });
 
-  viewer.get('canvas').zoom('fit-viewport');
-}).catch(function(err) {
-
-  const { warnings, message } = err;
-
-  console.log('something went wrong:', warnings, message);
-});
-
-export function sayHello () {
-  console.log('hello')
+export function sayHello() {
+  console.log("hello");
 }
 
-window.foo = 'bar'
+window.foo = "bar";

@@ -1,11 +1,12 @@
 """File."""
 import enum
+from dataclasses import dataclass
+from dataclasses import field
+from typing import Optional
 
-from dataclasses import dataclass, field
 from flask_bpmn.models.db import db
 from marshmallow import INCLUDE
 from marshmallow import Schema
-from typing import Optional
 from sqlalchemy import func
 from sqlalchemy.orm import deferred  # type: ignore
 from sqlalchemy.orm import relationship
@@ -90,6 +91,7 @@ CONTENT_TYPES = {
 @dataclass
 class File:
     """File."""
+
     content_type: str
     name: str
     type: str
@@ -110,7 +112,14 @@ class File:
         cls, file_name, file_type, content_type, last_modified, file_size
     ):
         """From_file_system."""
-        instance = cls(name=file_name, content_type=content_type, type=file_type.value, document={}, last_modified=last_modified, size=file_size)
+        instance = cls(
+            name=file_name,
+            content_type=content_type,
+            type=file_type.value,
+            document={},
+            last_modified=last_modified,
+            size=file_size,
+        )
         return instance
 
 

@@ -17,7 +17,7 @@ paths:
       tags:
         - Workflow Specifications
       responses:
-        '200':
+        "200":
           description: An array of process groups
           content:
             application/json:
@@ -25,6 +25,24 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/WorkflowSpecCategory"
+    post:
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.add_process_group
+      summary: Add process group
+      tags:
+        - Workflow Specifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WorkflowSpecCategory"
+      responses:
+        "201":
+          description: Workflow spec category
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowSpecCategory"
+
   /process-groups/{process_group_id}:
     get:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.process_group_show
@@ -32,7 +50,7 @@ paths:
       tags:
         - Workflow Specification Category
       responses:
-        '200':
+        "200":
           description: Workflow spec category.
           content:
             application/json:
@@ -113,7 +131,7 @@ paths:
       tags:
         - Workflow Specification
       responses:
-        '200':
+        "200":
           description: Workflow spec.
           content:
             application/json:
@@ -186,7 +204,7 @@ paths:
       tags:
         - Workflow Specification
       responses:
-        '200':
+        "200":
           description: Workflow.
           content:
             application/json:

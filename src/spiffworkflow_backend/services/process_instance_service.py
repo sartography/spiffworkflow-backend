@@ -1,7 +1,7 @@
 """Process_instance_service."""
+import time
 from datetime import datetime
 from typing import List
-import time
 
 from flask import current_app
 from flask_bpmn.models.db import db

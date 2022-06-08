@@ -1,18 +1,19 @@
 """APIs for dealing with process groups, process models, and process instances."""
-import connexion
 import json
+
+import connexion
 from flask import Blueprint
-from flask import Response
 from flask import g
 from flask import request
+from flask import Response
 from flask_bpmn.api.api_error import ApiError
 
 from spiffworkflow_backend.models.file import FileSchema
 from spiffworkflow_backend.models.file import FileType
-from spiffworkflow_backend.models.process_instance import ProcessInstanceApiSchema, ProcessInstanceModel
-from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
 from spiffworkflow_backend.models.process_group import ProcessGroupSchema
-from spiffworkflow_backend.models.file import File
+from spiffworkflow_backend.models.process_instance import ProcessInstanceApiSchema
+from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
+from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
 from spiffworkflow_backend.services.process_instance_processor import (
     ProcessInstanceProcessor,
 )
@@ -29,6 +30,18 @@ from spiffworkflow_backend.services.spec_file_service import SpecFileService
 process_api_blueprint = Blueprint("process_api", __name__)
 
 
+def add_process_group(body):
+    """Add_process_group."""
+    process_model_service = ProcessModelService()
+    process_group = ProcessGroupSchema().load(body)
+    process_model_service.add_process_group(process_group)
+    return Response(
+        json.dumps(ProcessGroupSchema().dump(process_group)),
+        status=201,
+        mimetype="application/json",
+    )
+
+
 def add_process_model(body):
     """Add_process_model."""
     spec = ProcessModelInfoSchema().load(body)
@@ -40,7 +53,9 @@ def add_process_model(body):
     spec.display_order = size
     process_model_service.add_spec(spec)
     return Response(
-        json.dumps(ProcessModelInfoSchema().dump(spec)), status=201, mimetype="application/json"
+        json.dumps(ProcessModelInfoSchema().dump(spec)),
+        status=201,
+        mimetype="application/json",
     )
 
 
@@ -65,11 +80,10 @@ def get_file(process_model_id, file_name):
 
 
 def process_model_file_save(process_model_id, file_name):
+    """Process_model_file_save."""
     process_model = ProcessModelService().get_spec(process_model_id)
     SpecFileService.update_file(process_model, file_name, request.get_data())
-    return Response(
-        json.dumps({"ok": True}), status=200, mimetype="application/json"
-    )
+    return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
 
 
 def add_file(process_model_id):
@@ -94,7 +108,9 @@ def add_file(process_model_id):
 
 def process_instance_create(process_model_id):
     """Create_process_instance."""
-    process_instance = ProcessInstanceService.create_process_instance(process_model_id, g.user)
+    process_instance = ProcessInstanceService.create_process_instance(
+        process_model_id, g.user
+    )
     processor = ProcessInstanceProcessor(process_instance)
 
     processor.do_engine_steps()
@@ -113,6 +129,7 @@ def process_instance_create(process_model_id):
 
 
 def process_instance_list(process_model_id, page=1, per_page=100):
+    """Process_instance_list."""
     process_model = ProcessModelService().get_spec(process_model_id)
     if process_model is None:
         raise (
@@ -123,7 +140,11 @@ def process_instance_list(process_model_id, page=1, per_page=100):
             )
         )
 
-    process_instances = ProcessInstanceModel.query.filter_by(process_model_identifier=process_model.id).order_by(ProcessInstanceModel.start_in_seconds.desc()).paginate(page, per_page, False)
+    process_instances = (
+        ProcessInstanceModel.query.filter_by(process_model_identifier=process_model.id)
+        .order_by(ProcessInstanceModel.start_in_seconds.desc())
+        .paginate(page, per_page, False)
+    )
 
     serialized_results = []
     for process_instance in process_instances.items:
@@ -131,10 +152,15 @@ def process_instance_list(process_model_id, page=1, per_page=100):
         process_instance_serialized["process_group_id"] = process_model.process_group_id
         serialized_results.append(process_instance_serialized)
 
-    response_json = {"results": serialized_results, "pagination": {"count": len(process_instances.items), "total": process_instances.total, "pages": process_instances.pages}}
-    return Response(
-        json.dumps(response_json), status=200, mimetype="application/json"
-    )
+    response_json = {
+        "results": serialized_results,
+        "pagination": {
+            "count": len(process_instances.items),
+            "total": process_instances.total,
+            "pages": process_instances.pages,
+        },
+    }
+    return Response(json.dumps(response_json), status=200, mimetype="application/json")
 
 
 def process_groups_list():

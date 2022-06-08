@@ -46,7 +46,10 @@ def create_app() -> flask.app.Flask:
     app.register_blueprint(api_error_blueprint)
     app.register_blueprint(admin_blueprint, url_prefix="/admin")
 
-    origins_re = [r"^https?:\/\/%s(.*)" % o.replace('.', '\.') for o in app.config['CORS_ALLOW_ORIGINS']]
+    origins_re = [
+        r"^https?:\/\/%s(.*)" % o.replace(".", r"\.")
+        for o in app.config["CORS_ALLOW_ORIGINS"]
+    ]
     CORS(app, origins=origins_re)
 
     connexion_app.add_api("api.yml", base_path="/v1.0")

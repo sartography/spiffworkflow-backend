@@ -104,9 +104,15 @@ class ProcessModelService(FileSystemService):
         process_models.sort(key=lambda w: w.display_order)
         index = process_models.index(spec)
         if direction == "up" and index > 0:
-            process_models[index - 1], process_models[index] = process_models[index], process_models[index - 1]
+            process_models[index - 1], process_models[index] = (
+                process_models[index],
+                process_models[index - 1],
+            )
         if direction == "down" and index < len(process_models) - 1:
-            process_models[index + 1], process_models[index] = process_models[index], process_models[index + 1]
+            process_models[index + 1], process_models[index] = (
+                process_models[index],
+                process_models[index + 1],
+            )
         return self.cleanup_workflow_spec_display_order(spec.process_group)
 
     def cleanup_workflow_spec_display_order(self, process_group):
@@ -171,14 +177,22 @@ class ProcessModelService(FileSystemService):
             shutil.rmtree(path)
         self.cleanup_process_group_display_order()
 
-    def reorder_workflow_spec_process_group(self, process_group: ProcessGroup, direction):
+    def reorder_workflow_spec_process_group(
+        self, process_group: ProcessGroup, direction
+    ):
         """Reorder_workflow_spec_process_group."""
         process_groups = self.get_process_groups()  # Returns an ordered list
         index = process_groups.index(process_group)
         if direction == "up" and index > 0:
-            process_groups[index - 1], process_groups[index] = process_groups[index], process_groups[index - 1]
+            process_groups[index - 1], process_groups[index] = (
+                process_groups[index],
+                process_groups[index - 1],
+            )
         if direction == "down" and index < len(process_groups) - 1:
-            process_groups[index + 1], process_groups[index] = process_groups[index], process_groups[index + 1]
+            process_groups[index + 1], process_groups[index] = (
+                process_groups[index],
+                process_groups[index + 1],
+            )
         index = 0
         for process_group in process_groups:
             process_group.display_order = index
@@ -237,7 +251,9 @@ class ProcessModelService(FileSystemService):
             for item in workflow_dirs:
                 if item.is_dir():
                     process_group.process_models.append(
-                        self.__scan_spec(item.path, item.name, process_group=process_group)
+                        self.__scan_spec(
+                            item.path, item.name, process_group=process_group
+                        )
                     )
             process_group.process_models.sort(key=lambda w: w.display_order)
         return process_group
