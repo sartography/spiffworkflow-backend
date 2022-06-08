@@ -18,11 +18,12 @@ if [[ "${1:-}" == "clean" ]]; then
 
   rm -f ./src/spiffworkflow_backend/db*.sqlite3
   mysql -uroot -e "DROP DATABASE IF EXISTS spiffworkflow_backend_development"
-  mysql -uroot -e "CREATE DATABASE spiffworkflow_backend_development"
   mysql -uroot -e "DROP DATABASE IF EXISTS spiffworkflow_backend_testing"
-  mysql -uroot -e "CREATE DATABASE spiffworkflow_backend_testing"
 fi
 tasks="$tasks upgrade"
+
+mysql -uroot -e "CREATE DATABASE IF NOT EXISTS spiffworkflow_backend_development"
+mysql -uroot -e "CREATE DATABASE IF NOT EXISTS spiffworkflow_backend_testing"
 
 for task in $tasks ; do
   FLASK_ENV=development FLASK_APP=src/spiffworkflow_backend poetry run flask db "$task"
