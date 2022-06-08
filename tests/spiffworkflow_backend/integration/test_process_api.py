@@ -50,6 +50,32 @@ def test_add_new_process_model(app, client: FlaskClient, with_bpmn_file_cleanup)
 #
 
 
+def test_process_model_file_save(app, client: FlaskClient, with_bpmn_file_cleanup):
+    original_file = create_spec_file(app, client)
+
+    spec = load_test_spec(app, "random_fact")
+    data = {"file": (io.BytesIO(b"THIS_IS_NEW_DATA"), "random_fact.svg")}
+    user = find_or_create_user()
+    response = client.put(
+        "/v1.0/process-models/%s/file/random_fact.svg" % spec.id,
+        data=data,
+        follow_redirects=True,
+        content_type="multipart/form-data",
+        headers=logged_in_headers(user),
+    )
+
+    assert response.status_code == 200
+    assert response.json["ok"]
+
+    response = client.get(
+        f"/v1.0/process-models/{spec.id}/file/random_fact.svg",
+        headers=logged_in_headers(user),
+    )
+    assert response.status_code == 200
+    updated_file = json.loads(response.get_data(as_text=True))
+    assert original_file != updated_file
+
+
 def test_get_file(app, client: FlaskClient, with_bpmn_file_cleanup):
     user = find_or_create_user()
     test_process_group_id = "group_id1"
@@ -265,7 +291,7 @@ def create_spec_file(app, client: FlaskClient):
     data = {"file": (io.BytesIO(b"abcdef"), "random_fact.svg")}
     user = find_or_create_user()
     response = client.post(
-        "/v1.0/workflow-specification/%s/file" % spec.id,
+        "/v1.0/process-models/%s/file" % spec.id,
         data=data,
         follow_redirects=True,
         content_type="multipart/form-data",
@@ -279,9 +305,10 @@ def create_spec_file(app, client: FlaskClient):
     assert "image/svg+xml" == file["content_type"]
 
     response = client.get(
-        f"/v1.0/workflow-specification/{spec.id}/file/random_fact.svg",
+        f"/v1.0/process-models/{spec.id}/file/random_fact.svg",
         headers=logged_in_headers(user),
     )
     assert response.status_code == 200
     file2 = json.loads(response.get_data(as_text=True))
-    assert file == file2
+    assert file["file_contents"] == file2["file_contents"]
+    return file

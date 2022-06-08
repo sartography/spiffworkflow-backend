@@ -220,32 +220,29 @@ paths:
             application/json:
               schema:
                 $ref: "#components/schemas/File"
-    # put:
-    #   operationId: crc.api.spec_file.update
-    #   summary: updates the given file to be the primary file and process, if so specified.
-    #   tags:
-    #     - Spec Files
-    #   parameters:
-    #     - name: is_primary
-    #       in: query
-    #       required: true
-    #       description: Whether to make this the primary file for the workflow.
-    #       schema:
-    #         type: boolean
-    #   requestBody:
-    #     description: Log Pagination Request
-    #     required: false
-    #     content:
-    #       application/json:
-    #         schema:
-    #           $ref: '#/components/schemas/File'
-    #   responses:
-    #     '200':
-    #       description: Returns the file information.
-    #       content:
-    #         application/json:
-    #           schema:
-    #             $ref: "#components/schemas/File"
+    put:
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.process_model_file_save
+      summary: save the contents to the given file
+      tags:
+        - Spec Files
+      requestBody:
+        description: Log Pagination Request
+        required: false
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Metadata about the uploaded file, but not the file content.
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/OkTrue"
     # delete:
     #   operationId: crc.api.spec_file.delete
     #   summary: Removes an existing workflow spec file.
@@ -263,6 +260,11 @@ components:
       bearerFormat: JWT
       x-bearerInfoFunc: spiffworkflow_backend.routes.user.verify_token
   schemas:
+    OkTrue:
+      properties:
+        ok:
+          type: boolean
+          example: true
     User:
       properties:
         uid:

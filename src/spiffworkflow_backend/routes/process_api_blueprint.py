@@ -4,6 +4,7 @@ import json
 from flask import Blueprint
 from flask import Response
 from flask import g
+from flask import request
 from flask_bpmn.api.api_error import ApiError
 
 from spiffworkflow_backend.models.file import FileSchema
@@ -63,6 +64,14 @@ def get_file(process_model_id, file_name):
     return FileSchema().dump(file)
 
 
+def process_model_file_save(process_model_id, file_name):
+    process_model = ProcessModelService().get_spec(process_model_id)
+    SpecFileService.update_file(process_model, file_name, request.get_data())
+    return Response(
+        json.dumps({"ok": True}), status=200, mimetype="application/json"
+    )
+
+
 def add_file(process_model_id):
     """Add_file."""
     process_model_service = ProcessModelService()
@@ -71,6 +80,10 @@ def add_file(process_model_id):
     file = SpecFileService.add_file(
         process_model, request_file.filename, request_file.stream.read()
     )
+    file_contents = SpecFileService.get_data(process_model, file.name)
+    file.file_contents = file_contents
+    file.process_model_id = process_model.id
+    file.process_group_id = process_model.process_group_id
     if not process_model.primary_process_id and file.type == FileType.bpmn.value:
         SpecFileService.set_primary_bpmn(process_model, file.name)
         process_model_service.update_spec(process_model)
