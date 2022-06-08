@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 1c5de31868b3
+Revision ID: 68f9de219015
 Revises: 
-Create Date: 2022-06-03 10:47:53.001354
+Create Date: 2022-06-08 18:46:43.860709
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '1c5de31868b3'
+revision = '68f9de219015'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -40,6 +40,15 @@ def upgrade():
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('uid'),
     sa.UniqueConstraint('username')
+    )
+    op.create_table('principal',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=True),
+    sa.Column('group_id', sa.Integer(), nullable=True),
+    sa.CheckConstraint('NOT(user_id IS NULL AND group_id IS NULL)'),
+    sa.ForeignKeyConstraint(['group_id'], ['group.id'], ),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('process_instance',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -127,6 +136,7 @@ def downgrade():
     op.drop_table('user_group_assignment')
     op.drop_index(op.f('ix_process_instance_process_model_identifier'), table_name='process_instance')
     op.drop_table('process_instance')
+    op.drop_table('principal')
     op.drop_table('user')
     op.drop_table('group')
     op.drop_table('admin_session')

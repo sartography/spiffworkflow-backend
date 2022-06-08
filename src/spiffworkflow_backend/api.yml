@@ -166,7 +166,7 @@ paths:
       tags:
         - Process Models
       responses:
-        '204':
+        "204":
           description: The workflow specification has been removed.
     # put:
     #   operationId: crc.api.workflow.update_workflow_specification
