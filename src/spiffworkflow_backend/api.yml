@@ -11,11 +11,12 @@ security:
 
 paths:
   /process-groups:
+    # process_groups_list
     get:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.process_groups_list
       summary: get list
       tags:
-        - Workflow Specifications
+        - Process Groups
       responses:
         "200":
           description: An array of process groups
@@ -25,11 +26,12 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/WorkflowSpecCategory"
+    # process_group_add
     post:
-      operationId: spiffworkflow_backend.routes.process_api_blueprint.add_process_group
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.process_group_add
       summary: Add process group
       tags:
-        - Workflow Specifications
+        - Process Groups
       requestBody:
         content:
           application/json:
@@ -44,11 +46,12 @@ paths:
                 $ref: "#/components/schemas/WorkflowSpecCategory"
 
   /process-groups/{process_group_id}:
+    # process_group_show
     get:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.process_group_show
       summary: Returns a single process group
       tags:
-        - Workflow Specification Category
+        - Process Groups
       responses:
         "200":
           description: Workflow spec category.
@@ -56,12 +59,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/WorkflowSpecCategory"
+
   /process-models:
+    # process_model_add
     post:
-      operationId: spiffworkflow_backend.routes.process_api_blueprint.add_process_model
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.process_model_add
       summary: Creates a new workflow specification with the given parameters.
       tags:
-        - Workflow Specifications
+        - Process Models
       requestBody:
         content:
           application/json:
@@ -74,6 +79,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/WorkflowSpec"
+
   /process-models/{process_model_id}/file:
     parameters:
       - name: process_model_id
@@ -82,20 +88,7 @@ paths:
         description: The unique id of an existing workflow specification to validate.
         schema:
           type: string
-    # get:
-    #   operationId: spiffworkflow_backend.api.process_api_blueprint.get_files
-    #   summary: Provide a list of workflow spec files for the given workflow_spec_id. IMPORTANT, only includes metadata, not the file content.
-    #   tags:
-    #     - Spec Files
-    #   responses:
-    #     '200':
-    #       description: An array of file descriptions (not the file content)
-    #       content:
-    #         application/json:
-    #          schema:
-    #            type: array
-    #            items:
-    #              $ref: "#/components/schemas/File"
+    # add_file
     post:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.add_file
       summary: Add a new workflow spec file
@@ -117,6 +110,21 @@ paths:
             application/json:
               schema:
                 $ref: "#components/schemas/File"
+    # get:
+    #   operationId: spiffworkflow_backend.api.process_api_blueprint.get_files
+    #   summary: Provide a list of workflow spec files for the given workflow_spec_id. IMPORTANT, only includes metadata, not the file content.
+    #   tags:
+    #     - Spec Files
+    #   responses:
+    #     '200':
+    #       description: An array of file descriptions (not the file content)
+    #       content:
+    #         application/json:
+    #          schema:
+    #            type: array
+    #            items:
+    #              $ref: "#/components/schemas/File"
+
   /process-models/{process_model_id}:
     parameters:
       - name: process_model_id
@@ -125,11 +133,12 @@ paths:
         description: The unique id of an existing workflow specification.
         schema:
           type: string
+    # process_model_show
     get:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.process_model_show
       summary: Returns a single process model
       tags:
-        - Workflow Specification
+        - Process Models
       responses:
         "200":
           description: Workflow spec.
@@ -137,11 +146,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/WorkflowSpec"
+    # process_instance_create
     post:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.process_instance_create
       summary: Creates a workflow from a workflow spec and returns the workflow
       tags:
-        - Workflow Specifications
+        - Process Instances
       responses:
         "201":
           description: Workflow generated successfully
@@ -149,6 +159,15 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Workflow"
+    # process_model_delete
+    delete:
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.process_model_delete
+      summary: Removes an existing process model
+      tags:
+        - Process Models
+      responses:
+        '204':
+          description: The workflow specification has been removed.
     # put:
     #   operationId: crc.api.workflow.update_workflow_specification
     #   security:
@@ -168,16 +187,7 @@ paths:
     #         application/json:
     #           schema:
     #             $ref: "#/components/schemas/WorkflowSpec"
-    # delete:
-    #   operationId: crc.api.workflow.delete_workflow_specification
-    #   security:
-    #     - auth_admin: ['secret']
-    #   summary: Removes an existing workflow specification
-    #   tags:
-    #     - Workflow Specifications
-    #   responses:
-    #     '204':
-    #       description: The workflow specification has been removed.
+
   /process-models/{process_model_id}/process-instances:
     parameters:
       - name: process_model_id
@@ -198,11 +208,12 @@ paths:
         description: The page number to return. Defaults to page 1.
         schema:
           type: integer
+    # process_instance_list
     get:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.process_instance_list
       summary: Returns a list of process instances for a given process model
       tags:
-        - Workflow Specification
+        - Process Instances
       responses:
         "200":
           description: Workflow.
@@ -212,6 +223,7 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Workflow"
+
   /process-models/{process_model_id}/file/{file_name}:
     parameters:
       - name: process_model_id
@@ -226,6 +238,7 @@ paths:
         description: The id of the spec file
         schema:
           type: string
+    # get_file
     get:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.get_file
       summary: Returns metadata about the file
@@ -238,6 +251,7 @@ paths:
             application/json:
               schema:
                 $ref: "#components/schemas/File"
+    # process_model_file_save
     put:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.process_model_file_save
       summary: save the contents to the given file
