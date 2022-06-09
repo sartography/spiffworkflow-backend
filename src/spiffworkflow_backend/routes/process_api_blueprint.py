@@ -29,6 +29,7 @@ from spiffworkflow_backend.services.spec_file_service import SpecFileService
 
 process_api_blueprint = Blueprint("process_api", __name__)
 
+
 def process_group_add(body):
     """Add_process_group."""
     process_model_service = ProcessModelService()
@@ -40,24 +41,32 @@ def process_group_add(body):
         mimetype="application/json",
     )
 
+
 def process_group_delete(process_group_id):
-    ...
+    """Process_group_delete."""
+    ProcessModelService().process_group_delete(process_group_id)
+    print("process_group_delete")
+
 
 def process_groups_list():
     """Process_groups_list."""
     process_groups = ProcessModelService().get_process_groups()
     return ProcessGroupSchema(many=True).dump(process_groups)
 
+
 def process_group_show(process_group_id):
     """Process_group_show."""
     process_group = ProcessModelService().get_process_group(process_group_id)
     return ProcessGroupSchema().dump(process_group)
 
+
 def process_model_add(body):
     """Add_process_model."""
     process_model_info = ProcessModelInfoSchema().load(body)
     process_model_service = ProcessModelService()
-    process_group = process_model_service.get_process_group(process_model_info.process_group_id)
+    process_group = process_model_service.get_process_group(
+        process_model_info.process_group_id
+    )
     process_model_info.process_group = process_group
     workflows = process_model_service.cleanup_workflow_spec_display_order(process_group)
     size = len(workflows)
@@ -69,13 +78,16 @@ def process_model_add(body):
         mimetype="application/json",
     )
 
-def process_model_delete(process_model_id):
-    result = ProcessModelService().process_model_delete(process_model_id)
+
+def process_model_delete(process_group_id, process_model_id):
+    """Process_model_delete."""
+    ProcessModelService().process_model_delete(process_model_id)
+    print("process_model_delete")
 
 
-def process_model_show(process_model_id):
+def process_model_show(process_group_id, process_model_id):
     """Process_model_show."""
-    process_model = ProcessModelService().get_spec(process_model_id)
+    process_model = ProcessModelService().get_spec(process_model_id, process_group_id)
     if process_model is None:
         raise (
             ApiError(
@@ -89,6 +101,7 @@ def process_model_show(process_model_id):
     process_model.files = files
     process_model_json = ProcessModelInfoSchema().dump(process_model)
     return process_model_json
+
 
 def get_file(process_model_id, file_name):
     """Get_file."""
@@ -109,11 +122,13 @@ def get_file(process_model_id, file_name):
     file.process_group_id = process_model.process_group_id
     return FileSchema().dump(file)
 
+
 def process_model_file_save(process_model_id, file_name):
     """Process_model_file_save."""
     process_model = ProcessModelService().get_spec(process_model_id)
     SpecFileService.update_file(process_model, file_name, request.get_data())
     return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
+
 
 def add_file(process_model_id):
     """Add_file."""
@@ -133,6 +148,7 @@ def add_file(process_model_id):
     return Response(
         json.dumps(FileSchema().dump(file)), status=201, mimetype="application/json"
     )
+
 
 def process_instance_create(process_model_id):
     """Create_process_instance."""
@@ -154,6 +170,7 @@ def process_instance_create(process_model_id):
     return Response(
         json.dumps(process_instance_metadata), status=201, mimetype="application/json"
     )
+
 
 def process_instance_list(process_model_id, page=1, per_page=100):
     """Process_instance_list."""

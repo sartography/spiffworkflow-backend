@@ -32,29 +32,31 @@ def with_bpmn_file_cleanup():
 
 
 # phase 1: req_id: 7.1 Deploy process
-def test_add_new_process_model(app, client: FlaskClient, with_bpmn_file_cleanup):
+def test_process_model_add(app, client: FlaskClient, with_bpmn_file_cleanup):
     """Test_add_new_process_model."""
     create_process_model(app, client)
     create_spec_file(app, client)
 
 
 def test_process_model_delete(app, client: FlaskClient, with_bpmn_file_cleanup):
+    """Test_process_model_delete."""
     create_process_model(app, client)
 
     # assert we have a model
-    process_model = ProcessModelService().get_spec('make_cookies')
+    process_model = ProcessModelService().get_spec("make_cookies")
     assert process_model is not None
-    assert process_model.id == 'make_cookies'
+    assert process_model.id == "make_cookies"
 
     # delete the model
     user = find_or_create_user()
-    response = client.delete(f"/v1.0/process-models/{process_model.id}",
-                             headers=logged_in_headers(user)
-                             )
+    response = client.delete(
+        f"/v1.0/process-models/{process_model.process_group_id}/{process_model.id}",
+        headers=logged_in_headers(user),
+    )
     assert response.status_code == 204
 
     # assert we no longer have a model
-    process_model = ProcessModelService().get_spec('make_cookies')
+    process_model = ProcessModelService().get_spec("make_cookies")
     assert process_model is None
 
 
@@ -80,10 +82,11 @@ def test_process_group_add(app, client: FlaskClient, with_bpmn_file_cleanup):
     # Check what is persisted
     persisted = ProcessModelService().get_process_group("test")
     assert persisted.display_name == "Another Test Category"
-    assert persisted.id == 'test'
+    assert persisted.id == "test"
 
 
 def test_process_group_delete(app, client: FlaskClient, with_bpmn_file_cleanup):
+    """Test_process_group_delete."""
     process_group_id = "test"
     process_group_display_name = "My Process Group"
     # process_group = ProcessGroup(
@@ -99,14 +102,19 @@ def test_process_group_delete(app, client: FlaskClient, with_bpmn_file_cleanup):
     #     content_type="application/json",
     #     data=json.dumps(ProcessGroupSchema().dump(process_group)),
     # )
-    response = create_process_group(client, user, process_group_id, display_name=process_group_display_name)
+    response = create_process_group(
+        client, user, process_group_id, display_name=process_group_display_name
+    )
     persisted = ProcessModelService().get_process_group(process_group_id)
     assert persisted is not None
     assert persisted.id == process_group_id
 
-    client.delete(f"/v1.0/process-models/{process_group_id}")
+    client.delete(
+        f"/v1.0/process-groups/{process_group_id}", headers=logged_in_headers(user)
+    )
 
-    print(f'test_process_group_delete: {__name__}')
+    print(f"test_process_group_delete: {__name__}")
+
 
 # def test_get_process_model(self):
 #
@@ -164,7 +172,9 @@ def test_get_file(app, client: FlaskClient, with_bpmn_file_cleanup):
     assert response.json["process_model_id"] == "hello_world"
 
 
-def test_get_workflow_from_workflow_spec(app, client: FlaskClient, with_bpmn_file_cleanup):
+def test_get_workflow_from_workflow_spec(
+    app, client: FlaskClient, with_bpmn_file_cleanup
+):
     """Test_get_workflow_from_workflow_spec."""
     user = find_or_create_user()
     spec = load_test_spec(app, "hello_world")
@@ -184,7 +194,9 @@ def test_get_process_groups_when_none(app, client: FlaskClient, with_bpmn_file_c
     assert response.json == []
 
 
-def test_get_process_groups_when_there_are_some(app, client: FlaskClient, with_bpmn_file_cleanup):
+def test_get_process_groups_when_there_are_some(
+    app, client: FlaskClient, with_bpmn_file_cleanup
+):
     """Test_get_process_groups_when_there_are_some."""
     user = find_or_create_user()
     load_test_spec(app, "hello_world")
@@ -214,7 +226,7 @@ def test_get_process_model_when_found(app, client: FlaskClient, with_bpmn_file_c
     process_model_dir_name = "hello_world"
     load_test_spec(app, process_model_dir_name, process_group_id=test_process_group_id)
     response = client.get(
-        f"/v1.0/process-models/{process_model_dir_name}",
+        f"/v1.0/process-models/{test_process_group_id}/{process_model_dir_name}",
         headers=logged_in_headers(user),
     )
     assert response.status_code == 200
@@ -229,8 +241,9 @@ def test_get_process_model_when_not_found(
     """Test_get_process_model_when_not_found."""
     user = find_or_create_user()
     process_model_dir_name = "THIS_NO_EXISTS"
+    group = create_process_group(client, user, "my_group")
     response = client.get(
-        f"/v1.0/process-models/{process_model_dir_name}",
+        f"/v1.0/process-models/{group.json['id']}/{process_model_dir_name}",
         headers=logged_in_headers(user),
     )
     assert response.status_code == 400
@@ -345,7 +358,8 @@ def create_process_instance(
     """Create_process_instance."""
     load_test_spec(app, process_model_dir_name, process_group_id=test_process_group_id)
     response = client.post(
-        f"/v1.0/process-models/{process_model_dir_name}", headers=headers
+        f"/v1.0/process-models/{process_group_id}/{process_model_dir_name}",
+        headers=headers,
     )
     assert response.status_code == 201
     assert response.json["status"] == "complete"
@@ -421,12 +435,10 @@ def create_spec_file(app, client: FlaskClient):
     return file
 
 
-def create_process_group(client, user, process_group_id, display_name=''):
+def create_process_group(client, user, process_group_id, display_name=""):
+    """Create_process_group."""
     process_group = ProcessGroup(
-        id=process_group_id,
-        display_name=display_name,
-        display_order=0,
-        admin=False
+        id=process_group_id, display_name=display_name, display_order=0, admin=False
     )
     response = client.post(
         "/v1.0/process-groups",
@@ -435,5 +447,5 @@ def create_process_group(client, user, process_group_id, display_name=''):
         data=json.dumps(ProcessGroupSchema().dump(process_group)),
     )
     assert response.status_code == 201
-    assert response.json['id'] == process_group_id
+    assert response.json["id"] == process_group_id
     return response
