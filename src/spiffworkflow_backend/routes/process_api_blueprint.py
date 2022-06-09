@@ -10,11 +10,11 @@ from flask_bpmn.api.api_error import ApiError
 
 from spiffworkflow_backend.models.file import FileSchema
 from spiffworkflow_backend.models.file import FileType
+from spiffworkflow_backend.models.principal import PrincipalModel
 from spiffworkflow_backend.models.process_group import ProcessGroupSchema
 from spiffworkflow_backend.models.process_instance import ProcessInstanceApiSchema
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
-from spiffworkflow_backend.models.principal import PrincipalModel
 from spiffworkflow_backend.services.process_instance_processor import (
     ProcessInstanceProcessor,
 )
@@ -33,7 +33,8 @@ process_api_blueprint = Blueprint("process_api", __name__)
 
 def process_group_add(body):
     """Add_process_group."""
-    # just so the import is used. oh, and it's imported because spiffworkflow_backend/unit/test_permissions.py depends on it, and otherwise flask migrations won't include it in the list of database tables.
+    # just so the import is used. oh, and it's imported because spiffworkflow_backend/unit/test_permissions.py
+    # depends on it, and otherwise flask migrations won't include it in the list of database tables.
     PrincipalModel()
 
     process_model_service = ProcessModelService()
