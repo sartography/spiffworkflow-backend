@@ -48,8 +48,8 @@ def process_group_add(body):
 
 
 def process_group_delete(process_group_id):
-    """Process_groups_delete."""
-    ...
+    ProcessModelService().process_group_delete(process_group_id)
+    print("process_group_delete")
 
 
 def process_groups_list():
@@ -83,14 +83,15 @@ def process_model_add(body):
     )
 
 
-def process_model_delete(process_model_id):
+def process_model_delete(process_group_id, process_model_id):
     """Process_model_delete."""
     ProcessModelService().process_model_delete(process_model_id)
+    print("process_model_delete")
 
 
-def process_model_show(process_model_id):
+def process_model_show(process_group_id, process_model_id):
     """Process_model_show."""
-    process_model = ProcessModelService().get_spec(process_model_id)
+    process_model = ProcessModelService().get_spec(process_model_id, process_group_id)
     if process_model is None:
         raise (
             ApiError(

@@ -46,6 +46,13 @@ paths:
                 $ref: "#/components/schemas/WorkflowSpecCategory"
 
   /process-groups/{process_group_id}:
+    parameters:
+      - name: process_group_id
+        in: path
+        required: true
+        description: The unique id of an existing process group.
+        schema:
+          type: string
     # process_group_show
     get:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.process_group_show
@@ -59,6 +66,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/WorkflowSpecCategory"
+    delete:
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.process_group_delete
+      summary: Deletes a single process group
+      tags:
+        - Process Groups
+      responses:
+        "204":
+          description: The process group was deleted.
 
   /process-models:
     # process_model_add
@@ -125,12 +140,18 @@ paths:
     #            items:
     #              $ref: "#/components/schemas/File"
 
-  /process-models/{process_model_id}:
+  /process-models/{process_group_id}/{process_model_id}:
     parameters:
       - name: process_model_id
         in: path
         required: true
-        description: The unique id of an existing workflow specification.
+        description: The unique id of an existing process model.
+        schema:
+          type: string
+      - name: process_group_id
+        in: path
+        required: true
+        description: The unique id of an existing process group
         schema:
           type: string
     # process_model_show

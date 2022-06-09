@@ -69,7 +69,7 @@ class ProcessModelService(FileSystemService):
         if os.path.exists(path):
             return self.__scan_spec(path, FileSystemService.MASTER_SPECIFICATION)
 
-    def get_spec(self, spec_id):
+    def get_spec(self, spec_id, group_id=None):
         """Get_spec."""
         if not os.path.exists(FileSystemService.root_path()):
             return  # Nothing to scan yet.  There are no files.
@@ -77,6 +77,10 @@ class ProcessModelService(FileSystemService):
         master_spec = self.get_master_spec()
         if master_spec and master_spec.id == spec_id:
             return master_spec
+        if group_id is not None:
+            for process_model in self.get_process_group(group_id).process_models:
+                if spec_id == process_model.id:
+                    return process_model
         with os.scandir(FileSystemService.root_path()) as process_group_dirs:
             for item in process_group_dirs:
                 process_group_dir = item

@@ -32,7 +32,7 @@ def with_bpmn_file_cleanup():
 
 
 # phase 1: req_id: 7.1 Deploy process
-def test_add_new_process_model(app, client: FlaskClient, with_bpmn_file_cleanup):
+def test_process_model_add(app, client: FlaskClient, with_bpmn_file_cleanup):
     """Test_add_new_process_model."""
     create_process_model(app, client)
     create_spec_file(app, client)
@@ -50,7 +50,8 @@ def test_process_model_delete(app, client: FlaskClient, with_bpmn_file_cleanup):
     # delete the model
     user = find_or_create_user()
     response = client.delete(
-        f"/v1.0/process-models/{process_model.id}", headers=logged_in_headers(user)
+        f"/v1.0/process-models/{process_model.process_group_id}/{process_model.id}",
+        headers=logged_in_headers(user),
     )
     assert response.status_code == 204
 
@@ -108,7 +109,9 @@ def test_process_group_delete(app, client: FlaskClient, with_bpmn_file_cleanup):
     assert persisted is not None
     assert persisted.id == process_group_id
 
-    client.delete(f"/v1.0/process-models/{process_group_id}")
+    client.delete(
+        f"/v1.0/process-groups/{process_group_id}", headers=logged_in_headers(user)
+    )
 
     print(f"test_process_group_delete: {__name__}")
 
@@ -223,7 +226,7 @@ def test_get_process_model_when_found(app, client: FlaskClient, with_bpmn_file_c
     process_model_dir_name = "hello_world"
     load_test_spec(app, process_model_dir_name, process_group_id=test_process_group_id)
     response = client.get(
-        f"/v1.0/process-models/{process_model_dir_name}",
+        f"/v1.0/process-models/{test_process_group_id}/{process_model_dir_name}",
         headers=logged_in_headers(user),
     )
     assert response.status_code == 200
@@ -238,8 +241,9 @@ def test_get_process_model_when_not_found(
     """Test_get_process_model_when_not_found."""
     user = find_or_create_user()
     process_model_dir_name = "THIS_NO_EXISTS"
+    group = create_process_group(client, user, "my_group")
     response = client.get(
-        f"/v1.0/process-models/{process_model_dir_name}",
+        f"/v1.0/process-models/{group.json['id']}/{process_model_dir_name}",
         headers=logged_in_headers(user),
     )
     assert response.status_code == 400
@@ -351,7 +355,8 @@ def create_process_instance(
     """Create_process_instance."""
     load_test_spec(app, process_model_dir_name, process_group_id=test_process_group_id)
     response = client.post(
-        f"/v1.0/process-models/{process_model_dir_name}", headers=headers
+        f"/v1.0/process-models/{process_group_id}/{process_model_dir_name}",
+        headers=headers,
     )
     assert response.status_code == 201
     assert response.json["status"] == "complete"
