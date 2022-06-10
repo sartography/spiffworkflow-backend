@@ -48,6 +48,7 @@ def process_group_add(body):
 
 
 def process_group_delete(process_group_id):
+    """Process_group_delete."""
     ProcessModelService().process_group_delete(process_group_id)
 
 
