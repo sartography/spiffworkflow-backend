@@ -54,7 +54,7 @@ def test_process_model_delete(app, client: FlaskClient, with_bpmn_file_cleanup):
         headers=logged_in_headers(user),
     )
     assert response.status_code == 200
-    assert response.json['ok'] is True
+    assert response.json["ok"] is True
 
     # assert we no longer have a model
     process_model = ProcessModelService().get_spec("make_cookies")
@@ -131,8 +131,8 @@ def test_process_group_delete(app, client: FlaskClient, with_bpmn_file_cleanup):
 
 def test_process_group_update(app, client: FlaskClient, with_bpmn_file_cleanup):
     """Test Process Group Update."""
-    group_id = 'test_process_group'
-    group_display_name = 'Test Group'
+    group_id = "test_process_group"
+    group_display_name = "Test Group"
 
     user = find_or_create_user()
     create_process_group(client, user, group_id, display_name=group_display_name)
@@ -140,18 +140,20 @@ def test_process_group_update(app, client: FlaskClient, with_bpmn_file_cleanup):
 
     assert process_group.display_name == group_display_name
 
-    process_group.display_name = 'Modified Display Name'
+    process_group.display_name = "Modified Display Name"
 
-    response = client.put(f"/v1.0/process-groups/{group_id}",
-                          headers=logged_in_headers(user),
-                          content_type="application/json",
-                          data=json.dumps(ProcessGroupSchema().dump(process_group)))
+    response = client.put(
+        f"/v1.0/process-groups/{group_id}",
+        headers=logged_in_headers(user),
+        content_type="application/json",
+        data=json.dumps(ProcessGroupSchema().dump(process_group)),
+    )
     assert response.status_code == 200
 
     process_group = ProcessModelService().get_process_group(group_id)
-    assert process_group.display_name == 'Modified Display Name'
+    assert process_group.display_name == "Modified Display Name"
 
-    print('test_process_group_update')
+    print("test_process_group_update")
 
 
 def test_process_model_file_save(app, client: FlaskClient, with_bpmn_file_cleanup):
