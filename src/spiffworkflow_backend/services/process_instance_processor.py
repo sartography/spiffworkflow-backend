@@ -7,24 +7,24 @@ from typing import List
 from flask import current_app
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
-from lxml import etree
-from SpiffWorkflow import Task as SpiffTask
+from lxml import etree  # type: ignore
+from SpiffWorkflow import Task as SpiffTask  # type: ignore
 from SpiffWorkflow import TaskState
 from SpiffWorkflow import WorkflowException
-from SpiffWorkflow.bpmn.parser.ValidationException import ValidationException
-from SpiffWorkflow.bpmn.PythonScriptEngine import PythonScriptEngine
-from SpiffWorkflow.bpmn.serializer import BpmnWorkflowSerializer
-from SpiffWorkflow.bpmn.serializer.BpmnSerializer import BpmnSerializer
-from SpiffWorkflow.bpmn.specs.events import CancelEventDefinition
+from SpiffWorkflow.bpmn.parser.ValidationException import ValidationException  # type: ignore
+from SpiffWorkflow.bpmn.PythonScriptEngine import PythonScriptEngine  # type: ignore
+from SpiffWorkflow.bpmn.serializer import BpmnWorkflowSerializer  # type: ignore
+from SpiffWorkflow.bpmn.serializer.BpmnSerializer import BpmnSerializer  # type: ignore
+from SpiffWorkflow.bpmn.specs.events import CancelEventDefinition  # type: ignore
 from SpiffWorkflow.bpmn.specs.events import EndEvent
-from SpiffWorkflow.bpmn.workflow import BpmnWorkflow
-from SpiffWorkflow.camunda.parser.CamundaParser import CamundaParser
-from SpiffWorkflow.camunda.serializer import UserTaskConverter
-from SpiffWorkflow.dmn.parser.BpmnDmnParser import BpmnDmnParser
-from SpiffWorkflow.dmn.serializer import BusinessRuleTaskConverter
-from SpiffWorkflow.exceptions import WorkflowTaskExecException
-from SpiffWorkflow.serializer.exceptions import MissingSpecError
-from SpiffWorkflow.specs import WorkflowSpec
+from SpiffWorkflow.bpmn.workflow import BpmnWorkflow  # type: ignore
+from SpiffWorkflow.camunda.parser.CamundaParser import CamundaParser  # type: ignore
+from SpiffWorkflow.camunda.serializer import UserTaskConverter  # type: ignore
+from SpiffWorkflow.dmn.parser.BpmnDmnParser import BpmnDmnParser  # type: ignore
+from SpiffWorkflow.dmn.serializer import BusinessRuleTaskConverter  # type: ignore
+from SpiffWorkflow.exceptions import WorkflowTaskExecException  # type: ignore
+from SpiffWorkflow.serializer.exceptions import MissingSpecError  # type: ignore
+from SpiffWorkflow.specs import WorkflowSpec  # type: ignore
 
 from spiffworkflow_backend.models.file import File
 from spiffworkflow_backend.models.file import FileType

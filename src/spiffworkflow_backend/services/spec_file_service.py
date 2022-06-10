@@ -4,8 +4,8 @@ import shutil
 from typing import List
 
 from flask_bpmn.api.api_error import ApiError
-from lxml import etree
-from SpiffWorkflow.bpmn.parser.ValidationException import ValidationException
+from lxml import etree  # type: ignore
+from SpiffWorkflow.bpmn.parser.ValidationException import ValidationException  # type: ignore
 
 from spiffworkflow_backend.models.file import File
 from spiffworkflow_backend.models.file import FileType

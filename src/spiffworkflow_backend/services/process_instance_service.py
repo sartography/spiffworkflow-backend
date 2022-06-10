@@ -5,10 +5,10 @@ from typing import List
 
 from flask import current_app
 from flask_bpmn.models.db import db
-from SpiffWorkflow import NavItem
-from SpiffWorkflow.bpmn.specs.ManualTask import ManualTask
-from SpiffWorkflow.bpmn.specs.UserTask import UserTask
-from SpiffWorkflow.util.deep_merge import DeepMerge
+from SpiffWorkflow import NavItem  # type: ignore
+from SpiffWorkflow.bpmn.specs.ManualTask import ManualTask  # type: ignore
+from SpiffWorkflow.bpmn.specs.UserTask import UserTask  # type: ignore
+from SpiffWorkflow.util.deep_merge import DeepMerge  # type: ignore
 
 from spiffworkflow_backend.models.process_instance import ProcessInstanceApi
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel

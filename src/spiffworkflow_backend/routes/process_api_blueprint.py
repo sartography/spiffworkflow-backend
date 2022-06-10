@@ -1,7 +1,7 @@
 """APIs for dealing with process groups, process models, and process instances."""
 import json
 
-import connexion
+import connexion  # type: ignore
 from flask import Blueprint
 from flask import g
 from flask import Response

@@ -7,7 +7,7 @@ from typing import Optional
 from flask_bpmn.models.db import db
 from marshmallow import INCLUDE
 from marshmallow import Schema
-from sqlalchemy import func
+from sqlalchemy import func  # type: ignore
 from sqlalchemy.orm import deferred  # type: ignore
 from sqlalchemy.orm import relationship
 

@@ -8,7 +8,7 @@ from marshmallow import fields
 from marshmallow import INCLUDE
 from marshmallow import Schema
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
-from sqlalchemy import func
+from sqlalchemy import func  # type: ignore
 
 
 if False:

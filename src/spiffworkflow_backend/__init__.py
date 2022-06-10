@@ -1,12 +1,12 @@
 """__init__."""
 import os
 
-import connexion
+import connexion  # type: ignore
 import flask.app
 from flask_bpmn.api.api_error import api_error_blueprint
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import migrate
-from flask_cors import CORS
+from flask_cors import CORS  # type: ignore
 
 from spiffworkflow_backend.config import setup_config
 from spiffworkflow_backend.routes.admin_blueprint.admin_blueprint import admin_blueprint

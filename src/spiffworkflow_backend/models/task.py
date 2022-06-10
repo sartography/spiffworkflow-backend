@@ -3,7 +3,7 @@ import enum
 
 import marshmallow
 from marshmallow import Schema
-from marshmallow_enum import EnumField
+from marshmallow_enum import EnumField  # type: ignore
 
 
 class Task:
