@@ -24,11 +24,11 @@ jobs:
     name: Print event
     runs-on: ubuntu-latest
     steps:
-    - name: Dump GitHub context
-      env:
-        GITHUB_CONTEXT: ${{ toJson(github) }}
-      run: |
-        echo "$GITHUB_CONTEXT"
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: |
+          echo "$GITHUB_CONTEXT"
 
   dependabot:
     runs-on: ubuntu-latest
@@ -40,7 +40,7 @@ jobs:
       ###### GET PR NUMBER
       # we saved the pr_number in tests.yml. fetch it so we can merge the correct PR.
       # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#workflow_run
-      - name: 'Download artifact'
+      - name: "Download artifact"
         uses: actions/github-script@v6
         with:
           script: |
@@ -60,7 +60,7 @@ jobs:
             });
             let fs = require('fs');
             fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/pr_number.zip`, Buffer.from(download.data));
-      - name: 'Unzip artifact'
+      - name: "Unzip artifact"
         run: unzip pr_number.zip
       ###########
 

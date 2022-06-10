@@ -4,7 +4,6 @@ import json
 import connexion
 from flask import Blueprint
 from flask import g
-from flask import request
 from flask import Response
 from flask_bpmn.api.api_error import ApiError
 
@@ -237,7 +236,9 @@ def process_instance_list(process_model_id, page=1, per_page=100):
     }
     return Response(json.dumps(response_json), status=200, mimetype="application/json")
 
+
 def get_file_from_request():
+    """Get_file_from_request."""
     request_file = connexion.request.files.get("file")
     if not request_file:
         raise ApiError(

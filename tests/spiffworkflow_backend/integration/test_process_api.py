@@ -156,7 +156,9 @@ def test_process_group_update(app, client: FlaskClient, with_bpmn_file_cleanup):
     print("test_process_group_update")
 
 
-def test_process_model_file_update_fails_if_no_file_given(app, client: FlaskClient, with_bpmn_file_cleanup):
+def test_process_model_file_update_fails_if_no_file_given(
+    app, client: FlaskClient, with_bpmn_file_cleanup
+):
     """Test_process_model_file_update."""
     create_spec_file(app, client)
 
@@ -175,7 +177,9 @@ def test_process_model_file_update_fails_if_no_file_given(app, client: FlaskClie
     assert response.json["code"] == "no_file_given"
 
 
-def test_process_model_file_update_fails_if_contents_is_empty(app, client: FlaskClient, with_bpmn_file_cleanup):
+def test_process_model_file_update_fails_if_contents_is_empty(
+    app, client: FlaskClient, with_bpmn_file_cleanup
+):
     """Test_process_model_file_update."""
     create_spec_file(app, client)
 
