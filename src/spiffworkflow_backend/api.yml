@@ -198,9 +198,9 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/WorkflowSpec'
+              $ref: "#/components/schemas/WorkflowSpec"
       responses:
-        '200':
+        "200":
           description: Process model created successfully.
           content:
             application/json:

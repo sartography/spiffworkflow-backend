@@ -64,20 +64,20 @@ def test_process_model_update(app, client: FlaskClient, with_bpmn_file_cleanup):
     """Test_process_model_update."""
     create_process_model(app, client)
     process_model = ProcessModelService().get_spec("make_cookies")
-    assert process_model.id == 'make_cookies'
-    assert process_model.display_name == 'Cooooookies'
+    assert process_model.id == "make_cookies"
+    assert process_model.display_name == "Cooooookies"
 
-    process_model.display_name = 'Updated Display Name'
+    process_model.display_name = "Updated Display Name"
 
     user = find_or_create_user()
     response = client.put(
-        f'/v1.0/process-models/{process_model.process_group_id}/{process_model.id}',
+        f"/v1.0/process-models/{process_model.process_group_id}/{process_model.id}",
         headers=logged_in_headers(user),
-        content_type='application/json',
-        data=json.dumps(ProcessModelInfoSchema().dump(process_model))
+        content_type="application/json",
+        data=json.dumps(ProcessModelInfoSchema().dump(process_model)),
     )
     assert response.status_code == 200
-    assert response.json['display_name'] == 'Updated Display Name'
+    assert response.json["display_name"] == "Updated Display Name"
 
 
 def test_process_group_add(app, client: FlaskClient, with_bpmn_file_cleanup):
@@ -457,6 +457,7 @@ def create_process_group(client, user, process_group_id, display_name=""):
     assert response.status_code == 201
     assert response.json["id"] == process_group_id
     return response
+
 
 # def test_get_process_model(self):
 #
