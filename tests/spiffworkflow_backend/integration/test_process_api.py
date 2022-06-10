@@ -130,7 +130,7 @@ def test_process_group_delete(app, client: FlaskClient, with_bpmn_file_cleanup):
 
 
 def test_process_group_update(app, client: FlaskClient, with_bpmn_file_cleanup):
-    """Test Process Group Update"""
+    """Test Process Group Update."""
     group_id = 'test_process_group'
     group_display_name = 'Test Group'
 
