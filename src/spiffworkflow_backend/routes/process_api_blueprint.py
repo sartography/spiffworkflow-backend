@@ -52,6 +52,13 @@ def process_group_delete(process_group_id):
     ProcessModelService().process_group_delete(process_group_id)
 
 
+def process_group_update(process_group_id, body):
+    """Process Group Update"""
+    process_group = ProcessGroupSchema().load(body)
+    ProcessModelService().update_process_group(process_group)
+    return ProcessGroupSchema().dump(process_group)
+
+
 def process_groups_list():
     """Process_groups_list."""
     process_groups = ProcessModelService().get_process_groups()

@@ -74,6 +74,23 @@ paths:
       responses:
         "204":
           description: The process group was deleted.
+    put:
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.process_group_update
+      summary: Upates a single process group
+      tags:
+        - Process Groups
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WorkflowSpecCategory"
+      responses:
+        "200":
+          description: Process group updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowSpecCategory"
 
   /process-models:
     # process_model_add
@@ -206,7 +223,7 @@ paths:
               $ref: "#/components/schemas/WorkflowSpec"
       responses:
         "200":
-          description: Process model created successfully.
+          description: Process model updated successfully.
           content:
             application/json:
               schema:
