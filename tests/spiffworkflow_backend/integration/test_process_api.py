@@ -53,7 +53,8 @@ def test_process_model_delete(app, client: FlaskClient, with_bpmn_file_cleanup):
         f"/v1.0/process-models/{process_model.process_group_id}/{process_model.id}",
         headers=logged_in_headers(user),
     )
-    assert response.status_code == 204
+    assert response.status_code == 200
+    assert response.json['ok'] is True
 
     # assert we no longer have a model
     process_model = ProcessModelService().get_spec("make_cookies")

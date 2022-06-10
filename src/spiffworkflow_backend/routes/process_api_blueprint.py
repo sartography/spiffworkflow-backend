@@ -87,6 +87,7 @@ def process_model_delete(process_group_id, process_model_id):
     """Process_model_delete."""
     ProcessModelService().process_model_delete(process_model_id)
     print("process_model_delete")
+    return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
 
 
 def process_model_update(process_group_id, process_model_id, body):

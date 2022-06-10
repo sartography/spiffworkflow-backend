@@ -187,8 +187,13 @@ paths:
       tags:
         - Process Models
       responses:
-        "204":
+        "200":
           description: The workflow specification has been removed.
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/OkTrue"
+    # process model update
     put:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.process_model_update
       summary: Modifies an existing process mosel with the given parameters.
