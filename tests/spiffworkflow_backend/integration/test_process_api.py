@@ -110,19 +110,8 @@ def test_process_group_delete(app, client: FlaskClient, with_bpmn_file_cleanup):
     """Test_process_group_delete."""
     process_group_id = "test"
     process_group_display_name = "My Process Group"
-    # process_group = ProcessGroup(
-    #     id=process_group_id,
-    #     display_name="Test Process Group",
-    #     display_order=0,
-    #     admin=False
-    # )
+
     user = find_or_create_user()
-    # response = client.post(
-    #     "/v1.0/process-groups",
-    #     headers=logged_in_headers(user),
-    #     content_type="application/json",
-    #     data=json.dumps(ProcessGroupSchema().dump(process_group)),
-    # )
     create_process_group(
         client, user, process_group_id, display_name=process_group_display_name
     )
