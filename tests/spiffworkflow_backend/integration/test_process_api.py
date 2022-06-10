@@ -109,9 +109,11 @@ def test_process_group_delete(app, client: FlaskClient, with_bpmn_file_cleanup):
     assert persisted is not None
     assert persisted.id == process_group_id
 
-    client.delete(
-        f"/v1.0/process-groups/{process_group_id}", headers=logged_in_headers(user)
-    )
+    client.delete(f"/v1.0/process-groups/{process_group_id}",
+                  headers=logged_in_headers(user))
+
+    deleted = ProcessModelService().get_process_group(process_group_id)
+    assert deleted is None
 
     print(f"test_process_group_delete: {__name__}")
 
@@ -173,13 +175,15 @@ def test_get_file(app, client: FlaskClient, with_bpmn_file_cleanup):
 
 
 def test_get_workflow_from_workflow_spec(
-    app, client: FlaskClient, with_bpmn_file_cleanup
+        app,
+        client: FlaskClient,
+        with_bpmn_file_cleanup
 ):
     """Test_get_workflow_from_workflow_spec."""
     user = find_or_create_user()
     spec = load_test_spec(app, "hello_world")
     response = client.post(
-        f"/v1.0/process-models/{spec.id}", headers=logged_in_headers(user)
+        f"/v1.0/process-models/{spec.process_group_id}/{spec.id}", headers=logged_in_headers(user)
     )
     assert response.status_code == 201
     assert "hello_world" == response.json["process_model_identifier"]
@@ -355,7 +359,7 @@ def create_process_instance(
     """Create_process_instance."""
     load_test_spec(app, process_model_dir_name, process_group_id=test_process_group_id)
     response = client.post(
-        f"/v1.0/process-models/{process_group_id}/{process_model_dir_name}",
+        f"/v1.0/process-models/{test_process_group_id}/{process_model_dir_name}",
         headers=headers,
     )
     assert response.status_code == 201

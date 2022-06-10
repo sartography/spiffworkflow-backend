@@ -49,7 +49,6 @@ def process_group_add(body):
 
 def process_group_delete(process_group_id):
     ProcessModelService().process_group_delete(process_group_id)
-    print("process_group_delete")
 
 
 def process_groups_list():
@@ -154,7 +153,7 @@ def add_file(process_model_id):
     )
 
 
-def process_instance_create(process_model_id):
+def process_instance_create(process_group_id, process_model_id):
     """Create_process_instance."""
     process_instance = ProcessInstanceService.create_process_instance(
         process_model_id, g.user
