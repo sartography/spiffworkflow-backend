@@ -142,16 +142,16 @@ paths:
 
   /process-models/{process_group_id}/{process_model_id}:
     parameters:
-      - name: process_model_id
-        in: path
-        required: true
-        description: The unique id of an existing process model.
-        schema:
-          type: string
       - name: process_group_id
         in: path
         required: true
         description: The unique id of an existing process group
+        schema:
+          type: string
+      - name: process_model_id
+        in: path
+        required: true
+        description: The unique id of an existing process model.
         schema:
           type: string
     # process_model_show
@@ -189,25 +189,23 @@ paths:
       responses:
         "204":
           description: The workflow specification has been removed.
-    # put:
-    #   operationId: crc.api.workflow.update_workflow_specification
-    #   security:
-    #     - auth_admin: ['secret']
-    #   summary: Modifies an existing workflow specification with the given parameters.
-    #   tags:
-    #     - Workflow Specifications
-    #   requestBody:
-    #     content:
-    #       application/json:
-    #         schema:
-    #           $ref: '#/components/schemas/WorkflowSpec'
-    #   responses:
-    #     '200':
-    #       description: Workflow specification created successfully.
-    #       content:
-    #         application/json:
-    #           schema:
-    #             $ref: "#/components/schemas/WorkflowSpec"
+    put:
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.process_model_update
+      summary: Modifies an existing process mosel with the given parameters.
+      tags:
+        - Process Models
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkflowSpec'
+      responses:
+        '200':
+          description: Process model created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowSpec"
 
   /process-models/{process_model_id}/process-instances:
     parameters:

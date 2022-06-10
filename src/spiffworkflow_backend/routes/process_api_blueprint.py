@@ -89,6 +89,11 @@ def process_model_delete(process_group_id, process_model_id):
     print("process_model_delete")
 
 
+def process_model_update(process_group_id, process_model_id, body):
+    process_model = ProcessModelInfoSchema().load(body)
+    ProcessModelService().update_spec(process_model)
+    return ProcessModelInfoSchema().dump(process_model)
+
 def process_model_show(process_group_id, process_model_id):
     """Process_model_show."""
     process_model = ProcessModelService().get_spec(process_model_id, process_group_id)
