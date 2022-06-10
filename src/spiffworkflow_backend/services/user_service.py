@@ -12,19 +12,19 @@ class UserService:
 
     # Returns true if the current user is logged in.
     @staticmethod
-    def has_user():
+    def has_user() -> bool:
         """Has_user."""
         return "token" in g and bool(g.token) and "user" in g and bool(g.user)
 
     # Returns true if the current user is an admin.
     @staticmethod
-    def user_is_admin():
+    def user_is_admin() -> bool:
         """User_is_admin."""
         return UserService.has_user() and g.user.is_admin()
 
     # Returns true if the current admin user is impersonating another user.
     @staticmethod
-    def admin_is_impersonating():
+    def admin_is_impersonating() -> bool:
         """Admin_is_impersonating."""
         if UserService.user_is_admin():
             admin_session: AdminSessionModel = UserService.get_admin_session()
@@ -44,7 +44,7 @@ class UserService:
         return UserService.has_user() and uid is not None and uid is not g.user.uid
 
     @staticmethod
-    def current_user(allow_admin_impersonate=False) -> UserModel:
+    def current_user(allow_admin_impersonate: bool=False) -> UserModel:
         """Current_user."""
         if not UserService.has_user():
             raise ApiError(

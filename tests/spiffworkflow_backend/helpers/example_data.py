@@ -14,17 +14,17 @@ class ExampleDataLoader:
 
     def create_spec(
         self,
-        id,
-        display_name="",
-        description="",
-        filepath=None,
-        master_spec=False,
-        process_group_id="",
-        display_order=0,
-        from_tests=False,
-        standalone=False,
-        library=False,
-    ):
+        id: str,
+        display_name: str="",
+        description: str="",
+        filepath: None=None,
+        master_spec: bool=False,
+        process_group_id: str="",
+        display_order: int=0,
+        from_tests: bool=False,
+        standalone: bool=False,
+        library: bool=False,
+    ) -> ProcessModelInfo:
         """Assumes that a directory exists in static/bpmn with the same name as the given id.
 
         further assumes that the [id].bpmn is the primary file for the process model.

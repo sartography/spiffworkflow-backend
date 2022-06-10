@@ -5,6 +5,7 @@ from typing import List
 
 from flask_bpmn.api.api_error import ApiError
 from lxml import etree  # type: ignore
+from lxml.etree import Element as EtreeElement  # type: ignore
 from SpiffWorkflow.bpmn.parser.ValidationException import ValidationException  # type: ignore
 
 from spiffworkflow_backend.models.file import File
@@ -134,7 +135,7 @@ class SpecFileService(FileSystemService):
             if not binary_data:
                 binary_data = SpecFileService.get_data(workflow_spec, file_name)
             try:
-                bpmn: etree.Element = etree.fromstring(binary_data)
+                bpmn: EtreeElement = etree.fromstring(binary_data)
                 workflow_spec.primary_process_id = SpecFileService.get_process_id(bpmn)
                 workflow_spec.primary_file_name = file_name
                 workflow_spec.is_review = SpecFileService.has_swimlane(bpmn)
@@ -164,7 +165,7 @@ class SpecFileService(FileSystemService):
             )
 
     @staticmethod
-    def has_swimlane(et_root: etree.Element):
+    def has_swimlane(et_root: EtreeElement):
         """Look through XML and determine if there are any lanes present that have a label."""
         elements = et_root.xpath(
             "//bpmn:lane",
@@ -177,7 +178,7 @@ class SpecFileService(FileSystemService):
         return retval
 
     @staticmethod
-    def get_process_id(et_root: etree.Element):
+    def get_process_id(et_root: EtreeElement):
         """Get_process_id."""
         process_elements = []
         for child in et_root:
@@ -194,7 +195,7 @@ class SpecFileService(FileSystemService):
 
             # Look for the element that has the startEvent in it
             for e in process_elements:
-                this_element: etree.Element = e
+                this_element: EtreeElement = e
                 for child_element in list(this_element):
                     if child_element.tag.endswith("startEvent"):
                         return this_element.attrib["id"]
