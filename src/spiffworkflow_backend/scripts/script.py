@@ -49,6 +49,7 @@ class Script:
         We may be able to remove the task for each of these calls if we are not using it other than potentially
         updating the task data.
         """
+
         def make_closure(subclass, task, workflow_id):
             """Yes - this is black magic.
 
@@ -84,6 +85,7 @@ class Script:
         We may be able to remove the task for each of these calls if we are not using it other than potentially
         updating the task data.
         """
+
         def make_closure_validate(subclass, task, workflow_id):
             """Make_closure_validate."""
             instance = subclass()

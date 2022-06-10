@@ -190,7 +190,9 @@ def process_instance_list(process_model_id, page=1, per_page=100):
 
     process_instances = (
         ProcessInstanceModel.query.filter_by(process_model_identifier=process_model.id)
-        .order_by(ProcessInstanceModel.start_in_seconds.desc(), ProcessInstanceModel.id.desc())
+        .order_by(
+            ProcessInstanceModel.start_in_seconds.desc(), ProcessInstanceModel.id.desc()
+        )
         .paginate(page, per_page, False)
     )
 
