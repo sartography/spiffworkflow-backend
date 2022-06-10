@@ -61,6 +61,7 @@ def test_process_model_delete(app, client: FlaskClient, with_bpmn_file_cleanup):
 
 
 def test_process_model_update(app, client: FlaskClient, with_bpmn_file_cleanup):
+    """Test_process_model_update."""
     create_process_model(app, client)
     process_model = ProcessModelService().get_spec("make_cookies")
     assert process_model.id == 'make_cookies'
