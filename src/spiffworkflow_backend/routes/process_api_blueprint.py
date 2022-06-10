@@ -50,6 +50,7 @@ def process_group_add(body):
 def process_group_delete(process_group_id):
     """Process_group_delete."""
     ProcessModelService().process_group_delete(process_group_id)
+    return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
 
 
 def process_group_update(process_group_id, body):
@@ -93,7 +94,6 @@ def process_model_add(body):
 def process_model_delete(process_group_id, process_model_id):
     """Process_model_delete."""
     ProcessModelService().process_model_delete(process_model_id)
-    print("process_model_delete")
     return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
 
 
@@ -142,10 +142,20 @@ def get_file(process_model_id, file_name):
     return FileSchema().dump(file)
 
 
-def process_model_file_save(process_model_id, file_name):
+def process_model_file_update(process_model_id, file_name):
     """Process_model_file_save."""
     process_model = ProcessModelService().get_spec(process_model_id)
-    SpecFileService.update_file(process_model, file_name, request.get_data())
+
+    request_file = get_file_from_request()
+    request_file_contents = request_file.stream.read()
+    if not request_file_contents:
+        raise ApiError(
+            code="file_contents_empty",
+            message="Given request file does not have any content",
+            status_code=400,
+        )
+
+    SpecFileService.update_file(process_model, file_name, request_file_contents)
     return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
 
 
@@ -153,7 +163,7 @@ def add_file(process_model_id):
     """Add_file."""
     process_model_service = ProcessModelService()
     process_model = process_model_service.get_spec(process_model_id)
-    request_file = connexion.request.files["file"]
+    request_file = get_file_from_request()
     file = SpecFileService.add_file(
         process_model, request_file.filename, request_file.stream.read()
     )
@@ -226,3 +236,13 @@ def process_instance_list(process_model_id, page=1, per_page=100):
         },
     }
     return Response(json.dumps(response_json), status=200, mimetype="application/json")
+
+def get_file_from_request():
+    request_file = connexion.request.files.get("file")
+    if not request_file:
+        raise ApiError(
+            code="no_file_given",
+            message="Given request does not contain a file",
+            status_code=400,
+        )
+    return request_file

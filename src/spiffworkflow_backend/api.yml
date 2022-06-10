@@ -292,9 +292,9 @@ paths:
             application/json:
               schema:
                 $ref: "#components/schemas/File"
-    # process_model_file_save
+    # process_model_file_update
     put:
-      operationId: spiffworkflow_backend.routes.process_api_blueprint.process_model_file_save
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.process_model_file_update
       summary: save the contents to the given file
       tags:
         - Spec Files

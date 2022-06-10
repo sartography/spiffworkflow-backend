@@ -156,12 +156,51 @@ def test_process_group_update(app, client: FlaskClient, with_bpmn_file_cleanup):
     print("test_process_group_update")
 
 
-def test_process_model_file_save(app, client: FlaskClient, with_bpmn_file_cleanup):
-    """Test_process_model_file_save."""
+def test_process_model_file_update_fails_if_no_file_given(app, client: FlaskClient, with_bpmn_file_cleanup):
+    """Test_process_model_file_update."""
+    create_spec_file(app, client)
+
+    spec = load_test_spec(app, "random_fact")
+    data = {"key1": "THIS DATA"}
+    user = find_or_create_user()
+    response = client.put(
+        "/v1.0/process-models/%s/file/random_fact.svg" % spec.id,
+        data=data,
+        follow_redirects=True,
+        content_type="multipart/form-data",
+        headers=logged_in_headers(user),
+    )
+
+    assert response.status_code == 400
+    assert response.json["code"] == "no_file_given"
+
+
+def test_process_model_file_update_fails_if_contents_is_empty(app, client: FlaskClient, with_bpmn_file_cleanup):
+    """Test_process_model_file_update."""
+    create_spec_file(app, client)
+
+    spec = load_test_spec(app, "random_fact")
+    data = {"file": (io.BytesIO(b""), "random_fact.svg")}
+    user = find_or_create_user()
+    response = client.put(
+        "/v1.0/process-models/%s/file/random_fact.svg" % spec.id,
+        data=data,
+        follow_redirects=True,
+        content_type="multipart/form-data",
+        headers=logged_in_headers(user),
+    )
+
+    assert response.status_code == 400
+    assert response.json["code"] == "file_contents_empty"
+
+
+def test_process_model_file_update(app, client: FlaskClient, with_bpmn_file_cleanup):
+    """Test_process_model_file_update."""
     original_file = create_spec_file(app, client)
 
     spec = load_test_spec(app, "random_fact")
-    data = {"file": (io.BytesIO(b"THIS_IS_NEW_DATA"), "random_fact.svg")}
+    new_file_contents = b"THIS_IS_NEW_DATA"
+    data = {"file": (io.BytesIO(new_file_contents), "random_fact.svg")}
     user = find_or_create_user()
     response = client.put(
         "/v1.0/process-models/%s/file/random_fact.svg" % spec.id,
@@ -181,6 +220,7 @@ def test_process_model_file_save(app, client: FlaskClient, with_bpmn_file_cleanu
     assert response.status_code == 200
     updated_file = json.loads(response.get_data(as_text=True))
     assert original_file != updated_file
+    assert updated_file["file_contents"] == new_file_contents.decode()
 
 
 def test_get_file(app, client: FlaskClient, with_bpmn_file_cleanup):
