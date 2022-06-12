@@ -15,15 +15,15 @@ class ExampleDataLoader:
     def create_spec(
         self,
         id: str,
-        display_name: str="",
-        description: str="",
-        filepath: None=None,
-        master_spec: bool=False,
-        process_group_id: str="",
-        display_order: int=0,
-        from_tests: bool=False,
-        standalone: bool=False,
-        library: bool=False,
+        display_name: str = "",
+        description: str = "",
+        filepath: None = None,
+        master_spec: bool = False,
+        process_group_id: str = "",
+        display_order: int = 0,
+        from_tests: bool = False,
+        standalone: bool = False,
+        library: bool = False,
     ) -> ProcessModelInfo:
         """Assumes that a directory exists in static/bpmn with the same name as the given id.
 

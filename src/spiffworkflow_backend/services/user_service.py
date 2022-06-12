@@ -44,7 +44,7 @@ class UserService:
         return UserService.has_user() and uid is not None and uid is not g.user.uid
 
     @staticmethod
-    def current_user(allow_admin_impersonate: bool=False) -> UserModel:
+    def current_user(allow_admin_impersonate: bool = False) -> UserModel:
         """Current_user."""
         if not UserService.has_user():
             raise ApiError(

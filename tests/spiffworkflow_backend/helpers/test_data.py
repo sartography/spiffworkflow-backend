@@ -1,14 +1,16 @@
 """User."""
-from typing import Dict, Optional, Any
+from typing import Any
+from typing import Dict
+from typing import Optional
 
+from flask.app import Flask
 from flask_bpmn.models.db import db
 from tests.spiffworkflow_backend.helpers.example_data import ExampleDataLoader
 
 from spiffworkflow_backend.models.process_group import ProcessGroup
+from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
-from flask.app import Flask
-from spiffworkflow_backend.models.process_model import ProcessModelInfo
 
 
 def find_or_create_user(username: str = "test_user1") -> Any:
@@ -22,7 +24,7 @@ def find_or_create_user(username: str = "test_user1") -> Any:
     return user
 
 
-def assure_process_group_exists(process_group_id: Optional[str]=None) -> ProcessGroup:
+def assure_process_group_exists(process_group_id: Optional[str] = None) -> ProcessGroup:
     """Assure_process_group_exists."""
     process_group = None
     workflow_spec_service = ProcessModelService()
@@ -45,10 +47,10 @@ def assure_process_group_exists(process_group_id: Optional[str]=None) -> Process
 def load_test_spec(
     app: Flask,
     dir_name: str,
-    display_name: None=None,
-    master_spec: bool=False,
-    process_group_id: Optional[str]=None,
-    library: bool=False,
+    display_name: None = None,
+    master_spec: bool = False,
+    process_group_id: Optional[str] = None,
+    library: bool = False,
 ) -> ProcessModelInfo:
     """Loads a spec into the database based on a directory in /tests/data."""
     process_group = None
@@ -86,7 +88,9 @@ def load_test_spec(
 #     return '?%s' % '&'.join(query_string_list)
 
 
-def logged_in_headers(user: Optional[UserModel]=None, redirect_url: str="http://some/frontend/url") -> Dict[str, str]:
+def logged_in_headers(
+    user: Optional[UserModel] = None, redirect_url: str = "http://some/frontend/url"
+) -> Dict[str, str]:
     """Logged_in_headers."""
     # if user is None:
     #     uid = 'test_user'
