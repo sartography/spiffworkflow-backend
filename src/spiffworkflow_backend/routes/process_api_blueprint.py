@@ -115,7 +115,7 @@ def process_model_show(process_group_id, process_model_id):
             )
         )
 
-    files = SpecFileService.get_files(process_model, extension_filter="bpmn")
+    files = sorted(SpecFileService.get_files(process_model))
     process_model.files = files
     process_model_json = ProcessModelInfoSchema().dump(process_model)
     return process_model_json

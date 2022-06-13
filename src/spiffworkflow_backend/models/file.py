@@ -88,9 +88,11 @@ CONTENT_TYPES = {
 }
 
 
-@dataclass
+@dataclass(order=True)
 class File:
     """File."""
+
+    sort_index: str = field(init=False)
 
     content_type: str
     name: str
@@ -106,6 +108,10 @@ class File:
     process_model_id: Optional[str] = None
     process_group_id: Optional[str] = None
     archived: bool = False
+
+    def __post_init__(self):
+        """__post_init__."""
+        self.sort_index = f"{self.type}:{self.name}"
 
     @classmethod
     def from_file_system(
