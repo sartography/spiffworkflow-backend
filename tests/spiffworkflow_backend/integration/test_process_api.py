@@ -70,6 +70,36 @@ def test_process_model_delete(
     assert process_model is None
 
 
+def test_process_model_delete_with_instances(
+    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+):
+    db.session.query(ProcessInstanceModel).delete()
+    db.session.commit()
+
+    test_process_group_id = "runs_without_input"
+    test_process_model_id = "sample"
+    user = find_or_create_user()
+    headers = logged_in_headers(user)
+    # create an instance from a model
+    response = create_process_instance(app, client, test_process_group_id, test_process_model_id, headers)
+
+    data = json.loads(response.get_data(as_text=True))
+    # make sure the instance has the correct model
+    assert data['process_model_identifier'] == test_process_model_id
+
+    # try to delete the model
+    response = client.delete(
+        f"/v1.0/process-models/{test_process_group_id}/{test_process_model_id}",
+        headers=logged_in_headers(user),
+    )
+
+    # make sure we get an error in the response
+    assert response.status_code == 400
+    data = json.loads(response.get_data(as_text=True))
+    assert data['code'] == 'existing_instances'
+    assert data['message'] == 'We cannot delete the model `sample`, there are existing instances that depend on it.'
+
+
 def test_process_model_update(
     app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
