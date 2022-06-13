@@ -4,8 +4,11 @@ import os
 import shutil
 from typing import List
 
+from flask_bpmn.api.api_error import ApiError
+
 from spiffworkflow_backend.models.process_group import ProcessGroup
 from spiffworkflow_backend.models.process_group import ProcessGroupSchema
+from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
 from spiffworkflow_backend.services.file_system_service import FileSystemService
@@ -41,6 +44,10 @@ class ProcessModelService(FileSystemService):
 
     def process_model_delete(self, process_model_id: str):
         """Delete Procecss Model."""
+        instances = ProcessInstanceModel.query.filter(ProcessInstanceModel.process_model_identifier == process_model_id).all()
+        if len(instances) > 0:
+            raise ApiError(code='existing_instances',
+                           message=f'We cannot delete the model `{process_model_id}`, there are existing instances that depend on it.')
         spec = self.get_spec(process_model_id)
         if not spec:
             return
