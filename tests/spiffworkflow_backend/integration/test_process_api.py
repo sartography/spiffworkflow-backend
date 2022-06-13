@@ -349,13 +349,17 @@ def test_process_instance_create(
     app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_instance_create."""
+    print('test_process_instance_create: ')
     test_process_group_id = "runs_without_input"
-    process_model_dir_name = "sample"
+    test_process_model_id = "sample"
     user = find_or_create_user()
     headers = logged_in_headers(user)
-    create_process_instance(
-        app, client, test_process_group_id, process_model_dir_name, headers
-    )
+    response = create_process_instance(app, client, test_process_group_id, test_process_model_id, headers)
+    assert response.json["status"] == "complete"
+    assert response.json["process_model_identifier"] == test_process_model_id
+    assert response.json["data"]["current_user"]["username"] == "test_user1"
+    assert response.json["data"]["Mike"] == "Awesome"
+    assert response.json["data"]["person"] == "Kevin"
 
 
 def test_process_instance_list_with_default_list(
@@ -450,21 +454,17 @@ def create_process_instance(
     app: Flask,
     client: FlaskClient,
     test_process_group_id: str,
-    process_model_dir_name: str,
+    test_process_model_id: str,
     headers: Dict[str, str],
-) -> None:
+) -> TestResponse:
     """Create_process_instance."""
-    load_test_spec(app, process_model_dir_name, process_group_id=test_process_group_id)
+    load_test_spec(app, test_process_model_id, process_group_id=test_process_group_id)
     response = client.post(
-        f"/v1.0/process-models/{test_process_group_id}/{process_model_dir_name}",
+        f"/v1.0/process-models/{test_process_group_id}/{test_process_model_id}",
         headers=headers,
     )
     assert response.status_code == 201
-    assert response.json["status"] == "complete"
-    assert response.json["process_model_identifier"] == "sample"
-    assert response.json["data"]["current_user"]["username"] == "test_user1"
-    assert response.json["data"]["Mike"] == "Awesome"
-    assert response.json["data"]["person"] == "Kevin"
+    return response
 
 
 def create_process_model(app: Flask, client: FlaskClient) -> None:
