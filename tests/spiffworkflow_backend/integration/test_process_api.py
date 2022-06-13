@@ -141,8 +141,6 @@ def test_process_group_delete(
     deleted = ProcessModelService().get_process_group(process_group_id)
     assert deleted is None
 
-    print(f"test_process_group_delete: {__name__}")
-
 
 def test_process_group_update(
     app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
@@ -169,8 +167,6 @@ def test_process_group_update(
 
     process_group = ProcessModelService().get_process_group(group_id)
     assert process_group.display_name == "Modified Display Name"
-
-    print("test_process_group_update")
 
 
 def test_process_model_file_update_fails_if_no_file_given(
