@@ -51,8 +51,8 @@ class ProcessInstanceService:
         """
         navigation = processor.bpmn_process_instance.get_deep_nav_list()
         # ProcessInstanceService.update_navigation(navigation, processor)
-        spec_service = ProcessModelService()
-        spec = spec_service.get_spec(processor.process_model_identifier)
+        process_model_service = ProcessModelService()
+        process_model = process_model_service.get_process_model(processor.process_model_identifier)
         process_instance_api = ProcessInstanceApi(
             id=processor.get_process_instance_id(),
             status=processor.get_status(),
@@ -62,8 +62,8 @@ class ProcessInstanceService:
             total_tasks=len(navigation),
             completed_tasks=processor.process_instance_model.completed_tasks,
             last_updated=processor.process_instance_model.last_updated,
-            is_review=spec.is_review,
-            title=spec.display_name,
+            is_review=process_model.is_review,
+            title=process_model.display_name,
         )
         if (
             not next_task

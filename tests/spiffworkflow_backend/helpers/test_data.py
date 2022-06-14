@@ -60,7 +60,7 @@ def load_test_spec(
     if not master_spec and not library:
         process_group = assure_process_group_exists(process_group_id)
         process_group_id = process_group.id
-    workflow_spec = workflow_spec_service.get_spec(dir_name)
+    workflow_spec = workflow_spec_service.get_process_model(dir_name)
     if workflow_spec:
         return workflow_spec
     else:

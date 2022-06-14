@@ -52,12 +52,12 @@ class ProcessModelService(FileSystemService):
                 code="existing_instances",
                 message=f"We cannot delete the model `{process_model_id}`, there are existing instances that depend on it.",
             )
-        spec = self.get_spec(process_model_id)
-        if not spec:
+        process_model = self.get_process_model(process_model_id)
+        if not process_model:
             return
-        if spec.library:
-            self.__remove_library_references(spec.id)
-        path = self.workflow_path(spec)
+        if process_model.library:
+            self.__remove_library_references(process_model.id)
+        path = self.workflow_path(process_model)
         shutil.rmtree(path)
 
     def __remove_library_references(self, spec_id):
@@ -80,17 +80,17 @@ class ProcessModelService(FileSystemService):
         if os.path.exists(path):
             return self.__scan_spec(path, FileSystemService.MASTER_SPECIFICATION)
 
-    def get_spec(self, spec_id, group_id=None):
-        """Get_spec."""
+    def get_process_model(self, process_model_id, group_id=None):
+        """Get a process model from a model and group id"""
         if not os.path.exists(FileSystemService.root_path()):
             return  # Nothing to scan yet.  There are no files.
 
         master_spec = self.get_master_spec()
-        if master_spec and master_spec.id == spec_id:
+        if master_spec and master_spec.id == process_model_id:
             return master_spec
         if group_id is not None:
             for process_model in self.get_process_group(group_id).process_models:
-                if spec_id == process_model.id:
+                if process_model_id == process_model.id:
                     return process_model
         with os.scandir(FileSystemService.root_path()) as process_group_dirs:
             for item in process_group_dirs:
@@ -98,7 +98,7 @@ class ProcessModelService(FileSystemService):
                 if item.is_dir():
                     with os.scandir(item.path) as spec_dirs:
                         for sd in spec_dirs:
-                            if sd.name == spec_id:
+                            if sd.name == process_model_id:
                                 # Now we have the process_group direcotry, and spec directory
                                 process_group = self.__scan_process_group(
                                     process_group_dir

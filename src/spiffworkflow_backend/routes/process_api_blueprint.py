@@ -105,7 +105,7 @@ def process_model_update(process_group_id, process_model_id, body):
 
 def process_model_show(process_group_id, process_model_id):
     """Process_model_show."""
-    process_model = ProcessModelService().get_spec(process_model_id, process_group_id)
+    process_model = ProcessModelService().get_process_model(process_model_id, process_group_id)
     if process_model is None:
         raise (
             ApiError(
@@ -123,7 +123,7 @@ def process_model_show(process_group_id, process_model_id):
 
 def get_file(process_model_id, file_name):
     """Get_file."""
-    process_model = ProcessModelService().get_spec(process_model_id)
+    process_model = ProcessModelService().get_process_model(process_model_id)
     files = SpecFileService.get_files(process_model, file_name)
     if len(files) == 0:
         raise ApiError(
@@ -143,7 +143,7 @@ def get_file(process_model_id, file_name):
 
 def process_model_file_update(process_model_id, file_name):
     """Process_model_file_save."""
-    process_model = ProcessModelService().get_spec(process_model_id)
+    process_model = ProcessModelService().get_process_model(process_model_id)
 
     request_file = get_file_from_request()
     request_file_contents = request_file.stream.read()
@@ -161,7 +161,7 @@ def process_model_file_update(process_model_id, file_name):
 def add_file(process_model_id):
     """Add_file."""
     process_model_service = ProcessModelService()
-    process_model = process_model_service.get_spec(process_model_id)
+    process_model = process_model_service.get_process_model(process_model_id)
     request_file = get_file_from_request()
     file = SpecFileService.add_file(
         process_model, request_file.filename, request_file.stream.read()
@@ -202,7 +202,7 @@ def process_instance_create(process_group_id, process_model_id):
 
 def process_instance_list(process_model_id, page=1, per_page=100):
     """Process_instance_list."""
-    process_model = ProcessModelService().get_spec(process_model_id)
+    process_model = ProcessModelService().get_process_model(process_model_id)
     if process_model is None:
         raise (
             ApiError(

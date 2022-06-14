@@ -101,7 +101,7 @@ class ProcessInstanceProcessor:
         self.process_model_service = ProcessModelService()
         spec = None
         if process_instance_model.bpmn_json is None:
-            spec_info = self.process_model_service.get_spec(
+            spec_info = self.process_model_service.get_process_model(
                 process_instance_model.process_model_identifier
             )
             if spec_info is None:

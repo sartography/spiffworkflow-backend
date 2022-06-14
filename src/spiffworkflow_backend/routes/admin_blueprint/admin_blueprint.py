@@ -60,7 +60,7 @@ def process_group_show(process_group_id):
 @admin_blueprint.route("/process-models/<process_model_id>", methods=["GET"])
 def process_model_show(process_model_id):
     """Show_process_model."""
-    process_model = ProcessModelService().get_spec(process_model_id)
+    process_model = ProcessModelService().get_process_model(process_model_id)
     files = SpecFileService.get_files(process_model, extension_filter="bpmn")
     current_file_name = process_model.primary_file_name
     bpmn_xml = SpecFileService.get_data(process_model, current_file_name)
@@ -78,7 +78,7 @@ def process_model_show(process_model_id):
 )
 def process_model_show_file(process_model_id, file_name):
     """Process_model_show_file."""
-    process_model = ProcessModelService().get_spec(process_model_id)
+    process_model = ProcessModelService().get_process_model(process_model_id)
     bpmn_xml = SpecFileService.get_data(process_model, file_name)
     files = SpecFileService.get_files(process_model, extension_filter="bpmn")
     return render_template(
@@ -96,7 +96,7 @@ def process_model_show_file(process_model_id, file_name):
 def process_model_upload_file(process_model_id):
     """Process_model_upload_file."""
     process_model_service = ProcessModelService()
-    process_model = process_model_service.get_spec(process_model_id)
+    process_model = process_model_service.get_process_model(process_model_id)
 
     if "file" not in request.files:
         flash("No file part", "error")
@@ -121,7 +121,7 @@ def process_model_upload_file(process_model_id):
 )
 def process_model_edit(process_model_id, file_name):
     """Edit_bpmn."""
-    process_model = ProcessModelService().get_spec(process_model_id)
+    process_model = ProcessModelService().get_process_model(process_model_id)
     bpmn_xml = SpecFileService.get_data(process_model, file_name)
 
     return render_template(
@@ -137,7 +137,7 @@ def process_model_edit(process_model_id, file_name):
 )
 def process_model_save(process_model_id, file_name):
     """Process_model_save."""
-    process_model = ProcessModelService().get_spec(process_model_id)
+    process_model = ProcessModelService().get_process_model(process_model_id)
     SpecFileService.update_file(process_model, file_name, request.get_data())
     bpmn_xml = SpecFileService.get_data(process_model, process_model.primary_file_name)
     return render_template(
@@ -159,7 +159,7 @@ def process_model_run(process_model_id):
     processor.do_engine_steps()
     result = processor.get_data()
 
-    process_model = ProcessModelService().get_spec(process_model_id)
+    process_model = ProcessModelService().get_process_model(process_model_id)
     files = SpecFileService.get_files(process_model, extension_filter="bpmn")
     current_file_name = process_model.primary_file_name
     bpmn_xml = SpecFileService.get_data(process_model, process_model.primary_file_name)

@@ -53,7 +53,7 @@ def test_process_model_delete(
     create_process_model(app, client)
 
     # assert we have a model
-    process_model = ProcessModelService().get_spec("make_cookies")
+    process_model = ProcessModelService().get_process_model("make_cookies")
     assert process_model is not None
     assert process_model.id == "make_cookies"
 
@@ -67,7 +67,7 @@ def test_process_model_delete(
     assert response.json["ok"] is True
 
     # assert we no longer have a model
-    process_model = ProcessModelService().get_spec("make_cookies")
+    process_model = ProcessModelService().get_process_model("make_cookies")
     assert process_model is None
 
 
@@ -112,7 +112,7 @@ def test_process_model_update(
 ) -> None:
     """Test_process_model_update."""
     create_process_model(app, client)
-    process_model = ProcessModelService().get_spec("make_cookies")
+    process_model = ProcessModelService().get_process_model("make_cookies")
     assert process_model.id == "make_cookies"
     assert process_model.display_name == "Cooooookies"
 
