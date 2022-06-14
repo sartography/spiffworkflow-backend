@@ -231,7 +231,7 @@ def test_process_group_update(
 def test_process_group_list(
         app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
-
+    """Test_process_group_list."""
     # add 5 groups
     user = find_or_create_user()
     for i in range(5):
