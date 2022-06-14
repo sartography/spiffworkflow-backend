@@ -68,10 +68,10 @@ class ProcessModelService(FileSystemService):
 
     def __remove_library_references(self, spec_id):
         """__remove_library_references."""
-        for spec in self.get_specs():
-            if spec_id in spec.libraries:
-                spec.libraries.remove(spec_id)
-                self.update_spec(spec)
+        for process_model in self.get_process_models():
+            if spec_id in process_model.libraries:
+                process_model.libraries.remove(spec_id)
+                self.update_spec(process_model)
 
     @property
     def master_spec(self):
@@ -111,9 +111,13 @@ class ProcessModelService(FileSystemService):
                                 )
                                 return self.__scan_spec(sd.path, sd.name, process_group)
 
-    def get_specs(self):
-        """Get_specs."""
-        process_groups = self.get_process_groups()
+    def get_process_models(self, process_group_id=None):
+        """Get process models"""
+        if process_group_id is None:
+            process_groups = self.get_process_groups()
+        else:
+            process_group = self.get_process_group(process_group_id)
+            process_groups = [process_group,]
         process_models = []
         for process_group in process_groups:
             process_models.extend(process_group.process_models)
