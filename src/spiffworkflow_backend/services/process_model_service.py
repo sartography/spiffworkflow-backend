@@ -44,7 +44,8 @@ class ProcessModelService(FileSystemService):
 
     def process_model_delete(self, process_model_id: str):
         """Delete Procecss Model."""
-        instances = ProcessInstanceModel.query.filter(ProcessInstanceModel.process_model_identifier == process_model_id).all()
+        instances = ProcessInstanceModel.query.filter(
+            ProcessInstanceModel.process_model_identifier == process_model_id).all()
         if len(instances) > 0:
             raise ApiError(code='existing_instances',
                            message=f'We cannot delete the model `{process_model_id}`, there are existing instances that depend on it.')
