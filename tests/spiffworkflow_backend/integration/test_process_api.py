@@ -39,10 +39,26 @@ def with_bpmn_file_cleanup() -> Iterator[None]:
 
 # phase 1: req_id: 7.1 Deploy process
 def test_process_model_add(
-    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+        app: Flask,
+        client: FlaskClient,
+        with_bpmn_file_cleanup: None
 ) -> None:
     """Test_add_new_process_model."""
-    create_process_model(app, client)
+    # group_id = None,
+    model_id = "make_cookies"
+    model_display_name = "Cooooookies"
+    model_description = "Om nom nom delicious cookies"
+    create_process_model(
+        app, client,
+        process_group_id=None,
+        process_model_id=model_id,
+        process_model_display_name=model_display_name,
+        process_model_description=model_description)
+    process_model = ProcessModelService().get_process_model(model_id)
+    assert model_display_name == process_model.display_name
+    assert 0 == process_model.display_order
+    assert 1 == len(ProcessModelService().get_process_groups())
+
     create_spec_file(app, client)
 
 
@@ -506,19 +522,37 @@ def create_process_instance(
     return response
 
 
-def create_process_model(app: Flask, client: FlaskClient) -> None:
+def create_process_model(
+        app: Flask,
+        client: FlaskClient,
+        process_group_id=None,
+        process_model_id: str = None,
+        process_model_display_name: str = None,
+        process_model_description: str = None
+) -> TestResponse:
     """Create_process_model."""
     process_model_service = ProcessModelService()
     assert 0 == len(process_model_service.get_specs())
     assert 0 == len(process_model_service.get_process_groups())
-    process_group = ProcessGroup(
-        id="test_cat", display_name="Test Category", display_order=0, admin=False
-    )
-    process_model_service.add_process_group(process_group)
-    spec = ProcessModelInfo(
-        id="make_cookies",
-        display_name="Cooooookies",
-        description="Om nom nom delicious cookies",
+
+    if process_group_id is None:
+        process_group = ProcessGroup(
+            id="test_cat", display_name="Test Category", display_order=0, admin=False
+        )
+        process_model_service.add_process_group(process_group)
+    else:
+        process_group = ProcessModelService.get_process_group(process_group_id)
+
+    if process_model_id is None:
+        process_model_id = "make_cookies"
+    if process_model_display_name is None:
+        process_model_display_name = "Cooooookies"
+    if process_model_description is None:
+        process_model_description = "Om nom nom delicious cookies"
+    model = ProcessModelInfo(
+        id=process_model_id,
+        display_name=process_model_display_name,
+        description=process_model_description,
         process_group_id=process_group.id,
         standalone=False,
         is_review=False,
@@ -532,15 +566,11 @@ def create_process_model(app: Flask, client: FlaskClient) -> None:
     response = client.post(
         "/v1.0/process-models",
         content_type="application/json",
-        data=json.dumps(ProcessModelInfoSchema().dump(spec)),
+        data=json.dumps(ProcessModelInfoSchema().dump(model)),
         headers=logged_in_headers(user),
     )
     assert response.status_code == 201
-
-    fs_spec = process_model_service.get_spec("make_cookies")
-    assert spec.display_name == fs_spec.display_name
-    assert 0 == fs_spec.display_order
-    assert 1 == len(process_model_service.get_process_groups())
+    return response
 
 
 def create_spec_file(
