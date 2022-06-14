@@ -148,7 +148,71 @@ def test_process_model_update(
 def test_process_model_list(
         app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
-    ...
+    # create a group
+    group_id = 'test_group'
+    user = find_or_create_user()
+    create_process_group(client, user, group_id)
+    process_group = ProcessModelService().get_process_group(group_id)
+
+    # add 5 models to the group
+    for i in range(5):
+        model_id = f'test_model_{i}'
+        model_display_name = f'Test Model {i}'
+        model_description = f'Test Model {i} Description'
+        create_process_model(app, client, group_id, model_id, model_display_name, model_description)
+
+    # get all models
+    response = client.get(f'/v1.0/process-groups/{group_id}/process-models',
+                          headers=logged_in_headers(user),)
+    assert len(response.json['results']) == 5
+    assert response.json['pagination']['count'] == 5
+    assert response.json['pagination']['total'] == 5
+    assert response.json['pagination']['pages'] == 1
+
+    # get first page, 1 per page
+    response = client.get(
+        f"/v1.0/process-groups/{group_id}/process-models?page=1&per_page=1",
+        headers=logged_in_headers(user),
+    )
+    assert len(response.json['results']) == 1
+    assert response.json['results'][0]["id"] == "test_model_0"
+    assert response.json['pagination']['count'] == 1
+    assert response.json['pagination']['total'] == 5
+    assert response.json['pagination']['pages'] == 5
+
+    # get second page, 1 per page
+    response = client.get(
+        f"/v1.0/process-groups/{group_id}/process-models?page=2&per_page=1",
+        headers=logged_in_headers(user),
+    )
+    assert len(response.json['results']) == 1
+    assert response.json['results'][0]["id"] == "test_model_1"
+    assert response.json['pagination']['count'] == 1
+    assert response.json['pagination']['total'] == 5
+    assert response.json['pagination']['pages'] == 5
+
+    # get first page, 3 per page
+    response = client.get(
+        f"/v1.0/process-groups/{group_id}/process-models?page=1&per_page=3",
+        headers=logged_in_headers(user),
+    )
+    assert len(response.json['results']) == 3
+    assert response.json['results'][0]["id"] == "test_model_0"
+    assert response.json['pagination']['count'] == 3
+    assert response.json['pagination']['total'] == 5
+    assert response.json['pagination']['pages'] == 2
+
+    # get second page, 3 per page
+    response = client.get(
+        f"/v1.0/process-groups/{group_id}/process-models?page=2&per_page=3",
+        headers=logged_in_headers(user),
+    )
+    # there should only be 2 left
+    assert len(response.json['results']) == 2
+    assert response.json['results'][0]["id"] == "test_model_3"
+    assert response.json['pagination']['count'] == 2
+    assert response.json['pagination']['total'] == 5
+    assert response.json['pagination']['pages'] == 2
 
 
 def test_process_group_add(
@@ -481,7 +545,7 @@ def test_process_instance_create(
     app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_instance_create."""
-    print("test_process_instance_create: ")
+
     test_process_group_id = "runs_without_input"
     test_process_model_id = "sample"
     user = find_or_create_user()
@@ -611,8 +675,6 @@ def create_process_model(
 ) -> TestResponse:
     """Create_process_model."""
     process_model_service = ProcessModelService()
-    assert 0 == len(process_model_service.get_specs())
-    assert 0 == len(process_model_service.get_process_groups())
 
     if process_group_id is None:
         process_group = ProcessGroup(
@@ -620,7 +682,7 @@ def create_process_model(
         )
         process_model_service.add_process_group(process_group)
     else:
-        process_group = ProcessModelService.get_process_group(process_group_id)
+        process_group = ProcessModelService().get_process_group(process_group_id)
 
     if process_model_id is None:
         process_model_id = "make_cookies"
