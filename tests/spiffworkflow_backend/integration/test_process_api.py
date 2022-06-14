@@ -222,6 +222,62 @@ def test_process_group_update(
     assert process_group.display_name == "Modified Display Name"
 
 
+def test_process_group_list(
+        app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+) -> None:
+
+    # add 5 groups
+    user = find_or_create_user()
+    for i in range(5):
+        group_id = f"test_process_group_{i}"
+        group_display_name = f"Test Group {i}"
+
+        create_process_group(client, user, group_id, display_name=group_display_name)
+
+    # get all groups
+    response = client.get(
+        f"/v1.0/process-groups",
+        headers=logged_in_headers(user),
+    )
+    assert len(response.json) == 5
+
+    # get first page, one per page
+    response = client.get(
+        f"/v1.0/process-groups?page=1&per_page=1",
+        headers=logged_in_headers(user),
+    )
+    assert len(response.json) == 1
+    assert response.json[0]['id'] == 'test_process_group_0'
+
+    # get second page, one per page
+    response = client.get(
+        f"/v1.0/process-groups?page=2&per_page=1",
+        headers=logged_in_headers(user),
+    )
+    assert len(response.json) == 1
+    assert response.json[0]['id'] == 'test_process_group_1'
+
+    # get first page, 3 per page
+    response = client.get(
+        f"/v1.0/process-groups?page=1&per_page=3",
+        headers=logged_in_headers(user),
+    )
+    assert len(response.json) == 3
+    assert response.json[0]['id'] == 'test_process_group_0'
+    assert response.json[1]['id'] == 'test_process_group_1'
+    assert response.json[2]['id'] == 'test_process_group_2'
+
+    # get second page, 3 per page
+    response = client.get(
+        f"/v1.0/process-groups?page=2&per_page=3",
+        headers=logged_in_headers(user),
+    )
+    # there should only be 2 left
+    assert len(response.json) == 2
+    assert response.json[0]['id'] == 'test_process_group_3'
+    assert response.json[1]['id'] == 'test_process_group_4'
+
+
 def test_process_model_file_update_fails_if_no_file_given(
     app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
