@@ -148,11 +148,11 @@ def test_process_model_update(
 def test_process_model_list(
         app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
+    """Test_process_model_list."""
     # create a group
     group_id = 'test_group'
     user = find_or_create_user()
     create_process_group(client, user, group_id)
-    process_group = ProcessModelService().get_process_group(group_id)
 
     # add 5 models to the group
     for i in range(5):
@@ -295,7 +295,7 @@ def test_process_group_update(
 def test_process_group_list(
         app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
-
+    """Test_process_group_list."""
     # add 5 groups
     user = find_or_create_user()
     for i in range(5):

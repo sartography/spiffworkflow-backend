@@ -28,7 +28,8 @@ class ProcessModelService(FileSystemService):
 
     @staticmethod
     def get_batch(items, page=1, per_page=10):
-        start =  (page - 1) * per_page
+        """Get_batch."""
+        start = (page - 1) * per_page
         end = start + per_page
         return items[start:end]
 
@@ -87,7 +88,7 @@ class ProcessModelService(FileSystemService):
             return self.__scan_spec(path, FileSystemService.MASTER_SPECIFICATION)
 
     def get_process_model(self, process_model_id, group_id=None):
-        """Get a process model from a model and group id"""
+        """Get a process model from a model and group id."""
         if not os.path.exists(FileSystemService.root_path()):
             return  # Nothing to scan yet.  There are no files.
 
@@ -112,12 +113,12 @@ class ProcessModelService(FileSystemService):
                                 return self.__scan_spec(sd.path, sd.name, process_group)
 
     def get_process_models(self, process_group_id=None):
-        """Get process models"""
+        """Get process models."""
         if process_group_id is None:
             process_groups = self.get_process_groups()
         else:
             process_group = self.get_process_group(process_group_id)
-            process_groups = [process_group,]
+            process_groups = [process_group, ]
         process_models = []
         for process_group in process_groups:
             process_models.extend(process_group.process_models)
