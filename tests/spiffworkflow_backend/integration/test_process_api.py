@@ -145,6 +145,12 @@ def test_process_model_update(
     assert response.json["display_name"] == "Updated Display Name"
 
 
+def test_process_model_list(
+        app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+) -> None:
+    ...
+
+
 def test_process_group_add(
     app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
