@@ -15,6 +15,7 @@ from flask_bpmn.models.db import db
 from tests.spiffworkflow_backend.helpers.test_data import find_or_create_user
 from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
 from tests.spiffworkflow_backend.helpers.test_data import logged_in_headers
+from werkzeug.test import TestResponse
 
 from spiffworkflow_backend.models.file import FileType
 from spiffworkflow_backend.models.process_group import ProcessGroup
@@ -23,8 +24,6 @@ from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
-
-from werkzeug.test import TestResponse
 
 
 @pytest.fixture()
@@ -84,11 +83,13 @@ def test_process_model_delete_with_instances(
     user = find_or_create_user()
     headers = logged_in_headers(user)
     # create an instance from a model
-    response = create_process_instance(app, client, test_process_group_id, test_process_model_id, headers)
+    response = create_process_instance(
+        app, client, test_process_group_id, test_process_model_id, headers
+    )
 
     data = json.loads(response.get_data(as_text=True))
     # make sure the instance has the correct model
-    assert data['process_model_identifier'] == test_process_model_id
+    assert data["process_model_identifier"] == test_process_model_id
 
     # try to delete the model
     response = client.delete(
@@ -99,8 +100,11 @@ def test_process_model_delete_with_instances(
     # make sure we get an error in the response
     assert response.status_code == 400
     data = json.loads(response.get_data(as_text=True))
-    assert data['code'] == 'existing_instances'
-    assert data['message'] == 'We cannot delete the model `sample`, there are existing instances that depend on it.'
+    assert data["code"] == "existing_instances"
+    assert (
+        data["message"]
+        == "We cannot delete the model `sample`, there are existing instances that depend on it."
+    )
 
 
 def test_process_model_update(
@@ -382,12 +386,14 @@ def test_process_instance_create(
     app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_instance_create."""
-    print('test_process_instance_create: ')
+    print("test_process_instance_create: ")
     test_process_group_id = "runs_without_input"
     test_process_model_id = "sample"
     user = find_or_create_user()
     headers = logged_in_headers(user)
-    response = create_process_instance(app, client, test_process_group_id, test_process_model_id, headers)
+    response = create_process_instance(
+        app, client, test_process_group_id, test_process_model_id, headers
+    )
     assert response.json["status"] == "complete"
     assert response.json["process_model_identifier"] == test_process_model_id
     assert response.json["data"]["current_user"]["username"] == "test_user1"
