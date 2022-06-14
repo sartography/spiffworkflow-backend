@@ -39,9 +39,7 @@ def with_bpmn_file_cleanup() -> Iterator[None]:
 
 # phase 1: req_id: 7.1 Deploy process
 def test_process_model_add(
-        app: Flask,
-        client: FlaskClient,
-        with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
     """Test_add_new_process_model."""
     # group_id = None,
@@ -49,11 +47,13 @@ def test_process_model_add(
     model_display_name = "Cooooookies"
     model_description = "Om nom nom delicious cookies"
     create_process_model(
-        app, client,
+        app,
+        client,
         process_group_id=None,
         process_model_id=model_id,
         process_model_display_name=model_display_name,
-        process_model_description=model_description)
+        process_model_description=model_description,
+    )
     process_model = ProcessModelService().get_process_model(model_id)
     assert model_display_name == process_model.display_name
     assert 0 == process_model.display_order
@@ -146,7 +146,7 @@ def test_process_model_update(
 
 
 def test_process_model_list(
-        app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
     ...
 
@@ -229,7 +229,7 @@ def test_process_group_update(
 
 
 def test_process_group_list(
-        app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_group_list."""
     # add 5 groups
@@ -242,46 +242,46 @@ def test_process_group_list(
 
     # get all groups
     response = client.get(
-        f"/v1.0/process-groups",
+        "/v1.0/process-groups",
         headers=logged_in_headers(user),
     )
     assert len(response.json) == 5
 
     # get first page, one per page
     response = client.get(
-        f"/v1.0/process-groups?page=1&per_page=1",
+        "/v1.0/process-groups?page=1&per_page=1",
         headers=logged_in_headers(user),
     )
     assert len(response.json) == 1
-    assert response.json[0]['id'] == 'test_process_group_0'
+    assert response.json[0]["id"] == "test_process_group_0"
 
     # get second page, one per page
     response = client.get(
-        f"/v1.0/process-groups?page=2&per_page=1",
+        "/v1.0/process-groups?page=2&per_page=1",
         headers=logged_in_headers(user),
     )
     assert len(response.json) == 1
-    assert response.json[0]['id'] == 'test_process_group_1'
+    assert response.json[0]["id"] == "test_process_group_1"
 
     # get first page, 3 per page
     response = client.get(
-        f"/v1.0/process-groups?page=1&per_page=3",
+        "/v1.0/process-groups?page=1&per_page=3",
         headers=logged_in_headers(user),
     )
     assert len(response.json) == 3
-    assert response.json[0]['id'] == 'test_process_group_0'
-    assert response.json[1]['id'] == 'test_process_group_1'
-    assert response.json[2]['id'] == 'test_process_group_2'
+    assert response.json[0]["id"] == "test_process_group_0"
+    assert response.json[1]["id"] == "test_process_group_1"
+    assert response.json[2]["id"] == "test_process_group_2"
 
     # get second page, 3 per page
     response = client.get(
-        f"/v1.0/process-groups?page=2&per_page=3",
+        "/v1.0/process-groups?page=2&per_page=3",
         headers=logged_in_headers(user),
     )
     # there should only be 2 left
     assert len(response.json) == 2
-    assert response.json[0]['id'] == 'test_process_group_3'
-    assert response.json[1]['id'] == 'test_process_group_4'
+    assert response.json[0]["id"] == "test_process_group_3"
+    assert response.json[1]["id"] == "test_process_group_4"
 
 
 def test_process_model_file_update_fails_if_no_file_given(
@@ -585,12 +585,12 @@ def create_process_instance(
 
 
 def create_process_model(
-        app: Flask,
-        client: FlaskClient,
-        process_group_id=None,
-        process_model_id: str = None,
-        process_model_display_name: str = None,
-        process_model_description: str = None
+    app: Flask,
+    client: FlaskClient,
+    process_group_id=None,
+    process_model_id: str = None,
+    process_model_display_name: str = None,
+    process_model_description: str = None,
 ) -> TestResponse:
     """Create_process_model."""
     process_model_service = ProcessModelService()
