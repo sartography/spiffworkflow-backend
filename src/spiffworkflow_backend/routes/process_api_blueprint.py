@@ -59,10 +59,11 @@ def process_group_update(process_group_id, body):
     return ProcessGroupSchema().dump(process_group)
 
 
-def process_groups_list():
+def process_groups_list(page=1, per_page=100):
     """Process_groups_list."""
     process_groups = ProcessModelService().get_process_groups()
-    return ProcessGroupSchema(many=True).dump(process_groups)
+    batch = ProcessModelService().get_batch(process_groups, page, per_page)
+    return ProcessGroupSchema(many=True).dump(batch)
 
 
 def process_group_show(process_group_id):

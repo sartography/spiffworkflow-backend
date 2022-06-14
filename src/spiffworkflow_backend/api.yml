@@ -11,6 +11,19 @@ security:
 
 paths:
   /process-groups:
+    parameters:
+      - name: page
+        in: query
+        required: false
+        description: The page number to return. Defaults to page 1.
+        schema:
+          type: integer
+      - name: per_page
+        in: query
+        required: false
+        description: The number of groups to show per page. Defaults to page 10.
+        schema:
+          type: integer
     # process_groups_list
     get:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.process_groups_list
@@ -91,6 +104,42 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/WorkflowSpecCategory"
+
+  /process-groups/{process_group_id}/process-models:
+    parameters:
+      - name: process_group_id
+        in: path
+        required: true
+        description: The group containing the models we want to return
+        schema:
+          type: string
+      - name: page
+        in: query
+        required: false
+        description: The page number to return. Defaults to page 1.
+        schema:
+          type: integer
+      - name: per_page
+        in: query
+        required: false
+        description: The number of models to show per page. Defaults to page 10.
+        schema:
+          type: integer
+    # process_model_list
+    get:
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.process_model_list
+      summary: Return a list of process models for a given process group
+      tags:
+        - Process Models
+      responses:
+        "200":
+          description: Successfully return the requested models
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WorkflowSpec"
 
   /process-models:
     # process_model_add

@@ -26,6 +26,12 @@ class ProcessModelService(FileSystemService):
     GROUP_SCHEMA = ProcessGroupSchema()
     WF_SCHEMA = ProcessModelInfoSchema()
 
+    @staticmethod
+    def get_batch(items, page=1, per_page=10):
+        start =  (page - 1) * per_page
+        end = start + per_page
+        return items[start:end]
+
     def add_spec(self, spec: ProcessModelInfo):
         """Add_spec."""
         display_order = self.next_display_order(spec)
