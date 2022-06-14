@@ -39,9 +39,7 @@ def with_bpmn_file_cleanup() -> Iterator[None]:
 
 # phase 1: req_id: 7.1 Deploy process
 def test_process_model_add(
-        app: Flask,
-        client: FlaskClient,
-        with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
     """Test_add_new_process_model."""
     # group_id = None,
@@ -49,11 +47,13 @@ def test_process_model_add(
     model_display_name = "Cooooookies"
     model_description = "Om nom nom delicious cookies"
     create_process_model(
-        app, client,
+        app,
+        client,
         process_group_id=None,
         process_model_id=model_id,
         process_model_display_name=model_display_name,
-        process_model_description=model_description)
+        process_model_description=model_description,
+    )
     process_model = ProcessModelService().get_process_model(model_id)
     assert model_display_name == process_model.display_name
     assert 0 == process_model.display_order
@@ -146,61 +146,65 @@ def test_process_model_update(
 
 
 def test_process_model_list(
-        app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_model_list."""
     # create a group
-    group_id = 'test_group'
+    group_id = "test_group"
     user = find_or_create_user()
     create_process_group(client, user, group_id)
 
     # add 5 models to the group
     for i in range(5):
-        model_id = f'test_model_{i}'
-        model_display_name = f'Test Model {i}'
-        model_description = f'Test Model {i} Description'
-        create_process_model(app, client, group_id, model_id, model_display_name, model_description)
+        model_id = f"test_model_{i}"
+        model_display_name = f"Test Model {i}"
+        model_description = f"Test Model {i} Description"
+        create_process_model(
+            app, client, group_id, model_id, model_display_name, model_description
+        )
 
     # get all models
-    response = client.get(f'/v1.0/process-groups/{group_id}/process-models',
-                          headers=logged_in_headers(user),)
-    assert len(response.json['results']) == 5
-    assert response.json['pagination']['count'] == 5
-    assert response.json['pagination']['total'] == 5
-    assert response.json['pagination']['pages'] == 1
+    response = client.get(
+        f"/v1.0/process-groups/{group_id}/process-models",
+        headers=logged_in_headers(user),
+    )
+    assert len(response.json["results"]) == 5
+    assert response.json["pagination"]["count"] == 5
+    assert response.json["pagination"]["total"] == 5
+    assert response.json["pagination"]["pages"] == 1
 
     # get first page, 1 per page
     response = client.get(
         f"/v1.0/process-groups/{group_id}/process-models?page=1&per_page=1",
         headers=logged_in_headers(user),
     )
-    assert len(response.json['results']) == 1
-    assert response.json['results'][0]["id"] == "test_model_0"
-    assert response.json['pagination']['count'] == 1
-    assert response.json['pagination']['total'] == 5
-    assert response.json['pagination']['pages'] == 5
+    assert len(response.json["results"]) == 1
+    assert response.json["results"][0]["id"] == "test_model_0"
+    assert response.json["pagination"]["count"] == 1
+    assert response.json["pagination"]["total"] == 5
+    assert response.json["pagination"]["pages"] == 5
 
     # get second page, 1 per page
     response = client.get(
         f"/v1.0/process-groups/{group_id}/process-models?page=2&per_page=1",
         headers=logged_in_headers(user),
     )
-    assert len(response.json['results']) == 1
-    assert response.json['results'][0]["id"] == "test_model_1"
-    assert response.json['pagination']['count'] == 1
-    assert response.json['pagination']['total'] == 5
-    assert response.json['pagination']['pages'] == 5
+    assert len(response.json["results"]) == 1
+    assert response.json["results"][0]["id"] == "test_model_1"
+    assert response.json["pagination"]["count"] == 1
+    assert response.json["pagination"]["total"] == 5
+    assert response.json["pagination"]["pages"] == 5
 
     # get first page, 3 per page
     response = client.get(
         f"/v1.0/process-groups/{group_id}/process-models?page=1&per_page=3",
         headers=logged_in_headers(user),
     )
-    assert len(response.json['results']) == 3
-    assert response.json['results'][0]["id"] == "test_model_0"
-    assert response.json['pagination']['count'] == 3
-    assert response.json['pagination']['total'] == 5
-    assert response.json['pagination']['pages'] == 2
+    assert len(response.json["results"]) == 3
+    assert response.json["results"][0]["id"] == "test_model_0"
+    assert response.json["pagination"]["count"] == 3
+    assert response.json["pagination"]["total"] == 5
+    assert response.json["pagination"]["pages"] == 2
 
     # get second page, 3 per page
     response = client.get(
@@ -208,11 +212,11 @@ def test_process_model_list(
         headers=logged_in_headers(user),
     )
     # there should only be 2 left
-    assert len(response.json['results']) == 2
-    assert response.json['results'][0]["id"] == "test_model_3"
-    assert response.json['pagination']['count'] == 2
-    assert response.json['pagination']['total'] == 5
-    assert response.json['pagination']['pages'] == 2
+    assert len(response.json["results"]) == 2
+    assert response.json["results"][0]["id"] == "test_model_3"
+    assert response.json["pagination"]["count"] == 2
+    assert response.json["pagination"]["total"] == 5
+    assert response.json["pagination"]["pages"] == 2
 
 
 def test_process_group_add(
@@ -293,7 +297,7 @@ def test_process_group_update(
 
 
 def test_process_group_list(
-        app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_group_list."""
     # add 5 groups
@@ -305,61 +309,61 @@ def test_process_group_list(
 
     # get all groups
     response = client.get(
-        f"/v1.0/process-groups",
+        "/v1.0/process-groups",
         headers=logged_in_headers(user),
     )
-    assert len(response.json['results']) == 5
-    assert response.json['pagination']['count'] == 5
-    assert response.json['pagination']['total'] == 5
-    assert response.json['pagination']['pages'] == 1
+    assert len(response.json["results"]) == 5
+    assert response.json["pagination"]["count"] == 5
+    assert response.json["pagination"]["total"] == 5
+    assert response.json["pagination"]["pages"] == 1
 
     # get first page, one per page
     response = client.get(
-        f"/v1.0/process-groups?page=1&per_page=1",
+        "/v1.0/process-groups?page=1&per_page=1",
         headers=logged_in_headers(user),
     )
-    assert len(response.json['results']) == 1
-    assert response.json['results'][0]["id"] == "test_process_group_0"
-    assert response.json['pagination']['count'] == 1
-    assert response.json['pagination']['total'] == 5
-    assert response.json['pagination']['pages'] == 5
+    assert len(response.json["results"]) == 1
+    assert response.json["results"][0]["id"] == "test_process_group_0"
+    assert response.json["pagination"]["count"] == 1
+    assert response.json["pagination"]["total"] == 5
+    assert response.json["pagination"]["pages"] == 5
 
     # get second page, one per page
     response = client.get(
-        f"/v1.0/process-groups?page=2&per_page=1",
+        "/v1.0/process-groups?page=2&per_page=1",
         headers=logged_in_headers(user),
     )
-    assert len(response.json['results']) == 1
-    assert response.json['results'][0]["id"] == "test_process_group_1"
-    assert response.json['pagination']['count'] == 1
-    assert response.json['pagination']['total'] == 5
-    assert response.json['pagination']['pages'] == 5
+    assert len(response.json["results"]) == 1
+    assert response.json["results"][0]["id"] == "test_process_group_1"
+    assert response.json["pagination"]["count"] == 1
+    assert response.json["pagination"]["total"] == 5
+    assert response.json["pagination"]["pages"] == 5
 
     # get first page, 3 per page
     response = client.get(
-        f"/v1.0/process-groups?page=1&per_page=3",
+        "/v1.0/process-groups?page=1&per_page=3",
         headers=logged_in_headers(user),
     )
-    assert len(response.json['results']) == 3
-    assert response.json['results'][0]["id"] == "test_process_group_0"
-    assert response.json['results'][1]["id"] == "test_process_group_1"
-    assert response.json['results'][2]["id"] == "test_process_group_2"
-    assert response.json['pagination']['count'] == 3
-    assert response.json['pagination']['total'] == 5
-    assert response.json['pagination']['pages'] == 2
+    assert len(response.json["results"]) == 3
+    assert response.json["results"][0]["id"] == "test_process_group_0"
+    assert response.json["results"][1]["id"] == "test_process_group_1"
+    assert response.json["results"][2]["id"] == "test_process_group_2"
+    assert response.json["pagination"]["count"] == 3
+    assert response.json["pagination"]["total"] == 5
+    assert response.json["pagination"]["pages"] == 2
 
     # get second page, 3 per page
     response = client.get(
-        f"/v1.0/process-groups?page=2&per_page=3",
+        "/v1.0/process-groups?page=2&per_page=3",
         headers=logged_in_headers(user),
     )
     # there should only be 2 left
-    assert len(response.json['results']) == 2
-    assert response.json['results'][0]["id"] == "test_process_group_3"
-    assert response.json['results'][1]["id"] == "test_process_group_4"
-    assert response.json['pagination']['count'] == 2
-    assert response.json['pagination']['total'] == 5
-    assert response.json['pagination']['pages'] == 2
+    assert len(response.json["results"]) == 2
+    assert response.json["results"][0]["id"] == "test_process_group_3"
+    assert response.json["results"][1]["id"] == "test_process_group_4"
+    assert response.json["pagination"]["count"] == 2
+    assert response.json["pagination"]["total"] == 5
+    assert response.json["pagination"]["pages"] == 2
 
 
 def test_process_model_file_update_fails_if_no_file_given(
@@ -475,7 +479,7 @@ def test_get_process_groups_when_none(
     user = find_or_create_user()
     response = client.get("/v1.0/process-groups", headers=logged_in_headers(user))
     assert response.status_code == 200
-    assert response.json['results'] == []
+    assert response.json["results"] == []
 
 
 def test_get_process_groups_when_there_are_some(
@@ -486,10 +490,10 @@ def test_get_process_groups_when_there_are_some(
     load_test_spec(app, "hello_world")
     response = client.get("/v1.0/process-groups", headers=logged_in_headers(user))
     assert response.status_code == 200
-    assert len(response.json['results']) == 1
-    assert response.json['pagination']['count'] == 1
-    assert response.json['pagination']['total'] == 1
-    assert response.json['pagination']['pages'] == 1
+    assert len(response.json["results"]) == 1
+    assert response.json["pagination"]["count"] == 1
+    assert response.json["pagination"]["total"] == 1
+    assert response.json["pagination"]["pages"] == 1
 
 
 def test_get_process_group_when_found(
@@ -545,7 +549,6 @@ def test_process_instance_create(
     app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_instance_create."""
-
     test_process_group_id = "runs_without_input"
     test_process_model_id = "sample"
     user = find_or_create_user()
@@ -666,12 +669,12 @@ def create_process_instance(
 
 
 def create_process_model(
-        app: Flask,
-        client: FlaskClient,
-        process_group_id=None,
-        process_model_id: str = None,
-        process_model_display_name: str = None,
-        process_model_description: str = None
+    app: Flask,
+    client: FlaskClient,
+    process_group_id=None,
+    process_model_id: str = None,
+    process_model_display_name: str = None,
+    process_model_description: str = None,
 ) -> TestResponse:
     """Create_process_model."""
     process_model_service = ProcessModelService()

@@ -118,7 +118,9 @@ def process_model_update(process_group_id, process_model_id, body):
 
 def process_model_show(process_group_id, process_model_id):
     """Process_model_show."""
-    process_model = ProcessModelService().get_process_model(process_model_id, process_group_id)
+    process_model = ProcessModelService().get_process_model(
+        process_model_id, process_group_id
+    )
     if process_model is None:
         raise (
             ApiError(
@@ -137,7 +139,9 @@ def process_model_show(process_group_id, process_model_id):
 def process_model_list(process_group_id, page=1, per_page=100):
     """Process_model_list."""
     process_models = ProcessModelService().get_process_models(process_group_id)
-    batch = ProcessModelService().get_batch(process_models, page=page, per_page=per_page)
+    batch = ProcessModelService().get_batch(
+        process_models, page=page, per_page=per_page
+    )
     pages = len(process_models) // per_page
     remainder = len(process_models) % per_page
     if remainder > 0:
@@ -148,7 +152,7 @@ def process_model_list(process_group_id, page=1, per_page=100):
             "count": len(batch),
             "total": len(process_models),
             "pages": pages,
-        }
+        },
     }
 
     return Response(json.dumps(response_json), status=200, mimetype="application/json")

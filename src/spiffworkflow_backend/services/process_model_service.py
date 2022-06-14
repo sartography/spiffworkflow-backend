@@ -118,7 +118,9 @@ class ProcessModelService(FileSystemService):
             process_groups = self.get_process_groups()
         else:
             process_group = self.get_process_group(process_group_id)
-            process_groups = [process_group, ]
+            process_groups = [
+                process_group,
+            ]
         process_models = []
         for process_group in process_groups:
             process_models.extend(process_group.process_models)
