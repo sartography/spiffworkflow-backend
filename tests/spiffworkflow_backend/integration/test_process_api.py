@@ -237,7 +237,6 @@ def test_process_group_list(
     for i in range(5):
         group_id = f"test_process_group_{i}"
         group_display_name = f"Test Group {i}"
-
         create_process_group(client, user, group_id, display_name=group_display_name)
 
     # get all groups
@@ -245,33 +244,45 @@ def test_process_group_list(
         f"/v1.0/process-groups",
         headers=logged_in_headers(user),
     )
-    assert len(response.json) == 5
+    assert len(response.json['results']) == 5
+    assert response.json['pagination']['count'] == 5
+    assert response.json['pagination']['total'] == 5
+    assert response.json['pagination']['pages'] == 1
 
     # get first page, one per page
     response = client.get(
         f"/v1.0/process-groups?page=1&per_page=1",
         headers=logged_in_headers(user),
     )
-    assert len(response.json) == 1
-    assert response.json[0]['id'] == 'test_process_group_0'
+    assert len(response.json['results']) == 1
+    assert response.json['results'][0]["id"] == "test_process_group_0"
+    assert response.json['pagination']['count'] == 1
+    assert response.json['pagination']['total'] == 5
+    assert response.json['pagination']['pages'] == 5
 
     # get second page, one per page
     response = client.get(
         f"/v1.0/process-groups?page=2&per_page=1",
         headers=logged_in_headers(user),
     )
-    assert len(response.json) == 1
-    assert response.json[0]['id'] == 'test_process_group_1'
+    assert len(response.json['results']) == 1
+    assert response.json['results'][0]["id"] == "test_process_group_1"
+    assert response.json['pagination']['count'] == 1
+    assert response.json['pagination']['total'] == 5
+    assert response.json['pagination']['pages'] == 5
 
     # get first page, 3 per page
     response = client.get(
         f"/v1.0/process-groups?page=1&per_page=3",
         headers=logged_in_headers(user),
     )
-    assert len(response.json) == 3
-    assert response.json[0]['id'] == 'test_process_group_0'
-    assert response.json[1]['id'] == 'test_process_group_1'
-    assert response.json[2]['id'] == 'test_process_group_2'
+    assert len(response.json['results']) == 3
+    assert response.json['results'][0]["id"] == "test_process_group_0"
+    assert response.json['results'][1]["id"] == "test_process_group_1"
+    assert response.json['results'][2]["id"] == "test_process_group_2"
+    assert response.json['pagination']['count'] == 3
+    assert response.json['pagination']['total'] == 5
+    assert response.json['pagination']['pages'] == 2
 
     # get second page, 3 per page
     response = client.get(
@@ -279,9 +290,12 @@ def test_process_group_list(
         headers=logged_in_headers(user),
     )
     # there should only be 2 left
-    assert len(response.json) == 2
-    assert response.json[0]['id'] == 'test_process_group_3'
-    assert response.json[1]['id'] == 'test_process_group_4'
+    assert len(response.json['results']) == 2
+    assert response.json['results'][0]["id"] == "test_process_group_3"
+    assert response.json['results'][1]["id"] == "test_process_group_4"
+    assert response.json['pagination']['count'] == 2
+    assert response.json['pagination']['total'] == 5
+    assert response.json['pagination']['pages'] == 2
 
 
 def test_process_model_file_update_fails_if_no_file_given(
@@ -397,7 +411,7 @@ def test_get_process_groups_when_none(
     user = find_or_create_user()
     response = client.get("/v1.0/process-groups", headers=logged_in_headers(user))
     assert response.status_code == 200
-    assert response.json == []
+    assert response.json['results'] == []
 
 
 def test_get_process_groups_when_there_are_some(
@@ -408,7 +422,10 @@ def test_get_process_groups_when_there_are_some(
     load_test_spec(app, "hello_world")
     response = client.get("/v1.0/process-groups", headers=logged_in_headers(user))
     assert response.status_code == 200
-    assert len(response.json) == 1
+    assert len(response.json['results']) == 1
+    assert response.json['pagination']['count'] == 1
+    assert response.json['pagination']['total'] == 1
+    assert response.json['pagination']['pages'] == 1
 
 
 def test_get_process_group_when_found(

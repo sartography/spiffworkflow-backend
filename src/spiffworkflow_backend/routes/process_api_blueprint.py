@@ -63,7 +63,19 @@ def process_groups_list(page=1, per_page=100):
     """Process_groups_list."""
     process_groups = ProcessModelService().get_process_groups()
     batch = ProcessModelService().get_batch(process_groups, page, per_page)
-    return ProcessGroupSchema(many=True).dump(batch)
+    pages = len(process_groups)//per_page
+    remainder = len(process_groups)%per_page
+    if remainder > 0:
+        pages += 1
+    response_json = {
+        "results": ProcessGroupSchema(many=True).dump(batch),
+        "pagination": {
+            "count": len(batch),
+            "total": len(process_groups),
+            "pages": pages,
+        },
+    }
+    return Response(json.dumps(response_json), status=200, mimetype="application/json")
 
 
 def process_group_show(process_group_id):
