@@ -3,27 +3,28 @@ import marshmallow
 from marshmallow import post_load
 from marshmallow import Schema
 
+from dataclasses import dataclass
+from dataclasses import field
+from typing import Optional
 
+from spiffworkflow_backend.models.process_model import ProcessModelInfo
+
+
+@dataclass(order=True)
 class ProcessGroup:
     """ProcessGroup."""
 
-    def __init__(
-        self, id, display_name, display_order=0, admin=False, process_models=None
-    ):
-        """__init__."""
-        self.id = id  # A unique string name, lower case, under scores (ie, 'my_group')
-        self.display_name = display_name
-        self.display_order = display_order
-        self.admin = admin
-        self.workflows = []  # For storing Workflow Metadata
-        self.meta = None  # For storing group metadata
+    sort_index: str = field(init=False)
 
-        if process_models is None:
-            process_models = []
+    id: str  # A unique string name, lower case, under scores (ie, 'my_group')
+    display_name: str
+    display_order: Optional[int] = 0
+    admin: Optional[bool] = False
+    process_models: Optional[list[ProcessModelInfo]] = field(default_factory=list)
 
-        self.process_models = (
-            process_models  # For the list of specifications associated with a group
-        )
+    def __post_init__(self):
+        """__post_init__."""
+        self.sort_index = f"{self.display_order}:{self.id}"
 
     def __eq__(self, other):
         """__eq__."""

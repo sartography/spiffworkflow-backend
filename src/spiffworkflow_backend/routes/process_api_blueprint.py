@@ -61,7 +61,7 @@ def process_group_update(process_group_id, body):
 
 def process_groups_list(page=1, per_page=100):
     """Process_groups_list."""
-    process_groups = ProcessModelService().get_process_groups()
+    process_groups = sorted(ProcessModelService().get_process_groups())
     batch = ProcessModelService().get_batch(process_groups, page, per_page)
     pages = len(process_groups) // per_page
     remainder = len(process_groups) % per_page
