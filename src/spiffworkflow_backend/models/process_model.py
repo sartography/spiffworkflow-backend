@@ -3,46 +3,34 @@ import marshmallow
 from marshmallow import post_load
 from marshmallow import Schema
 
+from dataclasses import dataclass
+from dataclasses import field
+from typing import Optional
 
+
+@dataclass(order=True)
 class ProcessModelInfo:
     """ProcessModelInfo."""
 
-    def __init__(
-        self,
-        id,
-        display_name,
-        description,
-        is_master_spec=False,
-        standalone=False,
-        library=False,
-        primary_file_name="",
-        primary_process_id="",
-        libraries=None,
-        process_group_id="",
-        display_order=0,
-        is_review=False,
-        files=None,
-    ):
-        """__init__."""
-        self.id = id  # Sting unique id
-        self.display_name = display_name
-        self.description = description
-        self.display_order = display_order
-        self.is_master_spec = is_master_spec
-        self.standalone = standalone
-        self.library = library
-        self.primary_file_name = primary_file_name
-        self.primary_process_id = primary_process_id
-        self.is_review = is_review
-        self.process_group_id = process_group_id
+    sort_index: str = field(init=False)
 
-        if libraries is None:
-            libraries = []
-        self.libraries = libraries
+    id: str
+    display_name: str
+    description: str
+    is_master_spec: Optional[bool] = False
+    standalone: Optional[bool] = False
+    library: Optional[bool] = False
+    primary_file_name: Optional[str] = ""
+    primary_process_id: Optional[str] = ""
+    libraries: Optional[list[str]] = field(default_factory=list)
+    process_group_id: Optional[str] = ""
+    display_order: Optional[int] = 0
+    is_review: Optional[bool] = False
+    files: Optional[list[str]] = field(default_factory=list)
 
-        if files is None:
-            files = []
-        self.files = files
+    def __post_init__(self):
+        """__post_init__."""
+        self.sort_index = f"{self.process_group_id}:{self.id}"
 
     def __eq__(self, other):
         """__eq__."""

@@ -138,7 +138,7 @@ def process_model_show(process_group_id, process_model_id):
 
 def process_model_list(process_group_id, page=1, per_page=100):
     """Process model list!"""
-    process_models = ProcessModelService().get_process_models(process_group_id)
+    process_models = sorted(ProcessModelService().get_process_models(process_group_id))
     batch = ProcessModelService().get_batch(
         process_models, page=page, per_page=per_page
     )

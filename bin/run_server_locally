@@ -18,4 +18,4 @@ fi
 
 export FLASK_SESSION_SECRET_KEY=super_secret_key
 
-FLASK_APP=src/spiffworkflow_backend poetry run flask run -p 5010
+FLASK_APP=src/spiffworkflow_backend poetry run flask run -p 7000
