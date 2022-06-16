@@ -1,7 +1,7 @@
 """Principal."""
 from flask_bpmn.models.db import db
-from sqlalchemy import ForeignKey  # type: ignore
-from sqlalchemy.schema import CheckConstraint  # type: ignore
+from sqlalchemy import ForeignKey
+from sqlalchemy.schema import CheckConstraint
 
 from spiffworkflow_backend.models.group import GroupModel
 from spiffworkflow_backend.models.user import UserModel

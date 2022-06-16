@@ -1,7 +1,7 @@
 """UserGroupAssignment."""
 from flask_bpmn.models.db import db
-from sqlalchemy import ForeignKey  # type: ignore
-from sqlalchemy.orm import relationship  # type: ignore
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import relationship
 
 
 class UserGroupAssignmentModel(db.Model):  # type: ignore

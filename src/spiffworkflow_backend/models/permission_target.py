@@ -1,6 +1,6 @@
 """PermissionTarget."""
 from flask_bpmn.models.db import db
-from sqlalchemy.schema import CheckConstraint  # type: ignore
+from sqlalchemy.schema import CheckConstraint
 
 # from sqlalchemy import ForeignKey  # type: ignore
 

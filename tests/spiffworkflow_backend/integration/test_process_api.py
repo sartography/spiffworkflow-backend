@@ -89,7 +89,7 @@ def test_process_model_delete(
 
 def test_process_model_delete_with_instances(
     app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
-):
+) -> None:
     """Test_process_model_delete_with_instances."""
     db.session.query(ProcessInstanceModel).delete()
     db.session.commit()

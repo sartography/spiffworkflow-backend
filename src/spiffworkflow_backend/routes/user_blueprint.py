@@ -9,7 +9,7 @@ from flask import request
 from flask import Response
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
-from sqlalchemy.exc import IntegrityError  # type: ignore
+from sqlalchemy.exc import IntegrityError
 
 from spiffworkflow_backend.models.group import GroupModel
 from spiffworkflow_backend.models.user import UserModel

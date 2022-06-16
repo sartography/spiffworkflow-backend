@@ -5,7 +5,7 @@ from flask import current_app
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
 from marshmallow import Schema
-from sqlalchemy.orm import relationship  # type: ignore
+from sqlalchemy.orm import relationship
 
 from spiffworkflow_backend.models.group import GroupModel
 from spiffworkflow_backend.models.user_group_assignment import UserGroupAssignmentModel

@@ -7,9 +7,9 @@ from marshmallow import INCLUDE
 from marshmallow import Schema
 from marshmallow_enum import EnumField  # type: ignore
 from SpiffWorkflow.navigation import NavItem  # type: ignore
-from sqlalchemy import ForeignKey  # type: ignore
+from sqlalchemy import ForeignKey
 from sqlalchemy import func
-from sqlalchemy.orm import deferred  # type: ignore
+from sqlalchemy.orm import deferred
 from sqlalchemy.orm import relationship
 
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
