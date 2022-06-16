@@ -101,6 +101,8 @@ pretty = true
 show_column_numbers = true
 show_error_codes = true
 show_error_context = true
+plugins = "sqlmypy"
+
 
 # We get 'error: Module has no attribute "set_context"' for sentry-sdk without this option
 implicit_reexport = true

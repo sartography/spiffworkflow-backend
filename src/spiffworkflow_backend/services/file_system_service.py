@@ -1,5 +1,6 @@
 """File_system_service."""
-import datetime
+from _typeshed import ReadableBuffer
+from datetime import datetime
 import os
 from typing import List
 
@@ -86,7 +87,7 @@ class FileSystemService:
             return 0
 
     @staticmethod
-    def write_file_data_to_system(file_path, file_data):
+    def write_file_data_to_system(file_path: str, file_data: ReadableBuffer):
         """Write_file_data_to_system."""
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
         with open(file_path, "wb") as f_handle:
@@ -95,11 +96,11 @@ class FileSystemService:
     @staticmethod
     def get_extension(file_name):
         """Get_extension."""
-        basename, file_extension = os.path.splitext(file_name)
+        _, file_extension = os.path.splitext(file_name)
         return file_extension.lower().strip()[1:]
 
     @staticmethod
-    def assert_valid_file_name(file_name):
+    def assert_valid_file_name(file_name: str) -> None:
         """Assert_valid_file_name."""
         file_extension = FileSystemService.get_extension(file_name)
         if file_extension not in FileType._member_names_:
@@ -111,16 +112,16 @@ class FileSystemService:
             )
 
     @staticmethod
-    def _timestamp(file_path: str):
+    def _timestamp(file_path: str) -> float:
         """_timestamp."""
         return os.path.getmtime(file_path)
 
     @staticmethod
-    def _last_modified(file_path: str):
+    def _last_modified(file_path: str) -> datetime:
         """_last_modified."""
         # Returns the last modified date of the given file.
         timestamp = os.path.getmtime(file_path)
-        utc_dt = datetime.datetime.utcfromtimestamp(timestamp)
+        utc_dt = datetime.utcfromtimestamp(timestamp)
         aware_utc_dt = utc_dt.replace(tzinfo=pytz.utc)
         return aware_utc_dt
 

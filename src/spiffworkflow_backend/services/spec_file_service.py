@@ -1,4 +1,5 @@
 """Spec_file_service."""
+from datetime import datetime
 import os
 import shutil
 from typing import List
@@ -29,7 +30,7 @@ class SpecFileService(FileSystemService):
         include_libraries=False,
         extension_filter="",
     ) -> List[File]:
-        """Returns all files associated with a workflow specification."""
+        """Return all files associated with a workflow specification."""
         path = SpecFileService.workflow_path(workflow_spec)
         files = SpecFileService._get_files(path, file_name)
         if include_libraries:
@@ -69,7 +70,7 @@ class SpecFileService(FileSystemService):
         return file
 
     @staticmethod
-    def get_data(workflow_spec: ProcessModelInfo, file_name: str):
+    def get_data(workflow_spec: ProcessModelInfo, file_name: str) -> bytes:
         """Get_data."""
         file_path = SpecFileService.file_path(workflow_spec, file_name)
         if not os.path.exists(file_path):
@@ -89,24 +90,24 @@ class SpecFileService(FileSystemService):
         return spec_file_data
 
     @staticmethod
-    def file_path(spec: ProcessModelInfo, file_name: str):
+    def file_path(spec: ProcessModelInfo, file_name: str) -> str:
         """File_path."""
         return os.path.join(SpecFileService.workflow_path(spec), file_name)
 
     @staticmethod
-    def last_modified(spec: ProcessModelInfo, file_name: str):
+    def last_modified(spec: ProcessModelInfo, file_name: str) -> datetime:
         """Last_modified."""
         path = SpecFileService.file_path(spec, file_name)
         return FileSystemService._last_modified(path)
 
     @staticmethod
-    def timestamp(spec: ProcessModelInfo, file_name: str):
+    def timestamp(spec: ProcessModelInfo, file_name: str) -> float:
         """Timestamp."""
         path = SpecFileService.file_path(spec, file_name)
         return FileSystemService._timestamp(path)
 
     @staticmethod
-    def delete_file(spec, file_name):
+    def delete_file(spec: ProcessModelInfo, file_name: str) -> None:
         """Delete_file."""
         # Fixme: Remember to remove the lookup files when the spec file is removed.
         # lookup_files = session.query(LookupFileModel).filter_by(file_model_id=file_id).all()
@@ -117,7 +118,7 @@ class SpecFileService(FileSystemService):
         os.remove(file_path)
 
     @staticmethod
-    def delete_all_files(spec):
+    def delete_all_files(spec: ProcessModelInfo) -> None:
         """Delete_all_files."""
         dir_path = SpecFileService.workflow_path(spec)
         if os.path.exists(dir_path):
