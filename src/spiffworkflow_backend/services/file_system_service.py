@@ -1,5 +1,4 @@
 """File_system_service."""
-from _typeshed import ReadableBuffer
 from datetime import datetime
 import os
 from typing import List
@@ -87,7 +86,7 @@ class FileSystemService:
             return 0
 
     @staticmethod
-    def write_file_data_to_system(file_path: str, file_data: ReadableBuffer):
+    def write_file_data_to_system(file_path: str, file_data):
         """Write_file_data_to_system."""
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
         with open(file_path, "wb") as f_handle:
