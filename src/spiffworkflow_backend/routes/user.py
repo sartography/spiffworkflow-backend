@@ -82,6 +82,6 @@ def verify_token(token=None):
         return token_info
 
 
-def _is_production():
+def _is_production() -> bool:
     """_is_production."""
     return "PRODUCTION" in current_app.config and current_app.config["PRODUCTION"]

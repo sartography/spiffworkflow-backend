@@ -93,7 +93,7 @@ class FileSystemService:
             f_handle.write(file_data)
 
     @staticmethod
-    def get_extension(file_name):
+    def get_extension(file_name) -> str:
         """Get_extension."""
         _, file_extension = os.path.splitext(file_name)
         return file_extension.lower().strip()[1:]

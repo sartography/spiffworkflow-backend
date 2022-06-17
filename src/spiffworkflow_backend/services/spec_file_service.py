@@ -2,7 +2,7 @@
 import os
 import shutil
 from datetime import datetime
-from typing import List
+from typing import List, Union
 
 from flask_bpmn.api.api_error import ApiError
 from lxml import etree  # type: ignore
@@ -126,8 +126,8 @@ class SpecFileService(FileSystemService):
 
     @staticmethod
     def set_primary_bpmn(
-        workflow_spec: ProcessModelInfo, file_name: str, binary_data=None
-    ):
+            workflow_spec: ProcessModelInfo, file_name: str, binary_data: Union[bytes, None] = None
+    ) -> None:
         """Set_primary_bpmn."""
         # If this is a BPMN, extract the process id, and determine if it is contains swim lanes.
         extension = SpecFileService.get_extension(file_name)
@@ -166,7 +166,7 @@ class SpecFileService(FileSystemService):
             )
 
     @staticmethod
-    def has_swimlane(et_root: EtreeElement):
+    def has_swimlane(et_root: EtreeElement) -> bool:
         """Look through XML and determine if there are any lanes present that have a label."""
         elements = et_root.xpath(
             "//bpmn:lane",
@@ -179,7 +179,7 @@ class SpecFileService(FileSystemService):
         return retval
 
     @staticmethod
-    def get_process_id(et_root: EtreeElement):
+    def get_process_id(et_root: EtreeElement) -> str:
         """Get_process_id."""
         process_elements = []
         for child in et_root:
@@ -199,10 +199,11 @@ class SpecFileService(FileSystemService):
                 this_element: EtreeElement = e
                 for child_element in list(this_element):
                     if child_element.tag.endswith("startEvent"):
-                        return this_element.attrib["id"]
+                        # coorce Any to string
+                        return str(this_element.attrib["id"])
 
             raise ValidationException(
                 "No start event found in %s" % et_root.attrib["id"]
             )
 
-        return process_elements[0].attrib["id"]
+        return str(process_elements[0].attrib["id"])

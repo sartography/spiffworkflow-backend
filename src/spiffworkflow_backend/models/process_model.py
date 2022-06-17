@@ -22,7 +22,7 @@ class ProcessModelInfo:
     library: Optional[bool] = False
     primary_file_name: Optional[str] = ""
     primary_process_id: Optional[str] = ""
-    libraries: Optional[list[str]] = field(default_factory=list)
+    libraries: list[str] = field(default_factory=list)
     process_group_id: Optional[str] = ""
     display_order: Optional[int] = 0
     is_review: Optional[bool] = False
