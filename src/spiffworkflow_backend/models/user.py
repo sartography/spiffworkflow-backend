@@ -1,4 +1,5 @@
 """User."""
+from typing import Optional
 import jwt
 import marshmallow
 from flask import current_app
@@ -28,11 +29,15 @@ class UserModel(db.Model):  # type: ignore
         overlaps="user_group_assignments,users",
     )
 
-    def encode_auth_token(self):
-        """Generates the Auth Token.
+    def encode_auth_token(self) -> str:
+        """Generate the Auth Token.
 
         :return: string
         """
+        secret_key = current_app.config.get("SECRET_KEY")
+        if secret_key is None:
+            raise KeyError("we need current_app.config to have a SECRET_KEY")
+
         # hours = float(app.config['TOKEN_AUTH_TTL_HOURS'])
         payload = {
             # 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=hours, minutes=0, seconds=0),
@@ -41,24 +46,28 @@ class UserModel(db.Model):  # type: ignore
         }
         return jwt.encode(
             payload,
-            current_app.config.get("SECRET_KEY"),
+            secret_key,
             algorithm="HS256",
         )
 
-    def is_admin(self):
+    def is_admin(self) -> bool:
         """Is_admin."""
         return True
 
     @staticmethod
-    def decode_auth_token(auth_token):
-        """Decodes the auth token.
+    def decode_auth_token(auth_token: str) -> dict[str, Optional[str]]:
+        """Decode the auth token.
 
         :param auth_token:
         :return: integer|string
         """
+        secret_key = current_app.config.get("SECRET_KEY")
+        if secret_key is None:
+            raise KeyError("we need current_app.config to have a SECRET_KEY")
+
         try:
             payload = jwt.decode(
-                auth_token, current_app.config.get("SECRET_KEY"), algorithms="HS256"
+                auth_token, secret_key, algorithms="HS256"
             )
             return payload
         except jwt.ExpiredSignatureError as exception:

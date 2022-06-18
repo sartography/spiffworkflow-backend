@@ -12,7 +12,7 @@ from spiffworkflow_backend.models.user import UserModel
 
 
 def verify_token(token=None):
-    """Verifies the token for the user (if provided).
+    """Verify the token for the user (if provided).
 
     If in production environment and token is not provided, gets user from the SSO headers and returns their token.
 
