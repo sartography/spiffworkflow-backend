@@ -274,6 +274,46 @@ def process_instance_list(process_model_id, page=1, per_page=100):
     return Response(json.dumps(response_json), status=200, mimetype="application/json")
 
 
+def process_instance_report(process_model_id, page=1, per_page=100):
+    """Process_instance_list."""
+    process_model = ProcessModelService().get_process_model(process_model_id)
+    if process_model is None:
+        raise (
+            ApiError(
+                code="process_mode_cannot_be_found",
+                message=f"Process model cannot be found: {process_model_id}",
+                status_code=400,
+            )
+        )
+
+    process_instances = (
+        ProcessInstanceModel.query.filter_by(process_model_identifier=process_model.id)
+        .order_by(
+            ProcessInstanceModel.start_in_seconds.desc(), ProcessInstanceModel.id.desc()
+        )
+        .paginate(page, per_page, False)
+    )
+
+    serialized_results = []
+    for process_instance in process_instances.items:
+        process_instance_serialized = process_instance.serialized
+        process_instance_serialized["process_group_id"] = process_model.process_group_id
+        processor = ProcessInstanceProcessor(process_instance)
+        process_instance_data = processor.get_data()
+        process_instance_serialized["data"] = process_instance_data
+        serialized_results.append(process_instance_serialized)
+
+    response_json = {
+        "results": serialized_results,
+        "pagination": {
+            "count": len(process_instances.items),
+            "total": process_instances.total,
+            "pages": process_instances.pages,
+        },
+    }
+    return Response(json.dumps(response_json), status=200, mimetype="application/json")
+
+
 def get_file_from_request():
     """Get_file_from_request."""
     request_file = connexion.request.files.get("file")

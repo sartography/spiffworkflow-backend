@@ -651,6 +651,47 @@ def test_process_instance_list_with_paginated_items(
     assert response.json["pagination"]["total"] == 5
 
 
+def test_process_instance_report_with_default_list(
+    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+) -> None:
+    """Test_process_instance_report_with_default_list."""
+    db.session.query(ProcessInstanceModel).delete()
+    db.session.commit()
+
+    test_process_group_id = "runs_without_input"
+    process_model_dir_name = "sample"
+    user = find_or_create_user()
+    headers = logged_in_headers(user)
+    create_process_instance(
+        app, client, test_process_group_id, process_model_dir_name, headers
+    )
+
+    response = client.get(
+        f"/v1.0/process-models/{process_model_dir_name}/process-instances/report",
+        headers=logged_in_headers(user),
+    )
+    assert response.status_code == 200
+    assert len(response.json["results"]) == 1
+    assert response.json["pagination"]["count"] == 1
+    assert response.json["pagination"]["pages"] == 1
+    assert response.json["pagination"]["total"] == 1
+
+    process_instance_dict = response.json["results"][0]
+    assert type(process_instance_dict["id"]) is int
+    assert process_instance_dict["process_model_identifier"] == process_model_dir_name
+    assert process_instance_dict["process_group_id"] == test_process_group_id
+    assert type(process_instance_dict["start_in_seconds"]) is int
+    assert process_instance_dict["start_in_seconds"] > 0
+    assert type(process_instance_dict["end_in_seconds"]) is int
+    assert process_instance_dict["end_in_seconds"] > 0
+    assert (
+        process_instance_dict["start_in_seconds"]
+        <= process_instance_dict["end_in_seconds"]
+    )
+    assert process_instance_dict["status"] == "complete"
+    assert process_instance_dict["data"]['Mike'] == "Awesome"
+
+
 def create_process_instance(
     app: Flask,
     client: FlaskClient,

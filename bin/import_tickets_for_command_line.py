@@ -15,7 +15,7 @@ from flask import current_app
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 
 
-def print_process_instance_count(process_model_identifier_ticket: str):
+def print_process_instance_count(process_model_identifier_ticket: str) -> None:
     """Print process instance count."""
     process_instances = ProcessInstanceModel.query.filter_by(process_model_identifier=process_model_identifier_ticket).all()
     process_instance_count = len(process_instances)
@@ -27,9 +27,9 @@ def main():
     os.environ["FLASK_ENV"] = "development"
     os.environ["FLASK_SESSION_SECRET_KEY"] = "whatevs"
     app = create_app()
-    process_model_identifier_ticket = "ticket"
     with app.app_context():
 
+        process_model_identifier_ticket = "ticket"
         bpmn_spec_dir = current_app.config["BPMN_SPEC_ABSOLUTE_DIR"]
         print(f"bpmn_spec_dir: {bpmn_spec_dir}")
         db.session.query(ProcessInstanceModel).filter(ProcessInstanceModel.process_model_identifier == process_model_identifier_ticket).delete()
@@ -41,7 +41,7 @@ def main():
 
         user = UserModel.query.filter_by(username='test_user1').first()
 
-        with open("tickets.csv") as infile:
+        with open("tests/files/tickets.csv") as infile:
             reader = csv.reader(infile, delimiter=",")
             header = next(reader)
             for column_name in columns_to_data_key_mappings:
