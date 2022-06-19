@@ -67,7 +67,7 @@ class UserModel(db.Model):  # type: ignore
 
         try:
             payload = jwt.decode(
-                auth_token, secret_key, algorithms="HS256"
+                auth_token, secret_key, algorithms=["HS256"]
             )
             return payload
         except jwt.ExpiredSignatureError as exception:
