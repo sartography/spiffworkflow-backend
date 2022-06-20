@@ -689,7 +689,7 @@ def test_process_instance_report_with_default_list(
         <= process_instance_dict["end_in_seconds"]
     )
     assert process_instance_dict["status"] == "complete"
-    assert process_instance_dict["data"]['Mike'] == "Awesome"
+    assert process_instance_dict["data"]["Mike"] == "Awesome"
 
 
 def create_process_instance(

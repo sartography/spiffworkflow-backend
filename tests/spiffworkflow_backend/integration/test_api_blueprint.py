@@ -1,5 +1,4 @@
 """Test Api Blueprint."""
-
 # TODO: possibly get this test working again
 # import json
 # from typing import Union

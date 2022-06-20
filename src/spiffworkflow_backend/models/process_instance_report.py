@@ -1,5 +1,4 @@
 """Process_instance."""
-
 from flask_bpmn.models.db import db
 from sqlalchemy import ForeignKey
 from sqlalchemy import func

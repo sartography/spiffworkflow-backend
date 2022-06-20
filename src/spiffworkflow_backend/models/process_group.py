@@ -1,11 +1,11 @@
 """Process_group."""
-import marshmallow
-from marshmallow import post_load
-from marshmallow import Schema
-
 from dataclasses import dataclass
 from dataclasses import field
 from typing import Optional
+
+import marshmallow
+from marshmallow import post_load
+from marshmallow import Schema
 
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 

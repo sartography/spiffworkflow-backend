@@ -28,7 +28,9 @@ class ProcessInstanceService:
     TASK_STATE_LOCKED = "locked"
 
     @staticmethod
-    def create_process_instance(process_model_identifier, user, process_group_identifier=None):
+    def create_process_instance(
+        process_model_identifier, user, process_group_identifier=None
+    ):
         """Get_process_instance_from_spec."""
         process_instance_model = ProcessInstanceModel(
             status=ProcessInstanceStatus.not_started,

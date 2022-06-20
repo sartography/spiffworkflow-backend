@@ -1,5 +1,6 @@
 """User."""
 from typing import Optional
+
 import jwt
 import marshmallow
 from flask import current_app
@@ -66,9 +67,7 @@ class UserModel(db.Model):  # type: ignore
             raise KeyError("we need current_app.config to have a SECRET_KEY")
 
         try:
-            payload = jwt.decode(
-                auth_token, secret_key, algorithms=["HS256"]
-            )
+            payload = jwt.decode(auth_token, secret_key, algorithms=["HS256"])
             return payload
         except jwt.ExpiredSignatureError as exception:
             raise ApiError(

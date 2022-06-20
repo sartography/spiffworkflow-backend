@@ -2,7 +2,8 @@
 import os
 import shutil
 from datetime import datetime
-from typing import List, Union
+from typing import List
+from typing import Union
 
 from flask_bpmn.api.api_error import ApiError
 from lxml import etree  # type: ignore
@@ -126,7 +127,9 @@ class SpecFileService(FileSystemService):
 
     @staticmethod
     def set_primary_bpmn(
-            workflow_spec: ProcessModelInfo, file_name: str, binary_data: Union[bytes, None] = None
+        workflow_spec: ProcessModelInfo,
+        file_name: str,
+        binary_data: Union[bytes, None] = None,
     ) -> None:
         """Set_primary_bpmn."""
         # If this is a BPMN, extract the process id, and determine if it is contains swim lanes.
