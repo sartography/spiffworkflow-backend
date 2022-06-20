@@ -24,15 +24,17 @@ process_instance_count = len(process_instances)
 print(f"process_instance_count: {process_instance_count}")
 
 process_model = ProcessModelService().get_process_model(process_model_identifier_ticket)
-columns_to_data_key_mappings = {"Month": "month", "MS": "milestone", "ID": "req_id", "Dev Days": "dev_days"}
+columns_to_data_key_mappings = {"Month": "month", "MS": "milestone", "ID": "req_id", "Dev Days": "dev_days", "Feature": "feature", "Priority": "priority"}
 columns_to_header_index_mappings = {}
 
 user = UserModel.query.filter_by(username='test_user1').first()
 
-a = 1
-with open("tickets.csv") as infile:
-    b = 2
+with open("tests/files/tickets.csv") as infile:
     reader = csv.reader(infile, delimiter=",")
+
+    # first row is garbage
+    next(reader)
+
     header = next(reader)
     for column_name in columns_to_data_key_mappings:
         columns_to_header_index_mappings[column_name] = header.index(column_name)
@@ -51,15 +53,21 @@ with open("tickets.csv") as infile:
         processor = ProcessInstanceProcessor(process_instance)
 
         processor.do_engine_steps()
-        processor.save()
+        # processor.save()
 
         for column_name, desired_data_key in columns_to_data_key_mappings.items():
             appropriate_index = columns_to_header_index_mappings[column_name]
             print(f"appropriate_index: {appropriate_index}")
             processor.bpmn_process_instance.data[desired_data_key] = row[appropriate_index]
+
+        # you at least need a month, or else this row in the csv is considered garbage
+        month_value = processor.bpmn_process_instance.data["month"]
+        if month_value == "" or month_value is None:
+            db.delete(process_instance)
+            db.session.commit()
+            continue
+
         processor.save()
 
         process_instance_data = processor.get_data()
         print(f"process_instance_data: {process_instance_data}")
-
-print(f"columns_to_header_index_mappings: {columns_to_header_index_mappings}")

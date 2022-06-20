@@ -30,19 +30,26 @@ def main():
     with app.app_context():
 
         process_model_identifier_ticket = "ticket"
-        bpmn_spec_dir = current_app.config["BPMN_SPEC_ABSOLUTE_DIR"]
-        print(f"bpmn_spec_dir: {bpmn_spec_dir}")
         db.session.query(ProcessInstanceModel).filter(ProcessInstanceModel.process_model_identifier == process_model_identifier_ticket).delete()
         db.session.commit()
-        print_process_instance_count(process_model_identifier_ticket)
+
+        """Print process instance count."""
+        process_instances = ProcessInstanceModel.query.filter_by(process_model_identifier=process_model_identifier_ticket).all()
+        process_instance_count = len(process_instances)
+        print(f"process_instance_count: {process_instance_count}")
+
         process_model = ProcessModelService().get_process_model(process_model_identifier_ticket)
-        columns_to_data_key_mappings = {"Month": "month", "MS": "milestone", "ID": "req_id", "Dev Days": "dev_days"}
+        columns_to_data_key_mappings = {"Month": "month", "MS": "milestone", "ID": "req_id", "Dev Days": "dev_days", "Feature": "feature", "Priority": "priority"}
         columns_to_header_index_mappings = {}
 
         user = UserModel.query.filter_by(username='test_user1').first()
 
         with open("tests/files/tickets.csv") as infile:
             reader = csv.reader(infile, delimiter=",")
+
+            # first row is garbage
+            next(reader)
+
             header = next(reader)
             for column_name in columns_to_data_key_mappings:
                 columns_to_header_index_mappings[column_name] = header.index(column_name)
@@ -61,19 +68,22 @@ def main():
                 processor = ProcessInstanceProcessor(process_instance)
 
                 processor.do_engine_steps()
-                processor.save()
+                # processor.save()
 
                 for column_name, desired_data_key in columns_to_data_key_mappings.items():
                     appropriate_index = columns_to_header_index_mappings[column_name]
-                    print(f"appropriate_index: {appropriate_index}")
                     processor.bpmn_process_instance.data[desired_data_key] = row[appropriate_index]
+
+                print(f"datas: {processor.bpmn_process_instance.data}")
+                if processor.bpmn_process_instance.data["month"] == "":
+                    continue
+
+                # you at least need a month, or else this row in the csv is considered garbage
+                # if processor.bpmn_process_instance.data["month"] is None:
+                #     continue
+
                 processor.save()
 
-                process_instance_data = processor.get_data()
-                print(f"process_instance_data: {process_instance_data}")
-
-        print(f"columns_to_header_index_mappings: {columns_to_header_index_mappings}")
-        print_process_instance_count(process_model_identifier_ticket)
 
 
 # if __name__ == "__main__":
