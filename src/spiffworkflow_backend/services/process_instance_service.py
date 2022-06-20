@@ -28,12 +28,13 @@ class ProcessInstanceService:
     TASK_STATE_LOCKED = "locked"
 
     @staticmethod
-    def create_process_instance(process_model_identifier, user):
+    def create_process_instance(process_model_identifier, user, process_group_identifier=None):
         """Get_process_instance_from_spec."""
         process_instance_model = ProcessInstanceModel(
             status=ProcessInstanceStatus.not_started,
             process_initiator=user,
             process_model_identifier=process_model_identifier,
+            process_group_identifier=process_group_identifier,
             last_updated=datetime.now(),
             start_in_seconds=time.time(),
         )
@@ -61,6 +62,7 @@ class ProcessInstanceService:
             next_task=None,
             # navigation=navigation,
             process_model_identifier=processor.process_model_identifier,
+            process_group_identifier=processor.process_group_identifier,
             total_tasks=len(navigation),
             completed_tasks=processor.process_instance_model.completed_tasks,
             last_updated=processor.process_instance_model.last_updated,

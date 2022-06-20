@@ -38,7 +38,7 @@ def main():
         process_instance_count = len(process_instances)
         print(f"process_instance_count: {process_instance_count}")
 
-        process_model = ProcessModelService().get_process_model(process_model_identifier_ticket)
+        # process_model = ProcessModelService().get_process_model(process_model_identifier_ticket)
         columns_to_data_key_mappings = {"Month": "month", "MS": "milestone", "ID": "req_id", "Dev Days": "dev_days", "Feature": "feature", "Priority": "priority"}
         columns_to_header_index_mappings = {}
 

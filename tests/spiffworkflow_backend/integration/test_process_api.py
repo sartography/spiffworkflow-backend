@@ -376,7 +376,7 @@ def test_process_model_file_update_fails_if_no_file_given(
     data = {"key1": "THIS DATA"}
     user = find_or_create_user()
     response = client.put(
-        "/v1.0/process-models/%s/file/random_fact.svg" % spec.id,
+        f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/file/random_fact.svg",
         data=data,
         follow_redirects=True,
         content_type="multipart/form-data",
@@ -397,7 +397,7 @@ def test_process_model_file_update_fails_if_contents_is_empty(
     data = {"file": (io.BytesIO(b""), "random_fact.svg")}
     user = find_or_create_user()
     response = client.put(
-        "/v1.0/process-models/%s/file/random_fact.svg" % spec.id,
+        f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/file/random_fact.svg",
         data=data,
         follow_redirects=True,
         content_type="multipart/form-data",
@@ -419,7 +419,7 @@ def test_process_model_file_update(
     data = {"file": (io.BytesIO(new_file_contents), "random_fact.svg")}
     user = find_or_create_user()
     response = client.put(
-        "/v1.0/process-models/%s/file/random_fact.svg" % spec.id,
+        f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/file/random_fact.svg",
         data=data,
         follow_redirects=True,
         content_type="multipart/form-data",
@@ -430,7 +430,7 @@ def test_process_model_file_update(
     assert response.json["ok"]
 
     response = client.get(
-        f"/v1.0/process-models/{spec.id}/file/random_fact.svg",
+        f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/file/random_fact.svg",
         headers=logged_in_headers(user),
     )
     assert response.status_code == 200
@@ -448,7 +448,7 @@ def test_get_file(
     process_model_dir_name = "hello_world"
     load_test_spec(app, process_model_dir_name, process_group_id=test_process_group_id)
     response = client.get(
-        f"/v1.0/process-models/{process_model_dir_name}/file/hello_world.bpmn",
+        f"/v1.0/process-models/{test_process_group_id}/{process_model_dir_name}/file/hello_world.bpmn",
         headers=logged_in_headers(user),
     )
     assert response.status_code == 200
@@ -579,7 +579,7 @@ def test_process_instance_list_with_default_list(
     )
 
     response = client.get(
-        f"/v1.0/process-models/{process_model_dir_name}/process-instances",
+        f"/v1.0/process-models/{test_process_group_id}/{process_model_dir_name}/process-instances",
         headers=logged_in_headers(user),
     )
     assert response.status_code == 200
@@ -631,7 +631,7 @@ def test_process_instance_list_with_paginated_items(
     )
 
     response = client.get(
-        f"/v1.0/process-models/{process_model_dir_name}/process-instances?per_page=2&page=3",
+        f"/v1.0/process-models/{test_process_group_id}/{process_model_dir_name}/process-instances?per_page=2&page=3",
         headers=logged_in_headers(user),
     )
     assert response.status_code == 200
@@ -641,7 +641,7 @@ def test_process_instance_list_with_paginated_items(
     assert response.json["pagination"]["total"] == 5
 
     response = client.get(
-        f"/v1.0/process-models/{process_model_dir_name}/process-instances?per_page=2&page=1",
+        f"/v1.0/process-models/{test_process_group_id}/{process_model_dir_name}/process-instances?per_page=2&page=1",
         headers=logged_in_headers(user),
     )
     assert response.status_code == 200
@@ -667,7 +667,7 @@ def test_process_instance_report_with_default_list(
     )
 
     response = client.get(
-        f"/v1.0/process-models/{process_model_dir_name}/process-instances/report",
+        f"/v1.0/process-models/{test_process_group_id}/{process_model_dir_name}/process-instances/report",
         headers=logged_in_headers(user),
     )
     assert response.status_code == 200
@@ -766,13 +766,12 @@ def create_spec_file(
     data = {"file": (io.BytesIO(b"abcdef"), "random_fact.svg")}
     user = find_or_create_user()
     response = client.post(
-        "/v1.0/process-models/%s/file" % spec.id,
+        f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/file",
         data=data,
         follow_redirects=True,
         content_type="multipart/form-data",
         headers=logged_in_headers(user),
     )
-
     assert response.status_code == 201
     assert response.get_data() is not None
     file = json.loads(response.get_data(as_text=True))
@@ -780,7 +779,7 @@ def create_spec_file(
     assert "image/svg+xml" == file["content_type"]
 
     response = client.get(
-        f"/v1.0/process-models/{spec.id}/file/random_fact.svg",
+        f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/file/random_fact.svg",
         headers=logged_in_headers(user),
     )
     assert response.status_code == 200

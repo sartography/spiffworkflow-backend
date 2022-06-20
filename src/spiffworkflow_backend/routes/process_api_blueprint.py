@@ -158,9 +158,9 @@ def process_model_list(process_group_id, page=1, per_page=100):
     return Response(json.dumps(response_json), status=200, mimetype="application/json")
 
 
-def get_file(process_model_id, file_name):
+def get_file(process_group_id, process_model_id, file_name):
     """Get_file."""
-    process_model = ProcessModelService().get_process_model(process_model_id)
+    process_model = ProcessModelService().get_process_model(process_model_id, group_id=process_group_id)
     files = SpecFileService.get_files(process_model, file_name)
     if len(files) == 0:
         raise ApiError(
@@ -178,9 +178,9 @@ def get_file(process_model_id, file_name):
     return FileSchema().dump(file)
 
 
-def process_model_file_update(process_model_id, file_name):
+def process_model_file_update(process_group_id, process_model_id, file_name):
     """Process_model_file_save."""
-    process_model = ProcessModelService().get_process_model(process_model_id)
+    process_model = ProcessModelService().get_process_model(process_model_id, group_id=process_group_id)
 
     request_file = get_file_from_request()
     request_file_contents = request_file.stream.read()
@@ -195,10 +195,10 @@ def process_model_file_update(process_model_id, file_name):
     return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
 
 
-def add_file(process_model_id):
+def add_file(process_group_id, process_model_id):
     """Add_file."""
     process_model_service = ProcessModelService()
-    process_model = process_model_service.get_process_model(process_model_id)
+    process_model = process_model_service.get_process_model(process_model_id, group_id=process_group_id)
     request_file = get_file_from_request()
     file = SpecFileService.add_file(
         process_model, request_file.filename, request_file.stream.read()
@@ -218,7 +218,7 @@ def add_file(process_model_id):
 def process_instance_create(process_group_id, process_model_id):
     """Create_process_instance."""
     process_instance = ProcessInstanceService.create_process_instance(
-        process_model_id, g.user
+        process_model_id, g.user, process_group_identifier=process_group_id
     )
     processor = ProcessInstanceProcessor(process_instance)
 
@@ -237,9 +237,9 @@ def process_instance_create(process_group_id, process_model_id):
     )
 
 
-def process_instance_list(process_model_id, page=1, per_page=100):
+def process_instance_list(process_group_id, process_model_id, page=1, per_page=100):
     """Process_instance_list."""
-    process_model = ProcessModelService().get_process_model(process_model_id)
+    process_model = ProcessModelService().get_process_model(process_model_id, group_id=process_group_id)
     if process_model is None:
         raise (
             ApiError(
@@ -274,9 +274,9 @@ def process_instance_list(process_model_id, page=1, per_page=100):
     return Response(json.dumps(response_json), status=200, mimetype="application/json")
 
 
-def process_instance_report(process_model_id, page=1, per_page=100):
+def process_instance_report(process_group_id, process_model_id, page=1, per_page=100):
     """Process_instance_list."""
-    process_model = ProcessModelService().get_process_model(process_model_id)
+    process_model = ProcessModelService().get_process_model(process_model_id, group_id=process_group_id)
     if process_model is None:
         raise (
             ApiError(

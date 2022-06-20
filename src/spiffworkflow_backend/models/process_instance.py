@@ -77,6 +77,7 @@ class ProcessInstanceModel(db.Model):  # type: ignore
     __tablename__ = "process_instance"
     id = db.Column(db.Integer, primary_key=True)
     process_model_identifier = db.Column(db.String(50), nullable=False, index=True)
+    process_group_identifier = db.Column(db.String(50), nullable=False, index=True)
     bpmn_json = deferred(db.Column(db.JSON))
     start_in_seconds = db.Column(db.Integer)
     end_in_seconds = db.Column(db.Integer)
@@ -91,6 +92,7 @@ class ProcessInstanceModel(db.Model):  # type: ignore
         return {
             "id": self.id,
             "process_model_identifier": self.process_model_identifier,
+            "process_group_identifier": self.process_group_identifier,
             "status": self.status.value,
             "bpmn_json": self.bpmn_json,
             "start_in_seconds": self.start_in_seconds,
@@ -108,6 +110,7 @@ class ProcessInstanceApi:
         status,
         next_task,
         process_model_identifier,
+        process_group_identifier,
         total_tasks,
         completed_tasks,
         last_updated,
@@ -120,6 +123,7 @@ class ProcessInstanceApi:
         self.next_task = next_task  # The next task that requires user input.
         #        self.navigation = navigation  fixme:  would be a hotness.
         self.process_model_identifier = process_model_identifier
+        self.process_group_identifier = process_group_identifier
         self.total_tasks = total_tasks
         self.completed_tasks = completed_tasks
         self.last_updated = last_updated
@@ -140,6 +144,7 @@ class ProcessInstanceApiSchema(Schema):
             "next_task",
             "navigation",
             "process_model_identifier",
+            "process_group_identifier",
             "total_tasks",
             "completed_tasks",
             "last_updated",
@@ -166,6 +171,7 @@ class ProcessInstanceApiSchema(Schema):
             "next_task",
             "navigation",
             "process_model_identifier",
+            "process_group_identifier",
             "total_tasks",
             "completed_tasks",
             "last_updated",
