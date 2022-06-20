@@ -1,10 +1,8 @@
+"""Import tickets, for use in script task."""
 import csv
-import os
 
-from flask import current_app
 from flask_bpmn.models.db import db
 
-from spiffworkflow_backend import create_app
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.services.process_instance_processor import (

@@ -120,7 +120,7 @@ def process_model_update(process_group_id, process_model_id, body):
 def process_model_show(process_group_id, process_model_id):
     """Process_model_show."""
     process_model = ProcessModelService().get_process_model(
-        process_model_id, process_group_id
+        process_model_id, group_id=process_group_id
     )
     if process_model is None:
         raise (
@@ -285,7 +285,9 @@ def process_instance_list(process_group_id, process_model_id, page=1, per_page=1
 
 def process_instance_delete(process_group_id, process_model_id, process_instance_id):
     """Create_process_instance."""
-    process_instance = ProcessInstanceModel.query.filter_by(id=process_instance_id).first()
+    process_instance = ProcessInstanceModel.query.filter_by(
+        id=process_instance_id
+    ).first()
     if process_instance is None:
         raise (
             ApiError(
