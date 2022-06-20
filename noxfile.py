@@ -39,6 +39,8 @@ def setup_database(session: Session) -> None:
     session.env["FLASK_INSTANCE_PATH"] = os.path.join(
         os.getcwd(), "instance", "testing"
     )
+    flask_env_key = "FLASK_SESSION_SECRET_KEY"
+    session.env[flask_env_key] = "super_secret_key"
     session.env["FLASK_APP"] = "src/spiffworkflow_backend"
     session.env["FLASK_ENV"] = "testing"
     session.run("flask", "db", "upgrade")
