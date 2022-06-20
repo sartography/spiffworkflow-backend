@@ -6,6 +6,7 @@ from flask import Blueprint
 from flask import g
 from flask import Response
 from flask_bpmn.api.api_error import ApiError
+from flask_bpmn.models.db import db
 
 from spiffworkflow_backend.models.file import FileSchema
 from spiffworkflow_backend.models.file import FileType
@@ -251,7 +252,7 @@ def process_instance_list(process_group_id, process_model_id, page=1, per_page=1
     if process_model is None:
         raise (
             ApiError(
-                code="process_mode_cannot_be_found",
+                code="process_model_cannot_be_found",
                 message=f"Process model cannot be found: {process_model_id}",
                 status_code=400,
             )
@@ -280,6 +281,23 @@ def process_instance_list(process_group_id, process_model_id, page=1, per_page=1
         },
     }
     return Response(json.dumps(response_json), status=200, mimetype="application/json")
+
+
+def process_instance_delete(process_group_id, process_model_id, process_instance_id):
+    """Create_process_instance."""
+    process_instance = ProcessInstanceModel.query.filter_by(id=process_instance_id).first()
+    if process_instance is None:
+        raise (
+            ApiError(
+                code="process_instance_cannot_be_found",
+                message=f"Process instance cannot be found: {process_instance_id}",
+                status_code=400,
+            )
+        )
+
+    db.session.delete(process_instance)
+    db.session.commit()
+    return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
 
 
 def process_instance_report(process_group_id, process_model_id, page=1, per_page=100):
