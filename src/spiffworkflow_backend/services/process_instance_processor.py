@@ -341,11 +341,11 @@ class ProcessInstanceProcessor:
         self.process_instance_model.last_updated = datetime.utcnow()
 
         if self.process_instance_model.start_in_seconds is None:
-            self.process_instance_model.start_in_seconds = time.time()
+            self.process_instance_model.start_in_seconds = round(time.time())
 
         if self.process_instance_model.end_in_seconds is None:
             if self.bpmn_process_instance.is_completed():
-                self.process_instance_model.end_in_seconds = time.time()
+                self.process_instance_model.end_in_seconds = round(time.time())
 
         db.session.add(self.process_instance_model)
         db.session.commit()
