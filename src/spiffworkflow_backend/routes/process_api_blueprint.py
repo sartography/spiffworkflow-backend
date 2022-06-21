@@ -275,10 +275,10 @@ def process_instance_list(process_group_id, process_model_id,
 
     process_instances = (
         results
-            .order_by(
-                ProcessInstanceModel.start_in_seconds.desc(), ProcessInstanceModel.id.desc()
-            )
-            .paginate(page, per_page, False)
+        .order_by(
+            ProcessInstanceModel.start_in_seconds.desc(), ProcessInstanceModel.id.desc()
+        )
+        .paginate(page, per_page, False)
     )
 
     serialized_results = []

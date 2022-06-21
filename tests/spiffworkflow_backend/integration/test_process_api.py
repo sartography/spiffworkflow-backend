@@ -656,6 +656,7 @@ def test_process_instance_list_with_paginated_items(
 def test_process_instance_list_filter(
         app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
+    """Test_process_instance_list_filter."""
     db.session.query(ProcessInstanceModel).delete()
     db.session.commit()
 
