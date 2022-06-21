@@ -46,7 +46,7 @@ def assure_process_group_exists(process_group_id: Optional[str] = None) -> Proce
 
 def load_test_spec(
     app: Flask,
-    dir_name: str,
+    process_model_id: str,
     display_name: None = None,
     master_spec: bool = False,
     process_group_id: Optional[str] = None,
@@ -61,15 +61,15 @@ def load_test_spec(
         process_group = assure_process_group_exists(process_group_id)
         process_group_id = process_group.id
     workflow_spec = workflow_spec_service.get_process_model(
-        dir_name, group_id=process_group_id
+        process_model_id, group_id=process_group_id
     )
     if workflow_spec:
         return workflow_spec
     else:
         if display_name is None:
-            display_name = dir_name
+            display_name = process_model_id
         spec = ExampleDataLoader().create_spec(
-            id=dir_name,
+            id=process_model_id,
             master_spec=master_spec,
             from_tests=True,
             display_name=display_name,
