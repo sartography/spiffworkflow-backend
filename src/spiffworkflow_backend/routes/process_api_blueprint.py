@@ -15,6 +15,7 @@ from spiffworkflow_backend.models.process_group import ProcessGroupSchema
 from spiffworkflow_backend.models.process_instance import ProcessInstanceApiSchema
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
+from spiffworkflow_backend.services.error_handling_service import ErrorHandlingService
 from spiffworkflow_backend.services.process_instance_processor import (
     ProcessInstanceProcessor,
 )
@@ -229,7 +230,10 @@ def process_instance_create(process_group_id, process_model_id):
     )
     processor = ProcessInstanceProcessor(process_instance)
 
-    processor.do_engine_steps()
+    try:
+        processor.do_engine_steps()
+    except Exception as e:
+        ErrorHandlingService().handle_error(processor, e)
     processor.save()
     # ProcessInstanceService.update_task_assignments(processor)
 
