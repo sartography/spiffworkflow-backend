@@ -52,7 +52,7 @@ def load_test_spec(
     process_group_id: Optional[str] = None,
     library: bool = False,
 ) -> ProcessModelInfo:
-    """Loads a spec into the database based on a directory in /tests/data."""
+    """Loads a process model into the bpmn dir based on a directory in tests/data."""
     process_group = None
     workflow_spec_service = ProcessModelService()
     if process_group_id is None:
@@ -60,7 +60,9 @@ def load_test_spec(
     if not master_spec and not library:
         process_group = assure_process_group_exists(process_group_id)
         process_group_id = process_group.id
-    workflow_spec = workflow_spec_service.get_process_model(dir_name)
+    workflow_spec = workflow_spec_service.get_process_model(
+        dir_name, group_id=process_group_id
+    )
     if workflow_spec:
         return workflow_spec
     else:
