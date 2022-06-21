@@ -13,7 +13,7 @@ def test_files_can_be_sorted() -> None:
     assert sorted(mylist) == [asia, europe, africa, oceania]
 
 
-def create_test_file(type: str, name: str):
+def create_test_file(type: str, name: str) -> File:
     """Create_test_file."""
     return File(
         type=type,
@@ -21,5 +21,5 @@ def create_test_file(type: str, name: str):
         content_type=type,
         document={},
         last_modified="Tuesday",
-        size="1",
+        size=1,
     )

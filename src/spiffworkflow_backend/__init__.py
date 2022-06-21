@@ -8,6 +8,7 @@ from flask_bpmn.models.db import db
 from flask_bpmn.models.db import migrate
 from flask_cors import CORS  # type: ignore
 
+import spiffworkflow_backend.load_database_models  # noqa: F401
 from spiffworkflow_backend.config import setup_config
 from spiffworkflow_backend.routes.admin_blueprint.admin_blueprint import admin_blueprint
 from spiffworkflow_backend.routes.api_blueprint import api_blueprint

@@ -1,5 +1,6 @@
 """PermissionTarget."""
 from flask_bpmn.models.db import db
+from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from sqlalchemy.schema import CheckConstraint
 
 # from sqlalchemy import ForeignKey  # type: ignore
@@ -8,7 +9,7 @@ from sqlalchemy.schema import CheckConstraint
 # from spiffworkflow_backend.models.process_model import ProcessModel
 
 
-class PermissionTargetModel(db.Model):  # type: ignore
+class PermissionTargetModel(SpiffworkflowBaseDBModel):
     """PermissionTargetModel."""
 
     __tablename__ = "permission_target"
@@ -18,7 +19,7 @@ class PermissionTargetModel(db.Model):  # type: ignore
         ),
     )
 
-    id = db.Column(db.Integer, primary_key=True)
-    # process_group_id = db.Column(ForeignKey(ProcessGroupModel.id), nullable=True)
-    # process_model_identifier = db.Column(ForeignKey(ProcessModel.id), nullable=True)
-    # process_instance_id = db.Column(ForeignKey(ProcessInstanceModel.id), nullable=True)
+    id = db.Column(db.Integer, primary_key=True)  # type: ignore
+    # process_group_id = db.Column(ForeignKey(ProcessGroupModel.id), nullable=True)  # type: ignore
+    # process_model_identifier = db.Column(ForeignKey(ProcessModel.id), nullable=True)  # type: ignore
+    # process_instance_id = db.Column(ForeignKey(ProcessInstanceModel.id), nullable=True)  # type: ignore

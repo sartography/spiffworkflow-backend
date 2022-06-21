@@ -1,12 +1,16 @@
 """Process_model."""
+from __future__ import annotations
+
 import enum
 from dataclasses import dataclass
 from dataclasses import field
-from typing import Optional
+from typing import Any
 
 import marshmallow
-from marshmallow import post_load
 from marshmallow import Schema
+from marshmallow.decorators import post_load
+
+from spiffworkflow_backend.models.file import File
 
 
 class NotificationType(enum.Enum):
@@ -25,24 +29,24 @@ class ProcessModelInfo:
     id: str
     display_name: str
     description: str
-    is_master_spec: Optional[bool] = False
-    standalone: Optional[bool] = False
-    library: Optional[bool] = False
-    primary_file_name: Optional[str] = ""
-    primary_process_id: Optional[str] = ""
+    process_group_id: str = ""
+    is_master_spec: bool | None = False
+    standalone: bool | None = False
+    library: bool | None = False
+    primary_file_name: str | None = ""
+    primary_process_id: str | None = ""
     libraries: list[str] = field(default_factory=list)
-    process_group_id: Optional[str] = ""
-    display_order: Optional[int] = 0
-    is_review: Optional[bool] = False
-    files: Optional[list[str]] = field(default_factory=list)
+    display_order: int | None = 0
+    is_review: bool | None = False
+    files: list[File] | None = field(default_factory=list[File])
     fault_or_suspend_on_exception: NotificationType = NotificationType.suspend
     notification_email_on_exception: list[str] = field(default_factory=list)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """__post_init__."""
         self.sort_index = f"{self.process_group_id}:{self.id}"
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         """__eq__."""
         if not isinstance(other, ProcessModelInfo):
             return False
@@ -76,6 +80,6 @@ class ProcessModelInfoSchema(Schema):
     notification_email_on_exception = marshmallow.fields.List(marshmallow.fields.String)
 
     @post_load
-    def make_spec(self, data, **kwargs):
+    def make_spec(self, data: dict[str, str | bool | int], **_) -> ProcessModelInfo:
         """Make_spec."""
         return ProcessModelInfo(**data)

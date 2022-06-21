@@ -2,6 +2,7 @@
 import enum
 
 from flask_bpmn.models.db import db
+from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from sqlalchemy import Enum
 from sqlalchemy import ForeignKey
 
@@ -24,14 +25,14 @@ class Permission(enum.Enum):
     view_instance = 3
 
 
-class PermissionAssignmentModel(db.Model):  # type: ignore
+class PermissionAssignmentModel(SpiffworkflowBaseDBModel):
     """PermissionAssignmentModel."""
 
     __tablename__ = "permission_assignment"
-    id = db.Column(db.Integer, primary_key=True)
-    principal_id = db.Column(ForeignKey(PrincipalModel.id), nullable=False)
-    permission_target_id = db.Column(
+    id = db.Column(db.Integer, primary_key=True)  # type: ignore
+    principal_id = db.Column(ForeignKey(PrincipalModel.id), nullable=False)  # type: ignore
+    permission_target_id = db.Column(  # type: ignore
         ForeignKey(PermissionTargetModel.id), nullable=False
     )
-    grant_type = db.Column(Enum(GrantDeny))
-    permission = db.Column(Enum(Permission))
+    grant_type = db.Column(Enum(GrantDeny))  # type: ignore
+    permission = db.Column(Enum(Permission))  # type: ignore

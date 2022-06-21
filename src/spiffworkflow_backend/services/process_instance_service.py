@@ -1,13 +1,16 @@
 """Process_instance_service."""
 import time
-from datetime import datetime
+from typing import Any
+from typing import Dict
 from typing import List
+from typing import Optional
 
 from flask import current_app
 from flask_bpmn.models.db import db
 from SpiffWorkflow import NavItem  # type: ignore
 from SpiffWorkflow.bpmn.specs.ManualTask import ManualTask  # type: ignore
 from SpiffWorkflow.bpmn.specs.UserTask import UserTask  # type: ignore
+from SpiffWorkflow.task import Task  # type: ignore
 from SpiffWorkflow.util.deep_merge import DeepMerge  # type: ignore
 
 from spiffworkflow_backend.models.process_instance import ProcessInstanceApi
@@ -15,6 +18,7 @@ from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 from spiffworkflow_backend.models.process_instance import ProcessInstanceStatus
 from spiffworkflow_backend.models.task_event import TaskAction
 from spiffworkflow_backend.models.task_event import TaskEventModel
+from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.services.process_instance_processor import (
     ProcessInstanceProcessor,
 )
@@ -29,15 +33,16 @@ class ProcessInstanceService:
 
     @staticmethod
     def create_process_instance(
-        process_model_identifier, user, process_group_identifier=None
-    ):
+        process_model_identifier: str,
+        user: UserModel,
+        process_group_identifier: Optional[str] = None,
+    ) -> ProcessInstanceModel:
         """Get_process_instance_from_spec."""
         process_instance_model = ProcessInstanceModel(
             status=ProcessInstanceStatus.not_started,
             process_initiator=user,
             process_model_identifier=process_model_identifier,
             process_group_identifier=process_group_identifier,
-            last_updated=datetime.now(),
             start_in_seconds=round(time.time()),
         )
         db.session.add(process_instance_model)
@@ -46,8 +51,8 @@ class ProcessInstanceService:
 
     @staticmethod
     def processor_to_process_instance_api(
-        processor: ProcessInstanceProcessor, next_task=None
-    ):
+        processor: ProcessInstanceProcessor, next_task: None = None
+    ) -> ProcessInstanceApi:
         """Returns an API model representing the state of the current process_instance.
 
         If requested, and possible, next_task is set to the current_task.
@@ -67,7 +72,7 @@ class ProcessInstanceService:
             process_group_identifier=processor.process_group_identifier,
             total_tasks=len(navigation),
             completed_tasks=processor.process_instance_model.completed_tasks,
-            last_updated=processor.process_instance_model.last_updated,
+            updated_at_in_seconds=processor.process_instance_model.updated_at_in_seconds,
             is_review=process_model.is_review,
             title=process_model.display_name,
         )
@@ -121,7 +126,9 @@ class ProcessInstanceService:
             ProcessInstanceService.update_navigation(nav_item.children, processor)
 
     @staticmethod
-    def get_previously_submitted_data(process_instance_id, spiff_task):
+    def get_previously_submitted_data(
+        process_instance_id: int, spiff_task: Task
+    ) -> Dict[Any, Any]:
         """If the user has completed this task previously, find the form data for the last submission."""
         query = (
             db.session.query(TaskEventModel)

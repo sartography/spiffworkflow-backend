@@ -11,7 +11,7 @@ def test_initializes_files_as_empty_array() -> None:
     assert process_model_one.libraries == []
 
 
-def create_test_process_model(id: str, display_name: str):
+def create_test_process_model(id: str, display_name: str) -> ProcessModelInfo:
     """Create_test_process_model."""
     return ProcessModelInfo(
         id=id,

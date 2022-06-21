@@ -2,41 +2,42 @@
 import enum
 from dataclasses import dataclass
 from dataclasses import field
+from datetime import datetime
 from typing import Optional
 
 from flask_bpmn.models.db import db
+from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from marshmallow import INCLUDE
 from marshmallow import Schema
-from sqlalchemy import func
 from sqlalchemy.orm import deferred
 from sqlalchemy.orm import relationship
 
 from spiffworkflow_backend.models.data_store import DataStoreModel
 
 
-class FileModel(db.Model):
+class FileModel(SpiffworkflowBaseDBModel):
     """FileModel."""
 
     __tablename__ = "file"
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), nullable=False)
-    type = db.Column(db.String(50), nullable=False)
-    content_type = db.Column(db.String(50), nullable=False)
-    process_instance_id = db.Column(
-        db.Integer, db.ForeignKey("process_instance.id"), nullable=True
+    id = db.Column(db.Integer, primary_key=True)  # type: ignore
+    name = db.Column(db.String(50), nullable=False)  # type: ignore
+    type = db.Column(db.String(50), nullable=False)  # type: ignore
+    content_type = db.Column(db.String(50), nullable=False)  # type: ignore
+    process_instance_id = db.Column(  # type: ignore
+        db.Integer, db.ForeignKey("process_instance.id"), nullable=True  # type: ignore
     )
-    task_spec = db.Column(db.String(50), nullable=True)
-    irb_doc_code = db.Column(
-        db.String(50), nullable=False
+    task_spec = db.Column(db.String(50), nullable=True)  # type: ignore
+    irb_doc_code = db.Column(  # type: ignore
+        db.String(50), nullable=False  # type: ignore
     )  # Code reference to the documents.xlsx reference file.
     data_stores = relationship(DataStoreModel, cascade="all,delete", backref="file")
-    md5_hash = db.Column(db.String(50), unique=False, nullable=False)
-    data = deferred(db.Column(db.LargeBinary))  # Don't load it unless you have to.
-    size = db.Column(db.Integer, default=0)
-    date_modified = db.Column(db.DateTime(timezone=True), onupdate=func.now())
-    date_created = db.Column(db.DateTime(timezone=True), server_default=func.now())
-    user_uid = db.Column(db.String(50), db.ForeignKey("user.uid"), nullable=True)
-    archived = db.Column(db.Boolean, default=False)
+    md5_hash = db.Column(db.String(50), unique=False, nullable=False)  # type: ignore
+    data = deferred(db.Column(db.LargeBinary))  # type: ignore
+    size = db.Column(db.Integer, default=0)  # type: ignore
+    updated_at_in_seconds = db.Column(db.Integer)  # type: ignore
+    created_at_in_seconds = db.Column(db.Integer)  # type: ignore
+    user_uid = db.Column(db.String(50), db.ForeignKey("user.uid"), nullable=True)  # type: ignore
+    archived = db.Column(db.Boolean, default=False)  # type: ignore
 
 
 class FileType(enum.Enum):
@@ -98,7 +99,7 @@ class File:
     name: str
     type: str
     document: dict
-    last_modified: str
+    last_modified: datetime
     size: int
     process_instance_id: Optional[int] = None
     irb_doc_code: Optional[str] = None
@@ -109,14 +110,19 @@ class File:
     process_group_id: Optional[str] = None
     archived: bool = False
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """__post_init__."""
         self.sort_index = f"{self.type}:{self.name}"
 
     @classmethod
     def from_file_system(
-        cls, file_name, file_type, content_type, last_modified, file_size
-    ):
+        cls,
+        file_name: str,
+        file_type: FileType,
+        content_type: str,
+        last_modified: datetime,
+        file_size: int,
+    ) -> "File":
         """From_file_system."""
         instance = cls(
             name=file_name,

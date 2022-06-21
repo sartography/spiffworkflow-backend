@@ -84,20 +84,20 @@ class Task:
 
     def __init__(
         self,
-        id,
-        name,
-        title,
-        type,
-        state,
-        lane,
-        form,
-        documentation,
-        data,
-        multi_instance_type,
-        multi_instance_count,
-        multi_instance_index,
-        process_name,
-        properties,
+        id: str,
+        name: str,
+        title: str,
+        type: str,
+        state: str,
+        lane: str,
+        form: str,
+        documentation: str,
+        data: str,
+        multi_instance_type: str,
+        multi_instance_count: str,
+        multi_instance_index: str,
+        process_name: str,
+        properties: str,
     ):
         """__init__."""
         self.id = id
@@ -122,14 +122,14 @@ class Task:
         self.properties = properties  # Arbitrary extension properties from BPMN editor.
 
     @classmethod
-    def valid_property_names(cls):
+    def valid_property_names(cls) -> list[str]:
         """Valid_property_names."""
         return [
             value for name, value in vars(cls).items() if name.startswith("FIELD_PROP")
         ]
 
     @classmethod
-    def valid_field_types(cls):
+    def valid_field_types(cls) -> list[str]:
         """Valid_field_types."""
         return [
             value for name, value in vars(cls).items() if name.startswith("FIELD_TYPE")
@@ -197,11 +197,11 @@ class FormFieldSchema(Schema):
     )
 
 
-class FormSchema(Schema):
-    """FormSchema."""
-
-    key = marshmallow.fields.String(required=True, allow_none=False)
-    fields = marshmallow.fields.List(marshmallow.fields.Nested(FormFieldSchema))
+# class FormSchema(Schema):
+#     """FormSchema."""
+#
+#     key = marshmallow.fields.String(required=True, allow_none=False)
+#     fields = marshmallow.fields.List(marshmallow.fields.Nested(FormFieldSchema))
 
 
 class TaskSchema(Schema):
@@ -229,12 +229,13 @@ class TaskSchema(Schema):
 
     multi_instance_type = EnumField(MultiInstanceType)
     documentation = marshmallow.fields.String(required=False, allow_none=True)
-    form = marshmallow.fields.Nested(FormSchema, required=False, allow_none=True)
+    # form = marshmallow.fields.Nested(FormSchema, required=False, allow_none=True)
     title = marshmallow.fields.String(required=False, allow_none=True)
     process_name = marshmallow.fields.String(required=False, allow_none=True)
     lane = marshmallow.fields.String(required=False, allow_none=True)
 
-    @marshmallow.post_load
-    def make_task(self, data, **kwargs):
-        """Make_task."""
-        return Task(**data)
+    # TODO: implement
+    # @marshmallow.post_load
+    # def make_task(self, data: list[str], **_):
+    #     """Make_task."""
+    #     return Task(**data)

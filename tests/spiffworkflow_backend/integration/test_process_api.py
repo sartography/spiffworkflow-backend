@@ -1,15 +1,11 @@
 """Test Process Api Blueprint."""
 import io
 import json
-import os
-import shutil
-from datetime import datetime
+import time
 from typing import Dict
-from typing import Iterator
 from typing import Optional
 from typing import Union
 
-import pytest
 from flask.app import Flask
 from flask.testing import FlaskClient
 from flask_bpmn.models.db import db
@@ -26,17 +22,6 @@ from spiffworkflow_backend.models.process_model import NotificationType
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
-
-
-@pytest.fixture()
-def with_bpmn_file_cleanup() -> Iterator[None]:
-    """Process_group_resource."""
-    try:
-        yield
-    finally:
-        process_model_service = ProcessModelService()
-        if os.path.exists(process_model_service.root_path()):
-            shutil.rmtree(process_model_service.root_path())
 
 
 # phase 1: req_id: 7.1 Deploy process
@@ -558,6 +543,7 @@ def test_process_instance_create(
     response = create_process_instance(
         app, client, test_process_group_id, test_process_model_id, headers
     )
+    assert response.json["updated_at_in_seconds"] is not None
     assert response.json["status"] == "complete"
     assert response.json["process_model_identifier"] == test_process_model_id
     assert response.json["data"]["current_user"]["username"] == "test_user1"
@@ -673,7 +659,7 @@ def test_process_instance_list_filter(
             process_initiator=user,
             process_model_identifier=test_process_model_id,
             process_group_identifier=test_process_group_id,
-            last_updated=datetime.now(),
+            updated_at_in_seconds=round(time.time()),
             start_in_seconds=(1000 * i) + 1000,
             end_in_seconds=(1000 * i) + 2000,
             bpmn_json=json.dumps({"i": i}),

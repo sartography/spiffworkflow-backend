@@ -1,4 +1,4 @@
-"""error_handling_service."""
+"""Error_handling_service."""
 from flask_bpmn.api.api_error import ApiError
 
 

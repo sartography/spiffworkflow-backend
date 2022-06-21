@@ -1,7 +1,14 @@
 """Group."""
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from flask_bpmn.models.db import db
 from flask_bpmn.models.group import FlaskBpmnGroupModel
 from sqlalchemy.orm import relationship
+
+if TYPE_CHECKING:
+    pass
 
 
 class GroupModel(FlaskBpmnGroupModel):
@@ -9,9 +16,9 @@ class GroupModel(FlaskBpmnGroupModel):
 
     __tablename__ = "group"
     __table_args__ = {"extend_existing": True}
-    new_name_two = db.Column(db.String(255))
+    new_name_two = db.Column(db.String(255))  # type: ignore
     user_group_assignments = relationship("UserGroupAssignmentModel", cascade="delete")
-    users = relationship(
+    users = relationship(  # type: ignore
         "UserModel",
         viewonly=True,
         secondary="user_group_assignment",

@@ -1,14 +1,16 @@
 """Process_instance."""
 import enum
+from typing import Dict
+from typing import Union
 
 import marshmallow
 from flask_bpmn.models.db import db
+from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from marshmallow import INCLUDE
 from marshmallow import Schema
 from marshmallow_enum import EnumField  # type: ignore
 from SpiffWorkflow.navigation import NavItem  # type: ignore
 from sqlalchemy import ForeignKey
-from sqlalchemy import func
 from sqlalchemy.orm import deferred
 from sqlalchemy.orm import relationship
 
@@ -71,23 +73,23 @@ class ProcessInstanceStatus(enum.Enum):
     erroring = "erroring"
 
 
-class ProcessInstanceModel(db.Model):  # type: ignore
+class ProcessInstanceModel(SpiffworkflowBaseDBModel):
     """ProcessInstanceModel."""
 
     __tablename__ = "process_instance"
-    id = db.Column(db.Integer, primary_key=True)
-    process_model_identifier = db.Column(db.String(50), nullable=False, index=True)
-    process_group_identifier = db.Column(db.String(50), nullable=False, index=True)
-    bpmn_json = deferred(db.Column(db.JSON))
-    start_in_seconds = db.Column(db.Integer)
-    end_in_seconds = db.Column(db.Integer)
-    last_updated = db.Column(db.DateTime(timezone=True), server_default=func.now())
-    process_initiator_id = db.Column(ForeignKey(UserModel.id), nullable=False)
+    id = db.Column(db.Integer, primary_key=True)  # type: ignore
+    process_model_identifier = db.Column(db.String(50), nullable=False, index=True)  # type: ignore
+    process_group_identifier = db.Column(db.String(50), nullable=False, index=True)  # type: ignore
+    bpmn_json = deferred(db.Column(db.JSON))  # type: ignore
+    start_in_seconds = db.Column(db.Integer)  # type: ignore
+    end_in_seconds = db.Column(db.Integer)  # type: ignore
+    updated_at_in_seconds = db.Column(db.Integer)  # type: ignore
+    process_initiator_id = db.Column(ForeignKey(UserModel.id), nullable=False)  # type: ignore
     process_initiator = relationship("UserModel")
-    status = db.Column(db.Enum(ProcessInstanceStatus))
+    status = db.Column(db.Enum(ProcessInstanceStatus))  # type: ignore
 
     @property
-    def serialized(self):
+    def serialized(self) -> Dict[str, Union[int, str]]:
         """Return object data in serializeable format."""
         return {
             "id": self.id,
@@ -106,17 +108,17 @@ class ProcessInstanceApi:
 
     def __init__(
         self,
-        id,
-        status,
-        next_task,
-        process_model_identifier,
-        process_group_identifier,
-        total_tasks,
-        completed_tasks,
-        last_updated,
-        is_review,
-        title,
-    ):
+        id: int,
+        status: ProcessInstanceStatus,
+        next_task: None,
+        process_model_identifier: str,
+        process_group_identifier: str,
+        total_tasks: int,
+        completed_tasks: int,
+        updated_at_in_seconds: int,
+        is_review: bool,
+        title: str,
+    ) -> None:
         """__init__."""
         self.id = id
         self.status = status
@@ -126,7 +128,7 @@ class ProcessInstanceApi:
         self.process_group_identifier = process_group_identifier
         self.total_tasks = total_tasks
         self.completed_tasks = completed_tasks
-        self.last_updated = last_updated
+        self.updated_at_in_seconds = updated_at_in_seconds
         self.title = title
         self.is_review = is_review
 
@@ -147,7 +149,7 @@ class ProcessInstanceApiSchema(Schema):
             "process_group_identifier",
             "total_tasks",
             "completed_tasks",
-            "last_updated",
+            "updated_at_in_seconds",
             "is_review",
             "title",
             "study_id",
@@ -174,7 +176,7 @@ class ProcessInstanceApiSchema(Schema):
             "process_group_identifier",
             "total_tasks",
             "completed_tasks",
-            "last_updated",
+            "updated_at_in_seconds",
             "is_review",
             "title",
             "study_id",

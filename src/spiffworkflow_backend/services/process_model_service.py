@@ -2,7 +2,10 @@
 import json
 import os
 import shutil
+from typing import Any
 from typing import List
+from typing import Optional
+from typing import Union
 
 from flask_bpmn.api.api_error import ApiError
 
@@ -27,19 +30,23 @@ class ProcessModelService(FileSystemService):
     WF_SCHEMA = ProcessModelInfoSchema()
 
     @staticmethod
-    def get_batch(items, page=1, per_page=10):
+    def get_batch(
+        items: List[Union[Any, ProcessGroup, ProcessModelInfo]],
+        page: int = 1,
+        per_page: int = 10,
+    ) -> List[Union[Any, ProcessGroup, ProcessModelInfo]]:
         """Get_batch."""
         start = (page - 1) * per_page
         end = start + per_page
         return items[start:end]
 
-    def add_spec(self, spec: ProcessModelInfo):
+    def add_spec(self, spec: ProcessModelInfo) -> None:
         """Add_spec."""
         display_order = self.next_display_order(spec)
         spec.display_order = display_order
         self.update_spec(spec)
 
-    def update_spec(self, spec: ProcessModelInfo):
+    def update_spec(self, spec: ProcessModelInfo) -> None:
         """Update_spec."""
         spec_path = self.workflow_path(spec)
         if spec.is_master_spec or spec.library or spec.standalone:
@@ -49,7 +56,7 @@ class ProcessModelService(FileSystemService):
         with open(json_path, "w") as wf_json:
             json.dump(self.WF_SCHEMA.dump(spec), wf_json, indent=4)
 
-    def process_model_delete(self, process_model_id: str):
+    def process_model_delete(self, process_model_id: str) -> None:
         """Delete Procecss Model."""
         instances = ProcessInstanceModel.query.filter(
             ProcessInstanceModel.process_model_identifier == process_model_id
@@ -79,7 +86,7 @@ class ProcessModelService(FileSystemService):
         """Master_spec."""
         return self.get_master_spec()
 
-    def get_master_spec(self):
+    def get_master_spec(self) -> None:
         """Get_master_spec."""
         path = os.path.join(
             FileSystemService.root_path(), FileSystemService.MASTER_SPECIFICATION
@@ -87,7 +94,9 @@ class ProcessModelService(FileSystemService):
         if os.path.exists(path):
             return self.__scan_spec(path, FileSystemService.MASTER_SPECIFICATION)
 
-    def get_process_model(self, process_model_id, group_id=None):
+    def get_process_model(
+        self, process_model_id: str, group_id: Optional[str] = None
+    ) -> Optional[ProcessModelInfo]:
         """Get a process model from a model and group id."""
         if not os.path.exists(FileSystemService.root_path()):
             return  # Nothing to scan yet.  There are no files.
@@ -112,7 +121,9 @@ class ProcessModelService(FileSystemService):
                                 )
                                 return self.__scan_spec(sd.path, sd.name, process_group)
 
-    def get_process_models(self, process_group_id=None):
+    def get_process_models(
+        self, process_group_id: Optional[str] = None
+    ) -> List[ProcessModelInfo]:
         """Get process models."""
         if process_group_id is None:
             process_groups = self.get_process_groups()
@@ -143,7 +154,9 @@ class ProcessModelService(FileSystemService):
             )
         return self.cleanup_workflow_spec_display_order(spec.process_group)
 
-    def cleanup_workflow_spec_display_order(self, process_group):
+    def cleanup_workflow_spec_display_order(
+        self, process_group: ProcessGroup
+    ) -> List[Union[Any, ProcessModelInfo]]:
         """Cleanup_workflow_spec_display_order."""
         index = 0
         if not process_group:
@@ -174,7 +187,7 @@ class ProcessModelService(FileSystemService):
             return []
         return process_group.process_models
 
-    def get_process_group(self, process_group_id):
+    def get_process_group(self, process_group_id: str) -> Optional[ProcessGroup]:
         """Look for a given process_group, and return it."""
         if not os.path.exists(FileSystemService.root_path()):
             return  # Nothing to scan yet.  There are no files.
@@ -183,13 +196,13 @@ class ProcessModelService(FileSystemService):
                 if item.is_dir() and item.name == process_group_id:
                     return self.__scan_process_group(item)
 
-    def add_process_group(self, process_group: ProcessGroup):
+    def add_process_group(self, process_group: ProcessGroup) -> ProcessGroup:
         """Add_process_group."""
         display_order = len(self.get_process_groups())
         process_group.display_order = display_order
         return self.update_process_group(process_group)
 
-    def update_process_group(self, process_group: ProcessGroup):
+    def update_process_group(self, process_group: ProcessGroup) -> ProcessGroup:
         """Update_process_group."""
         cat_path = self.process_group_path(process_group.id)
         os.makedirs(cat_path, exist_ok=True)
@@ -198,7 +211,7 @@ class ProcessModelService(FileSystemService):
             json.dump(self.GROUP_SCHEMA.dump(process_group), cat_json, indent=4)
         return process_group
 
-    def process_group_delete(self, process_group_id: str):
+    def process_group_delete(self, process_group_id: str) -> None:
         """Delete_process_group."""
         path = self.process_group_path(process_group_id)
         if os.path.exists(path):
@@ -228,7 +241,7 @@ class ProcessModelService(FileSystemService):
             index += 1
         return process_groups
 
-    def cleanup_process_group_display_order(self):
+    def cleanup_process_group_display_order(self) -> List[Any]:
         """Cleanup_process_group_display_order."""
         process_groups = self.get_process_groups()  # Returns an ordered list
         index = 0

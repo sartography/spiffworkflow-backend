@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: b988942cdd3d
+Revision ID: acad9ea3a861
 Revises: 
-Create Date: 2022-06-20 10:24:45.372883
+Create Date: 2022-06-21 12:45:20.062981
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'b988942cdd3d'
+revision = 'acad9ea3a861'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -57,7 +57,7 @@ def upgrade():
     sa.Column('bpmn_json', sa.JSON(), nullable=True),
     sa.Column('start_in_seconds', sa.Integer(), nullable=True),
     sa.Column('end_in_seconds', sa.Integer(), nullable=True),
-    sa.Column('last_updated', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.Column('updated_at_in_seconds', sa.Integer(), nullable=True),
     sa.Column('process_initiator_id', sa.Integer(), nullable=False),
     sa.Column('status', sa.Enum('not_started', 'user_input_required', 'waiting', 'complete', 'erroring', name='processinstancestatus'), nullable=True),
     sa.ForeignKeyConstraint(['process_initiator_id'], ['user.id'], ),
@@ -65,6 +65,19 @@ def upgrade():
     )
     op.create_index(op.f('ix_process_instance_process_group_identifier'), 'process_instance', ['process_group_identifier'], unique=False)
     op.create_index(op.f('ix_process_instance_process_model_identifier'), 'process_instance', ['process_model_identifier'], unique=False)
+    op.create_table('process_instance_report',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('process_model_identifier', sa.String(length=50), nullable=False),
+    sa.Column('process_group_identifier', sa.String(length=50), nullable=False),
+    sa.Column('report_json', sa.JSON(), nullable=True),
+    sa.Column('created_by_id', sa.Integer(), nullable=False),
+    sa.Column('created_at_in_seconds', sa.Integer(), nullable=True),
+    sa.Column('updated_at_in_seconds', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['created_by_id'], ['user.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_process_instance_report_process_group_identifier'), 'process_instance_report', ['process_group_identifier'], unique=False)
+    op.create_index(op.f('ix_process_instance_report_process_model_identifier'), 'process_instance_report', ['process_model_identifier'], unique=False)
     op.create_table('user_group_assignment',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
@@ -85,8 +98,8 @@ def upgrade():
     sa.Column('md5_hash', sa.String(length=50), nullable=False),
     sa.Column('data', sa.LargeBinary(), nullable=True),
     sa.Column('size', sa.Integer(), nullable=True),
-    sa.Column('date_modified', sa.DateTime(timezone=True), nullable=True),
-    sa.Column('date_created', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.Column('updated_at_in_seconds', sa.Integer(), nullable=True),
+    sa.Column('created_at_in_seconds', sa.Integer(), nullable=True),
     sa.Column('user_uid', sa.String(length=50), nullable=True),
     sa.Column('archived', sa.Boolean(), nullable=True),
     sa.ForeignKeyConstraint(['process_instance_id'], ['process_instance.id'], ),
@@ -116,7 +129,7 @@ def upgrade():
     )
     op.create_table('data_store',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('last_updated', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.Column('updated_at_in_seconds', sa.Integer(), nullable=True),
     sa.Column('key', sa.String(length=50), nullable=False),
     sa.Column('process_instance_id', sa.Integer(), nullable=True),
     sa.Column('task_spec', sa.String(length=50), nullable=True),
@@ -136,6 +149,9 @@ def downgrade():
     op.drop_table('task_event')
     op.drop_table('file')
     op.drop_table('user_group_assignment')
+    op.drop_index(op.f('ix_process_instance_report_process_model_identifier'), table_name='process_instance_report')
+    op.drop_index(op.f('ix_process_instance_report_process_group_identifier'), table_name='process_instance_report')
+    op.drop_table('process_instance_report')
     op.drop_index(op.f('ix_process_instance_process_model_identifier'), table_name='process_instance')
     op.drop_index(op.f('ix_process_instance_process_group_identifier'), table_name='process_instance')
     op.drop_table('process_instance')

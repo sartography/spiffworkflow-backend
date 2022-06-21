@@ -1,11 +1,12 @@
 """User."""
-from typing import Optional
+from typing import Union
 
 import jwt
 import marshmallow
 from flask import current_app
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
+from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from marshmallow import Schema
 from sqlalchemy.orm import relationship
 
@@ -13,15 +14,15 @@ from spiffworkflow_backend.models.group import GroupModel
 from spiffworkflow_backend.models.user_group_assignment import UserGroupAssignmentModel
 
 
-class UserModel(db.Model):  # type: ignore
+class UserModel(SpiffworkflowBaseDBModel):
     """UserModel."""
 
     __tablename__ = "user"
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), nullable=False, unique=True)
-    uid = db.Column(db.String(50), unique=True)
-    name = db.Column(db.String(50))
-    email = db.Column(db.String(50))
+    id = db.Column(db.Integer, primary_key=True)  # type: ignore
+    username = db.Column(db.String(50), nullable=False, unique=True)  # type: ignore
+    uid = db.Column(db.String(50), unique=True)  # type: ignore
+    name = db.Column(db.String(50))  # type: ignore
+    email = db.Column(db.String(50))  # type: ignore
     user_group_assignments = relationship(UserGroupAssignmentModel, cascade="delete")
     groups = relationship(
         GroupModel,
@@ -56,7 +57,7 @@ class UserModel(db.Model):  # type: ignore
         return True
 
     @staticmethod
-    def decode_auth_token(auth_token: str) -> dict[str, Optional[str]]:
+    def decode_auth_token(auth_token: str) -> dict[str, Union[str, None]]:
         """Decode the auth token.
 
         :param auth_token:
@@ -96,10 +97,10 @@ class UserModelSchema(Schema):
     username = marshmallow.fields.String(required=True)
 
 
-class AdminSessionModel(db.Model):
+class AdminSessionModel(SpiffworkflowBaseDBModel):
     """AdminSessionModel."""
 
     __tablename__ = "admin_session"
-    id = db.Column(db.Integer, primary_key=True)
-    token = db.Column(db.String(50), unique=True)
-    admin_impersonate_uid = db.Column(db.String(50))
+    id = db.Column(db.Integer, primary_key=True)  # type: ignore
+    token = db.Column(db.String(50), unique=True)  # type: ignore
+    admin_impersonate_uid = db.Column(db.String(50))  # type: ignore
