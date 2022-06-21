@@ -2,12 +2,12 @@
 import os
 import shutil
 from datetime import datetime
-from typing import List
+from typing import Optional, List
 from typing import Union
 
 from flask_bpmn.api.api_error import ApiError
 from lxml import etree  # type: ignore
-from lxml.etree import Element as EtreeElement  # type: ignore
+from lxml.etree import _Element, Element as EtreeElement  # type: ignore
 from SpiffWorkflow.bpmn.parser.ValidationException import ValidationException  # type: ignore
 
 from spiffworkflow_backend.models.file import File
@@ -27,9 +27,9 @@ class SpecFileService(FileSystemService):
     @staticmethod
     def get_files(
         workflow_spec: ProcessModelInfo,
-        file_name=None,
-        include_libraries=False,
-        extension_filter="",
+        file_name: Optional[str]=None,
+        include_libraries: bool=False,
+        extension_filter: str="",
     ) -> List[File]:
         """Return all files associated with a workflow specification."""
         path = SpecFileService.workflow_path(workflow_spec)
@@ -56,7 +56,7 @@ class SpecFileService(FileSystemService):
 
     @staticmethod
     def update_file(
-        workflow_spec: ProcessModelInfo, file_name: str, binary_data
+        workflow_spec: ProcessModelInfo, file_name: str, binary_data: bytes
     ) -> File:
         """Update_file."""
         SpecFileService.assert_valid_file_name(file_name)
@@ -169,7 +169,7 @@ class SpecFileService(FileSystemService):
             )
 
     @staticmethod
-    def has_swimlane(et_root: EtreeElement) -> bool:
+    def has_swimlane(et_root: _Element) -> bool:
         """Look through XML and determine if there are any lanes present that have a label."""
         elements = et_root.xpath(
             "//bpmn:lane",
@@ -182,7 +182,7 @@ class SpecFileService(FileSystemService):
         return retval
 
     @staticmethod
-    def get_process_id(et_root: EtreeElement) -> str:
+    def get_process_id(et_root: _Element) -> str:
         """Get_process_id."""
         process_elements = []
         for child in et_root:

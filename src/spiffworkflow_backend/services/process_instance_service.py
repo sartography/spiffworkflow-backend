@@ -1,6 +1,6 @@
 """Process_instance_service."""
 import time
-from typing import List
+from typing import Any, Dict, Optional, List
 
 from flask import current_app
 from flask_bpmn.models.db import db
@@ -19,6 +19,8 @@ from spiffworkflow_backend.services.process_instance_processor import (
 )
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 from spiffworkflow_backend.services.user_service import UserService
+from SpiffWorkflow.task import Task
+from spiffworkflow_backend.models.user import UserModel
 
 
 class ProcessInstanceService:
@@ -28,8 +30,8 @@ class ProcessInstanceService:
 
     @staticmethod
     def create_process_instance(
-        process_model_identifier, user, process_group_identifier=None
-    ):
+        process_model_identifier: str, user: UserModel, process_group_identifier: Optional[str]=None
+    ) -> ProcessInstanceModel:
         """Get_process_instance_from_spec."""
         process_instance_model = ProcessInstanceModel(
             status=ProcessInstanceStatus.not_started,
@@ -44,8 +46,8 @@ class ProcessInstanceService:
 
     @staticmethod
     def processor_to_process_instance_api(
-        processor: ProcessInstanceProcessor, next_task=None
-    ):
+        processor: ProcessInstanceProcessor, next_task: None=None
+    ) -> ProcessInstanceApi:
         """Returns an API model representing the state of the current process_instance.
 
         If requested, and possible, next_task is set to the current_task.
@@ -119,7 +121,7 @@ class ProcessInstanceService:
             ProcessInstanceService.update_navigation(nav_item.children, processor)
 
     @staticmethod
-    def get_previously_submitted_data(process_instance_id, spiff_task):
+    def get_previously_submitted_data(process_instance_id: int, spiff_task: Task) -> Dict[Any, Any]:
         """If the user has completed this task previously, find the form data for the last submission."""
         query = (
             db.session.query(TaskEventModel)

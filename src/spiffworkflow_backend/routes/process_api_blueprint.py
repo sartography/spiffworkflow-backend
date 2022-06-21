@@ -23,6 +23,9 @@ from spiffworkflow_backend.services.process_instance_service import (
 )
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 from spiffworkflow_backend.services.spec_file_service import SpecFileService
+import flask.wrappers
+from typing import Dict, List, Optional, Union
+from werkzeug.datastructures import FileStorage
 
 # from SpiffWorkflow.bpmn.serializer.workflow import BpmnWorkflowSerializer  # type: ignore
 # from SpiffWorkflow.camunda.serializer.task_spec_converters import UserTaskConverter  # type: ignore
@@ -31,7 +34,7 @@ from spiffworkflow_backend.services.spec_file_service import SpecFileService
 process_api_blueprint = Blueprint("process_api", __name__)
 
 
-def process_group_add(body):
+def process_group_add(body: Dict[str, Union[str, bool, int]]) -> flask.wrappers.Response:
     """Add_process_group."""
     # just so the import is used. oh, and it's imported because spiffworkflow_backend/unit/test_permissions.py
     # depends on it, and otherwise flask migrations won't include it in the list of database tables.
@@ -47,20 +50,20 @@ def process_group_add(body):
     )
 
 
-def process_group_delete(process_group_id):
+def process_group_delete(process_group_id: str) -> flask.wrappers.Response:
     """Process_group_delete."""
     ProcessModelService().process_group_delete(process_group_id)
     return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
 
 
-def process_group_update(process_group_id, body):
+def process_group_update(process_group_id: str, body: Dict[str, Union[str, bool, int]]) -> Dict[str, Union[str, bool, int]]:
     """Process Group Update."""
     process_group = ProcessGroupSchema().load(body)
     ProcessModelService().update_process_group(process_group)
     return ProcessGroupSchema().dump(process_group)
 
 
-def process_groups_list(page=1, per_page=100):
+def process_groups_list(page: int=1, per_page: int=100) -> flask.wrappers.Response:
     """Process_groups_list."""
     process_groups = sorted(ProcessModelService().get_process_groups())
     batch = ProcessModelService().get_batch(process_groups, page, per_page)
@@ -79,13 +82,13 @@ def process_groups_list(page=1, per_page=100):
     return Response(json.dumps(response_json), status=200, mimetype="application/json")
 
 
-def process_group_show(process_group_id):
+def process_group_show(process_group_id: str) -> Dict[str, Union[List[Dict[str, Union[str, bool, int]]], str, bool, int]]:
     """Process_group_show."""
     process_group = ProcessModelService().get_process_group(process_group_id)
     return ProcessGroupSchema().dump(process_group)
 
 
-def process_model_add(body):
+def process_model_add(body: Dict[str, Union[str, bool, int]]) -> flask.wrappers.Response:
     """Add_process_model."""
     process_model_info = ProcessModelInfoSchema().load(body)
     process_model_service = ProcessModelService()
@@ -104,20 +107,20 @@ def process_model_add(body):
     )
 
 
-def process_model_delete(process_group_id, process_model_id):
+def process_model_delete(process_group_id: str, process_model_id: str) -> flask.wrappers.Response:
     """Process_model_delete."""
     ProcessModelService().process_model_delete(process_model_id)
     return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
 
 
-def process_model_update(process_group_id, process_model_id, body):
+def process_model_update(process_group_id: str, process_model_id: str, body: Dict[str, Union[str, bool, int]]) -> Dict[str, Union[str, bool, int]]:
     """Process_model_update."""
     process_model = ProcessModelInfoSchema().load(body)
     ProcessModelService().update_spec(process_model)
     return ProcessModelInfoSchema().dump(process_model)
 
 
-def process_model_show(process_group_id, process_model_id):
+def process_model_show(process_group_id: str, process_model_id: str) -> Dict[str, Union[str, List[Dict[str, Optional[Union[str, int, bool]]]], bool, int]]:
     """Process_model_show."""
     process_model = ProcessModelService().get_process_model(
         process_model_id, group_id=process_group_id
@@ -137,7 +140,7 @@ def process_model_show(process_group_id, process_model_id):
     return process_model_json
 
 
-def process_model_list(process_group_id, page=1, per_page=100):
+def process_model_list(process_group_id: str, page: int=1, per_page: int=100) -> flask.wrappers.Response:
     """Process model list!"""
     process_models = sorted(ProcessModelService().get_process_models(process_group_id))
     batch = ProcessModelService().get_batch(
@@ -159,7 +162,7 @@ def process_model_list(process_group_id, page=1, per_page=100):
     return Response(json.dumps(response_json), status=200, mimetype="application/json")
 
 
-def get_file(process_group_id, process_model_id, file_name):
+def get_file(process_group_id: str, process_model_id: str, file_name: str) -> Dict[str, Optional[Union[str, int, bool]]]:
     """Get_file."""
     process_model = ProcessModelService().get_process_model(
         process_model_id, group_id=process_group_id
@@ -181,7 +184,7 @@ def get_file(process_group_id, process_model_id, file_name):
     return FileSchema().dump(file)
 
 
-def process_model_file_update(process_group_id, process_model_id, file_name):
+def process_model_file_update(process_group_id: str, process_model_id: str, file_name: str) -> flask.wrappers.Response:
     """Process_model_file_save."""
     process_model = ProcessModelService().get_process_model(
         process_model_id, group_id=process_group_id
@@ -200,7 +203,7 @@ def process_model_file_update(process_group_id, process_model_id, file_name):
     return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
 
 
-def add_file(process_group_id, process_model_id):
+def add_file(process_group_id: str, process_model_id: str) -> flask.wrappers.Response:
     """Add_file."""
     process_model_service = ProcessModelService()
     process_model = process_model_service.get_process_model(
@@ -222,7 +225,7 @@ def add_file(process_group_id, process_model_id):
     )
 
 
-def process_instance_create(process_group_id, process_model_id):
+def process_instance_create(process_group_id: str, process_model_id: str) -> flask.wrappers.Response:
     """Create_process_instance."""
     process_instance = ProcessInstanceService.create_process_instance(
         process_model_id, g.user, process_group_identifier=process_group_id
@@ -244,7 +247,7 @@ def process_instance_create(process_group_id, process_model_id):
     )
 
 
-def process_instance_list(process_group_id, process_model_id, page=1, per_page=100):
+def process_instance_list(process_group_id: str, process_model_id: str, page: int=1, per_page: int=100) -> flask.wrappers.Response:
     """Process_instance_list."""
     process_model = ProcessModelService().get_process_model(
         process_model_id, group_id=process_group_id
@@ -302,7 +305,7 @@ def process_instance_delete(process_group_id, process_model_id, process_instance
     return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
 
 
-def process_instance_report(process_group_id, process_model_id, page=1, per_page=100):
+def process_instance_report(process_group_id: str, process_model_id: str, page: int=1, per_page: int=100) -> flask.wrappers.Response:
     """Process_instance_list."""
     process_model = ProcessModelService().get_process_model(
         process_model_id, group_id=process_group_id
@@ -344,7 +347,7 @@ def process_instance_report(process_group_id, process_model_id, page=1, per_page
     return Response(json.dumps(response_json), status=200, mimetype="application/json")
 
 
-def get_file_from_request():
+def get_file_from_request() -> FileStorage:
     """Get_file_from_request."""
     request_file = connexion.request.files.get("file")
     if not request_file:

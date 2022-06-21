@@ -15,6 +15,7 @@ from sqlalchemy.orm import relationship
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.task import TaskSchema
 from spiffworkflow_backend.models.user import UserModel
+from typing import Dict, Union
 
 
 class NavigationItemSchema(Schema):
@@ -87,7 +88,7 @@ class ProcessInstanceModel(SpiffworkflowBaseDBModel):  # type: ignore
     status = db.Column(db.Enum(ProcessInstanceStatus))
 
     @property
-    def serialized(self):
+    def serialized(self) -> Dict[str, Union[int, str]]:
         """Return object data in serializeable format."""
         return {
             "id": self.id,
@@ -106,17 +107,17 @@ class ProcessInstanceApi:
 
     def __init__(
         self,
-        id,
-        status,
-        next_task,
-        process_model_identifier,
-        process_group_identifier,
-        total_tasks,
-        completed_tasks,
-        updated_at_in_seconds,
-        is_review,
-        title,
-    ):
+        id: int,
+        status: ProcessInstanceStatus,
+        next_task: None,
+        process_model_identifier: str,
+        process_group_identifier: str,
+        total_tasks: int,
+        completed_tasks: int,
+        updated_at_in_seconds: int,
+        is_review: bool,
+        title: str,
+    ) -> None:
         """__init__."""
         self.id = id
         self.status = status

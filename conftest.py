@@ -1,8 +1,11 @@
 """Conftest."""
 import os
+import shutil
+from typing import Iterator
 
 import pytest
 from flask.app import Flask
+from spiffworkflow_backend.services.process_model_service import ProcessModelService
 
 
 # We need to call this before importing spiffworkflow_backend
@@ -32,3 +35,14 @@ def app() -> Flask:
     )
 
     return app
+
+
+@pytest.fixture()
+def with_bpmn_file_cleanup() -> Iterator[None]:
+    """Process_group_resource."""
+    try:
+        yield
+    finally:
+        process_model_service = ProcessModelService()
+        if os.path.exists(process_model_service.root_path()):
+            shutil.rmtree(process_model_service.root_path())

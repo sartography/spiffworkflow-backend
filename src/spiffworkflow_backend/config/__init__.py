@@ -6,7 +6,7 @@ from flask.app import Flask
 from werkzeug.utils import ImportStringError
 
 
-def setup_logger_for_sql_statements(app: Flask):
+def setup_logger_for_sql_statements(app: Flask) -> None:
     """Setup_logger_for_sql_statements."""
     db_log_file_name = f"log/db_{app.env}.log"
     db_handler_log_level = logging.INFO
@@ -19,7 +19,7 @@ def setup_logger_for_sql_statements(app: Flask):
     db_logger.setLevel(db_logger_log_level)
 
 
-def setup_database_uri(app: Flask):
+def setup_database_uri(app: Flask) -> None:
     """Setup_database_uri."""
     if os.environ.get("DATABASE_URI") is None:
         if os.environ.get("SPIFF_DATABASE_TYPE") == "sqlite":

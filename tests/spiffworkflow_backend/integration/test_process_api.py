@@ -8,7 +8,6 @@ from typing import Iterator
 from typing import Optional
 from typing import Union
 
-import pytest
 from flask.app import Flask
 from flask.testing import FlaskClient
 from flask_bpmn.models.db import db
@@ -24,17 +23,6 @@ from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
-
-
-@pytest.fixture()
-def with_bpmn_file_cleanup() -> Iterator[None]:
-    """Process_group_resource."""
-    try:
-        yield
-    finally:
-        process_model_service = ProcessModelService()
-        if os.path.exists(process_model_service.root_path()):
-            shutil.rmtree(process_model_service.root_path())
 
 
 # phase 1: req_id: 7.1 Deploy process

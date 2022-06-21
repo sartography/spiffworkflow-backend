@@ -1,7 +1,7 @@
 """Process_instance_processor."""
 import json
 import time
-from typing import List
+from typing import Any, Dict, Optional, Union, List
 
 from flask import current_app
 from flask_bpmn.api.api_error import ApiError
@@ -11,7 +11,7 @@ from SpiffWorkflow import Task as SpiffTask  # type: ignore
 from SpiffWorkflow import TaskState
 from SpiffWorkflow import WorkflowException
 from SpiffWorkflow.bpmn.parser.ValidationException import ValidationException  # type: ignore
-from SpiffWorkflow.bpmn.PythonScriptEngine import PythonScriptEngine  # type: ignore
+from SpiffWorkflow.bpmn.PythonScriptEngine import Box, PythonScriptEngine  # type: ignore
 from SpiffWorkflow.bpmn.serializer import BpmnWorkflowSerializer  # type: ignore
 from SpiffWorkflow.bpmn.serializer.BpmnSerializer import BpmnSerializer  # type: ignore
 from SpiffWorkflow.bpmn.specs.events import CancelEventDefinition  # type: ignore
@@ -36,6 +36,8 @@ from spiffworkflow_backend.models.user import UserModelSchema
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 from spiffworkflow_backend.services.spec_file_service import SpecFileService
 from spiffworkflow_backend.services.user_service import UserService
+from SpiffWorkflow.bpmn.specs.BpmnProcessSpec import BpmnProcessSpec
+from SpiffWorkflow.task import Task
 
 # from crc.services.user_file_service import UserFileService
 
@@ -47,11 +49,11 @@ class CustomBpmnScriptEngine(PythonScriptEngine):
     scripts directory available for execution.
     """
 
-    def evaluate(self, task, expression):
+    def evaluate(self, task: Task, expression: str) -> str:
         """Evaluate."""
         return self._evaluate(expression, task.data, task)
 
-    def _evaluate(self, expression, context, task=None, external_methods=None):
+    def _evaluate(self, expression: str, context: Dict[str, Union[Box, str]], task: Optional[Task]=None, external_methods: None=None) -> str:
         """Evaluate the given expression, within the context of the given task and return the result."""
         try:
             return super()._evaluate(expression, context, task, {})
@@ -62,7 +64,7 @@ class CustomBpmnScriptEngine(PythonScriptEngine):
                 "'%s', %s" % (expression, str(exception)),
             ) from exception
 
-    def execute(self, task: SpiffTask, script, data):
+    def execute(self, task: SpiffTask, script: str, data: Dict[str, Dict[str, str]]) -> None:
         """Execute."""
         try:
             super().execute(task, script, data)
@@ -93,8 +95,8 @@ class ProcessInstanceProcessor:
     VALIDATION_PROCESS_KEY = "validate_only"
 
     def __init__(
-        self, process_instance_model: ProcessInstanceModel, validate_only=False
-    ):
+        self, process_instance_model: ProcessInstanceModel, validate_only: bool=False
+    ) -> None:
         """Create a Workflow Processor based on the serialized information available in the process_instance model."""
         self.process_instance_model = process_instance_model
         self.process_model_service = ProcessModelService()
@@ -200,7 +202,7 @@ class ProcessInstanceProcessor:
             ) from ke
 
     @staticmethod
-    def add_user_info_to_process_instance(bpmn_process_instance):
+    def add_user_info_to_process_instance(bpmn_process_instance: BpmnWorkflow) -> None:
         """Add_user_info_to_process_instance."""
         if UserService.has_user():
             current_user = UserService.current_user(allow_admin_impersonate=True)
@@ -327,7 +329,7 @@ class ProcessInstanceProcessor:
             ] = validate_only
         return bpmn_process_instance
 
-    def save(self):
+    def save(self) -> None:
         """Saves the current state of this processor to the database."""
         self.process_instance_model.bpmn_json = self.serialize()
         complete_states = [TaskState.CANCELLED, TaskState.COMPLETED]
@@ -381,13 +383,13 @@ class ProcessInstanceProcessor:
         return bpmn_process_instance.last_task.data
 
     @staticmethod
-    def get_parser():
+    def get_parser() -> MyCustomParser:
         """Get_parser."""
         parser = MyCustomParser()
         return parser
 
     @staticmethod
-    def get_spec(files: List[File], process_model_info: ProcessModelInfo):
+    def get_spec(files: List[File], process_model_info: ProcessModelInfo) -> BpmnProcessSpec:
         """Returns a SpiffWorkflow specification for the given process_instance spec, using the files provided."""
         parser = ProcessInstanceProcessor.get_parser()
 
@@ -424,7 +426,7 @@ class ProcessInstanceProcessor:
         return spec
 
     @staticmethod
-    def status_of(bpmn_process_instance):
+    def status_of(bpmn_process_instance: BpmnWorkflow) -> ProcessInstanceStatus:
         """Status_of."""
         if bpmn_process_instance.is_completed():
             return ProcessInstanceStatus.complete
@@ -437,11 +439,11 @@ class ProcessInstanceProcessor:
         else:
             return ProcessInstanceStatus.waiting
 
-    def get_status(self):
+    def get_status(self) -> ProcessInstanceStatus:
         """Get_status."""
         return self.status_of(self.bpmn_process_instance)
 
-    def do_engine_steps(self, exit_at=None):
+    def do_engine_steps(self, exit_at: None=None) -> None:
         """Do_engine_steps."""
         try:
             self.bpmn_process_instance.refresh_waiting_tasks()
@@ -464,7 +466,7 @@ class ProcessInstanceProcessor:
         except WorkflowTaskExecException as we:
             raise ApiError.from_workflow_exception("task_error", str(we), we) from we
 
-    def serialize(self):
+    def serialize(self) -> str:
         """Serialize."""
         return self._serializer.serialize_json(self.bpmn_process_instance)
 
@@ -472,7 +474,7 @@ class ProcessInstanceProcessor:
         """Next_user_tasks."""
         return self.bpmn_process_instance.get_ready_user_tasks()
 
-    def next_task(self):
+    def next_task(self) -> Task:
         """Returns the next task that should be completed even if there are parallel tasks and multiple options are available.
 
         If the process_instance is complete
@@ -541,7 +543,7 @@ class ProcessInstanceProcessor:
             next_task = task
         return next_task
 
-    def completed_user_tasks(self):
+    def completed_user_tasks(self) -> List[Any]:
         """Completed_user_tasks."""
         completed_user_tasks = self.bpmn_process_instance.get_tasks(TaskState.COMPLETED)
         completed_user_tasks.reverse()
@@ -567,7 +569,7 @@ class ProcessInstanceProcessor:
         """Get_data."""
         return self.bpmn_process_instance.data
 
-    def get_process_instance_id(self):
+    def get_process_instance_id(self) -> int:
         """Get_process_instance_id."""
         return self.process_instance_model.id
 
@@ -594,7 +596,7 @@ class ProcessInstanceProcessor:
                     additional_tasks.append(child)
         return ready_tasks + additional_tasks
 
-    def get_all_user_tasks(self):
+    def get_all_user_tasks(self) -> List[Union[Task, Any]]:
         """Get_all_user_tasks."""
         all_tasks = self.bpmn_process_instance.get_tasks(TaskState.ANY_MASK)
         return [

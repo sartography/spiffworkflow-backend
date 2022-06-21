@@ -12,6 +12,7 @@ from sqlalchemy.orm import deferred
 from sqlalchemy.orm import relationship
 
 from spiffworkflow_backend.models.data_store import DataStoreModel
+from datetime import datetime
 
 
 class FileModel(SpiffworkflowBaseDBModel):
@@ -109,14 +110,14 @@ class File:
     process_group_id: Optional[str] = None
     archived: bool = False
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """__post_init__."""
         self.sort_index = f"{self.type}:{self.name}"
 
     @classmethod
     def from_file_system(
-        cls, file_name, file_type, content_type, last_modified, file_size
-    ):
+        cls, file_name: str, file_type: FileType, content_type: str, last_modified: datetime, file_size: int
+    ) -> "File":
         """From_file_system."""
         instance = cls(
             name=file_name,

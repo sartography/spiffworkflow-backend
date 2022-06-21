@@ -1,7 +1,7 @@
 """File_system_service."""
 import os
 from datetime import datetime
-from typing import List
+from typing import Optional, List
 
 import pytz
 from flask import current_app
@@ -11,6 +11,7 @@ from spiffworkflow_backend.models.file import CONTENT_TYPES
 from spiffworkflow_backend.models.file import File
 from spiffworkflow_backend.models.file import FileType
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
+from posix import DirEntry
 
 
 class FileSystemService:
@@ -28,7 +29,7 @@ class FileSystemService:
     WF_JSON_FILE = "workflow.json"
 
     @staticmethod
-    def root_path():
+    def root_path() -> str:
         """Root_path."""
         # fixme: allow absolute files
         dir_name = current_app.config["BPMN_SPEC_ABSOLUTE_DIR"]
@@ -36,7 +37,7 @@ class FileSystemService:
         return os.path.join(app_root, "..", dir_name)
 
     @staticmethod
-    def process_group_path(name: str):
+    def process_group_path(name: str) -> str:
         """Category_path."""
         return os.path.join(FileSystemService.root_path(), name)
 
@@ -48,7 +49,7 @@ class FileSystemService:
         )
 
     @staticmethod
-    def process_group_path_for_spec(spec):
+    def process_group_path_for_spec(spec: ProcessModelInfo) -> str:
         """Category_path_for_spec."""
         if spec.is_master_spec:
             return os.path.join(FileSystemService.root_path())
@@ -67,7 +68,7 @@ class FileSystemService:
         return process_group_path
 
     @staticmethod
-    def workflow_path(spec: ProcessModelInfo):
+    def workflow_path(spec: ProcessModelInfo) -> str:
         """Workflow_path."""
         if spec.is_master_spec:
             return os.path.join(
@@ -77,7 +78,7 @@ class FileSystemService:
             process_group_path = FileSystemService.process_group_path_for_spec(spec)
             return os.path.join(process_group_path, spec.id)
 
-    def next_display_order(self, spec):
+    def next_display_order(self, spec: ProcessModelInfo) -> int:
         """Next_display_order."""
         path = self.process_group_path_for_spec(spec)
         if os.path.exists(path):
@@ -86,14 +87,14 @@ class FileSystemService:
             return 0
 
     @staticmethod
-    def write_file_data_to_system(file_path: str, file_data):
+    def write_file_data_to_system(file_path: str, file_data: bytes) -> None:
         """Write_file_data_to_system."""
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
         with open(file_path, "wb") as f_handle:
             f_handle.write(file_data)
 
     @staticmethod
-    def get_extension(file_name) -> str:
+    def get_extension(file_name: str) -> str:
         """Get_extension."""
         _, file_extension = os.path.splitext(file_name)
         return file_extension.lower().strip()[1:]
@@ -125,13 +126,13 @@ class FileSystemService:
         return aware_utc_dt
 
     @staticmethod
-    def file_type(file_name):
+    def file_type(file_name: str) -> FileType:
         """File_type."""
         extension = FileSystemService.get_extension(file_name)
         return FileType[extension]
 
     @staticmethod
-    def _get_files(file_path: str, file_name=None) -> List[File]:
+    def _get_files(file_path: str, file_name: Optional[str]=None) -> List[File]:
         """Returns an array of File objects at the given path, can be restricted to just one file."""
         files = []
         items = os.scandir(file_path)
@@ -160,7 +161,7 @@ class FileSystemService:
         return file
 
     @staticmethod
-    def to_file_object_from_dir_entry(item: os.DirEntry):
+    def to_file_object_from_dir_entry(item: os.DirEntry) -> File:
         """To_file_object_from_dir_entry."""
         extension = FileSystemService.get_extension(item.name)
         try:
