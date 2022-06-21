@@ -1,7 +1,6 @@
 """Process_instance."""
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import SpiffworkflowBaseDBModel
-
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import deferred
 from sqlalchemy.orm import relationship

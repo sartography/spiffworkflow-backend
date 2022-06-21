@@ -1,9 +1,9 @@
 """Process_instance_service."""
 import time
-from flask_bpmn.models.db import db
 from typing import List
 
 from flask import current_app
+from flask_bpmn.models.db import db
 from SpiffWorkflow import NavItem  # type: ignore
 from SpiffWorkflow.bpmn.specs.ManualTask import ManualTask  # type: ignore
 from SpiffWorkflow.bpmn.specs.UserTask import UserTask  # type: ignore

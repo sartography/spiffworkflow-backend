@@ -1,8 +1,7 @@
 """User."""
-from flask_bpmn.api.api_error import ApiError
-
 from flask import current_app
 from flask import g
+from flask_bpmn.api.api_error import ApiError
 
 from spiffworkflow_backend.models.user import UserModel
 

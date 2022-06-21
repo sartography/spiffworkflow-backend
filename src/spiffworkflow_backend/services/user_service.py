@@ -1,8 +1,7 @@
 """User_service."""
+from flask import g
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
-
-from flask import g
 
 from spiffworkflow_backend.models.user import AdminSessionModel
 from spiffworkflow_backend.models.user import UserModel

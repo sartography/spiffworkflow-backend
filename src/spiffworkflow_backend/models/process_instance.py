@@ -1,9 +1,9 @@
 """Process_instance."""
 import enum
-from flask_bpmn.models.db import db
-from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 
 import marshmallow
+from flask_bpmn.models.db import db
+from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from marshmallow import INCLUDE
 from marshmallow import Schema
 from marshmallow_enum import EnumField  # type: ignore

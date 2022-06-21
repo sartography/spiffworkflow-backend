@@ -1,11 +1,11 @@
 """__init__."""
 import os
-from flask_bpmn.api.api_error import api_error_blueprint
-from flask_bpmn.models.db import db
-from flask_bpmn.models.db import migrate
 
 import connexion  # type: ignore
 import flask.app
+from flask_bpmn.api.api_error import api_error_blueprint
+from flask_bpmn.models.db import db
+from flask_bpmn.models.db import migrate
 from flask_cors import CORS  # type: ignore
 
 import spiffworkflow_backend.load_database_models  # noqa: F401
