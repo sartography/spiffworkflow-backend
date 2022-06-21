@@ -52,7 +52,7 @@ class ExampleDataLoader:
             filepath = os.path.join(current_app.root_path, "static", "bpmn", id, "*.*")
         if not filepath and from_tests:
             filepath = os.path.join(
-                current_app.root_path, "..", "..", "tests", "data", id, "*.*"
+                current_app.instance_path, "..", "..", "tests", "data", id, "*.*"
             )
 
         files = glob.glob(filepath)

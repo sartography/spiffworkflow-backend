@@ -2,7 +2,6 @@
 import csv
 import os
 
-from flask import current_app
 from flask_bpmn.models.db import db
 
 from spiffworkflow_backend import create_app
@@ -14,7 +13,6 @@ from spiffworkflow_backend.services.process_instance_processor import (
 from spiffworkflow_backend.services.process_instance_service import (
     ProcessInstanceService,
 )
-from spiffworkflow_backend.services.process_model_service import ProcessModelService
 
 
 def print_process_instance_count(process_model_identifier_ticket: str) -> None:
@@ -29,7 +27,8 @@ def print_process_instance_count(process_model_identifier_ticket: str) -> None:
 def main():
     """Main."""
     os.environ["FLASK_ENV"] = "development"
-    os.environ["FLASK_SESSION_SECRET_KEY"] = "whatevs"
+    flask_env_key = "FLASK_SESSION_SECRET_KEY"
+    os.environ[flask_env_key] = "whatevs"
     app = create_app()
     with app.app_context():
 
@@ -47,7 +46,6 @@ def main():
         process_instance_count = len(process_instances)
         print(f"process_instance_count: {process_instance_count}")
 
-        # process_model = ProcessModelService().get_process_model(process_model_identifier_ticket)
         columns_to_data_key_mappings = {
             "Month": "month",
             "MS": "milestone",
@@ -81,7 +79,9 @@ def main():
                 print(f"priority: {priority}")
 
                 process_instance = ProcessInstanceService.create_process_instance(
-                    process_model_identifier_ticket, user
+                    process_model_identifier_ticket,
+                    user,
+                    process_group_identifier="sartography-admin",
                 )
                 processor = ProcessInstanceProcessor(process_instance)
 
