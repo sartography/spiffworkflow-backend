@@ -18,7 +18,6 @@ from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
 from tests.spiffworkflow_backend.helpers.test_data import logged_in_headers
 from werkzeug.test import TestResponse
 
-from spiffworkflow_backend.models.file import FileType
 from spiffworkflow_backend.models.process_group import ProcessGroup
 from spiffworkflow_backend.models.process_group import ProcessGroupSchema
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
@@ -787,6 +786,7 @@ def test_process_instance_report_with_default_list(
 def test_error_handler(
     app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
+    """Test_error_handler."""
     process_group_id = 'data'
     process_model_id = 'error'
 
@@ -801,6 +801,7 @@ def test_error_handler(
 def test_process_model_file_create(
         app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
+    """Test_process_model_file_create."""
     process_group_id = 'hello_world'
     process_model_id = 'hello_world'
     file_name = 'hello_world.svg'
