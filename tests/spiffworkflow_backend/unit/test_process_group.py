@@ -1,7 +1,8 @@
 """Process Model."""
+from flask.app import Flask
+
 from spiffworkflow_backend.models.process_group import ProcessGroup
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
-from flask.app import Flask
 
 
 def test_there_is_at_least_one_group_after_we_create_one(app: Flask) -> None:
