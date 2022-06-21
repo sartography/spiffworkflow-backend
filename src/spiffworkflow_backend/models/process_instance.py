@@ -1,15 +1,14 @@
 """Process_instance."""
 import enum
-
-import marshmallow
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import SpiffworkflowBaseDBModel
+
+import marshmallow
 from marshmallow import INCLUDE
 from marshmallow import Schema
 from marshmallow_enum import EnumField  # type: ignore
 from SpiffWorkflow.navigation import NavItem  # type: ignore
 from sqlalchemy import ForeignKey
-from sqlalchemy import func
 from sqlalchemy.orm import deferred
 from sqlalchemy.orm import relationship
 

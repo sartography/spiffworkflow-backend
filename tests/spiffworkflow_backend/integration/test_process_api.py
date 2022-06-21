@@ -3,6 +3,7 @@ import io
 import json
 import os
 import shutil
+from flask_bpmn.models.db import db
 from typing import Dict
 from typing import Iterator
 from typing import Optional
@@ -11,7 +12,6 @@ from typing import Union
 import pytest
 from flask.app import Flask
 from flask.testing import FlaskClient
-from flask_bpmn.models.db import db
 from tests.spiffworkflow_backend.helpers.test_data import find_or_create_user
 from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
 from tests.spiffworkflow_backend.helpers.test_data import logged_in_headers
@@ -556,7 +556,7 @@ def test_process_instance_create(
     response = create_process_instance(
         app, client, test_process_group_id, test_process_model_id, headers
     )
-    assert response.json['updated_at_in_seconds'] is not None
+    assert response.json["updated_at_in_seconds"] is not None
     assert response.json["status"] == "complete"
     assert response.json["process_model_identifier"] == test_process_model_id
     assert response.json["data"]["current_user"]["username"] == "test_user1"

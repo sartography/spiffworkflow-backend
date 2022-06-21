@@ -1,6 +1,7 @@
 """PermissionTarget."""
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import SpiffworkflowBaseDBModel
+
 from sqlalchemy.schema import CheckConstraint
 
 # from sqlalchemy import ForeignKey  # type: ignore

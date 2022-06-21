@@ -1,4 +1,5 @@
 """APIs for dealing with process groups, process models, and process instances."""
+from flask_bpmn.models.db import db
 from typing import Any
 
 from flask import Blueprint
@@ -8,7 +9,6 @@ from flask import redirect
 from flask import render_template
 from flask import request
 from flask import url_for
-from flask_bpmn.models.db import db
 
 from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.services.process_instance_processor import (

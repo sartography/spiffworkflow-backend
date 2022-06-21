@@ -1,6 +1,7 @@
 """Group."""
 from flask_bpmn.models.db import db
 from flask_bpmn.models.group import FlaskBpmnGroupModel
+
 from sqlalchemy.orm import relationship
 
 

@@ -1,6 +1,7 @@
 """Test Permissions."""
-from flask.app import Flask
 from flask_bpmn.models.db import db
+
+from flask.app import Flask
 from tests.spiffworkflow_backend.helpers.test_data import find_or_create_user
 
 from spiffworkflow_backend.models.principal import PrincipalModel

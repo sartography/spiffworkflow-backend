@@ -2,10 +2,10 @@
 import enum
 from dataclasses import dataclass
 from dataclasses import field
-from typing import Optional
-
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import SpiffworkflowBaseDBModel
+from typing import Optional
+
 from marshmallow import INCLUDE
 from marshmallow import Schema
 from sqlalchemy.orm import deferred
