@@ -25,6 +25,7 @@ from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 from spiffworkflow_backend.models.process_instance import ProcessInstanceStatus
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
+from spiffworkflow_backend.models.process_model import NotificationType
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 
 
@@ -783,6 +784,37 @@ def test_process_instance_report_with_default_list(
     assert process_instance_dict["data"]["Mike"] == "Awesome"
 
 
+def test_error_handler(
+    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+) -> None:
+    process_group_id = 'data'
+    process_model_id = 'error'
+
+    user = find_or_create_user()
+    headers = logged_in_headers(user)
+    response = create_process_instance(
+        app, client, process_group_id, process_model_id, headers
+    )
+    print('test_error_handler')
+
+
+def test_process_model_file_create(
+        app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+) -> None:
+    process_group_id = 'hello_world'
+    process_model_id = 'hello_world'
+    file_name = 'hello_world.svg'
+    file_data = b"abc123"
+
+    result = create_spec_file(app, client,
+                              process_group_id=process_group_id,
+                              process_model_id=process_model_id,
+                              file_name=file_name,
+                              file_data=file_data)
+
+    print('test_process_model_file_create')
+
+
 def create_process_instance(
     app: Flask,
     client: FlaskClient,
@@ -807,10 +839,13 @@ def create_process_model(
     process_model_id: str = None,
     process_model_display_name: str = None,
     process_model_description: str = None,
+    fault_or_suspend_on_exception: NotificationType = None,
+    notification_email_on_exception: list = None
 ) -> TestResponse:
     """Create_process_model."""
     process_model_service = ProcessModelService()
 
+    # make sure we have a group
     if process_group_id is None:
         process_group_tmp = ProcessGroup(
             id="test_cat", display_name="Test Category", display_order=0, admin=False
@@ -825,6 +860,10 @@ def create_process_model(
         process_model_display_name = "Cooooookies"
     if process_model_description is None:
         process_model_description = "Om nom nom delicious cookies"
+    if fault_or_suspend_on_exception is None:
+        fault_or_suspend_on_exception = NotificationType.suspend
+    if notification_email_on_exception is None:
+        notification_email_on_exception = []
     model = ProcessModelInfo(
         id=process_model_id,
         display_name=process_model_display_name,
@@ -837,6 +876,8 @@ def create_process_model(
         library=False,
         primary_process_id="",
         primary_file_name="",
+        fault_or_suspend_on_exception=fault_or_suspend_on_exception,
+        notification_email_on_exception=notification_email_on_exception
     )
     user = find_or_create_user()
     response = client.post(
@@ -850,11 +891,24 @@ def create_process_model(
 
 
 def create_spec_file(
-    app: Flask, client: FlaskClient
+        app: Flask,
+        client: FlaskClient,
+        process_group_id: str = None,
+        process_model_id: str = None,
+        file_name: str = None,
+        file_data: bytes = None
 ) -> Dict[str, Optional[Union[str, bool, int]]]:
     """Test_create_spec_file."""
-    spec = load_test_spec(app, "random_fact")
-    data = {"file": (io.BytesIO(b"abcdef"), "random_fact.svg")}
+    if process_group_id is None:
+        process_group_id = "random_fact"
+    if process_model_id is None:
+        process_model_id = "random_fact"
+    if file_name is None:
+        file_name = "random_fact.svg"
+    if file_data is None:
+        file_data = b"abcdef"
+    spec = load_test_spec(app, process_model_id, process_group_id=process_group_id)
+    data = {"file": (io.BytesIO(file_data), file_name)}
     user = find_or_create_user()
     response = client.post(
         f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/file",
@@ -866,11 +920,11 @@ def create_spec_file(
     assert response.status_code == 201
     assert response.get_data() is not None
     file = json.loads(response.get_data(as_text=True))
-    assert FileType.svg.value == file["type"]
-    assert "image/svg+xml" == file["content_type"]
+    # assert FileType.svg.value == file["type"]
+    # assert "image/svg+xml" == file["content_type"]
 
     response = client.get(
-        f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/file/random_fact.svg",
+        f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/file/{file_name}",
         headers=logged_in_headers(user),
     )
     assert response.status_code == 200
