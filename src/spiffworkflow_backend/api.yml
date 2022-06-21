@@ -505,9 +505,8 @@ components:
         workflow_spec_id:
           type: string
           example: top_level_workflow
-        date_created:
-          type: string
-          example: 2020-12-09 16:55:12.951500+00:00
+        created_at_in_seconds:
+          type: integer
         location:
           type: string
           example: remote
@@ -525,9 +524,8 @@ components:
         filename:
           type: string
           example: data_security_plan.dmn
-        date_created:
-          type: string
-          example: 2020-12-01 13:58:12.420333+00:00
+        created_at_in_seconds:
+          type: integer
         type:
           type: string
           example: dmn
@@ -549,9 +547,8 @@ components:
         filename:
           type: string
           example: data_security_plan.dmn
-        date_created:
-          type: string
-          example: 2020-12-01 13:58:12.420333+00:00
+        created_at_in_seconds:
+          type: integer
         type:
           type: string
           example: dmn
@@ -578,9 +575,8 @@ components:
         workflow_spec_id:
           type: string
           example: acaf1258-43b4-437e-8846-f612afa66811
-        date_created:
-          type: string
-          example: 2020-12-01 13:58:12.420333+00:00
+        created_at_in_seconds:
+          type: integer
         md5_hash:
           type: string
           example: c30fd597f21715018eab12f97f9d4956
@@ -592,7 +588,7 @@ components:
         title:
           type: string
           example: The impact of fried pickles on beer consumption in bipedal software developers.
-        last_updated:
+        updated_at_in_seconds:
           type: string
           format: date_time
           example: "2019-12-25T09:12:33.001Z"
@@ -726,7 +722,7 @@ components:
           example: "random_fact.bpmn"
         version:
           type: integer
-        last_updated:
+        updated_at_in_seconds:
           type: string
           format: date_time
           example: "2019-12-25T09:12:33.001Z"

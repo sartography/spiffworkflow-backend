@@ -2,7 +2,6 @@
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from flask_marshmallow.sqla import SQLAlchemyAutoSchema  # type: ignore
-from sqlalchemy import func
 
 
 class DataStoreModel(SpiffworkflowBaseDBModel):
@@ -10,7 +9,7 @@ class DataStoreModel(SpiffworkflowBaseDBModel):
 
     __tablename__ = "data_store"
     id = db.Column(db.Integer, primary_key=True)
-    last_updated = db.Column(db.DateTime(timezone=True), server_default=func.now())
+    updated_at_in_seconds = db.Column(db.Integer)
     key = db.Column(db.String(50), nullable=False)
     process_instance_id = db.Column(db.Integer)
     task_spec = db.Column(db.String(50))

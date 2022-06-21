@@ -14,7 +14,7 @@ from spiffworkflow_backend.routes.api_blueprint import api_blueprint
 from spiffworkflow_backend.routes.process_api_blueprint import process_api_blueprint
 from spiffworkflow_backend.routes.user_blueprint import user_blueprint
 
-import spiffworkflow_backend.load_database_models
+import spiffworkflow_backend.load_database_models  # noqa: F401
 
 
 def create_app() -> flask.app.Flask:

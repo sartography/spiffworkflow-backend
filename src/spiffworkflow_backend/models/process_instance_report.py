@@ -2,7 +2,6 @@
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from sqlalchemy import ForeignKey
-from sqlalchemy import func
 from sqlalchemy.orm import deferred
 from sqlalchemy.orm import relationship
 
@@ -19,8 +18,8 @@ class ProcessInstanceReportModel(SpiffworkflowBaseDBModel):  # type: ignore
     report_json = deferred(db.Column(db.JSON))
     created_by_id = db.Column(ForeignKey(UserModel.id), nullable=False)
     created_by = relationship("UserModel")
-    created_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
-    updated_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
+    created_at_in_seconds = db.Column(db.Integer)
+    updated_at_in_seconds = db.Column(db.Integer)
 
     @property
     def serialized(self):
@@ -31,6 +30,6 @@ class ProcessInstanceReportModel(SpiffworkflowBaseDBModel):  # type: ignore
             "process_group_identifier": self.process_group_identifier,
             "report_json": self.report_json,
             "created_by": self.process_initiator_id,
-            "created_at": self.created_at,
-            "updated_at": self.updated_at,
+            "created_at_in_seconds": self.created_at_in_seconds,
+            "updated_at_in_seconds": self.updated_at_in_seconds,
         }

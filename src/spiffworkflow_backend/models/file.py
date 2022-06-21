@@ -8,7 +8,6 @@ from flask_bpmn.models.db import db
 from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from marshmallow import INCLUDE
 from marshmallow import Schema
-from sqlalchemy import func
 from sqlalchemy.orm import deferred
 from sqlalchemy.orm import relationship
 
@@ -34,8 +33,8 @@ class FileModel(SpiffworkflowBaseDBModel):
     md5_hash = db.Column(db.String(50), unique=False, nullable=False)
     data = deferred(db.Column(db.LargeBinary))  # Don't load it unless you have to.
     size = db.Column(db.Integer, default=0)
-    date_modified = db.Column(db.DateTime(timezone=True), onupdate=func.now())
-    date_created = db.Column(db.DateTime(timezone=True), server_default=func.now())
+    updated_at_in_seconds = db.Column(db.Integer)
+    created_at_in_seconds = db.Column(db.Integer)
     user_uid = db.Column(db.String(50), db.ForeignKey("user.uid"), nullable=True)
     archived = db.Column(db.Boolean, default=False)
 

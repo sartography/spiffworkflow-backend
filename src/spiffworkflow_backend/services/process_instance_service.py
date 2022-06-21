@@ -66,7 +66,7 @@ class ProcessInstanceService:
             process_group_identifier=processor.process_group_identifier,
             total_tasks=len(navigation),
             completed_tasks=processor.process_instance_model.completed_tasks,
-            last_updated=processor.process_instance_model.last_updated,
+            updated_at_in_seconds=processor.process_instance_model.updated_at_in_seconds,
             is_review=process_model.is_review,
             title=process_model.display_name,
         )

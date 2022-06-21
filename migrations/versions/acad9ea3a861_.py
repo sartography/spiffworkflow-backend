@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 47bf06847903
+Revision ID: acad9ea3a861
 Revises: 
-Create Date: 2022-06-21 12:19:38.184089
+Create Date: 2022-06-21 12:45:20.062981
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '47bf06847903'
+revision = 'acad9ea3a861'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -71,8 +71,8 @@ def upgrade():
     sa.Column('process_group_identifier', sa.String(length=50), nullable=False),
     sa.Column('report_json', sa.JSON(), nullable=True),
     sa.Column('created_by_id', sa.Integer(), nullable=False),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.Column('created_at_in_seconds', sa.Integer(), nullable=True),
+    sa.Column('updated_at_in_seconds', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['created_by_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -98,8 +98,8 @@ def upgrade():
     sa.Column('md5_hash', sa.String(length=50), nullable=False),
     sa.Column('data', sa.LargeBinary(), nullable=True),
     sa.Column('size', sa.Integer(), nullable=True),
-    sa.Column('date_modified', sa.DateTime(timezone=True), nullable=True),
-    sa.Column('date_created', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.Column('updated_at_in_seconds', sa.Integer(), nullable=True),
+    sa.Column('created_at_in_seconds', sa.Integer(), nullable=True),
     sa.Column('user_uid', sa.String(length=50), nullable=True),
     sa.Column('archived', sa.Boolean(), nullable=True),
     sa.ForeignKeyConstraint(['process_instance_id'], ['process_instance.id'], ),
@@ -129,7 +129,7 @@ def upgrade():
     )
     op.create_table('data_store',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('last_updated', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.Column('updated_at_in_seconds', sa.Integer(), nullable=True),
     sa.Column('key', sa.String(length=50), nullable=False),
     sa.Column('process_instance_id', sa.Integer(), nullable=True),
     sa.Column('task_spec', sa.String(length=50), nullable=True),
