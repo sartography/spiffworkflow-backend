@@ -14,3 +14,4 @@ __pycache__/
 node_modules
 /pyrightconfig.json
 /tests/files/tickets.csv
+/log/*.log

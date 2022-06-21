@@ -82,7 +82,7 @@ class ProcessInstanceModel(SpiffworkflowBaseDBModel):  # type: ignore
     bpmn_json = deferred(db.Column(db.JSON))
     start_in_seconds = db.Column(db.Integer)
     end_in_seconds = db.Column(db.Integer)
-    last_updated = db.Column(db.DateTime(timezone=True))
+    updated_at_in_seconds = db.Column(db.Integer)
     process_initiator_id = db.Column(ForeignKey(UserModel.id), nullable=False)
     process_initiator = relationship("UserModel")
     status = db.Column(db.Enum(ProcessInstanceStatus))
@@ -114,7 +114,7 @@ class ProcessInstanceApi:
         process_group_identifier,
         total_tasks,
         completed_tasks,
-        last_updated,
+        updated_at_in_seconds,
         is_review,
         title,
     ):
@@ -127,7 +127,7 @@ class ProcessInstanceApi:
         self.process_group_identifier = process_group_identifier
         self.total_tasks = total_tasks
         self.completed_tasks = completed_tasks
-        self.last_updated = last_updated
+        self.updated_at_in_seconds = updated_at_in_seconds
         self.title = title
         self.is_review = is_review
 
@@ -148,7 +148,7 @@ class ProcessInstanceApiSchema(Schema):
             "process_group_identifier",
             "total_tasks",
             "completed_tasks",
-            "last_updated",
+            "updated_at_in_seconds",
             "is_review",
             "title",
             "study_id",
@@ -175,7 +175,7 @@ class ProcessInstanceApiSchema(Schema):
             "process_group_identifier",
             "total_tasks",
             "completed_tasks",
-            "last_updated",
+            "updated_at_in_seconds",
             "is_review",
             "title",
             "study_id",
