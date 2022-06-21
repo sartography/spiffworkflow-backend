@@ -5,6 +5,7 @@ from typing import Iterator
 
 import pytest
 from flask.app import Flask
+
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 
 

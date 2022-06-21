@@ -1,7 +1,9 @@
 """Process_group."""
 from dataclasses import dataclass
 from dataclasses import field
-from typing import Dict, Union, Optional
+from typing import Dict
+from typing import Optional
+from typing import Union
 
 import marshmallow
 from marshmallow import post_load
@@ -51,6 +53,8 @@ class ProcessGroupSchema(Schema):
     )
 
     @post_load
-    def make_process_group(self, data: Dict[str, Union[str, bool, int]], **kwargs) -> ProcessGroup:
+    def make_process_group(
+        self, data: Dict[str, Union[str, bool, int]], **kwargs
+    ) -> ProcessGroup:
         """Make_process_group."""
         return ProcessGroup(**data)

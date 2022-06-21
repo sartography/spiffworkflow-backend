@@ -2,7 +2,10 @@
 import json
 import os
 import shutil
-from typing import Any, Optional, Union, List
+from typing import Any
+from typing import List
+from typing import Optional
+from typing import Union
 
 from flask_bpmn.api.api_error import ApiError
 
@@ -27,7 +30,11 @@ class ProcessModelService(FileSystemService):
     WF_SCHEMA = ProcessModelInfoSchema()
 
     @staticmethod
-    def get_batch(items: List[Union[Any, ProcessGroup, ProcessModelInfo]], page: int=1, per_page: int=10) -> List[Union[Any, ProcessGroup, ProcessModelInfo]]:
+    def get_batch(
+        items: List[Union[Any, ProcessGroup, ProcessModelInfo]],
+        page: int = 1,
+        per_page: int = 10,
+    ) -> List[Union[Any, ProcessGroup, ProcessModelInfo]]:
         """Get_batch."""
         start = (page - 1) * per_page
         end = start + per_page
@@ -87,7 +94,9 @@ class ProcessModelService(FileSystemService):
         if os.path.exists(path):
             return self.__scan_spec(path, FileSystemService.MASTER_SPECIFICATION)
 
-    def get_process_model(self, process_model_id: str, group_id: Optional[str]=None) -> Optional[ProcessModelInfo]:
+    def get_process_model(
+        self, process_model_id: str, group_id: Optional[str] = None
+    ) -> Optional[ProcessModelInfo]:
         """Get a process model from a model and group id."""
         if not os.path.exists(FileSystemService.root_path()):
             return  # Nothing to scan yet.  There are no files.
@@ -112,7 +121,9 @@ class ProcessModelService(FileSystemService):
                                 )
                                 return self.__scan_spec(sd.path, sd.name, process_group)
 
-    def get_process_models(self, process_group_id: Optional[str]=None) -> List[ProcessModelInfo]:
+    def get_process_models(
+        self, process_group_id: Optional[str] = None
+    ) -> List[ProcessModelInfo]:
         """Get process models."""
         if process_group_id is None:
             process_groups = self.get_process_groups()
@@ -143,7 +154,9 @@ class ProcessModelService(FileSystemService):
             )
         return self.cleanup_workflow_spec_display_order(spec.process_group)
 
-    def cleanup_workflow_spec_display_order(self, process_group: ProcessGroup) -> List[Union[Any, ProcessModelInfo]]:
+    def cleanup_workflow_spec_display_order(
+        self, process_group: ProcessGroup
+    ) -> List[Union[Any, ProcessModelInfo]]:
         """Cleanup_workflow_spec_display_order."""
         index = 0
         if not process_group:

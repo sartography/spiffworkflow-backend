@@ -2,12 +2,14 @@
 import os
 import shutil
 from datetime import datetime
-from typing import Optional, List
+from typing import List
+from typing import Optional
 from typing import Union
 
 from flask_bpmn.api.api_error import ApiError
 from lxml import etree  # type: ignore
-from lxml.etree import _Element, Element as EtreeElement  # type: ignore
+from lxml.etree import _Element
+from lxml.etree import Element as EtreeElement
 from SpiffWorkflow.bpmn.parser.ValidationException import ValidationException  # type: ignore
 
 from spiffworkflow_backend.models.file import File
@@ -27,9 +29,9 @@ class SpecFileService(FileSystemService):
     @staticmethod
     def get_files(
         workflow_spec: ProcessModelInfo,
-        file_name: Optional[str]=None,
-        include_libraries: bool=False,
-        extension_filter: str="",
+        file_name: Optional[str] = None,
+        include_libraries: bool = False,
+        extension_filter: str = "",
     ) -> List[File]:
         """Return all files associated with a workflow specification."""
         path = SpecFileService.workflow_path(workflow_spec)

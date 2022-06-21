@@ -1,7 +1,11 @@
 """Process_instance_processor."""
 import json
 import time
-from typing import Any, Dict, Optional, Union, List
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Union
 
 from flask import current_app
 from flask_bpmn.api.api_error import ApiError
@@ -11,9 +15,11 @@ from SpiffWorkflow import Task as SpiffTask  # type: ignore
 from SpiffWorkflow import TaskState
 from SpiffWorkflow import WorkflowException
 from SpiffWorkflow.bpmn.parser.ValidationException import ValidationException  # type: ignore
-from SpiffWorkflow.bpmn.PythonScriptEngine import Box, PythonScriptEngine  # type: ignore
+from SpiffWorkflow.bpmn.PythonScriptEngine import Box
+from SpiffWorkflow.bpmn.PythonScriptEngine import PythonScriptEngine
 from SpiffWorkflow.bpmn.serializer import BpmnWorkflowSerializer  # type: ignore
 from SpiffWorkflow.bpmn.serializer.BpmnSerializer import BpmnSerializer  # type: ignore
+from SpiffWorkflow.bpmn.specs.BpmnProcessSpec import BpmnProcessSpec
 from SpiffWorkflow.bpmn.specs.events import CancelEventDefinition  # type: ignore
 from SpiffWorkflow.bpmn.specs.events import EndEvent
 from SpiffWorkflow.bpmn.workflow import BpmnWorkflow  # type: ignore
@@ -24,6 +30,7 @@ from SpiffWorkflow.dmn.serializer import BusinessRuleTaskConverter  # type: igno
 from SpiffWorkflow.exceptions import WorkflowTaskExecException  # type: ignore
 from SpiffWorkflow.serializer.exceptions import MissingSpecError  # type: ignore
 from SpiffWorkflow.specs import WorkflowSpec  # type: ignore
+from SpiffWorkflow.task import Task
 
 from spiffworkflow_backend.models.file import File
 from spiffworkflow_backend.models.file import FileType
@@ -36,8 +43,6 @@ from spiffworkflow_backend.models.user import UserModelSchema
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 from spiffworkflow_backend.services.spec_file_service import SpecFileService
 from spiffworkflow_backend.services.user_service import UserService
-from SpiffWorkflow.bpmn.specs.BpmnProcessSpec import BpmnProcessSpec
-from SpiffWorkflow.task import Task
 
 # from crc.services.user_file_service import UserFileService
 
@@ -53,7 +58,13 @@ class CustomBpmnScriptEngine(PythonScriptEngine):
         """Evaluate."""
         return self._evaluate(expression, task.data, task)
 
-    def _evaluate(self, expression: str, context: Dict[str, Union[Box, str]], task: Optional[Task]=None, external_methods: None=None) -> str:
+    def _evaluate(
+        self,
+        expression: str,
+        context: Dict[str, Union[Box, str]],
+        task: Optional[Task] = None,
+        external_methods: None = None,
+    ) -> str:
         """Evaluate the given expression, within the context of the given task and return the result."""
         try:
             return super()._evaluate(expression, context, task, {})
@@ -64,7 +75,9 @@ class CustomBpmnScriptEngine(PythonScriptEngine):
                 "'%s', %s" % (expression, str(exception)),
             ) from exception
 
-    def execute(self, task: SpiffTask, script: str, data: Dict[str, Dict[str, str]]) -> None:
+    def execute(
+        self, task: SpiffTask, script: str, data: Dict[str, Dict[str, str]]
+    ) -> None:
         """Execute."""
         try:
             super().execute(task, script, data)
@@ -95,7 +108,7 @@ class ProcessInstanceProcessor:
     VALIDATION_PROCESS_KEY = "validate_only"
 
     def __init__(
-        self, process_instance_model: ProcessInstanceModel, validate_only: bool=False
+        self, process_instance_model: ProcessInstanceModel, validate_only: bool = False
     ) -> None:
         """Create a Workflow Processor based on the serialized information available in the process_instance model."""
         self.process_instance_model = process_instance_model
@@ -389,7 +402,9 @@ class ProcessInstanceProcessor:
         return parser
 
     @staticmethod
-    def get_spec(files: List[File], process_model_info: ProcessModelInfo) -> BpmnProcessSpec:
+    def get_spec(
+        files: List[File], process_model_info: ProcessModelInfo
+    ) -> BpmnProcessSpec:
         """Returns a SpiffWorkflow specification for the given process_instance spec, using the files provided."""
         parser = ProcessInstanceProcessor.get_parser()
 
@@ -443,7 +458,7 @@ class ProcessInstanceProcessor:
         """Get_status."""
         return self.status_of(self.bpmn_process_instance)
 
-    def do_engine_steps(self, exit_at: None=None) -> None:
+    def do_engine_steps(self, exit_at: None = None) -> None:
         """Do_engine_steps."""
         try:
             self.bpmn_process_instance.refresh_waiting_tasks()

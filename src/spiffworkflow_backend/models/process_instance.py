@@ -1,5 +1,7 @@
 """Process_instance."""
 import enum
+from typing import Dict
+from typing import Union
 
 import marshmallow
 from flask_bpmn.models.db import db
@@ -15,7 +17,6 @@ from sqlalchemy.orm import relationship
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.task import TaskSchema
 from spiffworkflow_backend.models.user import UserModel
-from typing import Dict, Union
 
 
 class NavigationItemSchema(Schema):

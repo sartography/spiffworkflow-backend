@@ -1,7 +1,9 @@
 """Process_model."""
 from dataclasses import dataclass
 from dataclasses import field
-from typing import Dict, Union, Optional
+from typing import Dict
+from typing import Optional
+from typing import Union
 
 import marshmallow
 from marshmallow import post_load
@@ -64,6 +66,8 @@ class ProcessModelInfoSchema(Schema):
     files = marshmallow.fields.List(marshmallow.fields.Nested("FileSchema"))
 
     @post_load
-    def make_spec(self, data: Dict[str, Union[str, bool, int]], **kwargs) -> ProcessModelInfo:
+    def make_spec(
+        self, data: Dict[str, Union[str, bool, int]], **kwargs
+    ) -> ProcessModelInfo:
         """Make_spec."""
         return ProcessModelInfo(**data)

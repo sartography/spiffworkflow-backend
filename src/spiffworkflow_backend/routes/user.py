@@ -1,5 +1,6 @@
 """User."""
-from typing import Dict, Optional
+from typing import Dict
+from typing import Optional
 
 from flask import current_app
 from flask import g
@@ -13,7 +14,7 @@ from spiffworkflow_backend.models.user import UserModel
 """
 
 
-def verify_token(token: Optional[str]=None) -> Dict[str, None]:
+def verify_token(token: Optional[str] = None) -> Dict[str, None]:
     """Verify the token for the user (if provided).
 
     If in production environment and token is not provided, gets user from the SSO headers and returns their token.

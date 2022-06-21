@@ -2,6 +2,7 @@
 import enum
 from dataclasses import dataclass
 from dataclasses import field
+from datetime import datetime
 from typing import Optional
 
 from flask_bpmn.models.db import db
@@ -12,7 +13,6 @@ from sqlalchemy.orm import deferred
 from sqlalchemy.orm import relationship
 
 from spiffworkflow_backend.models.data_store import DataStoreModel
-from datetime import datetime
 
 
 class FileModel(SpiffworkflowBaseDBModel):
@@ -116,7 +116,12 @@ class File:
 
     @classmethod
     def from_file_system(
-        cls, file_name: str, file_type: FileType, content_type: str, last_modified: datetime, file_size: int
+        cls,
+        file_name: str,
+        file_type: FileType,
+        content_type: str,
+        last_modified: datetime,
+        file_size: int,
     ) -> "File":
         """From_file_system."""
         instance = cls(
