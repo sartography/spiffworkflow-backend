@@ -273,16 +273,16 @@ def process_instance_create(
 
 
 def process_instance_list(
-    process_group_id,
-    process_model_id,
-    page=1,
-    per_page=100,
-    start_from=None,
-    start_till=None,
-    end_from=None,
-    end_till=None,
-    process_status=None,
-):
+    process_group_id: str,
+    process_model_id: str,
+    page: int=1,
+    per_page: int=100,
+    start_from: Optional[int]=None,
+    start_till: Optional[int]=None,
+    end_from: Optional[int]=None,
+    end_till: Optional[int]=None,
+    process_status: Optional[str]=None,
+) -> flask.wrappers.Response:
     """Process_instance_list."""
     process_model = ProcessModelService().get_process_model(
         process_model_id, group_id=process_group_id
