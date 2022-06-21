@@ -8,7 +8,7 @@ from typing import Union
 
 from flask_bpmn.api.api_error import ApiError
 from lxml import etree  # type: ignore
-from lxml.etree import _Element
+from lxml.etree import _Element  # type: ignore
 from lxml.etree import Element as EtreeElement
 from SpiffWorkflow.bpmn.parser.ValidationException import ValidationException  # type: ignore
 

@@ -10,7 +10,7 @@ from flask_bpmn.models.db import db
 from SpiffWorkflow import NavItem  # type: ignore
 from SpiffWorkflow.bpmn.specs.ManualTask import ManualTask  # type: ignore
 from SpiffWorkflow.bpmn.specs.UserTask import UserTask  # type: ignore
-from SpiffWorkflow.task import Task
+from SpiffWorkflow.task import Task  # type: ignore
 from SpiffWorkflow.util.deep_merge import DeepMerge  # type: ignore
 
 from spiffworkflow_backend.models.process_instance import ProcessInstanceApi

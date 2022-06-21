@@ -8,7 +8,7 @@ from sqlalchemy.orm import relationship
 from spiffworkflow_backend.models.user import UserModel
 
 
-class ProcessInstanceReportModel(SpiffworkflowBaseDBModel):  # type: ignore
+class ProcessInstanceReportModel(SpiffworkflowBaseDBModel):
     """ProcessInstanceReportModel."""
 
     __tablename__ = "process_instance_report"

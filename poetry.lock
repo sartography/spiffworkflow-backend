@@ -611,7 +611,7 @@ description = "Flask Bpmn"
 category = "main"
 optional = false
 python-versions = "^3.7"
-develop = false
+develop = true
 
 [package.dependencies]
 click = "^8.0.1"
@@ -629,10 +629,8 @@ spiffworkflow = {git = "https://github.com/sartography/SpiffWorkflow", rev = "ma
 werkzeug = "*"
 
 [package.source]
-type = "git"
-url = "https://github.com/sartography/flask-bpmn"
-reference = "main"
-resolved_reference = "46542df4958f5457280a7de19177af2c3e652771"
+type = "directory"
+url = "../flask-bpmn"
 
 [[package]]
 name = "flask-cors"
@@ -2056,7 +2054,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "3b904d4d870e7e1350000302779598858703ed9011b45681a649772603ec484d"
+content-hash = "15f411e02a398487612fbb12e260b1ec384fd23397002479b1b4683da574de66"
 
 [metadata.files]
 alabaster = [

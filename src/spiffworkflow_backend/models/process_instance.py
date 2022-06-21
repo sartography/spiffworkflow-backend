@@ -73,7 +73,7 @@ class ProcessInstanceStatus(enum.Enum):
     erroring = "erroring"
 
 
-class ProcessInstanceModel(SpiffworkflowBaseDBModel):  # type: ignore
+class ProcessInstanceModel(SpiffworkflowBaseDBModel):
     """ProcessInstanceModel."""
 
     __tablename__ = "process_instance"

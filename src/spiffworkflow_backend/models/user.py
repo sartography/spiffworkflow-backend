@@ -14,7 +14,7 @@ from spiffworkflow_backend.models.group import GroupModel
 from spiffworkflow_backend.models.user_group_assignment import UserGroupAssignmentModel
 
 
-class UserModel(SpiffworkflowBaseDBModel):  # type: ignore
+class UserModel(SpiffworkflowBaseDBModel):
     """UserModel."""
 
     __tablename__ = "user"

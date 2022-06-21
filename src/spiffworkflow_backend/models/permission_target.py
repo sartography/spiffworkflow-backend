@@ -9,7 +9,7 @@ from sqlalchemy.schema import CheckConstraint
 # from spiffworkflow_backend.models.process_model import ProcessModel
 
 
-class PermissionTargetModel(SpiffworkflowBaseDBModel):  # type: ignore
+class PermissionTargetModel(SpiffworkflowBaseDBModel):
     """PermissionTargetModel."""
 
     __tablename__ = "permission_target"

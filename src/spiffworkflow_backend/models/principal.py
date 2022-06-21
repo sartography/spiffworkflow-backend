@@ -8,7 +8,7 @@ from spiffworkflow_backend.models.group import GroupModel
 from spiffworkflow_backend.models.user import UserModel
 
 
-class PrincipalModel(SpiffworkflowBaseDBModel):  # type: ignore
+class PrincipalModel(SpiffworkflowBaseDBModel):
     """PrincipalModel."""
 
     __tablename__ = "principal"

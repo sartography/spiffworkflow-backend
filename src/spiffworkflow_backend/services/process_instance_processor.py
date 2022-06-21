@@ -15,11 +15,11 @@ from SpiffWorkflow import Task as SpiffTask  # type: ignore
 from SpiffWorkflow import TaskState
 from SpiffWorkflow import WorkflowException
 from SpiffWorkflow.bpmn.parser.ValidationException import ValidationException  # type: ignore
-from SpiffWorkflow.bpmn.PythonScriptEngine import Box
+from SpiffWorkflow.bpmn.PythonScriptEngine import Box  # type: ignore
 from SpiffWorkflow.bpmn.PythonScriptEngine import PythonScriptEngine
 from SpiffWorkflow.bpmn.serializer import BpmnWorkflowSerializer  # type: ignore
 from SpiffWorkflow.bpmn.serializer.BpmnSerializer import BpmnSerializer  # type: ignore
-from SpiffWorkflow.bpmn.specs.BpmnProcessSpec import BpmnProcessSpec
+from SpiffWorkflow.bpmn.specs.BpmnProcessSpec import BpmnProcessSpec  # type: ignore
 from SpiffWorkflow.bpmn.specs.events import CancelEventDefinition  # type: ignore
 from SpiffWorkflow.bpmn.specs.events import EndEvent
 from SpiffWorkflow.bpmn.workflow import BpmnWorkflow  # type: ignore
@@ -30,7 +30,7 @@ from SpiffWorkflow.dmn.serializer import BusinessRuleTaskConverter  # type: igno
 from SpiffWorkflow.exceptions import WorkflowTaskExecException  # type: ignore
 from SpiffWorkflow.serializer.exceptions import MissingSpecError  # type: ignore
 from SpiffWorkflow.specs import WorkflowSpec  # type: ignore
-from SpiffWorkflow.task import Task
+from SpiffWorkflow.task import Task  # type: ignore
 
 from spiffworkflow_backend.models.file import File
 from spiffworkflow_backend.models.file import FileType

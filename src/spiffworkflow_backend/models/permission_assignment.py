@@ -25,7 +25,7 @@ class Permission(enum.Enum):
     view_instance = 3
 
 
-class PermissionAssignmentModel(SpiffworkflowBaseDBModel):  # type: ignore
+class PermissionAssignmentModel(SpiffworkflowBaseDBModel):
     """PermissionAssignmentModel."""
 
     __tablename__ = "permission_assignment"
