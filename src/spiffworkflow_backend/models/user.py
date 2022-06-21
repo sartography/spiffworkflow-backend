@@ -1,5 +1,5 @@
 """User."""
-from typing import Optional
+from typing import Union
 
 import jwt
 import marshmallow
@@ -57,7 +57,7 @@ class UserModel(SpiffworkflowBaseDBModel):  # type: ignore
         return True
 
     @staticmethod
-    def decode_auth_token(auth_token: str) -> dict[str, Optional[str]]:
+    def decode_auth_token(auth_token: str) -> dict[str, Union[str, None]]:
         """Decode the auth token.
 
         :param auth_token:
