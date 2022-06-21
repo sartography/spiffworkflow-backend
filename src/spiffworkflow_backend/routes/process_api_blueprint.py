@@ -244,10 +244,17 @@ def process_instance_create(process_group_id, process_model_id):
     )
 
 
-def process_instance_list(process_group_id, process_model_id,
-                          page=1, per_page=100,
-                          start_from=None, start_till=None,
-                          end_from=None, end_till=None, process_status=None):
+def process_instance_list(
+    process_group_id,
+    process_model_id,
+    page=1,
+    per_page=100,
+    start_from=None,
+    start_till=None,
+    end_from=None,
+    end_till=None,
+    process_status=None,
+):
     """Process_instance_list."""
     process_model = ProcessModelService().get_process_model(
         process_model_id, group_id=process_group_id
@@ -261,7 +268,9 @@ def process_instance_list(process_group_id, process_model_id,
             )
         )
 
-    results = ProcessInstanceModel.query.filter_by(process_model_identifier=process_model.id)
+    results = ProcessInstanceModel.query.filter_by(
+        process_model_identifier=process_model.id
+    )
     if start_from is not None:
         results = results.filter(ProcessInstanceModel.start_in_seconds >= start_from)
     if start_till is not None:
@@ -273,13 +282,9 @@ def process_instance_list(process_group_id, process_model_id,
     if process_status is not None:
         results = results.filter(ProcessInstanceModel.status == process_status)
 
-    process_instances = (
-        results
-        .order_by(
-            ProcessInstanceModel.start_in_seconds.desc(), ProcessInstanceModel.id.desc()
-        )
-        .paginate(page, per_page, False)
-    )
+    process_instances = results.order_by(
+        ProcessInstanceModel.start_in_seconds.desc(), ProcessInstanceModel.id.desc()
+    ).paginate(page, per_page, False)
 
     serialized_results = []
     for process_instance in process_instances.items:
