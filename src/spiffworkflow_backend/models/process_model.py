@@ -1,4 +1,5 @@
 """Process_model."""
+import enum
 from dataclasses import dataclass
 from dataclasses import field
 from typing import Optional
@@ -6,6 +7,13 @@ from typing import Optional
 import marshmallow
 from marshmallow import post_load
 from marshmallow import Schema
+
+
+class NotificationType(enum.Enum):
+    """NotificationType."""
+
+    fault = "fault"
+    suspend = "suspend"
 
 
 @dataclass(order=True)
@@ -27,6 +35,8 @@ class ProcessModelInfo:
     display_order: Optional[int] = 0
     is_review: Optional[bool] = False
     files: Optional[list[str]] = field(default_factory=list)
+    fault_or_suspend_on_exception: NotificationType = NotificationType.suspend
+    notification_email_on_exception: list[str] = field(default_factory=list)
 
     def __post_init__(self):
         """__post_init__."""
@@ -62,6 +72,8 @@ class ProcessModelInfoSchema(Schema):
     process_group_id = marshmallow.fields.String(allow_none=True)
     libraries = marshmallow.fields.List(marshmallow.fields.String(), allow_none=True)
     files = marshmallow.fields.List(marshmallow.fields.Nested("FileSchema"))
+    fault_or_suspend_on_exception = marshmallow.fields.String()
+    notification_email_on_exception = marshmallow.fields.List(marshmallow.fields.String)
 
     @post_load
     def make_spec(self, data, **kwargs):
