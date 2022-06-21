@@ -10,10 +10,10 @@ class UserGroupAssignmentModel(SpiffworkflowBaseDBModel):
 
     __tablename__ = "user_group_assignment"
     __table_args__ = (
-        db.UniqueConstraint("user_id", "group_id", name="user_group_assignment_unique"),
+        db.UniqueConstraint("user_id", "group_id", name="user_group_assignment_unique"),  # type: ignore
     )
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(ForeignKey("user.id"), nullable=False)
-    group_id = db.Column(ForeignKey("group.id"), nullable=False)
+    id = db.Column(db.Integer, primary_key=True)  # type: ignore
+    user_id = db.Column(ForeignKey("user.id"), nullable=False)  # type: ignore
+    group_id = db.Column(ForeignKey("group.id"), nullable=False)  # type: ignore
     group = relationship("GroupModel", overlaps="groups,user_group_assignments,users")  # type: ignore
     user = relationship("UserModel", overlaps="groups,user_group_assignments,users")  # type: ignore

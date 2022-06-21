@@ -42,7 +42,7 @@ class FileSystemService:
         return os.path.join(FileSystemService.root_path(), name)
 
     @staticmethod
-    def library_path(name: str):
+    def library_path(name: str) -> str:
         """Library_path."""
         return os.path.join(
             FileSystemService.root_path(), FileSystemService.LIBRARY_SPECS, name

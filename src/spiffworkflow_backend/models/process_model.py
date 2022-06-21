@@ -1,12 +1,11 @@
 """Process_model."""
+from __future__ import annotations
 from dataclasses import dataclass
 from dataclasses import field
-from typing import Dict
 from typing import Optional
-from typing import Union
+from typing import Any
 
 import marshmallow
-from marshmallow import post_load
 from marshmallow import Schema
 
 from spiffworkflow_backend.models.file import File
@@ -21,22 +20,22 @@ class ProcessModelInfo:
     id: str
     display_name: str
     description: str
+    process_group_id: str = ""
     is_master_spec: Optional[bool] = False
     standalone: Optional[bool] = False
     library: Optional[bool] = False
     primary_file_name: Optional[str] = ""
     primary_process_id: Optional[str] = ""
     libraries: list[str] = field(default_factory=list)
-    process_group_id: Optional[str] = ""
     display_order: Optional[int] = 0
     is_review: Optional[bool] = False
-    files: Optional[list[File]] = field(default_factory=list)
+    files: Optional[list[File]] = field(default_factory=list[File])
 
     def __post_init__(self) -> None:
         """__post_init__."""
         self.sort_index = f"{self.process_group_id}:{self.id}"
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         """__eq__."""
         if not isinstance(other, ProcessModelInfo):
             return False
@@ -67,9 +66,9 @@ class ProcessModelInfoSchema(Schema):
     libraries = marshmallow.fields.List(marshmallow.fields.String(), allow_none=True)
     # files = marshmallow.fields.List(marshmallow.fields.Nested("FileSchema"))
 
-    @post_load
-    def make_spec(
-        self, data: Dict[str, Union[str, bool, int]], **kwargs
-    ) -> ProcessModelInfo:
-        """Make_spec."""
-        return ProcessModelInfo(**data)
+    # @post_load
+    # def make_spec(
+    #     self, data: Dict[str, Union[str, bool, int]], **_
+    # ) -> ProcessModelInfo:
+    #     """Make_spec."""
+    #     return ProcessModelInfo(**data)

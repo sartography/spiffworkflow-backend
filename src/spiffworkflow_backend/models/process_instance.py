@@ -77,16 +77,16 @@ class ProcessInstanceModel(SpiffworkflowBaseDBModel):
     """ProcessInstanceModel."""
 
     __tablename__ = "process_instance"
-    id = db.Column(db.Integer, primary_key=True)
-    process_model_identifier = db.Column(db.String(50), nullable=False, index=True)
-    process_group_identifier = db.Column(db.String(50), nullable=False, index=True)
-    bpmn_json = deferred(db.Column(db.JSON))
-    start_in_seconds = db.Column(db.Integer)
-    end_in_seconds = db.Column(db.Integer)
-    updated_at_in_seconds = db.Column(db.Integer)
-    process_initiator_id = db.Column(ForeignKey(UserModel.id), nullable=False)
+    id = db.Column(db.Integer, primary_key=True)  # type: ignore
+    process_model_identifier = db.Column(db.String(50), nullable=False, index=True)  # type: ignore
+    process_group_identifier = db.Column(db.String(50), nullable=False, index=True)  # type: ignore
+    bpmn_json = deferred(db.Column(db.JSON))  # type: ignore
+    start_in_seconds = db.Column(db.Integer)  # type: ignore
+    end_in_seconds = db.Column(db.Integer)  # type: ignore
+    updated_at_in_seconds = db.Column(db.Integer)  # type: ignore
+    process_initiator_id = db.Column(ForeignKey(UserModel.id), nullable=False)  # type: ignore
     process_initiator = relationship("UserModel")
-    status = db.Column(db.Enum(ProcessInstanceStatus))
+    status = db.Column(db.Enum(ProcessInstanceStatus))  # type: ignore
 
     @property
     def serialized(self) -> Dict[str, Union[int, str]]:

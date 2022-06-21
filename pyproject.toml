@@ -30,9 +30,9 @@ werkzeug = "*"
 spiffworkflow = {git = "https://github.com/sartography/SpiffWorkflow", rev = "main"}
 sentry-sdk = "0.14.4"
 sphinx-autoapi = "^1.8.4"
-flask-bpmn = {develop = true, path = "/home/jason/projects/github/sartography/flask-bpmn"}
+# flask-bpmn = {develop = true, path = "/home/jason/projects/github/sartography/flask-bpmn"}
 # flask-bpmn = {develop = true, path = "/Users/kevin/projects/github/sartography/flask-bpmn"}
-# flask-bpmn = {git = "https://github.com/sartography/flask-bpmn", rev = "main"}
+flask-bpmn = {git = "https://github.com/sartography/flask-bpmn", rev = "main"}
 mysql-connector-python = "^8.0.29"
 pytest-flask = "^1.2.0"
 pytest-flask-sqlalchemy = "^1.1.0"
@@ -44,6 +44,7 @@ marshmallow-enum = "^1.5.1"
 marshmallow-sqlalchemy = "^0.28.0"
 PyJWT = "^2.4.0"
 gunicorn = "^20.1.0"
+types-pytz = "^2022.1.0"
 
 
 [tool.poetry.dev-dependencies]

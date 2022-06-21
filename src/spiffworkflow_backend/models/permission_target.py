@@ -19,7 +19,7 @@ class PermissionTargetModel(SpiffworkflowBaseDBModel):
         ),
     )
 
-    id = db.Column(db.Integer, primary_key=True)
-    # process_group_id = db.Column(ForeignKey(ProcessGroupModel.id), nullable=True)
-    # process_model_identifier = db.Column(ForeignKey(ProcessModel.id), nullable=True)
-    # process_instance_id = db.Column(ForeignKey(ProcessInstanceModel.id), nullable=True)
+    id = db.Column(db.Integer, primary_key=True)  # type: ignore
+    # process_group_id = db.Column(ForeignKey(ProcessGroupModel.id), nullable=True)  # type: ignore
+    # process_model_identifier = db.Column(ForeignKey(ProcessModel.id), nullable=True)  # type: ignore
+    # process_instance_id = db.Column(ForeignKey(ProcessInstanceModel.id), nullable=True)  # type: ignore

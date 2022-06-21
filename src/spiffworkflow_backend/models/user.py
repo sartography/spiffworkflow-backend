@@ -18,11 +18,11 @@ class UserModel(SpiffworkflowBaseDBModel):
     """UserModel."""
 
     __tablename__ = "user"
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), nullable=False, unique=True)
-    uid = db.Column(db.String(50), unique=True)
-    name = db.Column(db.String(50))
-    email = db.Column(db.String(50))
+    id = db.Column(db.Integer, primary_key=True)  # type: ignore
+    username = db.Column(db.String(50), nullable=False, unique=True)  # type: ignore
+    uid = db.Column(db.String(50), unique=True)  # type: ignore
+    name = db.Column(db.String(50))  # type: ignore
+    email = db.Column(db.String(50))  # type: ignore
     user_group_assignments = relationship(UserGroupAssignmentModel, cascade="delete")
     groups = relationship(
         GroupModel,
@@ -101,6 +101,6 @@ class AdminSessionModel(SpiffworkflowBaseDBModel):
     """AdminSessionModel."""
 
     __tablename__ = "admin_session"
-    id = db.Column(db.Integer, primary_key=True)
-    token = db.Column(db.String(50), unique=True)
-    admin_impersonate_uid = db.Column(db.String(50))
+    id = db.Column(db.Integer, primary_key=True)  # type: ignore
+    token = db.Column(db.String(50), unique=True)  # type: ignore
+    admin_impersonate_uid = db.Column(db.String(50))  # type: ignore
