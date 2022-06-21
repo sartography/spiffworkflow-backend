@@ -7,5 +7,5 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
-BPMN_SPEC_ABSOLUTE_DIR=..//sample-process-models docker compose stop
+BPMN_SPEC_ABSOLUTE_DIR=../sample-process-models docker compose stop
 ./bin/build_and_run_with_docker_compose
