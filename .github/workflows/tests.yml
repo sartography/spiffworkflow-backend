@@ -71,6 +71,7 @@ jobs:
       FORCE_COLOR: "1"
       PRE_COMMIT_COLOR: "always"
       MYSQL_PASSWORD: password
+      FLASK_SESSION_SECRET_KEY: super_secret_key
 
     steps:
       - name: Check out the repository
