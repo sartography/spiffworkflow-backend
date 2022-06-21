@@ -6,6 +6,7 @@ import marshmallow
 from flask import current_app
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
+from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from marshmallow import Schema
 from sqlalchemy.orm import relationship
 
@@ -13,7 +14,7 @@ from spiffworkflow_backend.models.group import GroupModel
 from spiffworkflow_backend.models.user_group_assignment import UserGroupAssignmentModel
 
 
-class UserModel(db.Model):  # type: ignore
+class UserModel(SpiffworkflowBaseDBModel):  # type: ignore
     """UserModel."""
 
     __tablename__ = "user"
@@ -96,7 +97,7 @@ class UserModelSchema(Schema):
     username = marshmallow.fields.String(required=True)
 
 
-class AdminSessionModel(db.Model):
+class AdminSessionModel(SpiffworkflowBaseDBModel):
     """AdminSessionModel."""
 
     __tablename__ = "admin_session"

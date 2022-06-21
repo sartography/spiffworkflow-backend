@@ -556,6 +556,7 @@ def test_process_instance_create(
     response = create_process_instance(
         app, client, test_process_group_id, test_process_model_id, headers
     )
+    assert response.json['last_updated'] is not None
     assert response.json["status"] == "complete"
     assert response.json["process_model_identifier"] == test_process_model_id
     assert response.json["data"]["current_user"]["username"] == "test_user1"

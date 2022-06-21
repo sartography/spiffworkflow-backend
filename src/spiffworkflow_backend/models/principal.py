@@ -1,5 +1,6 @@
 """Principal."""
 from flask_bpmn.models.db import db
+from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from sqlalchemy import ForeignKey
 from sqlalchemy.schema import CheckConstraint
 
@@ -7,7 +8,7 @@ from spiffworkflow_backend.models.group import GroupModel
 from spiffworkflow_backend.models.user import UserModel
 
 
-class PrincipalModel(db.Model):  # type: ignore
+class PrincipalModel(SpiffworkflowBaseDBModel):  # type: ignore
     """PrincipalModel."""
 
     __tablename__ = "principal"

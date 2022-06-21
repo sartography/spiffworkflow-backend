@@ -1,5 +1,6 @@
 """Process_instance."""
 from flask_bpmn.models.db import db
+from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from sqlalchemy import ForeignKey
 from sqlalchemy import func
 from sqlalchemy.orm import deferred
@@ -8,7 +9,7 @@ from sqlalchemy.orm import relationship
 from spiffworkflow_backend.models.user import UserModel
 
 
-class ProcessInstanceReportModel(db.Model):  # type: ignore
+class ProcessInstanceReportModel(SpiffworkflowBaseDBModel):  # type: ignore
     """ProcessInstanceReportModel."""
 
     __tablename__ = "process_instance_report"

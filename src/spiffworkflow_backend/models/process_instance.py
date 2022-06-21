@@ -3,6 +3,7 @@ import enum
 
 import marshmallow
 from flask_bpmn.models.db import db
+from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from marshmallow import INCLUDE
 from marshmallow import Schema
 from marshmallow_enum import EnumField  # type: ignore
@@ -71,7 +72,7 @@ class ProcessInstanceStatus(enum.Enum):
     erroring = "erroring"
 
 
-class ProcessInstanceModel(db.Model):  # type: ignore
+class ProcessInstanceModel(SpiffworkflowBaseDBModel):  # type: ignore
     """ProcessInstanceModel."""
 
     __tablename__ = "process_instance"
@@ -81,7 +82,7 @@ class ProcessInstanceModel(db.Model):  # type: ignore
     bpmn_json = deferred(db.Column(db.JSON))
     start_in_seconds = db.Column(db.Integer)
     end_in_seconds = db.Column(db.Integer)
-    last_updated = db.Column(db.DateTime(timezone=True), server_default=func.now())
+    last_updated = db.Column(db.DateTime(timezone=True))
     process_initiator_id = db.Column(ForeignKey(UserModel.id), nullable=False)
     process_initiator = relationship("UserModel")
     status = db.Column(db.Enum(ProcessInstanceStatus))

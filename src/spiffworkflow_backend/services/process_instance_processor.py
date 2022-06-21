@@ -338,7 +338,6 @@ class ProcessInstanceProcessor:
         self.process_instance_model.completed_tasks = sum(
             1 for t in user_tasks if t.state in complete_states
         )
-        self.process_instance_model.last_updated = datetime.utcnow()
 
         if self.process_instance_model.start_in_seconds is None:
             self.process_instance_model.start_in_seconds = round(time.time())

@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: b988942cdd3d
+Revision ID: c09e95d03bac
 Revises: 
-Create Date: 2022-06-20 10:24:45.372883
+Create Date: 2022-06-21 10:41:50.430102
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'b988942cdd3d'
+revision = 'c09e95d03bac'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -57,7 +57,7 @@ def upgrade():
     sa.Column('bpmn_json', sa.JSON(), nullable=True),
     sa.Column('start_in_seconds', sa.Integer(), nullable=True),
     sa.Column('end_in_seconds', sa.Integer(), nullable=True),
-    sa.Column('last_updated', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.Column('last_updated', sa.DateTime(timezone=True), nullable=True),
     sa.Column('process_initiator_id', sa.Integer(), nullable=False),
     sa.Column('status', sa.Enum('not_started', 'user_input_required', 'waiting', 'complete', 'erroring', name='processinstancestatus'), nullable=True),
     sa.ForeignKeyConstraint(['process_initiator_id'], ['user.id'], ),

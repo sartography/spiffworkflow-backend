@@ -5,6 +5,7 @@ from dataclasses import field
 from typing import Optional
 
 from flask_bpmn.models.db import db
+from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from marshmallow import INCLUDE
 from marshmallow import Schema
 from sqlalchemy import func
@@ -14,7 +15,7 @@ from sqlalchemy.orm import relationship
 from spiffworkflow_backend.models.data_store import DataStoreModel
 
 
-class FileModel(db.Model):
+class FileModel(SpiffworkflowBaseDBModel):
     """FileModel."""
 
     __tablename__ = "file"

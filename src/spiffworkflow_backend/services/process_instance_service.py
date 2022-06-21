@@ -37,7 +37,6 @@ class ProcessInstanceService:
             process_initiator=user,
             process_model_identifier=process_model_identifier,
             process_group_identifier=process_group_identifier,
-            last_updated=datetime.now(),
             start_in_seconds=round(time.time()),
         )
         db.session.add(process_instance_model)

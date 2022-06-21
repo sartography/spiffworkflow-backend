@@ -2,6 +2,7 @@
 import enum
 
 from flask_bpmn.models.db import db
+from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from sqlalchemy import Enum
 from sqlalchemy import ForeignKey
 
@@ -24,7 +25,7 @@ class Permission(enum.Enum):
     view_instance = 3
 
 
-class PermissionAssignmentModel(db.Model):  # type: ignore
+class PermissionAssignmentModel(SpiffworkflowBaseDBModel):  # type: ignore
     """PermissionAssignmentModel."""
 
     __tablename__ = "permission_assignment"

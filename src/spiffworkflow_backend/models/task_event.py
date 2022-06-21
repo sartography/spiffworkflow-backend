@@ -4,6 +4,7 @@ from __future__ import annotations
 import enum
 
 from flask_bpmn.models.db import db
+from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from marshmallow import fields
 from marshmallow import INCLUDE
 from marshmallow import Schema
@@ -26,7 +27,7 @@ class TaskAction(enum.Enum):
     ASSIGNMENT = "ASSIGNMENT"  # Whenever the lane changes between tasks we assign the task to specific user.
 
 
-class TaskEventModel(db.Model):
+class TaskEventModel(SpiffworkflowBaseDBModel):
     """TaskEventModel."""
 
     __tablename__ = "task_event"
