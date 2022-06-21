@@ -1,16 +1,14 @@
 """Group."""
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from flask_bpmn.models.db import db
 from flask_bpmn.models.group import FlaskBpmnGroupModel
 from sqlalchemy.orm import relationship
 
-
-from typing import TYPE_CHECKING
-
 if TYPE_CHECKING:
-    from spiffworkflow_backend.models.user_group_assignment import UserGroupAssignmentModel
-    from spiffworkflow_backend.models.user import UserModel
+    pass
 
 
 class GroupModel(FlaskBpmnGroupModel):

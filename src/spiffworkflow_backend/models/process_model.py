@@ -1,8 +1,8 @@
 """Process_model."""
 from __future__ import annotations
+
 from dataclasses import dataclass
 from dataclasses import field
-from typing import Dict, Optional, Union
 from typing import Any
 
 import marshmallow
@@ -22,15 +22,15 @@ class ProcessModelInfo:
     display_name: str
     description: str
     process_group_id: str = ""
-    is_master_spec: Optional[bool] = False
-    standalone: Optional[bool] = False
-    library: Optional[bool] = False
-    primary_file_name: Optional[str] = ""
-    primary_process_id: Optional[str] = ""
+    is_master_spec: bool | None = False
+    standalone: bool | None = False
+    library: bool | None = False
+    primary_file_name: str | None = ""
+    primary_process_id: str | None = ""
     libraries: list[str] = field(default_factory=list)
-    display_order: Optional[int] = 0
-    is_review: Optional[bool] = False
-    files: Optional[list[File]] = field(default_factory=list[File])
+    display_order: int | None = 0
+    is_review: bool | None = False
+    files: list[File] | None = field(default_factory=list[File])
 
     def __post_init__(self) -> None:
         """__post_init__."""
@@ -68,8 +68,6 @@ class ProcessModelInfoSchema(Schema):
     files = marshmallow.fields.List(marshmallow.fields.Nested("FileSchema"))
 
     @post_load
-    def make_spec(
-        self, data: Dict[str, Union[str, bool, int]], **_
-    ) -> ProcessModelInfo:
+    def make_spec(self, data: dict[str, str | bool | int], **_) -> ProcessModelInfo:
         """Make_spec."""
         return ProcessModelInfo(**data)
