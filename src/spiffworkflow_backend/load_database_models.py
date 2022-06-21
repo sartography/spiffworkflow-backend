@@ -1,7 +1,8 @@
-"""Loads and sets up all database models for SQLAlchemy."""
-from flask_bpmn.models.db import add_listeners  # type: ignore
+"""Loads and sets up all database models for SQLAlchemy.
 
-""" blah """
+autoflake8 will remove these lines without the noqa comment
+"""
+from flask_bpmn.models.db import add_listeners  # type: ignore
 
 from spiffworkflow_backend.models.data_store import DataStoreModel  # noqa: F401
 from spiffworkflow_backend.models.file import FileModel  # noqa: F401
@@ -17,8 +18,6 @@ from spiffworkflow_backend.models.user import UserModel  # noqa: F401
 from spiffworkflow_backend.models.user_group_assignment import (
     UserGroupAssignmentModel,
 )  # noqa: F401
-
-# autoflake8 will remove these lines without the noqa comment
 
 # from spiffworkflow_backend.models.permission_assignment import PermissionAssignmentModel  # noqa: F401
 # from spiffworkflow_backend.models.permission_target import PermissionTargetModel  # noqa: F401
