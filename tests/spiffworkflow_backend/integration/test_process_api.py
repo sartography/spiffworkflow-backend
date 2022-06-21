@@ -22,9 +22,9 @@ from spiffworkflow_backend.models.process_group import ProcessGroup
 from spiffworkflow_backend.models.process_group import ProcessGroupSchema
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 from spiffworkflow_backend.models.process_instance import ProcessInstanceStatus
+from spiffworkflow_backend.models.process_model import NotificationType
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
-from spiffworkflow_backend.models.process_model import NotificationType
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 
 
@@ -787,33 +787,36 @@ def test_error_handler(
     app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
     """Test_error_handler."""
-    process_group_id = 'data'
-    process_model_id = 'error'
+    process_group_id = "data"
+    process_model_id = "error"
 
     user = find_or_create_user()
     headers = logged_in_headers(user)
     response = create_process_instance(
         app, client, process_group_id, process_model_id, headers
     )
-    print('test_error_handler')
+    print(f"test_error_handler: {response}")
 
 
 def test_process_model_file_create(
-        app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_model_file_create."""
-    process_group_id = 'hello_world'
-    process_model_id = 'hello_world'
-    file_name = 'hello_world.svg'
+    process_group_id = "hello_world"
+    process_model_id = "hello_world"
+    file_name = "hello_world.svg"
     file_data = b"abc123"
 
-    result = create_spec_file(app, client,
-                              process_group_id=process_group_id,
-                              process_model_id=process_model_id,
-                              file_name=file_name,
-                              file_data=file_data)
+    result = create_spec_file(
+        app,
+        client,
+        process_group_id=process_group_id,
+        process_model_id=process_model_id,
+        file_name=file_name,
+        file_data=file_data,
+    )
 
-    print('test_process_model_file_create')
+    print(f"test_process_model_file_create: {result}")
 
 
 def create_process_instance(
@@ -841,7 +844,7 @@ def create_process_model(
     process_model_display_name: str = None,
     process_model_description: str = None,
     fault_or_suspend_on_exception: NotificationType = None,
-    notification_email_on_exception: list = None
+    notification_email_on_exception: list = None,
 ) -> TestResponse:
     """Create_process_model."""
     process_model_service = ProcessModelService()
@@ -878,7 +881,7 @@ def create_process_model(
         primary_process_id="",
         primary_file_name="",
         fault_or_suspend_on_exception=fault_or_suspend_on_exception,
-        notification_email_on_exception=notification_email_on_exception
+        notification_email_on_exception=notification_email_on_exception,
     )
     user = find_or_create_user()
     response = client.post(
@@ -892,12 +895,12 @@ def create_process_model(
 
 
 def create_spec_file(
-        app: Flask,
-        client: FlaskClient,
-        process_group_id: str = None,
-        process_model_id: str = None,
-        file_name: str = None,
-        file_data: bytes = None
+    app: Flask,
+    client: FlaskClient,
+    process_group_id: str = None,
+    process_model_id: str = None,
+    file_name: str = None,
+    file_data: bytes = None,
 ) -> Dict[str, Optional[Union[str, bool, int]]]:
     """Test_create_spec_file."""
     if process_group_id is None:
