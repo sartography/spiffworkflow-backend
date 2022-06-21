@@ -1,6 +1,7 @@
 """Test Process Api Blueprint."""
 import io
 import json
+import time
 from typing import Dict
 from typing import Optional
 from typing import Union
@@ -17,6 +18,7 @@ from spiffworkflow_backend.models.file import FileType
 from spiffworkflow_backend.models.process_group import ProcessGroup
 from spiffworkflow_backend.models.process_group import ProcessGroupSchema
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
+from spiffworkflow_backend.models.process_instance import ProcessInstanceStatus
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
@@ -637,6 +639,95 @@ def test_process_instance_list_with_paginated_items(
     assert response.json["pagination"]["total"] == 5
 
 
+def test_process_instance_list_filter(
+    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+) -> None:
+    """Test_process_instance_list_filter."""
+    db.session.query(ProcessInstanceModel).delete()
+    db.session.commit()
+
+    test_process_group_id = "runs_without_input"
+    test_process_model_id = "sample"
+    user = find_or_create_user()
+    load_test_spec(app, test_process_model_id, process_group_id=test_process_group_id)
+    statuses = ("not_started", "user_input_required", "waiting", "complete", "erroring")
+
+    # create 5 instances with different status, and different start_in_seconds/end_in_seconds
+    for i in range(5):
+        process_instance = ProcessInstanceModel(
+            status=ProcessInstanceStatus[statuses[i]],
+            process_initiator=user,
+            process_model_identifier=test_process_model_id,
+            process_group_identifier=test_process_group_id,
+            updated_at_in_seconds=round(time.time()),
+            start_in_seconds=(1000 * i) + 1000,
+            end_in_seconds=(1000 * i) + 2000,
+            bpmn_json=json.dumps({"i": i}),
+        )
+        db.session.add(process_instance)
+    db.session.commit()
+
+    # Without filtering we should get all 5 instances
+    response = client.get(
+        f"/v1.0/process-models/{test_process_group_id}/{test_process_model_id}/process-instances",
+        headers=logged_in_headers(user),
+    )
+    results = response.json["results"]
+    assert len(results) == 5
+
+    # filter for each of the status
+    # we should get 1 instance each time
+    for i in range(5):
+        response = client.get(
+            f"/v1.0/process-models/{test_process_group_id}/{test_process_model_id}/process-instances?process_status={ProcessInstanceStatus[statuses[i]].value}",
+            headers=logged_in_headers(user),
+        )
+        results = response.json["results"]
+        assert len(results) == 1
+        assert results[0]["status"] == ProcessInstanceStatus[statuses[i]].value
+
+    # filter by start/end seconds
+    # start > 1000 - this should eliminate the first
+    response = client.get(
+        f"/v1.0/process-models/{test_process_group_id}/{test_process_model_id}/process-instances?start_from=1001",
+        headers=logged_in_headers(user),
+    )
+    results = response.json["results"]
+    assert len(results) == 4
+    for i in range(4):
+        assert json.loads(results[i]["bpmn_json"])["i"] in (1, 2, 3, 4)
+
+    # start > 2000, end < 5000 - this should eliminate the first 2 and the last
+    response = client.get(
+        f"/v1.0/process-models/{test_process_group_id}/{test_process_model_id}/process-instances?start_from=2001&end_till=5999",
+        headers=logged_in_headers(user),
+    )
+    results = response.json["results"]
+    assert len(results) == 2
+    assert json.loads(results[0]["bpmn_json"])["i"] in (2, 3)
+    assert json.loads(results[1]["bpmn_json"])["i"] in (2, 3)
+
+    # start > 1000, start < 4000 - this should eliminate the first and the last 2
+    response = client.get(
+        f"/v1.0/process-models/{test_process_group_id}/{test_process_model_id}/process-instances?start_from=1001&start_till=3999",
+        headers=logged_in_headers(user),
+    )
+    results = response.json["results"]
+    assert len(results) == 2
+    assert json.loads(results[0]["bpmn_json"])["i"] in (1, 2)
+    assert json.loads(results[1]["bpmn_json"])["i"] in (1, 2)
+
+    # end > 2000, end < 6000 - this should eliminate the first and the last
+    response = client.get(
+        f"/v1.0/process-models/{test_process_group_id}/{test_process_model_id}/process-instances?end_from=2001&end_till=5999",
+        headers=logged_in_headers(user),
+    )
+    results = response.json["results"]
+    assert len(results) == 3
+    for i in range(3):
+        assert json.loads(results[i]["bpmn_json"])["i"] in (1, 2, 3)
+
+
 def test_process_instance_report_with_default_list(
     app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
@@ -707,10 +798,10 @@ def create_process_model(
     process_model_service = ProcessModelService()
 
     if process_group_id is None:
-        process_group = ProcessGroup(
+        process_group_tmp = ProcessGroup(
             id="test_cat", display_name="Test Category", display_order=0, admin=False
         )
-        process_model_service.add_process_group(process_group)
+        process_group = process_model_service.add_process_group(process_group_tmp)
     else:
         process_group = ProcessModelService().get_process_group(process_group_id)
 

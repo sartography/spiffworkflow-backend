@@ -2,11 +2,12 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from dataclasses import field
-from typing import Optional
+from typing import Dict, Optional, Union
 from typing import Any
 
 import marshmallow
 from marshmallow import Schema
+from marshmallow.decorators import post_load
 
 from spiffworkflow_backend.models.file import File
 
@@ -64,11 +65,11 @@ class ProcessModelInfoSchema(Schema):
     is_review = marshmallow.fields.Boolean(allow_none=True)
     process_group_id = marshmallow.fields.String(allow_none=True)
     libraries = marshmallow.fields.List(marshmallow.fields.String(), allow_none=True)
-    # files = marshmallow.fields.List(marshmallow.fields.Nested("FileSchema"))
+    files = marshmallow.fields.List(marshmallow.fields.Nested("FileSchema"))
 
-    # @post_load
-    # def make_spec(
-    #     self, data: Dict[str, Union[str, bool, int]], **_
-    # ) -> ProcessModelInfo:
-    #     """Make_spec."""
-    #     return ProcessModelInfo(**data)
+    @post_load
+    def make_spec(
+        self, data: Dict[str, Union[str, bool, int]], **_
+    ) -> ProcessModelInfo:
+        """Make_spec."""
+        return ProcessModelInfo(**data)

@@ -310,6 +310,37 @@ paths:
         description: The page number to return. Defaults to page 1.
         schema:
           type: integer
+      - name: start_from
+        in: query
+        required: false
+        description: For filtering - beginning of start window - in seconds since epoch
+        schema:
+          type: integer
+      - name: start_till
+        in: query
+        required: false
+        description: For filtering - end of start window - in seconds since epoch
+        schema:
+          type: integer
+      - name: end_from
+        in: query
+        required: false
+        description: For filtering - beginning of end window - in seconds since epoch
+        schema:
+          type: integer
+      - name: end_till
+        in: query
+        required: false
+        description: For filtering - end of end window - in seconds since epoch
+        schema:
+          type: integer
+      - name: process_status
+        in: query
+        required: false
+        description: For filtering - not_started, user_input_required, waiting, complete, or erroring
+        schema:
+          type: string
+    # process_instance_list
     get:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.process_instance_list
       summary: Returns a list of process instances for a given process model
