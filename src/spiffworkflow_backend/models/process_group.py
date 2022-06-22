@@ -24,7 +24,7 @@ class ProcessGroup:
     display_name: str
     display_order: Optional[int] = 0
     admin: Optional[bool] = False
-    process_models: Optional[list[ProcessModelInfo]] = field(default_factory=list[ProcessModelInfo])
+    process_models: list[ProcessModelInfo] = field(default_factory=list[ProcessModelInfo])
 
     def __post_init__(self) -> None:
         """__post_init__."""

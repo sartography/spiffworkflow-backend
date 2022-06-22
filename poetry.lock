@@ -356,7 +356,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 
 [[package]]
 name = "connexion"
-version = "2.13.1"
+version = "2.14.0"
 description = "Connexion - API first applications with OpenAPI/Swagger and Flask"
 category = "main"
 optional = false
@@ -598,7 +598,7 @@ description = "Flask Bpmn"
 category = "main"
 optional = false
 python-versions = "^3.7"
-develop = false
+develop = true
 
 [package.dependencies]
 click = "^8.0.1"
@@ -616,10 +616,8 @@ spiffworkflow = {git = "https://github.com/sartography/SpiffWorkflow", rev = "ma
 werkzeug = "*"
 
 [package.source]
-type = "git"
-url = "https://github.com/sartography/flask-bpmn"
-reference = "main"
-resolved_reference = "444daed6de1e2b5de16a96970159c952c5523650"
+type = "directory"
+url = "../flask-bpmn"
 
 [[package]]
 name = "flask-cors"
@@ -2033,7 +2031,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "b4302cbeba2b6c5a3777a4b3eb4549fbc6e910ab832b2bf0d573110564d67690"
+content-hash = "2f02aaeb08296c0990e2fa48b0bb5bb2775268552fd11c149bfc85e87ce09c97"
 
 [metadata.files]
 alabaster = [
@@ -2222,8 +2220,8 @@ configparser = [
     {file = "configparser-5.2.0.tar.gz", hash = "sha256:1b35798fdf1713f1c3139016cfcbc461f09edbf099d1fb658d4b7479fcaa3daa"},
 ]
 connexion = [
-    {file = "connexion-2.13.1-py2.py3-none-any.whl", hash = "sha256:fb9a8c7a60fdecac45c913c1373948b28d8a55328472e08b5132fba36da36524"},
-    {file = "connexion-2.13.1.tar.gz", hash = "sha256:80b534800b408d184fe6d36e755edefdd657e8f11756b5806d6bcf7213380d0d"},
+    {file = "connexion-2.14.0-py2.py3-none-any.whl", hash = "sha256:4e50c1b0b6d287e20830d053c8de09a73bead5ac0760200ade074364c7362ab6"},
+    {file = "connexion-2.14.0.tar.gz", hash = "sha256:ed6f9c97ca5281257935c5530570b2a2394a689ece1b171c18d855cf751adbb4"},
 ]
 coverage = [
     {file = "coverage-6.4.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:f1d5aa2703e1dab4ae6cf416eb0095304f49d004c39e9db1d86f57924f43006b"},

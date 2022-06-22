@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: acad9ea3a861
+Revision ID: 26094f78f273
 Revises: 
-Create Date: 2022-06-21 12:45:20.062981
+Create Date: 2022-06-22 16:42:29.228683
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'acad9ea3a861'
+revision = '26094f78f273'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -54,11 +54,12 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('process_model_identifier', sa.String(length=50), nullable=False),
     sa.Column('process_group_identifier', sa.String(length=50), nullable=False),
+    sa.Column('process_initiator_id', sa.Integer(), nullable=False),
     sa.Column('bpmn_json', sa.JSON(), nullable=True),
     sa.Column('start_in_seconds', sa.Integer(), nullable=True),
     sa.Column('end_in_seconds', sa.Integer(), nullable=True),
     sa.Column('updated_at_in_seconds', sa.Integer(), nullable=True),
-    sa.Column('process_initiator_id', sa.Integer(), nullable=False),
+    sa.Column('created_at_in_seconds', sa.Integer(), nullable=True),
     sa.Column('status', sa.Enum('not_started', 'user_input_required', 'waiting', 'complete', 'erroring', name='processinstancestatus'), nullable=True),
     sa.ForeignKeyConstraint(['process_initiator_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')

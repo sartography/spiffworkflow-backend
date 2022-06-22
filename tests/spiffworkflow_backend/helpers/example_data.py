@@ -17,7 +17,6 @@ class ExampleDataLoader:
         id: str,
         display_name: str = "",
         description: str = "",
-        filepath: None = None,
         master_spec: bool = False,
         process_group_id: str = "",
         display_order: int = 0,
@@ -30,7 +29,6 @@ class ExampleDataLoader:
         further assumes that the [id].bpmn is the primary file for the process model.
         returns an array of data models to be added to the database.
         """
-        global file
         spec = ProcessModelInfo(
             id=id,
             display_name=display_name,
@@ -48,19 +46,19 @@ class ExampleDataLoader:
         workflow_spec_service = ProcessModelService()
         workflow_spec_service.add_spec(spec)
 
-        if not filepath and not from_tests:
-            filepath = os.path.join(current_app.root_path, "static", "bpmn", id, "*.*")
-        if not filepath and from_tests:
-            filepath = os.path.join(
+        file_glob = ""
+        if from_tests:
+            file_glob = os.path.join(
                 current_app.instance_path, "..", "..", "tests", "data", id, "*.*"
             )
+        else:
+            file_glob = os.path.join(current_app.root_path, "static", "bpmn", id, "*.*")
 
-        files = glob.glob(filepath)
+        files = glob.glob(file_glob)
         for file_path in files:
             if os.path.isdir(file_path):
                 continue  # Don't try to process sub directories
 
-            noise, file_extension = os.path.splitext(file_path)
             filename = os.path.basename(file_path)
             is_primary = filename.lower() == id + ".bpmn"
             file = None

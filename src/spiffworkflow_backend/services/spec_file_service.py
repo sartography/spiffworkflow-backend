@@ -50,7 +50,7 @@ class SpecFileService(FileSystemService):
 
     @staticmethod
     def add_file(
-        workflow_spec: ProcessModelInfo, file_name: str, binary_data: bytearray
+        workflow_spec: ProcessModelInfo, file_name: str, binary_data: bytes
     ) -> File:
         """Add_file."""
         # Same as update

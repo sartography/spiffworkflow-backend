@@ -80,19 +80,21 @@ class ProcessInstanceModel(SpiffworkflowBaseDBModel):
     """ProcessInstanceModel."""
 
     __tablename__ = "process_instance"
-    id = db.Column(db.Integer, primary_key=True)  # type: ignore
-    process_model_identifier = db.Column(db.String(50), nullable=False, index=True)  # type: ignore
-    process_group_identifier = db.Column(db.String(50), nullable=False, index=True)  # type: ignore
-    bpmn_json = deferred(db.Column(db.JSON))  # type: ignore
-    start_in_seconds = db.Column(db.Integer)  # type: ignore
-    end_in_seconds = db.Column(db.Integer)  # type: ignore
-    updated_at_in_seconds = db.Column(db.Integer)  # type: ignore
-    process_initiator_id = db.Column(ForeignKey(UserModel.id), nullable=False)  # type: ignore
+    id: int = db.Column(db.Integer, primary_key=True)  # type: ignore
+    process_model_identifier: str = db.Column(db.String(50), nullable=False, index=True)  # type: ignore
+    process_group_identifier: str = db.Column(db.String(50), nullable=False, index=True)  # type: ignore
+    process_initiator_id: int = db.Column(ForeignKey(UserModel.id), nullable=False)  # type: ignore
     process_initiator = relationship("UserModel")
-    status = db.Column(db.Enum(ProcessInstanceStatus))  # type: ignore
+
+    bpmn_json: Optional[str] = deferred(db.Column(db.JSON))  # type: ignore
+    start_in_seconds: Optional[int] = db.Column(db.Integer)  # type: ignore
+    end_in_seconds: Optional[int] = db.Column(db.Integer)  # type: ignore
+    updated_at_in_seconds: int = db.Column(db.Integer)  # type: ignore
+    created_at_in_seconds: int = db.Column(db.Integer)  # type: ignore
+    status: ProcessInstanceStatus = db.Column(db.Enum(ProcessInstanceStatus))  # type: ignore
 
     @property
-    def serialized(self) -> Dict[str, Union[int, str]]:
+    def serialized(self) -> Dict[str, Union[int, str, None]]:
         """Return object data in serializeable format."""
         return {
             "id": self.id,
