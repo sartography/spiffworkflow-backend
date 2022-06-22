@@ -3,7 +3,7 @@ import enum
 from dataclasses import dataclass
 from dataclasses import field
 from datetime import datetime
-from typing import Optional
+from typing import Any, Optional
 
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import SpiffworkflowBaseDBModel
@@ -63,6 +63,10 @@ class FileType(enum.Enum):
     xlsx = "xlsx"
     xml = "xml"
     zip = "zip"
+
+    @classmethod
+    def list(cls) -> list[str]:
+        return [el.value for el in cls]
 
 
 CONTENT_TYPES = {

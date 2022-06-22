@@ -14,7 +14,7 @@ from spiffworkflow_backend.models.user import UserModel
 """
 
 
-def verify_token(token: Optional[str] = None) -> Dict[str, None]:
+def verify_token(token: Optional[str] = None) -> Dict[str, Optional[str]]:
     """Verify the token for the user (if provided).
 
     If in production environment and token is not provided, gets user from the SSO headers and returns their token.
@@ -60,9 +60,9 @@ def verify_token(token: Optional[str] = None) -> Dict[str, None]:
             # If the user is valid, store the user and token for this session
             if db_user is not None:
                 g.user = db_user
-                token = g.user.encode_auth_token()
-                g.token = token
-                token_info = UserModel.decode_auth_token(token)
+                token_from_user = g.user.encode_auth_token()
+                g.token = token_from_user
+                token_info = UserModel.decode_auth_token(token_from_user)
                 return token_info
 
             else:
@@ -80,8 +80,8 @@ def verify_token(token: Optional[str] = None) -> Dict[str, None]:
                 "no_user",
                 "You are in development mode, but there are no users in the database.  Add one, and it will use it.",
             )
-        token = g.user.encode_auth_token()
-        token_info = UserModel.decode_auth_token(token)
+        token_from_user = g.user.encode_auth_token()
+        token_info = UserModel.decode_auth_token(token_from_user)
         return token_info
 
 

@@ -103,7 +103,7 @@ class FileSystemService:
     def assert_valid_file_name(file_name: str) -> None:
         """Assert_valid_file_name."""
         file_extension = FileSystemService.get_extension(file_name)
-        if file_extension not in FileType._member_names_:
+        if file_extension not in FileType.list():
             raise ApiError(
                 "unknown_extension",
                 "The file you provided does not have an accepted extension:"

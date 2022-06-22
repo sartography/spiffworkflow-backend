@@ -1,4 +1,5 @@
 """User_service."""
+from typing import Any, Optional
 from flask import g
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
@@ -27,7 +28,7 @@ class UserService:
     def admin_is_impersonating() -> bool:
         """Admin_is_impersonating."""
         if UserService.user_is_admin():
-            admin_session: AdminSessionModel = UserService.get_admin_session()
+            admin_session = UserService.get_admin_session()
             return admin_session is not None
 
         else:
@@ -39,12 +40,12 @@ class UserService:
 
     # Returns true if the given user uid is different from the current user's uid.
     @staticmethod
-    def is_different_user(uid):
+    def is_different_user(uid: str) -> bool:
         """Is_different_user."""
         return UserService.has_user() and uid is not None and uid is not g.user.uid
 
     @staticmethod
-    def current_user(allow_admin_impersonate: bool = False) -> UserModel:
+    def current_user(allow_admin_impersonate: bool = False) -> Any:
         """Current_user."""
         if not UserService.has_user():
             raise ApiError(
@@ -66,7 +67,7 @@ class UserService:
     # This method allows an admin user to start impersonating another user with the given uid.
     # Stops impersonating if the uid is None or invalid.
     @staticmethod
-    def start_impersonating(uid=None):
+    def start_impersonating(uid: Optional[str] = None) -> None:
         """Start_impersonating."""
         if not UserService.has_user():
             raise ApiError(
@@ -104,7 +105,7 @@ class UserService:
                 raise ApiError("invalid_uid", "The uid provided is not valid.")
 
     @staticmethod
-    def stop_impersonating():
+    def stop_impersonating() -> None:
         """Stop_impersonating."""
         if not UserService.has_user():
             raise ApiError(
@@ -115,13 +116,13 @@ class UserService:
         if "impersonate_user" in g:
             del g.impersonate_user
 
-        admin_session: AdminSessionModel = UserService.get_admin_session()
+        admin_session = UserService.get_admin_session()
         if admin_session:
             db.session.delete(admin_session)
             db.session.commit()
 
     @staticmethod
-    def in_list(uids, allow_admin_impersonate=False):
+    def in_list(uids: list[str], allow_admin_impersonate: bool = False) -> bool:
         """Returns true if the current user's id is in the given list of ids.
 
         False if there is no user, or the user is not in the list.
@@ -135,7 +136,7 @@ class UserService:
         return False
 
     @staticmethod
-    def get_admin_session() -> AdminSessionModel:
+    def get_admin_session() -> Any:
         """Get_admin_session."""
         if UserService.user_is_admin():
             return (
@@ -151,7 +152,7 @@ class UserService:
             )
 
     @staticmethod
-    def get_admin_session_user() -> UserModel:
+    def get_admin_session_user() -> Any:
         """Get_admin_session_user."""
         if UserService.user_is_admin():
             admin_session = UserService.get_admin_session()

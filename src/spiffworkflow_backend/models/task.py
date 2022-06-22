@@ -1,5 +1,6 @@
 """Task."""
 import enum
+from typing import Any
 
 import marshmallow
 from marshmallow import Schema
@@ -92,7 +93,7 @@ class Task:
         lane: str,
         form: str,
         documentation: str,
-        data: str,
+        data: dict[str, Any],
         multi_instance_type: str,
         multi_instance_count: str,
         multi_instance_index: str,
@@ -234,8 +235,7 @@ class TaskSchema(Schema):
     process_name = marshmallow.fields.String(required=False, allow_none=True)
     lane = marshmallow.fields.String(required=False, allow_none=True)
 
-    # TODO: implement
-    # @marshmallow.post_load
-    # def make_task(self, data: list[str], **_):
-    #     """Make_task."""
-    #     return Task(**data)
+    @marshmallow.post_load
+    def make_task(self, data: dict[str, Any], **kwargs: dict) -> Task:
+        """Make_task."""
+        return Task(**data)

@@ -1,9 +1,15 @@
 """Script."""
+from __future__ import annotations
+
+from abc import abstractmethod
 import importlib
 import os
 import pkgutil
+from typing import Any, Callable, Type
 
 from flask_bpmn.api.api_error import ApiError
+
+from spiffworkflow_backend.models.task import Task
 
 
 # Generally speaking, having some global in a flask app is TERRIBLE.
@@ -15,11 +21,12 @@ SCRIPT_SUB_CLASSES = None
 class Script:
     """Provides an abstract class that defines how scripts should work, this must be extended in all Script Tasks."""
 
-    def get_description(self):
+    def get_description(self) -> None:
         """Get_description."""
         raise ApiError("invalid_script", "This script does not supply a description.")
 
-    def do_task(self, task, workflow_id, *args, **kwargs):
+    @abstractmethod
+    def do_task(self, task: Task, workflow_id: int, *args: list[Any], **kwargs: dict[Any, Any]) -> None:
         """Do_task."""
         raise ApiError(
             "invalid_script",
@@ -28,7 +35,8 @@ class Script:
             + "does not properly implement the do_task function.",
         )
 
-    def do_task_validate_only(self, task, workflow_id, *args, **kwargs):
+    @abstractmethod
+    def do_task_validate_only(self, task: Task, workflow_id: int, *args: list[Any], **kwargs: dict[Any, Any]) -> None:
         """Do_task_validate_only."""
         raise ApiError(
             "invalid_script",
@@ -39,7 +47,7 @@ class Script:
         )
 
     @staticmethod
-    def generate_augmented_list(task, workflow_id):
+    def generate_augmented_list(task: Task, workflow_id: int) -> dict[str, Callable]:
         """This makes a dictionary of lambda functions that are closed over the class instance that they represent.
 
         This is passed into PythonScriptParser as a list of helper functions that are
@@ -50,7 +58,7 @@ class Script:
         updating the task data.
         """
 
-        def make_closure(subclass, task, workflow_id):
+        def make_closure(subclass: Type[Script], task: Task, workflow_id: int) -> Callable:
             """Yes - this is black magic.
 
             Essentially, we want to build a list of all of the submodules (i.e. email, user_data_get, etc)
@@ -75,7 +83,7 @@ class Script:
         return execlist
 
     @staticmethod
-    def generate_augmented_validate_list(task, workflow_id):
+    def generate_augmented_validate_list(task: Task, workflow_id: int) -> dict[str, Callable]:
         """This makes a dictionary of lambda functions that are closed over the class instance that they represent.
 
         This is passed into PythonScriptParser as a list of helper functions that are
@@ -86,7 +94,7 @@ class Script:
         updating the task data.
         """
 
-        def make_closure_validate(subclass, task, workflow_id):
+        def make_closure_validate(subclass: Type[Script], task: Task, workflow_id: int) -> Callable:
             """Make_closure_validate."""
             instance = subclass()
             return lambda *a, **b: subclass.do_task_validate_only(
@@ -103,7 +111,7 @@ class Script:
         return execlist
 
     @classmethod
-    def get_all_subclasses(cls):
+    def get_all_subclasses(cls) -> list[Type[Script]]:
         """Get_all_subclasses."""
         # This is expensive to generate, never changes after we load up.
         global SCRIPT_SUB_CLASSES
@@ -112,7 +120,7 @@ class Script:
         return SCRIPT_SUB_CLASSES
 
     @staticmethod
-    def _get_all_subclasses(cls):
+    def _get_all_subclasses(script_class: Any) -> list[Type[Script]]:
         """_get_all_subclasses."""
         # hackish mess to make sure we have all the modules loaded for the scripts
         pkg_dir = os.path.dirname(__file__)
@@ -122,13 +130,13 @@ class Script:
         """Returns a list of all classes that extend this class."""
         all_subclasses = []
 
-        for subclass in cls.__subclasses__():
+        for subclass in script_class.__subclasses__():
             all_subclasses.append(subclass)
             all_subclasses.extend(Script._get_all_subclasses(subclass))
 
         return all_subclasses
 
-    def add_data_to_task(self, task, data):
+    def add_data_to_task(self, task: Task, data: Any) -> None:
         """Add_data_to_task."""
         key = self.__class__.__name__
         if key in task.data:
@@ -140,12 +148,12 @@ class Script:
 class ScriptValidationError:
     """ScriptValidationError."""
 
-    def __init__(self, code, message):
+    def __init__(self, code: str, message: str):
         """__init__."""
         self.code = code
         self.message = message
 
     @classmethod
-    def from_api_error(cls, api_error: ApiError):
+    def from_api_error(cls, api_error: ApiError) -> ScriptValidationError:
         """From_api_error."""
         return cls(api_error.code, api_error.message)

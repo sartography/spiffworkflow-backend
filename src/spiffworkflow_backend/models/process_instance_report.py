@@ -1,4 +1,5 @@
 """Process_instance."""
+from typing import Union
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from sqlalchemy import ForeignKey
@@ -22,7 +23,7 @@ class ProcessInstanceReportModel(SpiffworkflowBaseDBModel):
     updated_at_in_seconds = db.Column(db.Integer)  # type: ignore
 
     @property
-    def serialized(self):
+    def serialized(self) -> dict[str, Union[str, int]]:
         """Return object data in serializeable format."""
         return {
             "id": self.id,

@@ -74,7 +74,7 @@ class ProcessModelService(FileSystemService):
         path = self.workflow_path(process_model)
         shutil.rmtree(path)
 
-    def __remove_library_references(self, spec_id):
+    def __remove_library_references(self, spec_id: str) -> None:
         """__remove_library_references."""
         for process_model in self.get_process_models():
             if spec_id in process_model.libraries:
@@ -82,7 +82,7 @@ class ProcessModelService(FileSystemService):
                 self.update_spec(process_model)
 
     @property
-    def master_spec(self):
+    def master_spec(self) -> Optional[ProcessModelInfo]:
         """Master_spec."""
         return self.get_master_spec()
 
@@ -309,7 +309,7 @@ class ProcessModelService(FileSystemService):
         #            workflow_metas.append(WorkflowMetadata.from_workflow(workflow))
         return workflow_metas
 
-    def __scan_spec(self, path, name, process_group=None):
+    def __scan_spec(self, path: str, name: str, process_group: Optional[ProcessGroup] = None) -> ProcessModelInfo:
         """__scan_spec."""
         spec_path = os.path.join(path, self.WF_JSON_FILE)
         is_master = FileSystemService.MASTER_SPECIFICATION in spec_path
@@ -318,6 +318,11 @@ class ProcessModelService(FileSystemService):
             with open(spec_path) as wf_json:
                 data = json.load(wf_json)
                 spec = self.WF_SCHEMA.load(data)
+                if spec is None:
+                    raise ApiError(
+                        code="process_model_could_not_be_loaded_from_disk",
+                        message=f"We could not load the process_model from disk with data: {data}",
+                    )
         else:
             spec = ProcessModelInfo(
                 id=name,
