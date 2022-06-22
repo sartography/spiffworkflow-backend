@@ -63,12 +63,12 @@ def process_group_delete(process_group_id: str) -> flask.wrappers.Response:
 
 
 def process_group_update(
-    process_group_id: str, body: Dict[str, Union[str, bool, int]]
+    _process_group_id: str, body: Dict[str, Union[str, bool, int]]
 ) -> Dict[str, Union[str, bool, int]]:
     """Process Group Update."""
     process_group = ProcessGroupSchema().load(body)
     ProcessModelService().update_process_group(process_group)
-    return ProcessGroupSchema().dump(process_group)
+    return ProcessGroupSchema().dump(process_group)  # type: ignore
 
 
 def process_groups_list(page: int = 1, per_page: int = 100) -> flask.wrappers.Response:

@@ -38,7 +38,7 @@ class ProcessModelInfo:
     primary_process_id: str | None = ""
     libraries: list[str] = field(default_factory=list)
     display_order: int | None = 0
-    is_review: bool | None = False
+    is_review: bool = False
     files: list[File] | None = field(default_factory=list[File])
     fault_or_suspend_on_exception: NotificationType = NotificationType.suspend
     notification_email_on_exception: list[str] = field(default_factory=list)
