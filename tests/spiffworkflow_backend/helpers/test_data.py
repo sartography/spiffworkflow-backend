@@ -47,7 +47,6 @@ def assure_process_group_exists(process_group_id: Optional[str] = None) -> Proce
 def load_test_spec(
     app: Flask,
     process_model_id: str,
-    display_name: None = None,
     master_spec: bool = False,
     process_group_id: Optional[str] = None,
     library: bool = False,
@@ -66,19 +65,15 @@ def load_test_spec(
     if workflow_spec:
         return workflow_spec
     else:
-        if display_name is None:
-            display_name = process_model_id
         spec = ExampleDataLoader().create_spec(
             id=process_model_id,
             master_spec=master_spec,
             from_tests=True,
-            display_name=display_name,
+            display_name=process_model_id,
             process_group_id=process_group_id,
             library=library,
         )
         return spec
-
-
 # def user_info_to_query_string(user_info, redirect_url):
 #     query_string_list = []
 #     items = user_info.items()
@@ -91,7 +86,7 @@ def load_test_spec(
 
 
 def logged_in_headers(
-    user: Optional[UserModel] = None, redirect_url: str = "http://some/frontend/url"
+    user: UserModel, _redirect_url: str = "http://some/frontend/url"
 ) -> Dict[str, str]:
     """Logged_in_headers."""
     # if user is None:

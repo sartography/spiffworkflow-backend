@@ -558,7 +558,7 @@ class ProcessInstanceProcessor:
                 return nav_item
         return None
 
-    def find_spec_and_field(self, spec_name: str, field_id: Union[str, int]) -> None:
+    def find_spec_and_field(self, spec_name: str, field_id: Union[str, int]) -> Any:
         """Tracks down a form field by name in the process_instance spec(s), Returns a tuple of the task, and form."""
         process_instances = [self.bpmn_process_instance]
         for task in self.bpmn_process_instance.get_ready_user_tasks():
