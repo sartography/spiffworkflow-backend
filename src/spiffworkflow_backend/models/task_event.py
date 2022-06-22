@@ -14,7 +14,7 @@ from sqlalchemy import func
 
 
 if TYPE_CHECKING:
-    from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
+    from spiffworkflow_backend.models.process_instance import ProcessInstanceModel  # noqa: F401
 
 
 class TaskAction(enum.Enum):
@@ -71,7 +71,7 @@ class TaskEventModelSchema(SQLAlchemyAutoSchema):
 class TaskEvent:
     """TaskEvent."""
 
-    def __init__(self, model: TaskEventModel, process_instance: ProcessInstanceModel):
+    def __init__(self, model: TaskEventModel, process_instance: "ProcessInstanceModel"):
         """__init__."""
         self.id = model.id
         self.process_instance = process_instance

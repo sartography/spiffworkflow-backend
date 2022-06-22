@@ -8,7 +8,8 @@ from flask_bpmn.models.group import FlaskBpmnGroupModel
 from sqlalchemy.orm import relationship
 
 if TYPE_CHECKING:
-    pass
+    from spiffworkflow_backend.models.user_group_assignment import UserGroupAssignmentModel  # noqa: F401
+    from spiffworkflow_backend.models.user import UserModel  # noqa: F401
 
 
 class GroupModel(FlaskBpmnGroupModel):
