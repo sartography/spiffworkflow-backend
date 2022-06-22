@@ -26,6 +26,12 @@ jobs:
               python: "3.10",
               os: "ubuntu-latest",
               session: "tests",
+              database: "postgres",
+            }
+          - {
+              python: "3.10",
+              os: "ubuntu-latest",
+              session: "tests",
               database: "sqlite",
             }
           - {
@@ -133,6 +139,10 @@ jobs:
           mysql database: "spiffworkflow_backend_testing"
           mysql root password: password
         if: matrix.database == 'mysql'
+
+      - name: Setup Postgres
+        run: docker run --name postgres-spiff -p 5432:5432 -e POSTGRES_PASSWORD=spiffworkflow_backend -e POSTGRES_USER=spiffworkflow_backend -e POSTGRES_DB=spiffworkflow_backend_testing -d postgres
+        if: matrix.database == 'postgres'
 
       - name: Run Nox
         run: |
