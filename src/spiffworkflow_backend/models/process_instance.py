@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import enum
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Optional
 
 import marshmallow
 from flask_bpmn.models.db import db
@@ -198,17 +198,17 @@ class ProcessInstanceMetadata:
     """ProcessInstanceMetadata."""
 
     id: int
-    display_name: str | None = None
-    description: str | None = None
-    spec_version: str | None = None
-    state: str | None = None
+    display_name: Optional[str] = None
+    description: Optional[str] = None
+    spec_version: Optional[str] = None
+    state: Optional[str] = None
     status: ProcessInstanceStatus | None = None
-    total_tasks: int | None = None
-    completed_tasks: int | None = None
-    is_review: bool | None = None
-    state_message: str | None = None
-    process_model_identifier: str | None = None
-    process_group_id: str | None = None
+    total_tasks: Optional[int] = None
+    completed_tasks: Optional[int] = None
+    is_review: Optional[bool] = None
+    state_message: Optional[str] = None
+    process_model_identifier: Optional[str] = None
+    process_group_id: Optional[str] = None
 
     @classmethod
     def from_process_instance(
