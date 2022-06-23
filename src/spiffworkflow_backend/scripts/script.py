@@ -62,7 +62,6 @@ class Script:
         We may be able to remove the task for each of these calls if we are not using it other than potentially
         updating the task data.
         """
-
         def make_closure(
             subclass: type[Script], task: Task, workflow_id: int
         ) -> Callable:

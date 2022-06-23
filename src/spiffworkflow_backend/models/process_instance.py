@@ -109,8 +109,10 @@ class ProcessInstanceModel(SpiffworkflowBaseDBModel):
 
 
 class ProcessInstanceModelSchema(Schema):
+    """ProcessInstanceModelSchema."""
 
     class Meta:
+        """Meta."""
         model = ProcessInstanceModel
         fields = [
             "id",
@@ -129,6 +131,7 @@ class ProcessInstanceModelSchema(Schema):
     status = marshmallow.fields.Method('get_status', dump_only=True)
 
     def get_status(self, obj):
+        """Get_status."""
         return obj.status
 
 

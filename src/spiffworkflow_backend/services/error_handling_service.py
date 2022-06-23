@@ -14,7 +14,8 @@ class ErrorHandlingService:
         self, _processor: ProcessInstanceProcessor, _error: ApiError
     ) -> None:
         """Handle_error."""
-        process_model = ProcessModelService().get_process_model(_processor.process_model_identifier, _processor.process_group_identifier)
+        process_model = ProcessModelService().get_process_model(
+            _processor.process_model_identifier, _processor.process_group_identifier)
         # If fault_or_suspend_on_exception is not configured, default to `fault`
         if process_model.fault_or_suspend_on_exception == 'suspend':
             ...
@@ -27,7 +28,7 @@ class ErrorHandlingService:
                 ...
             except Exception as e:
                 # hmm...
-                ...
+                print(e)
         print("handle_error")
 
 

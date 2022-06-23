@@ -3,7 +3,6 @@ from typing import Any
 from typing import Dict
 from typing import Optional
 
-from flask.app import Flask
 from flask_bpmn.models.db import db
 from tests.spiffworkflow_backend.helpers.example_data import ExampleDataLoader
 
