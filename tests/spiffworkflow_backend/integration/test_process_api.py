@@ -547,15 +547,33 @@ def test_process_instance_create(
         client, test_process_group_id, test_process_model_id, headers
     )
     assert response.json["updated_at_in_seconds"] is not None
-    assert response.json["status"] == "complete"
+    assert response.json["status"] == "not_started"
     assert response.json["process_model_identifier"] == test_process_model_id
+
+
+def test_process_instance_run(app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None):
+    process_group_id = "runs_without_input"
+    process_model_id = "sample"
+    user = find_or_create_user()
+    headers = logged_in_headers(user)
+    response = create_process_instance(
+        client, process_group_id, process_model_id, headers
+    )
+    process_instance_id = response.json['id']
+    response = client.post(
+        f"/v1.0/process-models/{process_group_id}/{process_model_id}/process-instances/{process_instance_id}/run",
+        headers=logged_in_headers(user),
+    )
+
+    assert type(response.json["updated_at_in_seconds"]) is int
+    assert response.json["updated_at_in_seconds"] > 0
+    assert response.json["status"] == "complete"
+    assert response.json["process_model_identifier"] == process_model_id
     assert response.json["data"]["current_user"]["username"] == "test_user1"
     assert response.json["data"]["Mike"] == "Awesome"
     assert response.json["data"]["person"] == "Kevin"
 
-
-def test_process_instance_run():
-    ...
+    print('test_process_instance_run')
 
 
 def test_process_instance_list_with_default_list(
@@ -589,13 +607,8 @@ def test_process_instance_list_with_default_list(
     assert process_instance_dict["process_group_id"] == test_process_group_id
     assert type(process_instance_dict["start_in_seconds"]) is int
     assert process_instance_dict["start_in_seconds"] > 0
-    assert type(process_instance_dict["end_in_seconds"]) is int
-    assert process_instance_dict["end_in_seconds"] > 0
-    assert (
-        process_instance_dict["start_in_seconds"]
-        <= process_instance_dict["end_in_seconds"]
-    )
-    assert process_instance_dict["status"] == "complete"
+    assert process_instance_dict["end_in_seconds"] is None
+    assert process_instance_dict["status"] == "not_started"
 
 
 def test_process_instance_list_with_paginated_items(
@@ -766,14 +779,8 @@ def test_process_instance_report_with_default_list(
     assert process_instance_dict["process_group_id"] == test_process_group_id
     assert type(process_instance_dict["start_in_seconds"]) is int
     assert process_instance_dict["start_in_seconds"] > 0
-    assert type(process_instance_dict["end_in_seconds"]) is int
-    assert process_instance_dict["end_in_seconds"] > 0
-    assert (
-        process_instance_dict["start_in_seconds"]
-        <= process_instance_dict["end_in_seconds"]
-    )
-    assert process_instance_dict["status"] == "complete"
-    assert process_instance_dict["data"]["Mike"] == "Awesome"
+    assert process_instance_dict["end_in_seconds"] is None
+    assert process_instance_dict["status"] == "not_started"
 
 
 def test_error_handler(
