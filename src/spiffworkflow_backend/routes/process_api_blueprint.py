@@ -43,6 +43,10 @@ from spiffworkflow_backend.services.spec_file_service import SpecFileService
 process_api_blueprint = Blueprint("process_api", __name__)
 
 
+def status() -> flask.wrappers.Response:
+    return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
+
+
 def process_group_add(
     body: Dict[str, Union[str, bool, int]]
 ) -> flask.wrappers.Response:
