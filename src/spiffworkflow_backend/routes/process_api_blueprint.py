@@ -275,6 +275,15 @@ def process_instance_create(
         json.dumps(process_instance_metadata), status=201, mimetype="application/json"
     )
 
+def process_instance_run(
+        process_group_id: str,
+        process_model_id: str,
+        process_instance_id: str,
+        do_engine_steps: bool
+
+) -> flask.wrappers.Response:
+    ...
+
 
 def process_instance_list(
     process_group_id: str,

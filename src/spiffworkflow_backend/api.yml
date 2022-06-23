@@ -367,6 +367,40 @@ paths:
       - name: process_model_id
         in: path
         required: true
+        description: The unique id of an existing process model.
+        schema:
+          type: string
+      - name: process_instance_id
+        in: path
+        required: true
+        description: The unique id of an existing process instance.
+        schema:
+          type: integer
+    # process_instance_delete
+    delete:
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.process_instance_delete
+      summary: Deletes a single process instance
+      tags:
+        - Process Instances
+      responses:
+        "200":
+          description: The process instance was deleted.
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/OkTrue"
+
+  /process-models/{process_group_id}/{process_model_id}/process-instances/{process_instance_id}/run:
+    parameters:
+      - name: process_group_id
+        in: path
+        required: true
+        description: The unique id of an existing process group
+        schema:
+          type: string
+      - name: process_model_id
+        in: path
+        required: true
         description: The unique id of an existing workflow specification.
         schema:
           type: string
@@ -376,18 +410,25 @@ paths:
         description: The unique id of an existing process instance.
         schema:
           type: integer
-    delete:
-      operationId: spiffworkflow_backend.routes.process_api_blueprint.process_instance_delete
-      summary: Deletes a single process group
+      - name: do_engine_steps
+        in: query
+        required: false
+        description: Defaults to true, can be set to false if you are just looking at the workflow not completeing it.
+        schema:
+          type: boolean
+    # process_instance_run
+    post:
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.process_instance_run
+      summary: Run a process instance
       tags:
-        - Process Groups
+        - Process Instances
       responses:
-        "200":
-          description: The process instance was deleted.
+        '200':
+          description: Returns details about the workflows state and current task
           content:
             application/json:
               schema:
-                $ref: "#components/schemas/OkTrue"
+                $ref: "#/components/schemas/Workflow"
 
   /process-models/{process_group_id}/{process_model_id}/process-instances/report:
     parameters:
