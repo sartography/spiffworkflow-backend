@@ -551,6 +551,10 @@ def test_process_instance_create(
     assert response.json["data"]["person"] == "Kevin"
 
 
+def test_process_instance_run():
+    ...
+
+
 def test_process_instance_list_with_default_list(
     app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
