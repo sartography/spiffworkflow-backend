@@ -125,3 +125,7 @@ class ProcessInstanceService:
                 return {}
         else:
             return {}
+
+    def get_process_instance(self, process_instance_id):
+        result = db.session.query(ProcessInstanceModel).filter(ProcessInstanceModel.id == process_instance_id).first()
+        return result

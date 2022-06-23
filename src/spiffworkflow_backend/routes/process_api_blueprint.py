@@ -23,7 +23,7 @@ from spiffworkflow_backend.models.file import FileType
 from spiffworkflow_backend.models.principal import PrincipalModel
 from spiffworkflow_backend.models.process_group import ProcessGroupSchema
 from spiffworkflow_backend.models.process_instance import ProcessInstanceApiSchema
-from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
+from spiffworkflow_backend.models.process_instance import ProcessInstanceModel, ProcessInstanceModelSchema
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
 from spiffworkflow_backend.services.error_handling_service import ErrorHandlingService
 from spiffworkflow_backend.services.process_instance_processor import (
@@ -262,6 +262,21 @@ def process_instance_create(
     process_instance = ProcessInstanceService.create_process_instance(
         process_model_id, g.user, process_group_identifier=process_group_id
     )
+    return Response(
+        json.dumps(ProcessInstanceModelSchema().dump(process_instance)),
+        status=201,
+        mimetype="application/json"
+    )
+
+
+def process_instance_run(
+        process_group_id: str,
+        process_model_id: str,
+        process_instance_id: str,
+        do_engine_steps: bool = None
+
+) -> flask.wrappers.Response:
+    process_instance = ProcessInstanceService().get_process_instance(process_instance_id)
     processor = ProcessInstanceProcessor(process_instance)
 
     try:
@@ -280,15 +295,6 @@ def process_instance_create(
     return Response(
         json.dumps(process_instance_metadata), status=201, mimetype="application/json"
     )
-
-def process_instance_run(
-        process_group_id: str,
-        process_model_id: str,
-        process_instance_id: str,
-        do_engine_steps: bool
-
-) -> flask.wrappers.Response:
-    ...
 
 
 def process_instance_list(

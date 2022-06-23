@@ -107,6 +107,30 @@ class ProcessInstanceModel(SpiffworkflowBaseDBModel):
         }
 
 
+class ProcessInstanceModelSchema(Schema):
+
+    class Meta:
+        model = ProcessInstanceModel
+        fields = [
+            "id",
+            "process_model_identifier",
+            "process_group_identifier",
+            "process_initiator_id",
+            # "process_initiator",
+            "bpmn_json",
+            "start_in_seconds",
+            "end_in_seconds",
+            "updated_at_in_seconds",
+            "created_at_in_seconds",
+            "status"
+        ]
+
+    status = marshmallow.fields.Method('get_status', dump_only=True)
+
+    def get_status(self, obj):
+        return obj.status.value
+
+
 class ProcessInstanceApi:
     """ProcessInstanceApi."""
 
