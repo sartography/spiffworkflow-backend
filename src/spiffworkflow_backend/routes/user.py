@@ -2,7 +2,6 @@
 from typing import Dict
 from typing import Optional
 
-from flask import current_app
 from flask import g
 from flask_bpmn.api.api_error import ApiError
 

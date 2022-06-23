@@ -44,6 +44,8 @@ process_api_blueprint = Blueprint("process_api", __name__)
 
 
 def status() -> flask.wrappers.Response:
+    """Status."""
+    ProcessInstanceModel.query.filter().first()
     return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
 
 
