@@ -33,6 +33,7 @@ services:
       - SPIFFWORKFLOW_BACKEND_UPGRADE_DB=true
       - SPIFFWORKFLOW_BACKEND_DATABASE_URI=mysql+mysqlconnector://root:${SPIFFWORKFLOW_BACKEND_MYSQL_ROOT_DATABASE:-my-secret-pw}@db/${SPIFFWORKFLOW_BACKEND_DATABASE_NAME:-spiffworkflow_backend_development}
       - BPMN_SPEC_ABSOLUTE_DIR=/app/process_models
+      - SPIFFWORKFLOW_BACKEND_LOAD_FIXTURE_DATA=${SPIFFWORKFLOW_BACKEND_LOAD_FIXTURE_DATA:-false}
     ports:
       - "7000:7000"
     volumes:

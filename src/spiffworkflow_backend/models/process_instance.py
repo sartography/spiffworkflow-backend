@@ -1,7 +1,6 @@
 """Process_instance."""
 from __future__ import annotations
 
-import enum
 from dataclasses import dataclass
 from typing import Any
 
@@ -16,6 +15,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import deferred
 from sqlalchemy.orm import relationship
 
+from spiffworkflow_backend.helpers.spiff_enum import SpiffEnum
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.task import TaskSchema
 from spiffworkflow_backend.models.user import UserModel
@@ -65,7 +65,7 @@ class NavigationItemSchema(Schema):
         return item
 
 
-class ProcessInstanceStatus(enum.Enum):
+class ProcessInstanceStatus(SpiffEnum):
     """ProcessInstanceStatus."""
 
     not_started = "not_started"

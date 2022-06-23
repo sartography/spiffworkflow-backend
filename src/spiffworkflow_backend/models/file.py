@@ -1,5 +1,4 @@
 """File."""
-import enum
 from dataclasses import dataclass
 from dataclasses import field
 from datetime import datetime
@@ -12,6 +11,7 @@ from marshmallow import Schema
 from sqlalchemy.orm import deferred
 from sqlalchemy.orm import relationship
 
+from spiffworkflow_backend.helpers.spiff_enum import SpiffEnum
 from spiffworkflow_backend.models.data_store import DataStoreModel
 
 
@@ -40,7 +40,7 @@ class FileModel(SpiffworkflowBaseDBModel):
     archived = db.Column(db.Boolean, default=False)  # type: ignore
 
 
-class FileType(enum.Enum):
+class FileType(SpiffEnum):
     """FileType."""
 
     bpmn = "bpmn"
@@ -63,11 +63,6 @@ class FileType(enum.Enum):
     xlsx = "xlsx"
     xml = "xml"
     zip = "zip"
-
-    @classmethod
-    def list(cls) -> list[str]:
-        """List."""
-        return [el.value for el in cls]
 
 
 CONTENT_TYPES = {
