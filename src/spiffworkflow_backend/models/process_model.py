@@ -41,7 +41,7 @@ class ProcessModelInfo:
     is_review: bool = False
     files: list[File] | None = field(default_factory=list[File])
     fault_or_suspend_on_exception: NotificationType = NotificationType.fault.value
-    notification_email_on_exception: list[str] = field(default_factory=list)
+    exception_notification_addresses: list[str] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         """__post_init__."""
@@ -78,7 +78,7 @@ class ProcessModelInfoSchema(Schema):
     libraries = marshmallow.fields.List(marshmallow.fields.String(), allow_none=True)
     files = marshmallow.fields.List(marshmallow.fields.Nested("FileSchema"))
     fault_or_suspend_on_exception = marshmallow.fields.String()
-    notification_email_on_exception = marshmallow.fields.List(marshmallow.fields.String)
+    exception_notification_addresses = marshmallow.fields.List(marshmallow.fields.String)
 
     @post_load
     def make_spec(

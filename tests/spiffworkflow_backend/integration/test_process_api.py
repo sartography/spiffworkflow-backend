@@ -843,7 +843,7 @@ def create_process_model(
     process_model_display_name: str = None,
     process_model_description: str = None,
     fault_or_suspend_on_exception: NotificationType = None,
-    notification_email_on_exception: list = None,
+    exception_notification_addresses: list = None,
 ) -> TestResponse:
     """Create_process_model."""
     process_model_service = ProcessModelService()
@@ -865,8 +865,8 @@ def create_process_model(
         process_model_description = "Om nom nom delicious cookies"
     if fault_or_suspend_on_exception is None:
         fault_or_suspend_on_exception = NotificationType.suspend
-    if notification_email_on_exception is None:
-        notification_email_on_exception = []
+    if exception_notification_addresses is None:
+        exception_notification_addresses = []
     model = ProcessModelInfo(
         id=process_model_id,
         display_name=process_model_display_name,
@@ -880,7 +880,7 @@ def create_process_model(
         primary_process_id="",
         primary_file_name="",
         fault_or_suspend_on_exception=fault_or_suspend_on_exception,
-        notification_email_on_exception=notification_email_on_exception,
+        exception_notification_addresses=exception_notification_addresses,
     )
     user = find_or_create_user()
     response = client.post(
