@@ -50,28 +50,6 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[str]]:
         else:
             raise failure_error
 
-    # If there's no token and we're in production, get the user from the SSO headers and return their token
-    elif _is_production():
-        uid = "TEST_UID"
-
-        if uid is not None:
-            db_user = UserModel.query.filter_by(uid=uid).first()
-
-            # If the user is valid, store the user and token for this session
-            if db_user is not None:
-                g.user = db_user
-                token_from_user = g.user.encode_auth_token()
-                g.token = token_from_user
-                token_info = UserModel.decode_auth_token(token_from_user)
-                return token_info
-
-            else:
-                raise ApiError(
-                    "no_user",
-                    "User not found. Please login via the frontend app before accessing this feature.",
-                    status_code=403,
-                )
-
     else:
         # Fall back to a default user if this is not production.
         g.user = UserModel.query.first()
@@ -83,8 +61,3 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[str]]:
         token_from_user = g.user.encode_auth_token()
         token_info = UserModel.decode_auth_token(token_from_user)
         return token_info
-
-
-def _is_production() -> bool:
-    """_is_production."""
-    return "PRODUCTION" in current_app.config and current_app.config["PRODUCTION"]

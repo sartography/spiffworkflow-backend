@@ -7,6 +7,26 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
+if [[ -z "${FLASK_ENV:-}" ]]; then
+  export FLASK_ENV=staging
+fi
+
+if [[ -z "${FLASK_SESSION_SECRET_KEY:-}" ]]; then
+  export FLASK_SESSION_SECRET_KEY=staging_super_secret_key_dont_tell_anyone
+fi
+
+if [[ -z "${SPIFFWORKFLOW_BACKEND_MYSQL_ROOT_PASSWORD:-}" ]]; then
+  export SPIFFWORKFLOW_BACKEND_MYSQL_ROOT_PASSWORD=St4g3Th1515
+fi
+
+if [[ -z "${SPIFFWORKFLOW_BACKEND_DATABASE_NAME:-}" ]]; then
+  export SPIFFWORKFLOW_BACKEND_DATABASE_NAME=spiffworkflow_backend_staging
+fi
+
+if [[ -z "${SPIFFWORKFLOW_BACKEND_DATABASE_DOCKER_RESTART_POLICY:-}" ]]; then
+  export SPIFFWORKFLOW_BACKEND_DATABASE_DOCKER_RESTART_POLICY=always
+fi
+
 git pull
 ./bin/docker_restart
 ./bin/wait_for_server_to_be_up
