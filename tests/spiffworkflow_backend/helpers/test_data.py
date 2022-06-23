@@ -48,7 +48,6 @@ def assure_process_group_exists(process_group_id: Optional[str] = None) -> Proce
 
 
 def load_test_spec(
-    app: Flask,
     process_model_id: str,
     master_spec: bool = False,
     process_group_id: Optional[str] = None,

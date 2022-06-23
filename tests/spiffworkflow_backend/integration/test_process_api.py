@@ -38,7 +38,6 @@ def test_process_model_add(
     model_display_name = "Cooooookies"
     model_description = "Om nom nom delicious cookies"
     create_process_model(
-        app,
         client,
         process_group_id=None,
         process_model_id=model_id,
@@ -50,14 +49,14 @@ def test_process_model_add(
     assert 0 == process_model.display_order
     assert 1 == len(ProcessModelService().get_process_groups())
 
-    create_spec_file(app, client)
+    create_spec_file(client)
 
 
 def test_process_model_delete(
     app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_model_delete."""
-    create_process_model(app, client)
+    create_process_model(client)
 
     # assert we have a model
     process_model = ProcessModelService().get_process_model("make_cookies")
@@ -91,7 +90,7 @@ def test_process_model_delete_with_instances(
     headers = logged_in_headers(user)
     # create an instance from a model
     response = create_process_instance(
-        app, client, test_process_group_id, test_process_model_id, headers
+        client, test_process_group_id, test_process_model_id, headers
     )
 
     data = json.loads(response.get_data(as_text=True))
@@ -118,7 +117,7 @@ def test_process_model_update(
     app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_model_update."""
-    create_process_model(app, client)
+    create_process_model(client)
     process_model = ProcessModelService().get_process_model("make_cookies")
     assert process_model.id == "make_cookies"
     assert process_model.display_name == "Cooooookies"
@@ -151,7 +150,7 @@ def test_process_model_list(
         model_display_name = f"Test Model {i}"
         model_description = f"Test Model {i} Description"
         create_process_model(
-            app, client, group_id, model_id, model_display_name, model_description
+            client, group_id, model_id, model_display_name, model_description
         )
 
     # get all models
@@ -361,9 +360,9 @@ def test_process_model_file_update_fails_if_no_file_given(
     app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_model_file_update."""
-    create_spec_file(app, client)
+    create_spec_file(client)
 
-    spec = load_test_spec(app, "random_fact")
+    spec = load_test_spec("random_fact")
     data = {"key1": "THIS DATA"}
     user = find_or_create_user()
     response = client.put(
@@ -382,9 +381,9 @@ def test_process_model_file_update_fails_if_contents_is_empty(
     app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_model_file_update."""
-    create_spec_file(app, client)
+    create_spec_file(client)
 
-    spec = load_test_spec(app, "random_fact")
+    spec = load_test_spec("random_fact")
     data = {"file": (io.BytesIO(b""), "random_fact.svg")}
     user = find_or_create_user()
     response = client.put(
@@ -403,9 +402,9 @@ def test_process_model_file_update(
     app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_model_file_update."""
-    original_file = create_spec_file(app, client)
+    original_file = create_spec_file(client)
 
-    spec = load_test_spec(app, "random_fact")
+    spec = load_test_spec("random_fact")
     new_file_contents = b"THIS_IS_NEW_DATA"
     data = {"file": (io.BytesIO(new_file_contents), "random_fact.svg")}
     user = find_or_create_user()
@@ -437,7 +436,7 @@ def test_get_file(
     user = find_or_create_user()
     test_process_group_id = "group_id1"
     process_model_dir_name = "hello_world"
-    load_test_spec(app, process_model_dir_name, process_group_id=test_process_group_id)
+    load_test_spec(process_model_dir_name, process_group_id=test_process_group_id)
     response = client.get(
         f"/v1.0/process-models/{test_process_group_id}/{process_model_dir_name}/file/hello_world.bpmn",
         headers=logged_in_headers(user),
@@ -453,7 +452,7 @@ def test_get_workflow_from_workflow_spec(
 ) -> None:
     """Test_get_workflow_from_workflow_spec."""
     user = find_or_create_user()
-    spec = load_test_spec(app, "hello_world")
+    spec = load_test_spec("hello_world")
     response = client.post(
         f"/v1.0/process-models/{spec.process_group_id}/{spec.id}",
         headers=logged_in_headers(user),
@@ -478,7 +477,7 @@ def test_get_process_groups_when_there_are_some(
 ) -> None:
     """Test_get_process_groups_when_there_are_some."""
     user = find_or_create_user()
-    load_test_spec(app, "hello_world")
+    load_test_spec("hello_world")
     response = client.get("/v1.0/process-groups", headers=logged_in_headers(user))
     assert response.status_code == 200
     assert len(response.json["results"]) == 1
@@ -494,7 +493,7 @@ def test_get_process_group_when_found(
     user = find_or_create_user()
     test_process_group_id = "group_id1"
     process_model_dir_name = "hello_world"
-    load_test_spec(app, process_model_dir_name, process_group_id=test_process_group_id)
+    load_test_spec(process_model_dir_name, process_group_id=test_process_group_id)
     response = client.get(
         f"/v1.0/process-groups/{test_process_group_id}", headers=logged_in_headers(user)
     )
@@ -510,7 +509,7 @@ def test_get_process_model_when_found(
     user = find_or_create_user()
     test_process_group_id = "group_id1"
     process_model_dir_name = "hello_world"
-    load_test_spec(app, process_model_dir_name, process_group_id=test_process_group_id)
+    load_test_spec(process_model_dir_name, process_group_id=test_process_group_id)
     response = client.get(
         f"/v1.0/process-models/{test_process_group_id}/{process_model_dir_name}",
         headers=logged_in_headers(user),
@@ -545,7 +544,7 @@ def test_process_instance_create(
     user = find_or_create_user()
     headers = logged_in_headers(user)
     response = create_process_instance(
-        app, client, test_process_group_id, test_process_model_id, headers
+        client, test_process_group_id, test_process_model_id, headers
     )
     assert response.json["updated_at_in_seconds"] is not None
     assert response.json["status"] == "complete"
@@ -571,7 +570,7 @@ def test_process_instance_list_with_default_list(
     user = find_or_create_user()
     headers = logged_in_headers(user)
     create_process_instance(
-        app, client, test_process_group_id, process_model_dir_name, headers
+        client, test_process_group_id, process_model_dir_name, headers
     )
 
     response = client.get(
@@ -611,19 +610,19 @@ def test_process_instance_list_with_paginated_items(
     user = find_or_create_user()
     headers = logged_in_headers(user)
     create_process_instance(
-        app, client, test_process_group_id, process_model_dir_name, headers
+        client, test_process_group_id, process_model_dir_name, headers
     )
     create_process_instance(
-        app, client, test_process_group_id, process_model_dir_name, headers
+        client, test_process_group_id, process_model_dir_name, headers
     )
     create_process_instance(
-        app, client, test_process_group_id, process_model_dir_name, headers
+        client, test_process_group_id, process_model_dir_name, headers
     )
     create_process_instance(
-        app, client, test_process_group_id, process_model_dir_name, headers
+        client, test_process_group_id, process_model_dir_name, headers
     )
     create_process_instance(
-        app, client, test_process_group_id, process_model_dir_name, headers
+        client, test_process_group_id, process_model_dir_name, headers
     )
 
     response = client.get(
@@ -657,7 +656,7 @@ def test_process_instance_list_filter(
     test_process_group_id = "runs_without_input"
     test_process_model_id = "sample"
     user = find_or_create_user()
-    load_test_spec(app, test_process_model_id, process_group_id=test_process_group_id)
+    load_test_spec(test_process_model_id, process_group_id=test_process_group_id)
     statuses = ("not_started", "user_input_required", "waiting", "complete", "erroring")
 
     # create 5 instances with different status, and different start_in_seconds/end_in_seconds
@@ -748,7 +747,7 @@ def test_process_instance_report_with_default_list(
     user = find_or_create_user()
     headers = logged_in_headers(user)
     create_process_instance(
-        app, client, test_process_group_id, process_model_dir_name, headers
+        client, test_process_group_id, process_model_dir_name, headers
     )
 
     response = client.get(
@@ -787,7 +786,7 @@ def test_error_handler(
     user = find_or_create_user()
     headers = logged_in_headers(user)
     response = create_process_instance(
-        app, client, process_group_id, process_model_id, headers
+        client, process_group_id, process_model_id, headers
     )
     print(f"test_error_handler: {response}")
 
@@ -802,7 +801,6 @@ def test_process_model_file_create(
     file_data = b"abc123"
 
     result = create_spec_file(
-        app,
         client,
         process_group_id=process_group_id,
         process_model_id=process_model_id,
@@ -816,14 +814,13 @@ def test_process_model_file_create(
 
 
 def create_process_instance(
-    app: Flask,
     client: FlaskClient,
     test_process_group_id: str,
     test_process_model_id: str,
     headers: Dict[str, str],
 ) -> TestResponse:
     """Create_process_instance."""
-    load_test_spec(app, test_process_model_id, process_group_id=test_process_group_id)
+    load_test_spec(test_process_model_id, process_group_id=test_process_group_id)
     response = client.post(
         f"/v1.0/process-models/{test_process_group_id}/{test_process_model_id}",
         headers=headers,
@@ -833,7 +830,6 @@ def create_process_instance(
 
 
 def create_process_model(
-    app: Flask,
     client: FlaskClient,
     process_group_id=None,
     process_model_id: str = None,
@@ -891,7 +887,6 @@ def create_process_model(
 
 
 def create_spec_file(
-    app: Flask,
     client: FlaskClient,
     process_group_id: str = None,
     process_model_id: str = None,
@@ -907,7 +902,7 @@ def create_spec_file(
         file_name = "random_fact.svg"
     if file_data is None:
         file_data = b"abcdef"
-    spec = load_test_spec(app, process_model_id, process_group_id=process_group_id)
+    spec = load_test_spec(process_model_id, process_group_id=process_group_id)
     data = {"file": (io.BytesIO(file_data), file_name)}
     user = find_or_create_user()
     response = client.post(
