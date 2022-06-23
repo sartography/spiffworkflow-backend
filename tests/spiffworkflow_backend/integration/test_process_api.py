@@ -573,8 +573,6 @@ def test_process_instance_run(app: Flask, client: FlaskClient, with_bpmn_file_cl
     assert response.json["data"]["Mike"] == "Awesome"
     assert response.json["data"]["person"] == "Kevin"
 
-    print('test_process_instance_run')
-
 
 def test_process_instance_list_with_default_list(
     app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
@@ -795,6 +793,13 @@ def test_error_handler(
     response = create_process_instance(
         client, process_group_id, process_model_id, headers
     )
+
+    process_instance_id = response.json['id']
+    response = client.post(
+        f"/v1.0/process-models/{process_group_id}/{process_model_id}/process-instances/{process_instance_id}/run",
+        headers=logged_in_headers(user),
+    )
+
     print(f"test_error_handler: {response}")
 
 
