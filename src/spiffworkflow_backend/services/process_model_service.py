@@ -10,8 +10,8 @@ from typing import Union
 
 from flask_bpmn.api.api_error import ApiError
 
-from spiffworkflow_backend.exceptions.process_entity_not_found import (
-    ProcessEntityNotFound,
+from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
+    ProcessEntityNotFoundError,
 )
 from spiffworkflow_backend.models.process_group import ProcessGroup
 from spiffworkflow_backend.models.process_group import ProcessGroupSchema
@@ -106,7 +106,7 @@ class ProcessModelService(FileSystemService):
     ) -> ProcessModelInfo:
         """Get a process model from a model and group id."""
         if not os.path.exists(FileSystemService.root_path()):
-            raise ProcessEntityNotFound("process_model_not_found")
+            raise ProcessEntityNotFoundError("process_model_not_found")
 
         master_spec = self.get_master_spec()
         if master_spec and master_spec.id == process_model_id:
@@ -129,7 +129,7 @@ class ProcessModelService(FileSystemService):
                                     process_group_dir
                                 )
                                 return self.__scan_spec(sd.path, sd.name, process_group)
-        raise ProcessEntityNotFound("process_model_not_found")
+        raise ProcessEntityNotFoundError("process_model_not_found")
 
     def get_process_models(
         self, process_group_id: Optional[str] = None

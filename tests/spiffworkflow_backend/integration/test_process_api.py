@@ -15,8 +15,8 @@ from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
 from tests.spiffworkflow_backend.helpers.test_data import logged_in_headers
 from werkzeug.test import TestResponse
 
-from spiffworkflow_backend.exceptions.process_entity_not_found import (
-    ProcessEntityNotFound,
+from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
+    ProcessEntityNotFoundError,
 )
 from spiffworkflow_backend.models.process_group import ProcessGroup
 from spiffworkflow_backend.models.process_group import ProcessGroupSchema
@@ -74,7 +74,7 @@ def test_process_model_delete(
     assert response.json["ok"] is True
 
     # assert we no longer have a model
-    with pytest.raises(ProcessEntityNotFound):
+    with pytest.raises(ProcessEntityNotFoundError):
         ProcessModelService().get_process_model("make_cookies")
 
 

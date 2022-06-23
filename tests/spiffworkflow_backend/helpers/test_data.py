@@ -7,8 +7,8 @@ from flask.app import Flask
 from flask_bpmn.models.db import db
 from tests.spiffworkflow_backend.helpers.example_data import ExampleDataLoader
 
-from spiffworkflow_backend.exceptions.process_entity_not_found import (
-    ProcessEntityNotFound,
+from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
+    ProcessEntityNotFoundError,
 )
 from spiffworkflow_backend.models.process_group import ProcessGroup
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
@@ -67,7 +67,7 @@ def load_test_spec(
         return workflow_spec_service.get_process_model(
             process_model_id, group_id=process_group_id
         )
-    except ProcessEntityNotFound:
+    except ProcessEntityNotFoundError:
         spec = ExampleDataLoader().create_spec(
             id=process_model_id,
             master_spec=master_spec,

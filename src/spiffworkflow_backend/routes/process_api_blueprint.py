@@ -15,8 +15,8 @@ from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
 from werkzeug.datastructures import FileStorage
 
-from spiffworkflow_backend.exceptions.process_entity_not_found import (
-    ProcessEntityNotFound,
+from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
+    ProcessEntityNotFoundError,
 )
 from spiffworkflow_backend.models.file import FileSchema
 from spiffworkflow_backend.models.file import FileType
@@ -154,7 +154,7 @@ def process_model_show(
         process_model.files = files
         process_model_json = ProcessModelInfoSchema().dump(process_model)
         return process_model_json
-    except ProcessEntityNotFound as exception:
+    except ProcessEntityNotFoundError as exception:
         raise (
             ApiError(
                 code="process_mode_cannot_be_found",
