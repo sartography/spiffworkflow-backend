@@ -801,8 +801,10 @@ def test_process_model_file_create(
         file_name=file_name,
         file_data=file_data,
     )
-
-    print(f"test_process_model_file_create: {result}")
+    assert result['process_group_id'] == process_group_id
+    assert result['process_model_id'] == process_model_id
+    assert result['name'] == file_name
+    assert bytes(result['file_contents'], 'utf-8') == file_data
 
 
 def create_process_instance(
