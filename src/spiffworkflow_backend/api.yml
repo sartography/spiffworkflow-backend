@@ -423,7 +423,7 @@ paths:
       tags:
         - Process Instances
       responses:
-        '200':
+        "200":
           description: Returns details about the workflows state and current task
           content:
             application/json:

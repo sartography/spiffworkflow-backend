@@ -128,5 +128,9 @@ class ProcessInstanceService:
 
     def get_process_instance(self, process_instance_id):
         """Get_process_instance."""
-        result = db.session.query(ProcessInstanceModel).filter(ProcessInstanceModel.id == process_instance_id).first()
+        result = (
+            db.session.query(ProcessInstanceModel)
+            .filter(ProcessInstanceModel.id == process_instance_id)
+            .first()
+        )
         return result

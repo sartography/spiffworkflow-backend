@@ -551,7 +551,9 @@ def test_process_instance_create(
     assert response.json["process_model_identifier"] == test_process_model_id
 
 
-def test_process_instance_run(app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None):
+def test_process_instance_run(
+    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+):
     """Test_process_instance_run."""
     process_group_id = "runs_without_input"
     process_model_id = "sample"
@@ -560,7 +562,7 @@ def test_process_instance_run(app: Flask, client: FlaskClient, with_bpmn_file_cl
     response = create_process_instance(
         client, process_group_id, process_model_id, headers
     )
-    process_instance_id = response.json['id']
+    process_instance_id = response.json["id"]
     response = client.post(
         f"/v1.0/process-models/{process_group_id}/{process_model_id}/process-instances/{process_instance_id}/run",
         headers=logged_in_headers(user),
@@ -795,7 +797,7 @@ def test_error_handler(
         client, process_group_id, process_model_id, headers
     )
 
-    process_instance_id = response.json['id']
+    process_instance_id = response.json["id"]
     response = client.post(
         f"/v1.0/process-models/{process_group_id}/{process_model_id}/process-instances/{process_instance_id}/run",
         headers=logged_in_headers(user),
@@ -820,10 +822,10 @@ def test_process_model_file_create(
         file_name=file_name,
         file_data=file_data,
     )
-    assert result['process_group_id'] == process_group_id
-    assert result['process_model_id'] == process_model_id
-    assert result['name'] == file_name
-    assert bytes(result['file_contents'], 'utf-8') == file_data
+    assert result["process_group_id"] == process_group_id
+    assert result["process_model_id"] == process_model_id
+    assert result["name"] == file_name
+    assert bytes(result["file_contents"], "utf-8") == file_data
 
 
 def create_process_instance(

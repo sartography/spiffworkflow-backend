@@ -113,6 +113,7 @@ class ProcessInstanceModelSchema(Schema):
 
     class Meta:
         """Meta."""
+
         model = ProcessInstanceModel
         fields = [
             "id",
@@ -125,10 +126,10 @@ class ProcessInstanceModelSchema(Schema):
             "end_in_seconds",
             "updated_at_in_seconds",
             "created_at_in_seconds",
-            "status"
+            "status",
         ]
 
-    status = marshmallow.fields.Method('get_status', dump_only=True)
+    status = marshmallow.fields.Method("get_status", dump_only=True)
 
     def get_status(self, obj):
         """Get_status."""
