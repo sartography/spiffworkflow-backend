@@ -34,7 +34,7 @@ class ProcessInstanceService:
     ) -> ProcessInstanceModel:
         """Get_process_instance_from_spec."""
         process_instance_model = ProcessInstanceModel(
-            status=ProcessInstanceStatus.not_started,
+            status=ProcessInstanceStatus.not_started.value,
             process_initiator=user,
             process_model_identifier=process_model_identifier,
             process_group_identifier=process_group_identifier,

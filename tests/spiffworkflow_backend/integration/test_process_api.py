@@ -670,12 +670,12 @@ def test_process_instance_list_filter(
     test_process_model_id = "sample"
     user = find_or_create_user()
     load_test_spec(test_process_model_id, process_group_id=test_process_group_id)
-    statuses = ("not_started", "user_input_required", "waiting", "complete", "erroring")
 
+    statuses = [status.value for status in ProcessInstanceStatus]
     # create 5 instances with different status, and different start_in_seconds/end_in_seconds
     for i in range(5):
         process_instance = ProcessInstanceModel(
-            status=ProcessInstanceStatus[statuses[i]],
+            status=ProcessInstanceStatus[statuses[i]].value,
             process_initiator=user,
             process_model_identifier=test_process_model_id,
             process_group_identifier=test_process_group_id,

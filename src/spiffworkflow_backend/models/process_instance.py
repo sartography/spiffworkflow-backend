@@ -72,7 +72,8 @@ class ProcessInstanceStatus(enum.Enum):
     user_input_required = "user_input_required"
     waiting = "waiting"
     complete = "complete"
-    erroring = "erroring"
+    faulted = "faulted"
+    suspended = "suspended"
 
 
 class ProcessInstanceModel(SpiffworkflowBaseDBModel):
@@ -90,7 +91,7 @@ class ProcessInstanceModel(SpiffworkflowBaseDBModel):
     end_in_seconds: int | None = db.Column(db.Integer)  # type: ignore
     updated_at_in_seconds: int = db.Column(db.Integer)  # type: ignore
     created_at_in_seconds: int = db.Column(db.Integer)  # type: ignore
-    status: ProcessInstanceStatus = db.Column(db.Enum(ProcessInstanceStatus))  # type: ignore
+    status: str = db.Column(db.String())  # type: ignore
 
     @property
     def serialized(self) -> dict[str, int | str | None]:
@@ -99,7 +100,7 @@ class ProcessInstanceModel(SpiffworkflowBaseDBModel):
             "id": self.id,
             "process_model_identifier": self.process_model_identifier,
             "process_group_identifier": self.process_group_identifier,
-            "status": self.status.value,
+            "status": self.status,
             "bpmn_json": self.bpmn_json,
             "start_in_seconds": self.start_in_seconds,
             "end_in_seconds": self.end_in_seconds,
@@ -128,7 +129,7 @@ class ProcessInstanceModelSchema(Schema):
     status = marshmallow.fields.Method('get_status', dump_only=True)
 
     def get_status(self, obj):
-        return obj.status.value
+        return obj.status
 
 
 class ProcessInstanceApi:

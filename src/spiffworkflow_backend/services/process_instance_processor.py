@@ -317,7 +317,7 @@ class ProcessInstanceProcessor:
         self.process_instance_model.bpmn_json = self.serialize()
         complete_states = [TaskState.CANCELLED, TaskState.COMPLETED]
         user_tasks = list(self.get_all_user_tasks())
-        self.process_instance_model.status = self.get_status()
+        self.process_instance_model.status = self.get_status().value
         self.process_instance_model.total_tasks = len(user_tasks)
         self.process_instance_model.completed_tasks = sum(
             1 for t in user_tasks if t.state in complete_states

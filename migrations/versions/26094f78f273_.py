@@ -60,7 +60,7 @@ def upgrade():
     sa.Column('end_in_seconds', sa.Integer(), nullable=True),
     sa.Column('updated_at_in_seconds', sa.Integer(), nullable=True),
     sa.Column('created_at_in_seconds', sa.Integer(), nullable=True),
-    sa.Column('status', sa.Enum('not_started', 'user_input_required', 'waiting', 'complete', 'erroring', name='processinstancestatus'), nullable=True),
+    sa.Column('status', sa.String(length=50), nullable=True),
     sa.ForeignKeyConstraint(['process_initiator_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
