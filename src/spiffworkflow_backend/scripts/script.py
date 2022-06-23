@@ -1,11 +1,12 @@
 """Script."""
 from __future__ import annotations
 
-from abc import abstractmethod
 import importlib
 import os
 import pkgutil
-from typing import Any, Callable, Type
+from abc import abstractmethod
+from typing import Any
+from typing import Callable
 
 from flask_bpmn.api.api_error import ApiError
 
@@ -26,7 +27,9 @@ class Script:
         raise ApiError("invalid_script", "This script does not supply a description.")
 
     @abstractmethod
-    def do_task(self, task: Task, workflow_id: int, *args: list[Any], **kwargs: dict[Any, Any]) -> None:
+    def do_task(
+        self, task: Task, workflow_id: int, *args: list[Any], **kwargs: dict[Any, Any]
+    ) -> None:
         """Do_task."""
         raise ApiError(
             "invalid_script",
@@ -36,7 +39,9 @@ class Script:
         )
 
     @abstractmethod
-    def do_task_validate_only(self, task: Task, workflow_id: int, *args: list[Any], **kwargs: dict[Any, Any]) -> None:
+    def do_task_validate_only(
+        self, task: Task, workflow_id: int, *args: list[Any], **kwargs: dict[Any, Any]
+    ) -> None:
         """Do_task_validate_only."""
         raise ApiError(
             "invalid_script",
@@ -58,7 +63,9 @@ class Script:
         updating the task data.
         """
 
-        def make_closure(subclass: Type[Script], task: Task, workflow_id: int) -> Callable:
+        def make_closure(
+            subclass: type[Script], task: Task, workflow_id: int
+        ) -> Callable:
             """Yes - this is black magic.
 
             Essentially, we want to build a list of all of the submodules (i.e. email, user_data_get, etc)
@@ -83,7 +90,9 @@ class Script:
         return execlist
 
     @staticmethod
-    def generate_augmented_validate_list(task: Task, workflow_id: int) -> dict[str, Callable]:
+    def generate_augmented_validate_list(
+        task: Task, workflow_id: int
+    ) -> dict[str, Callable]:
         """This makes a dictionary of lambda functions that are closed over the class instance that they represent.
 
         This is passed into PythonScriptParser as a list of helper functions that are
@@ -94,7 +103,9 @@ class Script:
         updating the task data.
         """
 
-        def make_closure_validate(subclass: Type[Script], task: Task, workflow_id: int) -> Callable:
+        def make_closure_validate(
+            subclass: type[Script], task: Task, workflow_id: int
+        ) -> Callable:
             """Make_closure_validate."""
             instance = subclass()
             return lambda *a, **b: subclass.do_task_validate_only(
@@ -111,7 +122,7 @@ class Script:
         return execlist
 
     @classmethod
-    def get_all_subclasses(cls) -> list[Type[Script]]:
+    def get_all_subclasses(cls) -> list[type[Script]]:
         """Get_all_subclasses."""
         # This is expensive to generate, never changes after we load up.
         global SCRIPT_SUB_CLASSES
@@ -120,7 +131,7 @@ class Script:
         return SCRIPT_SUB_CLASSES
 
     @staticmethod
-    def _get_all_subclasses(script_class: Any) -> list[Type[Script]]:
+    def _get_all_subclasses(script_class: Any) -> list[type[Script]]:
         """_get_all_subclasses."""
         # hackish mess to make sure we have all the modules loaded for the scripts
         pkg_dir = os.path.dirname(__file__)

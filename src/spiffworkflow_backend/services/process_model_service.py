@@ -5,16 +5,22 @@ import shutil
 from typing import Any
 from typing import List
 from typing import Optional
+from typing import TypeVar
 from typing import Union
 
 from flask_bpmn.api.api_error import ApiError
 
+from spiffworkflow_backend.exceptions.process_entity_not_found import (
+    ProcessEntityNotFound,
+)
 from spiffworkflow_backend.models.process_group import ProcessGroup
 from spiffworkflow_backend.models.process_group import ProcessGroupSchema
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
 from spiffworkflow_backend.services.file_system_service import FileSystemService
+
+T = TypeVar("T")
 
 
 class ProcessModelService(FileSystemService):
@@ -31,10 +37,10 @@ class ProcessModelService(FileSystemService):
 
     @staticmethod
     def get_batch(
-        items: List[Union[Any, ProcessGroup, ProcessModelInfo]],
+        items: list[T],
         page: int = 1,
         per_page: int = 10,
-    ) -> List[Union[Any, ProcessGroup, ProcessModelInfo]]:
+    ) -> list[T]:
         """Get_batch."""
         start = (page - 1) * per_page
         end = start + per_page
@@ -97,10 +103,10 @@ class ProcessModelService(FileSystemService):
 
     def get_process_model(
         self, process_model_id: str, group_id: Optional[str] = None
-    ) -> Optional[ProcessModelInfo]:
+    ) -> ProcessModelInfo:
         """Get a process model from a model and group id."""
         if not os.path.exists(FileSystemService.root_path()):
-            return None  # Nothing to scan yet.  There are no files.
+            raise ProcessEntityNotFound("process_model_not_found")
 
         master_spec = self.get_master_spec()
         if master_spec and master_spec.id == process_model_id:
@@ -123,13 +129,12 @@ class ProcessModelService(FileSystemService):
                                     process_group_dir
                                 )
                                 return self.__scan_spec(sd.path, sd.name, process_group)
-        return None
+        raise ProcessEntityNotFound("process_model_not_found")
 
     def get_process_models(
         self, process_group_id: Optional[str] = None
     ) -> List[ProcessModelInfo]:
         """Get process models."""
-
         process_groups = []
         if process_group_id is None:
             process_groups = self.get_process_groups()
@@ -156,7 +161,7 @@ class ProcessModelService(FileSystemService):
             index += 1
         return process_group.process_models
 
-    def get_process_groups(self) -> List[ProcessGroup]:
+    def get_process_groups(self) -> list[ProcessGroup]:
         """Returns the process_groups as a list in display order."""
         process_groups = self.__scan_process_groups()
         process_groups.sort()
@@ -271,7 +276,9 @@ class ProcessModelService(FileSystemService):
             process_group.process_models.sort()
         return process_group
 
-    def __scan_spec(self, path: str, name: str, process_group: Optional[ProcessGroup] = None) -> ProcessModelInfo:
+    def __scan_spec(
+        self, path: str, name: str, process_group: Optional[ProcessGroup] = None
+    ) -> ProcessModelInfo:
         """__scan_spec."""
         spec_path = os.path.join(path, self.WF_JSON_FILE)
         is_master = FileSystemService.MASTER_SPECIFICATION in spec_path

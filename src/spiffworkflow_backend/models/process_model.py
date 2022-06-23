@@ -4,7 +4,7 @@ from __future__ import annotations
 import enum
 from dataclasses import dataclass
 from dataclasses import field
-from typing import Any, Optional
+from typing import Any
 
 import marshmallow
 from marshmallow import Schema
@@ -30,7 +30,7 @@ class ProcessModelInfo:
     display_name: str
     description: str
     process_group_id: str = ""
-    process_group: Optional[Any] = None
+    process_group: Any | None = None
     is_master_spec: bool | None = False
     standalone: bool | None = False
     library: bool | None = False
@@ -81,6 +81,8 @@ class ProcessModelInfoSchema(Schema):
     notification_email_on_exception = marshmallow.fields.List(marshmallow.fields.String)
 
     @post_load
-    def make_spec(self, data: dict[str, str | bool | int | NotificationType], **_: Any) -> ProcessModelInfo:
+    def make_spec(
+        self, data: dict[str, str | bool | int | NotificationType], **_: Any
+    ) -> ProcessModelInfo:
         """Make_spec."""
         return ProcessModelInfo(**data)  # type: ignore

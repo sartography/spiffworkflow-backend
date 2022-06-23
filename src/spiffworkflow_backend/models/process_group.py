@@ -3,9 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from dataclasses import field
-from typing import Any, Dict
-from typing import Optional
-from typing import Union
+from typing import Any
 
 import marshmallow
 from marshmallow import post_load
@@ -22,9 +20,11 @@ class ProcessGroup:
 
     id: str  # A unique string name, lower case, under scores (ie, 'my_group')
     display_name: str
-    display_order: Optional[int] = 0
-    admin: Optional[bool] = False
-    process_models: list[ProcessModelInfo] = field(default_factory=list[ProcessModelInfo])
+    display_order: int | None = 0
+    admin: bool | None = False
+    process_models: list[ProcessModelInfo] = field(
+        default_factory=list[ProcessModelInfo]
+    )
 
     def __post_init__(self) -> None:
         """__post_init__."""
@@ -56,7 +56,7 @@ class ProcessGroupSchema(Schema):
 
     @post_load
     def make_process_group(
-            self, data: Dict[str, Union[str, bool, int]], **kwargs: dict
+        self, data: dict[str, str | bool | int], **kwargs: dict
     ) -> ProcessGroup:
         """Make_process_group."""
         return ProcessGroup(**data)  # type: ignore

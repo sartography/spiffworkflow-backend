@@ -2,14 +2,10 @@
 import time
 from typing import Any
 from typing import Dict
-from typing import List
 from typing import Optional
 
 from flask import current_app
 from flask_bpmn.models.db import db
-from SpiffWorkflow import NavItem  # type: ignore
-from SpiffWorkflow.bpmn.specs.ManualTask import ManualTask  # type: ignore
-from SpiffWorkflow.bpmn.specs.UserTask import UserTask  # type: ignore
 from SpiffWorkflow.task import Task  # type: ignore
 from SpiffWorkflow.util.deep_merge import DeepMerge  # type: ignore
 
@@ -23,7 +19,6 @@ from spiffworkflow_backend.services.process_instance_processor import (
     ProcessInstanceProcessor,
 )
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
-from spiffworkflow_backend.services.user_service import UserService
 
 
 class ProcessInstanceService:
@@ -90,13 +85,9 @@ class ProcessInstanceService:
                 processor.process_instance_model.id, next_task_trying_again
             )
             #            DeepMerge.merge(next_task_trying_again.data, previous_form_data)
-            next_task_trying_again.data = DeepMerge.merge(previous_form_data, next_task_trying_again.data)
-
-            # process_instance_api.next_task = ProcessInstanceService.spiff_task_to_api_task(next_task_trying_again, add_docs_and_forms=True)
-            # Update the state of the task to locked if the current user does not own the task.
-            # user_uids = ProcessInstanceService.get_users_assigned_to_task(processor, next_task_trying_again)
-            # if not UserService.in_list(user_uids, allow_admin_impersonate=True):
-            #     process_instance_api.next_task.state = ProcessInstanceService.TASK_STATE_LOCKED
+            next_task_trying_again.data = DeepMerge.merge(
+                previous_form_data, next_task_trying_again.data
+            )
 
         return process_instance_api
 

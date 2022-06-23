@@ -1,5 +1,6 @@
 """Process_instance."""
 from typing import Union
+
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from sqlalchemy import ForeignKey

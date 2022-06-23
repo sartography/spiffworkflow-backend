@@ -1,10 +1,9 @@
 """Process_instance."""
 from __future__ import annotations
 
-from dataclasses import dataclass
 import enum
-from typing import Any, Dict, Optional
-from typing import Union
+from dataclasses import dataclass
+from typing import Any
 
 import marshmallow
 from flask_bpmn.models.db import db
@@ -86,15 +85,15 @@ class ProcessInstanceModel(SpiffworkflowBaseDBModel):
     process_initiator_id: int = db.Column(ForeignKey(UserModel.id), nullable=False)  # type: ignore
     process_initiator = relationship("UserModel")
 
-    bpmn_json: Optional[str] = deferred(db.Column(db.JSON))  # type: ignore
-    start_in_seconds: Optional[int] = db.Column(db.Integer)  # type: ignore
-    end_in_seconds: Optional[int] = db.Column(db.Integer)  # type: ignore
+    bpmn_json: str | None = deferred(db.Column(db.JSON))  # type: ignore
+    start_in_seconds: int | None = db.Column(db.Integer)  # type: ignore
+    end_in_seconds: int | None = db.Column(db.Integer)  # type: ignore
     updated_at_in_seconds: int = db.Column(db.Integer)  # type: ignore
     created_at_in_seconds: int = db.Column(db.Integer)  # type: ignore
     status: ProcessInstanceStatus = db.Column(db.Enum(ProcessInstanceStatus))  # type: ignore
 
     @property
-    def serialized(self) -> Dict[str, Union[int, str, None]]:
+    def serialized(self) -> dict[str, int | str | None]:
         """Return object data in serializeable format."""
         return {
             "id": self.id,
@@ -170,7 +169,9 @@ class ProcessInstanceApiSchema(Schema):
     state = marshmallow.fields.String(allow_none=True)
 
     @marshmallow.post_load
-    def make_process_instance(self, data: dict[str, Any], **kwargs: dict) -> ProcessInstanceApi:
+    def make_process_instance(
+        self, data: dict[str, Any], **kwargs: dict
+    ) -> ProcessInstanceApi:
         """Make_process_instance."""
         keys = [
             "id",
@@ -197,17 +198,17 @@ class ProcessInstanceMetadata:
     """ProcessInstanceMetadata."""
 
     id: int
-    display_name: Optional[str] = None
-    description: Optional[str] = None
-    spec_version: Optional[str] = None
-    state: Optional[str] = None
-    status: Optional[ProcessInstanceStatus] = None
-    total_tasks: Optional[int] = None
-    completed_tasks: Optional[int] = None
-    is_review: Optional[bool] = None
-    state_message: Optional[str] = None
-    process_model_identifier: Optional[str] = None
-    process_group_id: Optional[str] = None
+    display_name: str | None = None
+    description: str | None = None
+    spec_version: str | None = None
+    state: str | None = None
+    status: ProcessInstanceStatus | None = None
+    total_tasks: int | None = None
+    completed_tasks: int | None = None
+    is_review: bool | None = None
+    state_message: str | None = None
+    process_model_identifier: str | None = None
+    process_group_id: str | None = None
 
     @classmethod
     def from_process_instance(

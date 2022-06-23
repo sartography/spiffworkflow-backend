@@ -3,7 +3,7 @@ import enum
 from dataclasses import dataclass
 from dataclasses import field
 from datetime import datetime
-from typing import Any, Optional
+from typing import Optional
 
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import SpiffworkflowBaseDBModel
@@ -66,6 +66,7 @@ class FileType(enum.Enum):
 
     @classmethod
     def list(cls) -> list[str]:
+        """List."""
         return [el.value for el in cls]
 
 

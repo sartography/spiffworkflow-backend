@@ -153,7 +153,9 @@ class ProcessInstanceProcessor:
                     message += f"\n  Spec Size: {spec_size}"
                     current_app.logger.warning(message)
 
-                    def check_sub_specs(test_spec: dict, indent: int = 0, show_all: bool = False) -> None:
+                    def check_sub_specs(
+                        test_spec: dict, indent: int = 0, show_all: bool = False
+                    ) -> None:
                         """Check_sub_specs."""
                         for my_spec_name in test_spec["task_specs"]:
                             my_spec = test_spec["task_specs"][my_spec_name]
@@ -225,7 +227,9 @@ class ProcessInstanceProcessor:
                 task.data["current_user"] = current_user_data
 
     @staticmethod
-    def reset(process_instance_model: ProcessInstanceModel, clear_data: bool = False) -> None:
+    def reset(
+        process_instance_model: ProcessInstanceModel, clear_data: bool = False
+    ) -> None:
         """Resets the process_instance back to an unstarted state - where nothing has happened yet.
 
         If clear_data is set to false, then the information

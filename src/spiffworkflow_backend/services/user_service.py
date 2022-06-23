@@ -1,5 +1,7 @@
 """User_service."""
-from typing import Any, Optional
+from typing import Any
+from typing import Optional
+
 from flask import g
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db

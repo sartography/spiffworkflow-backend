@@ -7,6 +7,9 @@ from flask.app import Flask
 from flask_bpmn.models.db import db
 from tests.spiffworkflow_backend.helpers.example_data import ExampleDataLoader
 
+from spiffworkflow_backend.exceptions.process_entity_not_found import (
+    ProcessEntityNotFound,
+)
 from spiffworkflow_backend.models.process_group import ProcessGroup
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.user import UserModel
@@ -59,12 +62,12 @@ def load_test_spec(
     if not master_spec and not library:
         process_group = assure_process_group_exists(process_group_id)
         process_group_id = process_group.id
-    workflow_spec = workflow_spec_service.get_process_model(
-        process_model_id, group_id=process_group_id
-    )
-    if workflow_spec:
-        return workflow_spec
-    else:
+
+    try:
+        return workflow_spec_service.get_process_model(
+            process_model_id, group_id=process_group_id
+        )
+    except ProcessEntityNotFound:
         spec = ExampleDataLoader().create_spec(
             id=process_model_id,
             master_spec=master_spec,
@@ -74,6 +77,8 @@ def load_test_spec(
             library=library,
         )
         return spec
+
+
 # def user_info_to_query_string(user_info, redirect_url):
 #     query_string_list = []
 #     items = user_info.items()
