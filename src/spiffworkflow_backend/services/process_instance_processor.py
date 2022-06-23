@@ -47,14 +47,14 @@ from spiffworkflow_backend.services.user_service import UserService
 # from crc.services.user_file_service import UserFileService
 
 
-class CustomBpmnScriptEngine(PythonScriptEngine):
+class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
     """This is a custom script processor that can be easily injected into Spiff Workflow.
 
     It will execute python code read in from the bpmn.  It will also make any scripts in the
     scripts directory available for execution.
     """
 
-    def evaluate(self, task: Task, expression: str) -> str:
+    def evaluate(self, task: Task, expression: str) -> Any:
         """Evaluate."""
         return self._evaluate(expression, task.data, task)
 
@@ -63,8 +63,8 @@ class CustomBpmnScriptEngine(PythonScriptEngine):
         expression: str,
         context: Dict[str, Union[Box, str]],
         task: Optional[Task] = None,
-        external_methods: None = None,
-    ) -> str:
+        _external_methods: None = None,
+    ) -> Any:
         """Evaluate the given expression, within the context of the given task and return the result."""
         try:
             return super()._evaluate(expression, context, task, {})
@@ -87,7 +87,7 @@ class CustomBpmnScriptEngine(PythonScriptEngine):
             raise WorkflowTaskExecException(task, f" {script}, {e}", e) from e
 
 
-class MyCustomParser(BpmnDmnParser):
+class MyCustomParser(BpmnDmnParser):  # type: ignore
     """A BPMN and DMN parser that can also parse Camunda forms."""
 
     OVERRIDE_PARSER_CLASSES = BpmnDmnParser.OVERRIDE_PARSER_CLASSES
@@ -153,7 +153,9 @@ class ProcessInstanceProcessor:
                     message += f"\n  Spec Size: {spec_size}"
                     current_app.logger.warning(message)
 
-                    def check_sub_specs(test_spec, indent=0, show_all=False):
+                    def check_sub_specs(
+                        test_spec: dict, indent: int = 0, show_all: bool = False
+                    ) -> None:
                         """Check_sub_specs."""
                         for my_spec_name in test_spec["task_specs"]:
                             my_spec = test_spec["task_specs"][my_spec_name]
@@ -225,7 +227,9 @@ class ProcessInstanceProcessor:
                 task.data["current_user"] = current_user_data
 
     @staticmethod
-    def reset(process_instance_model, clear_data=False):
+    def reset(
+        process_instance_model: ProcessInstanceModel, clear_data: bool = False
+    ) -> None:
         """Resets the process_instance back to an unstarted state - where nothing has happened yet.
 
         If clear_data is set to false, then the information
@@ -276,45 +280,11 @@ class ProcessInstanceProcessor:
         db.session.commit()
 
     @staticmethod
-    def __get_bpmn_workflow(
-        process_instance_model: ProcessInstanceModel,
-        spec: WorkflowSpec = None,
-        validate_only=False,
-    ):
-        """__get_bpmn_workflow."""
-        if process_instance_model.bpmn_workflow_json:
-            version = ProcessInstanceProcessor._serializer.get_version(
-                process_instance_model.bpmn_workflow_json
-            )
-            if version == ProcessInstanceProcessor.SERIALIZER_VERSION:
-                bpmn_workflow = ProcessInstanceProcessor._serializer.deserialize_json(
-                    process_instance_model.bpmn_workflow_json
-                )
-            else:
-                bpmn_workflow = (
-                    ProcessInstanceProcessor._old_serializer.deserialize_workflow(
-                        process_instance_model.bpmn_workflow_json, workflow_spec=spec
-                    )
-                )
-            bpmn_workflow.script_engine = ProcessInstanceProcessor._script_engine
-        else:
-            bpmn_workflow = BpmnWorkflow(
-                spec, script_engine=ProcessInstanceProcessor._script_engine
-            )
-            bpmn_workflow.data[
-                ProcessInstanceProcessor.PROCESS_INSTANCE_ID_KEY
-            ] = process_instance_model.study_id
-            bpmn_workflow.data[
-                ProcessInstanceProcessor.VALIDATION_PROCESS_KEY
-            ] = validate_only
-        return bpmn_workflow
-
-    @staticmethod
     def __get_bpmn_process_instance(
         process_instance_model: ProcessInstanceModel,
         spec: WorkflowSpec = None,
-        validate_only=False,
-    ):
+        validate_only: bool = False,
+    ) -> BpmnWorkflow:
         """__get_bpmn_process_instance."""
         if process_instance_model.bpmn_json:
             version = ProcessInstanceProcessor._serializer.get_version(
@@ -362,38 +332,6 @@ class ProcessInstanceProcessor:
 
         db.session.add(self.process_instance_model)
         db.session.commit()
-
-    @staticmethod
-    def run_master_spec(process_model):
-        """Executes a BPMN specification for the given process_model, without recording any information to the database.
-
-        Useful for running the master specification, which should not persist.
-        """
-        spec_files = SpecFileService().get_files(process_model, include_libraries=True)
-        spec = ProcessInstanceProcessor.get_spec(spec_files, process_model)
-        try:
-            bpmn_process_instance = BpmnWorkflow(
-                spec, script_engine=ProcessInstanceProcessor._script_engine
-            )
-            bpmn_process_instance.data[
-                ProcessInstanceProcessor.VALIDATION_PROCESS_KEY
-            ] = False
-            ProcessInstanceProcessor.add_user_info_to_process_instance(
-                bpmn_process_instance
-            )
-            bpmn_process_instance.do_engine_steps()
-        except WorkflowException as we:
-            raise ApiError.from_task_spec(
-                "error_running_master_spec", str(we), we.sender
-            ) from we
-
-        if not bpmn_process_instance.is_completed():
-            raise ApiError(
-                "master_spec_not_automatic",
-                "The master spec should only contain fully automated tasks, it failed to complete.",
-            )
-
-        return bpmn_process_instance.last_task.data
 
     @staticmethod
     def get_parser() -> MyCustomParser:
@@ -466,12 +404,12 @@ class ProcessInstanceProcessor:
         except WorkflowTaskExecException as we:
             raise ApiError.from_workflow_exception("task_error", str(we), we) from we
 
-    def cancel_notify(self):
+    def cancel_notify(self) -> None:
         """Cancel_notify."""
         self.__cancel_notify(self.bpmn_process_instance)
 
     @staticmethod
-    def __cancel_notify(bpmn_process_instance):
+    def __cancel_notify(bpmn_process_instance: BpmnWorkflow) -> None:
         """__cancel_notify."""
         try:
             # A little hackly, but make the bpmn_process_instance catch a cancel event.
@@ -483,11 +421,11 @@ class ProcessInstanceProcessor:
 
     def serialize(self) -> str:
         """Serialize."""
-        return self._serializer.serialize_json(self.bpmn_process_instance)
+        return self._serializer.serialize_json(self.bpmn_process_instance)  # type: ignore
 
-    def next_user_tasks(self):
+    def next_user_tasks(self) -> list[Task]:
         """Next_user_tasks."""
-        return self.bpmn_process_instance.get_ready_user_tasks()
+        return self.bpmn_process_instance.get_ready_user_tasks()  # type: ignore
 
     def next_task(self) -> Task:
         """Returns the next task that should be completed even if there are parallel tasks and multiple options are available.
@@ -558,50 +496,37 @@ class ProcessInstanceProcessor:
             next_task = task
         return next_task
 
-    def completed_user_tasks(self) -> List[Any]:
+    def completed_user_tasks(self) -> List[Task]:
         """Completed_user_tasks."""
-        completed_user_tasks = self.bpmn_process_instance.get_tasks(TaskState.COMPLETED)
-        completed_user_tasks.reverse()
-        completed_user_tasks = list(
+        user_tasks = self.bpmn_process_instance.get_tasks(TaskState.COMPLETED)
+        user_tasks.reverse()
+        user_tasks = list(
             filter(
                 lambda task: not self.bpmn_process_instance._is_engine_task(
                     task.task_spec
                 ),
-                completed_user_tasks,
+                user_tasks,
             )
         )
-        return completed_user_tasks
+        return user_tasks  # type: ignore
 
-    def previous_task(self):
-        """Previous_task."""
-        return None
-
-    def complete_task(self, task):
+    def complete_task(self, task: Task) -> None:
         """Complete_task."""
         self.bpmn_process_instance.complete_task_from_id(task.id)
 
     def get_data(self) -> dict[str, str]:
         """Get_data."""
-        return self.bpmn_process_instance.data
+        return self.bpmn_process_instance.data  # type: ignore
 
     def get_process_instance_id(self) -> int:
         """Get_process_instance_id."""
         return self.process_instance_model.id
 
-    @staticmethod
-    def find_top_level_process_instance(task):
-        """Find_top_level_process_instance."""
-        # Find the top level process_instance, as this is where the parent id etc... are stored.
-        process_instance = task.process_instance
-        while process_instance.outer_process_instance != process_instance:
-            process_instance = process_instance.outer_process_instance
-        return process_instance
-
-    def get_ready_user_tasks(self):
+    def get_ready_user_tasks(self) -> list[Task]:
         """Get_ready_user_tasks."""
-        return self.bpmn_process_instance.get_ready_user_tasks()
+        return self.bpmn_process_instance.get_ready_user_tasks()  # type: ignore
 
-    def get_current_user_tasks(self):
+    def get_current_user_tasks(self) -> list[Task]:
         """Return a list of all user tasks that are READY or COMPLETE and are parallel to the READY Task."""
         ready_tasks = self.bpmn_process_instance.get_ready_user_tasks()
         additional_tasks = []
@@ -609,9 +534,9 @@ class ProcessInstanceProcessor:
             for child in ready_tasks[0].parent.children:
                 if child.state == TaskState.COMPLETED:
                     additional_tasks.append(child)
-        return ready_tasks + additional_tasks
+        return ready_tasks + additional_tasks  # type: ignore
 
-    def get_all_user_tasks(self) -> List[Union[Task, Any]]:
+    def get_all_user_tasks(self) -> List[Task]:
         """Get_all_user_tasks."""
         all_tasks = self.bpmn_process_instance.get_tasks(TaskState.ANY_MASK)
         return [
@@ -620,7 +545,7 @@ class ProcessInstanceProcessor:
             if not self.bpmn_process_instance._is_engine_task(t.task_spec)
         ]
 
-    def get_all_completed_tasks(self):
+    def get_all_completed_tasks(self) -> list[Task]:
         """Get_all_completed_tasks."""
         all_tasks = self.bpmn_process_instance.get_tasks(TaskState.ANY_MASK)
         return [
@@ -630,13 +555,14 @@ class ProcessInstanceProcessor:
             and t.state in [TaskState.COMPLETED, TaskState.CANCELLED]
         ]
 
-    def get_nav_item(self, task):
+    def get_nav_item(self, task: Task) -> Any:
         """Get_nav_item."""
         for nav_item in self.bpmn_process_instance.get_nav_list():
             if nav_item["task_id"] == task.id:
                 return nav_item
+        return None
 
-    def find_spec_and_field(self, spec_name, field_id):
+    def find_spec_and_field(self, spec_name: str, field_id: Union[str, int]) -> Any:
         """Tracks down a form field by name in the process_instance spec(s), Returns a tuple of the task, and form."""
         process_instances = [self.bpmn_process_instance]
         for task in self.bpmn_process_instance.get_ready_user_tasks():

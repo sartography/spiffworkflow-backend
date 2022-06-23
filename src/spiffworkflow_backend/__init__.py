@@ -55,4 +55,4 @@ def create_app() -> flask.app.Flask:
 
     connexion_app.add_api("api.yml", base_path="/v1.0")
 
-    return app
+    return app  # type: ignore

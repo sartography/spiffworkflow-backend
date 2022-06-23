@@ -2,14 +2,10 @@
 import time
 from typing import Any
 from typing import Dict
-from typing import List
 from typing import Optional
 
 from flask import current_app
 from flask_bpmn.models.db import db
-from SpiffWorkflow import NavItem  # type: ignore
-from SpiffWorkflow.bpmn.specs.ManualTask import ManualTask  # type: ignore
-from SpiffWorkflow.bpmn.specs.UserTask import UserTask  # type: ignore
 from SpiffWorkflow.task import Task  # type: ignore
 from SpiffWorkflow.util.deep_merge import DeepMerge  # type: ignore
 
@@ -23,7 +19,6 @@ from spiffworkflow_backend.services.process_instance_processor import (
     ProcessInstanceProcessor,
 )
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
-from spiffworkflow_backend.services.user_service import UserService
 
 
 class ProcessInstanceService:
@@ -63,6 +58,8 @@ class ProcessInstanceService:
         process_model = process_model_service.get_process_model(
             processor.process_model_identifier
         )
+        is_review_value = process_model.is_review if process_model else False
+        title_value = process_model.display_name if process_model else ""
         process_instance_api = ProcessInstanceApi(
             id=processor.get_process_instance_id(),
             status=processor.get_status(),
@@ -73,57 +70,26 @@ class ProcessInstanceService:
             total_tasks=len(navigation),
             completed_tasks=processor.process_instance_model.completed_tasks,
             updated_at_in_seconds=processor.process_instance_model.updated_at_in_seconds,
-            is_review=process_model.is_review,
-            title=process_model.display_name,
+            is_review=is_review_value,
+            title=title_value,
         )
+        next_task_trying_again = next_task
         if (
             not next_task
         ):  # The Next Task can be requested to be a certain task, useful for parallel tasks.
             # This may or may not work, sometimes there is no next task to complete.
-            next_task = processor.next_task()
-        if next_task:
-            previous_form_data = ProcessInstanceService.get_previously_submitted_data(
-                processor.process_instance_model.id, next_task
-            )
-            #            DeepMerge.merge(next_task.data, previous_form_data)
-            next_task.data = DeepMerge.merge(previous_form_data, next_task.data)
+            next_task_trying_again = processor.next_task()
 
-            # process_instance_api.next_task = ProcessInstanceService.spiff_task_to_api_task(next_task, add_docs_and_forms=True)
-            # Update the state of the task to locked if the current user does not own the task.
-            # user_uids = ProcessInstanceService.get_users_assigned_to_task(processor, next_task)
-            # if not UserService.in_list(user_uids, allow_admin_impersonate=True):
-            #     process_instance_api.next_task.state = ProcessInstanceService.TASK_STATE_LOCKED
+        if next_task_trying_again:
+            previous_form_data = ProcessInstanceService.get_previously_submitted_data(
+                processor.process_instance_model.id, next_task_trying_again
+            )
+            #            DeepMerge.merge(next_task_trying_again.data, previous_form_data)
+            next_task_trying_again.data = DeepMerge.merge(
+                previous_form_data, next_task_trying_again.data
+            )
 
         return process_instance_api
-
-    @staticmethod
-    def update_navigation(
-        navigation: List[NavItem], processor: ProcessInstanceProcessor
-    ):
-        """Update_navigation."""
-        # Recursive function to walk down through children, and clean up descriptions, and statuses
-        for nav_item in navigation:
-            spiff_task = processor.bpmn_workflow.get_task(nav_item.task_id)
-            if spiff_task:
-                nav_item.description = ProcessInstanceService.__calculate_title(
-                    spiff_task
-                )
-                user_uids = ProcessInstanceService.get_users_assigned_to_task(
-                    processor, spiff_task
-                )
-                if (
-                    isinstance(spiff_task.task_spec, UserTask)
-                    or isinstance(spiff_task.task_spec, ManualTask)
-                ) and not UserService.in_list(user_uids, allow_admin_impersonate=True):
-                    nav_item.state = ProcessInstanceService.TASK_STATE_LOCKED
-            else:
-                # Strip off the first word in the description, to meet guidlines for BPMN.
-                if nav_item.description:
-                    if nav_item.description is not None and " " in nav_item.description:
-                        nav_item.description = nav_item.description.partition(" ")[2]
-
-            # Recurse here
-            ProcessInstanceService.update_navigation(nav_item.children, processor)
 
     @staticmethod
     def get_previously_submitted_data(
@@ -146,7 +112,7 @@ class ProcessInstanceService:
         latest_event = query.order_by(TaskEventModel.date.desc()).first()
         if latest_event:
             if latest_event.form_data is not None:
-                return latest_event.form_data
+                return latest_event.form_data  # type: ignore
             else:
                 missing_form_error = (
                     f"We have lost data for workflow {process_instance_id}, "

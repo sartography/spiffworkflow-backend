@@ -64,6 +64,11 @@ class FileType(enum.Enum):
     xml = "xml"
     zip = "zip"
 
+    @classmethod
+    def list(cls) -> list[str]:
+        """List."""
+        return [el.value for el in cls]
+
 
 CONTENT_TYPES = {
     "bpmn": "text/xml",

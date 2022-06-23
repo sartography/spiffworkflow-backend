@@ -14,7 +14,9 @@ from sqlalchemy import func
 
 
 if TYPE_CHECKING:
-    from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
+    from spiffworkflow_backend.models.process_instance import (
+        ProcessInstanceModel,
+    )  # noqa: F401
 
 
 class TaskAction(enum.Enum):

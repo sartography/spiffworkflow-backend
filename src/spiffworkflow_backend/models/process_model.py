@@ -30,6 +30,7 @@ class ProcessModelInfo:
     display_name: str
     description: str
     process_group_id: str = ""
+    process_group: Any | None = None
     is_master_spec: bool | None = False
     standalone: bool | None = False
     library: bool | None = False
@@ -37,14 +38,14 @@ class ProcessModelInfo:
     primary_process_id: str | None = ""
     libraries: list[str] = field(default_factory=list)
     display_order: int | None = 0
-    is_review: bool | None = False
+    is_review: bool = False
     files: list[File] | None = field(default_factory=list[File])
     fault_or_suspend_on_exception: NotificationType = NotificationType.suspend
     notification_email_on_exception: list[str] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         """__post_init__."""
-        self.sort_index = f"{self.process_group_id}:{self.id}"
+        self.sort_index = f"{self.display_order}:{self.process_group_id}:{self.id}"
 
     def __eq__(self, other: Any) -> bool:
         """__eq__."""
@@ -80,6 +81,8 @@ class ProcessModelInfoSchema(Schema):
     notification_email_on_exception = marshmallow.fields.List(marshmallow.fields.String)
 
     @post_load
-    def make_spec(self, data: dict[str, str | bool | int], **_) -> ProcessModelInfo:
+    def make_spec(
+        self, data: dict[str, str | bool | int | NotificationType], **_: Any
+    ) -> ProcessModelInfo:
         """Make_spec."""
-        return ProcessModelInfo(**data)
+        return ProcessModelInfo(**data)  # type: ignore

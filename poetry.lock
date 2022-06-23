@@ -356,7 +356,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 
 [[package]]
 name = "connexion"
-version = "2.13.1"
+version = "2.14.0"
 description = "Connexion - API first applications with OpenAPI/Swagger and Flask"
 category = "main"
 optional = false
@@ -619,7 +619,7 @@ werkzeug = "*"
 type = "git"
 url = "https://github.com/sartography/flask-bpmn"
 reference = "main"
-resolved_reference = "444daed6de1e2b5de16a96970159c952c5523650"
+resolved_reference = "899fd5335259a1cc33ecdb36f775cd91499d4b62"
 
 [[package]]
 name = "flask-cors"
@@ -2222,8 +2222,8 @@ configparser = [
     {file = "configparser-5.2.0.tar.gz", hash = "sha256:1b35798fdf1713f1c3139016cfcbc461f09edbf099d1fb658d4b7479fcaa3daa"},
 ]
 connexion = [
-    {file = "connexion-2.13.1-py2.py3-none-any.whl", hash = "sha256:fb9a8c7a60fdecac45c913c1373948b28d8a55328472e08b5132fba36da36524"},
-    {file = "connexion-2.13.1.tar.gz", hash = "sha256:80b534800b408d184fe6d36e755edefdd657e8f11756b5806d6bcf7213380d0d"},
+    {file = "connexion-2.14.0-py2.py3-none-any.whl", hash = "sha256:4e50c1b0b6d287e20830d053c8de09a73bead5ac0760200ade074364c7362ab6"},
+    {file = "connexion-2.14.0.tar.gz", hash = "sha256:ed6f9c97ca5281257935c5530570b2a2394a689ece1b171c18d855cf751adbb4"},
 ]
 coverage = [
     {file = "coverage-6.4.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:f1d5aa2703e1dab4ae6cf416eb0095304f49d004c39e9db1d86f57924f43006b"},

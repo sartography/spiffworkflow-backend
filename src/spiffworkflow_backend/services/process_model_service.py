@@ -5,16 +5,22 @@ import shutil
 from typing import Any
 from typing import List
 from typing import Optional
+from typing import TypeVar
 from typing import Union
 
 from flask_bpmn.api.api_error import ApiError
 
+from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
+    ProcessEntityNotFoundError,
+)
 from spiffworkflow_backend.models.process_group import ProcessGroup
 from spiffworkflow_backend.models.process_group import ProcessGroupSchema
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
 from spiffworkflow_backend.services.file_system_service import FileSystemService
+
+T = TypeVar("T")
 
 
 class ProcessModelService(FileSystemService):
@@ -31,10 +37,10 @@ class ProcessModelService(FileSystemService):
 
     @staticmethod
     def get_batch(
-        items: List[Union[Any, ProcessGroup, ProcessModelInfo]],
+        items: list[T],
         page: int = 1,
         per_page: int = 10,
-    ) -> List[Union[Any, ProcessGroup, ProcessModelInfo]]:
+    ) -> list[T]:
         """Get_batch."""
         start = (page - 1) * per_page
         end = start + per_page
@@ -74,7 +80,7 @@ class ProcessModelService(FileSystemService):
         path = self.workflow_path(process_model)
         shutil.rmtree(path)
 
-    def __remove_library_references(self, spec_id):
+    def __remove_library_references(self, spec_id: str) -> None:
         """__remove_library_references."""
         for process_model in self.get_process_models():
             if spec_id in process_model.libraries:
@@ -82,32 +88,35 @@ class ProcessModelService(FileSystemService):
                 self.update_spec(process_model)
 
     @property
-    def master_spec(self):
+    def master_spec(self) -> Optional[ProcessModelInfo]:
         """Master_spec."""
         return self.get_master_spec()
 
-    def get_master_spec(self) -> None:
+    def get_master_spec(self) -> Optional[ProcessModelInfo]:
         """Get_master_spec."""
         path = os.path.join(
             FileSystemService.root_path(), FileSystemService.MASTER_SPECIFICATION
         )
         if os.path.exists(path):
             return self.__scan_spec(path, FileSystemService.MASTER_SPECIFICATION)
+        return None
 
     def get_process_model(
         self, process_model_id: str, group_id: Optional[str] = None
-    ) -> Optional[ProcessModelInfo]:
+    ) -> ProcessModelInfo:
         """Get a process model from a model and group id."""
         if not os.path.exists(FileSystemService.root_path()):
-            return  # Nothing to scan yet.  There are no files.
+            raise ProcessEntityNotFoundError("process_model_not_found")
 
         master_spec = self.get_master_spec()
         if master_spec and master_spec.id == process_model_id:
             return master_spec
         if group_id is not None:
-            for process_model in self.get_process_group(group_id).process_models:
-                if process_model_id == process_model.id:
-                    return process_model
+            process_group = self.get_process_group(group_id)
+            if process_group is not None:
+                for process_model in process_group.process_models:
+                    if process_model_id == process_model.id:
+                        return process_model
         with os.scandir(FileSystemService.root_path()) as process_group_dirs:
             for item in process_group_dirs:
                 process_group_dir = item
@@ -120,39 +129,24 @@ class ProcessModelService(FileSystemService):
                                     process_group_dir
                                 )
                                 return self.__scan_spec(sd.path, sd.name, process_group)
+        raise ProcessEntityNotFoundError("process_model_not_found")
 
     def get_process_models(
         self, process_group_id: Optional[str] = None
     ) -> List[ProcessModelInfo]:
         """Get process models."""
+        process_groups = []
         if process_group_id is None:
             process_groups = self.get_process_groups()
         else:
             process_group = self.get_process_group(process_group_id)
-            process_groups = [
-                process_group,
-            ]
+            if process_group is not None:
+                process_groups.append(process_group)
+
         process_models = []
         for process_group in process_groups:
             process_models.extend(process_group.process_models)
         return process_models
-
-    def reorder_spec(self, spec: ProcessModelInfo, direction):
-        """Reorder_spec."""
-        process_models = spec.process_group.process_models
-        process_models.sort(key=lambda w: w.display_order)
-        index = process_models.index(spec)
-        if direction == "up" and index > 0:
-            process_models[index - 1], process_models[index] = (
-                process_models[index],
-                process_models[index - 1],
-            )
-        if direction == "down" and index < len(process_models) - 1:
-            process_models[index + 1], process_models[index] = (
-                process_models[index],
-                process_models[index + 1],
-            )
-        return self.cleanup_workflow_spec_display_order(spec.process_group)
 
     def cleanup_workflow_spec_display_order(
         self, process_group: ProcessGroup
@@ -167,11 +161,11 @@ class ProcessModelService(FileSystemService):
             index += 1
         return process_group.process_models
 
-    def get_process_groups(self) -> List[ProcessGroup]:
+    def get_process_groups(self) -> list[ProcessGroup]:
         """Returns the process_groups as a list in display order."""
-        cat_list = self.__scan_process_groups()
-        cat_list.sort(key=lambda w: w.display_order)
-        return cat_list
+        process_groups = self.__scan_process_groups()
+        process_groups.sort()
+        return process_groups
 
     def get_libraries(self) -> List[ProcessModelInfo]:
         """Get_libraries."""
@@ -190,11 +184,12 @@ class ProcessModelService(FileSystemService):
     def get_process_group(self, process_group_id: str) -> Optional[ProcessGroup]:
         """Look for a given process_group, and return it."""
         if not os.path.exists(FileSystemService.root_path()):
-            return  # Nothing to scan yet.  There are no files.
+            return None  # Nothing to scan yet.  There are no files.
         with os.scandir(FileSystemService.root_path()) as directory_items:
             for item in directory_items:
                 if item.is_dir() and item.name == process_group_id:
                     return self.__scan_process_group(item)
+        return None
 
     def add_process_group(self, process_group: ProcessGroup) -> ProcessGroup:
         """Add_process_group."""
@@ -218,29 +213,6 @@ class ProcessModelService(FileSystemService):
             shutil.rmtree(path)
         self.cleanup_process_group_display_order()
 
-    def reorder_workflow_spec_process_group(
-        self, process_group: ProcessGroup, direction
-    ):
-        """Reorder_workflow_spec_process_group."""
-        process_groups = self.get_process_groups()  # Returns an ordered list
-        index = process_groups.index(process_group)
-        if direction == "up" and index > 0:
-            process_groups[index - 1], process_groups[index] = (
-                process_groups[index],
-                process_groups[index - 1],
-            )
-        if direction == "down" and index < len(process_groups) - 1:
-            process_groups[index + 1], process_groups[index] = (
-                process_groups[index],
-                process_groups[index + 1],
-            )
-        index = 0
-        for process_group in process_groups:
-            process_group.display_order = index
-            self.update_process_group(process_group)
-            index += 1
-        return process_groups
-
     def cleanup_process_group_display_order(self) -> List[Any]:
         """Cleanup_process_group_display_order."""
         process_groups = self.get_process_groups()  # Returns an ordered list
@@ -251,7 +223,7 @@ class ProcessModelService(FileSystemService):
             index += 1
         return process_groups
 
-    def __scan_process_groups(self):
+    def __scan_process_groups(self) -> list[ProcessGroup]:
         """__scan_process_groups."""
         if not os.path.exists(FileSystemService.root_path()):
             return []  # Nothing to scan yet.  There are no files.
@@ -271,13 +243,18 @@ class ProcessModelService(FileSystemService):
                     process_groups.append(self.__scan_process_group(item))
             return process_groups
 
-    def __scan_process_group(self, dir_item: os.DirEntry):
+    def __scan_process_group(self, dir_item: os.DirEntry) -> ProcessGroup:
         """Reads the process_group.json file, and any workflow directories."""
         cat_path = os.path.join(dir_item.path, self.CAT_JSON_FILE)
         if os.path.exists(cat_path):
             with open(cat_path) as cat_json:
                 data = json.load(cat_json)
-                process_group = self.GROUP_SCHEMA.load(data)
+                process_group = ProcessGroup(**data)
+                if process_group is None:
+                    raise ApiError(
+                        code="process_group_could_not_be_loaded_from_disk",
+                        message=f"We could not load the process_group from disk from: {dir_item}",
+                    )
         else:
             process_group = ProcessGroup(
                 id=dir_item.name,
@@ -296,20 +273,12 @@ class ProcessModelService(FileSystemService):
                             item.path, item.name, process_group=process_group
                         )
                     )
-            process_group.process_models.sort(key=lambda w: w.display_order)
+            process_group.process_models.sort()
         return process_group
 
-    @staticmethod
-    def _get_workflow_metas(study_id):
-        """_get_workflow_metas."""
-        # Add in the Workflows for each process_group
-        # Fixme: moved fro the Study Service
-        workflow_metas = []
-        #        for workflow in workflow_models:
-        #            workflow_metas.append(WorkflowMetadata.from_workflow(workflow))
-        return workflow_metas
-
-    def __scan_spec(self, path, name, process_group=None):
+    def __scan_spec(
+        self, path: str, name: str, process_group: Optional[ProcessGroup] = None
+    ) -> ProcessModelInfo:
         """__scan_spec."""
         spec_path = os.path.join(path, self.WF_JSON_FILE)
         is_master = FileSystemService.MASTER_SPECIFICATION in spec_path
@@ -317,7 +286,12 @@ class ProcessModelService(FileSystemService):
         if os.path.exists(spec_path):
             with open(spec_path) as wf_json:
                 data = json.load(wf_json)
-                spec = self.WF_SCHEMA.load(data)
+                spec = ProcessModelInfo(**data)
+                if spec is None:
+                    raise ApiError(
+                        code="process_model_could_not_be_loaded_from_disk",
+                        message=f"We could not load the process_model from disk with data: {data}",
+                    )
         else:
             spec = ProcessModelInfo(
                 id=name,

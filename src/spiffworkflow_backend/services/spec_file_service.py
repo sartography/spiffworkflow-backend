@@ -50,7 +50,7 @@ class SpecFileService(FileSystemService):
 
     @staticmethod
     def add_file(
-        workflow_spec: ProcessModelInfo, file_name: str, binary_data: bytearray
+        workflow_spec: ProcessModelInfo, file_name: str, binary_data: bytes
     ) -> File:
         """Add_file."""
         # Same as update
@@ -67,7 +67,9 @@ class SpecFileService(FileSystemService):
         file = SpecFileService.to_file_object(file_name, file_path)
         if file_name == workflow_spec.primary_file_name:
             SpecFileService.set_primary_bpmn(workflow_spec, file_name, binary_data)
-        elif workflow_spec.primary_file_name is None and file.type == FileType.bpmn:
+        elif workflow_spec.primary_file_name is None and file.type == str(
+            FileType.bpmn
+        ):
             # If no primary process exists, make this pirmary process.
             SpecFileService.set_primary_bpmn(workflow_spec, file_name, binary_data)
         return file

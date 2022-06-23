@@ -1,7 +1,9 @@
 """Process_instance."""
+from __future__ import annotations
+
 import enum
-from typing import Dict
-from typing import Union
+from dataclasses import dataclass
+from typing import Any
 
 import marshmallow
 from flask_bpmn.models.db import db
@@ -49,7 +51,7 @@ class NavigationItemSchema(Schema):
     )
 
     @marshmallow.post_load
-    def make_nav(self, data, **kwargs):
+    def make_nav(self, data: dict[str, Any], **kwargs: dict) -> NavItem:
         """Make_nav."""
         state = data.pop("state", None)
         task_id = data.pop("task_id", None)
@@ -77,19 +79,21 @@ class ProcessInstanceModel(SpiffworkflowBaseDBModel):
     """ProcessInstanceModel."""
 
     __tablename__ = "process_instance"
-    id = db.Column(db.Integer, primary_key=True)  # type: ignore
-    process_model_identifier = db.Column(db.String(50), nullable=False, index=True)  # type: ignore
-    process_group_identifier = db.Column(db.String(50), nullable=False, index=True)  # type: ignore
-    bpmn_json = deferred(db.Column(db.JSON))  # type: ignore
-    start_in_seconds = db.Column(db.Integer)  # type: ignore
-    end_in_seconds = db.Column(db.Integer)  # type: ignore
-    updated_at_in_seconds = db.Column(db.Integer)  # type: ignore
-    process_initiator_id = db.Column(ForeignKey(UserModel.id), nullable=False)  # type: ignore
+    id: int = db.Column(db.Integer, primary_key=True)  # type: ignore
+    process_model_identifier: str = db.Column(db.String(50), nullable=False, index=True)  # type: ignore
+    process_group_identifier: str = db.Column(db.String(50), nullable=False, index=True)  # type: ignore
+    process_initiator_id: int = db.Column(ForeignKey(UserModel.id), nullable=False)  # type: ignore
     process_initiator = relationship("UserModel")
-    status = db.Column(db.Enum(ProcessInstanceStatus))  # type: ignore
+
+    bpmn_json: str | None = deferred(db.Column(db.JSON))  # type: ignore
+    start_in_seconds: int | None = db.Column(db.Integer)  # type: ignore
+    end_in_seconds: int | None = db.Column(db.Integer)  # type: ignore
+    updated_at_in_seconds: int = db.Column(db.Integer)  # type: ignore
+    created_at_in_seconds: int = db.Column(db.Integer)  # type: ignore
+    status: ProcessInstanceStatus = db.Column(db.Enum(ProcessInstanceStatus))  # type: ignore
 
     @property
-    def serialized(self) -> Dict[str, Union[int, str]]:
+    def serialized(self) -> dict[str, int | str | None]:
         """Return object data in serializeable format."""
         return {
             "id": self.id,
@@ -165,7 +169,9 @@ class ProcessInstanceApiSchema(Schema):
     state = marshmallow.fields.String(allow_none=True)
 
     @marshmallow.post_load
-    def make_process_instance(self, data, **kwargs):
+    def make_process_instance(
+        self, data: dict[str, Any], **kwargs: dict
+    ) -> ProcessInstanceApi:
         """Make_process_instance."""
         keys = [
             "id",
@@ -187,59 +193,38 @@ class ProcessInstanceApiSchema(Schema):
         return ProcessInstanceApi(**filtered_fields)
 
 
+@dataclass
 class ProcessInstanceMetadata:
     """ProcessInstanceMetadata."""
 
-    def __init__(
-        self,
-        id,
-        display_name=None,
-        description=None,
-        spec_version=None,
-        category_id=None,
-        category_display_name=None,
-        state=None,
-        status: ProcessInstanceStatus = None,
-        total_tasks=None,
-        completed_tasks=None,
-        is_review=None,
-        display_order=None,
-        state_message=None,
-        process_model_identifier=None,
-    ):
-        """__init__."""
-        self.id = id
-        self.display_name = display_name
-        self.description = description
-        self.spec_version = spec_version
-        self.category_id = category_id
-        self.category_display_name = category_display_name
-        self.state = state
-        self.state_message = state_message
-        self.status = status
-        self.total_tasks = total_tasks
-        self.completed_tasks = completed_tasks
-        self.is_review = is_review
-        self.display_order = display_order
-        self.process_model_identifier = process_model_identifier
+    id: int
+    display_name: str | None = None
+    description: str | None = None
+    spec_version: str | None = None
+    state: str | None = None
+    status: ProcessInstanceStatus | None = None
+    total_tasks: int | None = None
+    completed_tasks: int | None = None
+    is_review: bool | None = None
+    state_message: str | None = None
+    process_model_identifier: str | None = None
+    process_group_id: str | None = None
 
     @classmethod
     def from_process_instance(
-        cls, process_instance: ProcessInstanceModel, spec: ProcessModelInfo
-    ):
+        cls, process_instance: ProcessInstanceModel, process_model: ProcessModelInfo
+    ) -> ProcessInstanceMetadata:
         """From_process_instance."""
         instance = cls(
             id=process_instance.id,
-            display_name=spec.display_name,
-            description=spec.description,
-            category_id=spec.category_id,
-            category_display_name=spec.category.display_name,
+            display_name=process_model.display_name,
+            description=process_model.description,
+            process_group_id=process_model.process_group_id,
             state_message=process_instance.state_message,
             status=process_instance.status,
             total_tasks=process_instance.total_tasks,
             completed_tasks=process_instance.completed_tasks,
-            is_review=spec.is_review,
-            display_order=spec.display_order,
+            is_review=process_model.is_review,
             process_model_identifier=process_instance.process_model_identifier,
         )
         return instance
@@ -261,10 +246,8 @@ class ProcessInstanceMetadataSchema(Schema):
             "state",
             "total_tasks",
             "completed_tasks",
-            "display_order",
-            "category_id",
+            "process_group_id",
             "is_review",
-            "category_display_name",
             "state_message",
         ]
         unknown = INCLUDE

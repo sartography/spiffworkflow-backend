@@ -1,5 +1,6 @@
 """APIs for dealing with process groups, process models, and process instances."""
 import json
+from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
@@ -14,6 +15,9 @@ from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
 from werkzeug.datastructures import FileStorage
 
+from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
+    ProcessEntityNotFoundError,
+)
 from spiffworkflow_backend.models.file import FileSchema
 from spiffworkflow_backend.models.file import FileType
 from spiffworkflow_backend.models.principal import PrincipalModel
@@ -68,13 +72,15 @@ def process_group_update(
     """Process Group Update."""
     process_group = ProcessGroupSchema().load(body)
     ProcessModelService().update_process_group(process_group)
-    return ProcessGroupSchema().dump(process_group)
+    return ProcessGroupSchema().dump(process_group)  # type: ignore
 
 
 def process_groups_list(page: int = 1, per_page: int = 100) -> flask.wrappers.Response:
     """Process_groups_list."""
     process_groups = sorted(ProcessModelService().get_process_groups())
-    batch = ProcessModelService().get_batch(process_groups, page, per_page)
+    batch = ProcessModelService().get_batch(
+        items=process_groups, page=page, per_page=per_page
+    )
     pages = len(process_groups) // per_page
     remainder = len(process_groups) % per_page
     if remainder > 0:
@@ -92,7 +98,7 @@ def process_groups_list(page: int = 1, per_page: int = 100) -> flask.wrappers.Re
 
 def process_group_show(
     process_group_id: str,
-) -> Dict[str, Union[List[Dict[str, Union[str, bool, int]]], str, bool, int]]:
+) -> Any:
     """Process_group_show."""
     process_group = ProcessModelService().get_process_group(process_group_id)
     return ProcessGroupSchema().dump(process_group)
@@ -140,22 +146,22 @@ def process_model_show(
     process_group_id: str, process_model_id: str
 ) -> Dict[str, Union[str, List[Dict[str, Optional[Union[str, int, bool]]]], bool, int]]:
     """Process_model_show."""
-    process_model = ProcessModelService().get_process_model(
-        process_model_id, group_id=process_group_id
-    )
-    if process_model is None:
+    try:
+        process_model = ProcessModelService().get_process_model(
+            process_model_id, group_id=process_group_id
+        )
+        files = sorted(SpecFileService.get_files(process_model))
+        process_model.files = files
+        process_model_json = ProcessModelInfoSchema().dump(process_model)
+        return process_model_json
+    except ProcessEntityNotFoundError as exception:
         raise (
             ApiError(
                 code="process_mode_cannot_be_found",
                 message=f"Process model cannot be found: {process_model_id}",
                 status_code=400,
             )
-        )
-
-    files = sorted(SpecFileService.get_files(process_model))
-    process_model.files = files
-    process_model_json = ProcessModelInfoSchema().dump(process_model)
-    return process_model_json
+        ) from exception
 
 
 def process_model_list(

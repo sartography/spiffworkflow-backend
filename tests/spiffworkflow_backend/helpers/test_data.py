@@ -7,6 +7,9 @@ from flask.app import Flask
 from flask_bpmn.models.db import db
 from tests.spiffworkflow_backend.helpers.example_data import ExampleDataLoader
 
+from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
+    ProcessEntityNotFoundError,
+)
 from spiffworkflow_backend.models.process_group import ProcessGroup
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.user import UserModel
@@ -47,7 +50,6 @@ def assure_process_group_exists(process_group_id: Optional[str] = None) -> Proce
 def load_test_spec(
     app: Flask,
     process_model_id: str,
-    display_name: None = None,
     master_spec: bool = False,
     process_group_id: Optional[str] = None,
     library: bool = False,
@@ -60,19 +62,17 @@ def load_test_spec(
     if not master_spec and not library:
         process_group = assure_process_group_exists(process_group_id)
         process_group_id = process_group.id
-    workflow_spec = workflow_spec_service.get_process_model(
-        process_model_id, group_id=process_group_id
-    )
-    if workflow_spec:
-        return workflow_spec
-    else:
-        if display_name is None:
-            display_name = process_model_id
+
+    try:
+        return workflow_spec_service.get_process_model(
+            process_model_id, group_id=process_group_id
+        )
+    except ProcessEntityNotFoundError:
         spec = ExampleDataLoader().create_spec(
             id=process_model_id,
             master_spec=master_spec,
             from_tests=True,
-            display_name=display_name,
+            display_name=process_model_id,
             process_group_id=process_group_id,
             library=library,
         )
@@ -91,7 +91,7 @@ def load_test_spec(
 
 
 def logged_in_headers(
-    user: Optional[UserModel] = None, redirect_url: str = "http://some/frontend/url"
+    user: UserModel, _redirect_url: str = "http://some/frontend/url"
 ) -> Dict[str, str]:
     """Logged_in_headers."""
     # if user is None:

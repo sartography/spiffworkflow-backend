@@ -1,4 +1,6 @@
 """Test_file."""
+from datetime import datetime
+
 from spiffworkflow_backend.models.file import File
 
 
@@ -20,6 +22,6 @@ def create_test_file(type: str, name: str) -> File:
         name=name,
         content_type=type,
         document={},
-        last_modified="Tuesday",
+        last_modified=datetime.now(),
         size=1,
     )

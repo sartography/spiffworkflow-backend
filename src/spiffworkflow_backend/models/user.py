@@ -24,7 +24,7 @@ class UserModel(SpiffworkflowBaseDBModel):
     name = db.Column(db.String(50))  # type: ignore
     email = db.Column(db.String(50))  # type: ignore
     user_group_assignments = relationship(UserGroupAssignmentModel, cascade="delete")
-    groups = relationship(
+    groups = relationship(  # type: ignore
         GroupModel,
         viewonly=True,
         secondary="user_group_assignment",

@@ -6,6 +6,7 @@ from typing import Dict
 from typing import Optional
 from typing import Union
 
+import pytest
 from flask.app import Flask
 from flask.testing import FlaskClient
 from flask_bpmn.models.db import db
@@ -14,6 +15,9 @@ from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
 from tests.spiffworkflow_backend.helpers.test_data import logged_in_headers
 from werkzeug.test import TestResponse
 
+from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
+    ProcessEntityNotFoundError,
+)
 from spiffworkflow_backend.models.process_group import ProcessGroup
 from spiffworkflow_backend.models.process_group import ProcessGroupSchema
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
@@ -70,8 +74,8 @@ def test_process_model_delete(
     assert response.json["ok"] is True
 
     # assert we no longer have a model
-    process_model = ProcessModelService().get_process_model("make_cookies")
-    assert process_model is None
+    with pytest.raises(ProcessEntityNotFoundError):
+        ProcessModelService().get_process_model("make_cookies")
 
 
 def test_process_model_delete_with_instances(
