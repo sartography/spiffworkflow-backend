@@ -24,6 +24,7 @@ from spiffworkflow_backend.models.principal import PrincipalModel
 from spiffworkflow_backend.models.process_group import ProcessGroupSchema
 from spiffworkflow_backend.models.process_instance import ProcessInstanceApiSchema
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
+from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
 from spiffworkflow_backend.services.error_handling_service import ErrorHandlingService
 from spiffworkflow_backend.services.process_instance_processor import (
@@ -146,22 +147,11 @@ def process_model_show(
     process_group_id: str, process_model_id: str
 ) -> Dict[str, Union[str, List[Dict[str, Optional[Union[str, int, bool]]]], bool, int]]:
     """Process_model_show."""
-    try:
-        process_model = ProcessModelService().get_process_model(
-            process_model_id, group_id=process_group_id
-        )
-        files = sorted(SpecFileService.get_files(process_model))
-        process_model.files = files
-        process_model_json = ProcessModelInfoSchema().dump(process_model)
-        return process_model_json
-    except ProcessEntityNotFoundError as exception:
-        raise (
-            ApiError(
-                code="process_mode_cannot_be_found",
-                message=f"Process model cannot be found: {process_model_id}",
-                status_code=400,
-            )
-        ) from exception
+    process_model = get_process_model(process_model_id, process_group_id)
+    files = sorted(SpecFileService.get_files(process_model))
+    process_model.files = files
+    process_model_json = ProcessModelInfoSchema().dump(process_model)
+    return process_model_json
 
 
 def process_model_list(
@@ -192,9 +182,7 @@ def get_file(
     process_group_id: str, process_model_id: str, file_name: str
 ) -> Dict[str, Optional[Union[str, int, bool]]]:
     """Get_file."""
-    process_model = ProcessModelService().get_process_model(
-        process_model_id, group_id=process_group_id
-    )
+    process_model = get_process_model(process_model_id, process_group_id)
     files = SpecFileService.get_files(process_model, file_name)
     if len(files) == 0:
         raise ApiError(
@@ -216,9 +204,7 @@ def process_model_file_update(
     process_group_id: str, process_model_id: str, file_name: str
 ) -> flask.wrappers.Response:
     """Process_model_file_save."""
-    process_model = ProcessModelService().get_process_model(
-        process_model_id, group_id=process_group_id
-    )
+    process_model = get_process_model(process_model_id, process_group_id)
 
     request_file = get_file_from_request()
     request_file_contents = request_file.stream.read()
@@ -236,9 +222,7 @@ def process_model_file_update(
 def add_file(process_group_id: str, process_model_id: str) -> flask.wrappers.Response:
     """Add_file."""
     process_model_service = ProcessModelService()
-    process_model = process_model_service.get_process_model(
-        process_model_id, group_id=process_group_id
-    )
+    process_model = get_process_model(process_model_id, process_group_id)
     request_file = get_file_from_request()
     file = SpecFileService.add_file(
         process_model, request_file.filename, request_file.stream.read()
@@ -294,17 +278,7 @@ def process_instance_list(
     process_status: Optional[str] = None,
 ) -> flask.wrappers.Response:
     """Process_instance_list."""
-    process_model = ProcessModelService().get_process_model(
-        process_model_id, group_id=process_group_id
-    )
-    if process_model is None:
-        raise (
-            ApiError(
-                code="process_model_cannot_be_found",
-                message=f"Process model cannot be found: {process_model_id}",
-                status_code=400,
-            )
-        )
+    process_model = get_process_model(process_model_id, process_group_id)
 
     results = ProcessInstanceModel.query.filter_by(
         process_model_identifier=process_model.id
@@ -364,17 +338,7 @@ def process_instance_report(
     process_group_id: str, process_model_id: str, page: int = 1, per_page: int = 100
 ) -> flask.wrappers.Response:
     """Process_instance_list."""
-    process_model = ProcessModelService().get_process_model(
-        process_model_id, group_id=process_group_id
-    )
-    if process_model is None:
-        raise (
-            ApiError(
-                code="process_mode_cannot_be_found",
-                message=f"Process model cannot be found: {process_model_id}",
-                status_code=400,
-            )
-        )
+    process_model = get_process_model(process_model_id, process_group_id)
 
     process_instances = (
         ProcessInstanceModel.query.filter_by(process_model_identifier=process_model.id)
@@ -414,3 +378,22 @@ def get_file_from_request() -> FileStorage:
             status_code=400,
         )
     return request_file
+
+
+def get_process_model(process_model_id: str, process_group_id: str) -> ProcessModelInfo:
+    """Get_process_model."""
+    process_model = None
+    try:
+        process_model = ProcessModelService().get_process_model(
+            process_model_id, group_id=process_group_id
+        )
+    except ProcessEntityNotFoundError as exception:
+        raise (
+            ApiError(
+                code="process_model_cannot_be_found",
+                message=f"Process model cannot be found: {process_model_id}",
+                status_code=400,
+            )
+        ) from exception
+
+    return process_model

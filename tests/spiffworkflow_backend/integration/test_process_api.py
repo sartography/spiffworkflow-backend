@@ -533,7 +533,7 @@ def test_get_process_model_when_not_found(
         headers=logged_in_headers(user),
     )
     assert response.status_code == 400
-    assert response.json["code"] == "process_mode_cannot_be_found"
+    assert response.json["code"] == "process_model_cannot_be_found"
 
 
 def test_process_instance_create(

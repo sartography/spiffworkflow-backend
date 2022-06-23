@@ -73,8 +73,6 @@ class ProcessModelService(FileSystemService):
                 message=f"We cannot delete the model `{process_model_id}`, there are existing instances that depend on it.",
             )
         process_model = self.get_process_model(process_model_id)
-        if not process_model:
-            return
         if process_model.library:
             self.__remove_library_references(process_model.id)
         path = self.workflow_path(process_model)

@@ -1,5 +1,6 @@
 """Error_handling_service."""
 from typing import Union
+
 from flask_bpmn.api.api_error import ApiError
 
 from spiffworkflow_backend.services.process_instance_processor import (
