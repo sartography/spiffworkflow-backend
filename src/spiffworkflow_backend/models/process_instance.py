@@ -131,7 +131,7 @@ class ProcessInstanceModelSchema(Schema):
 
     status = marshmallow.fields.Method("get_status", dump_only=True)
 
-    def get_status(self, obj):
+    def get_status(self, obj: ProcessInstanceModel) -> str:
         """Get_status."""
         return obj.status
 
