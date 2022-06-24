@@ -2,9 +2,9 @@
 import io
 import json
 import time
-from typing import Any, Dict
+from typing import Any
+from typing import Dict
 from typing import Optional
-from typing import Union
 
 import pytest
 from flask.app import Flask
@@ -1006,7 +1006,9 @@ def create_spec_file(
     return file
 
 
-def create_process_group(client: FlaskClient, user: Any, process_group_id: str, display_name: str = "") -> str:
+def create_process_group(
+    client: FlaskClient, user: Any, process_group_id: str, display_name: str = ""
+) -> str:
     """Create_process_group."""
     process_group = ProcessGroup(
         id=process_group_id, display_name=display_name, display_order=0, admin=False

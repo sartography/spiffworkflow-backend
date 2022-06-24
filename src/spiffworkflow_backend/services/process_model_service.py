@@ -187,7 +187,9 @@ class ProcessModelService(FileSystemService):
                     if item.is_dir() and item.name == process_group_id:
                         return self.__scan_process_group(item)
 
-        raise ProcessEntityNotFoundError("process_group_not_found", f"Process Group Id: {process_group_id}")
+        raise ProcessEntityNotFoundError(
+            "process_group_not_found", f"Process Group Id: {process_group_id}"
+        )
 
     def add_process_group(self, process_group: ProcessGroup) -> ProcessGroup:
         """Add_process_group."""
