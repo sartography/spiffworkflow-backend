@@ -3,8 +3,8 @@ import json
 import time
 
 from flask_bpmn.models.db import db
-from spiffworkflow_backend.helpers.fixture_data import find_or_create_user
 
+from spiffworkflow_backend.helpers.fixture_data import find_or_create_user
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 from spiffworkflow_backend.models.process_instance import ProcessInstanceStatus
 

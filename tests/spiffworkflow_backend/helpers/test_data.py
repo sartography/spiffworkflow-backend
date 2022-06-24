@@ -1,9 +1,7 @@
 """User."""
-from typing import Any
 from typing import Dict
 from typing import Optional
 
-from flask_bpmn.models.db import db
 from tests.spiffworkflow_backend.helpers.example_data import ExampleDataLoader
 
 from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
