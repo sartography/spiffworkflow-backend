@@ -18,7 +18,11 @@ def assure_process_group_exists(process_group_id: Optional[str] = None) -> Proce
     process_group = None
     workflow_spec_service = ProcessModelService()
     if process_group_id is not None:
-        process_group = workflow_spec_service.get_process_group(process_group_id)
+        try:
+            process_group = workflow_spec_service.get_process_group(process_group_id)
+        except ProcessEntityNotFoundError:
+            process_group = None
+
     if process_group is None:
         process_group_id_to_create = "test_process_group"
         if process_group_id is not None:

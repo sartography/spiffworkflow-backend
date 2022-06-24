@@ -179,15 +179,15 @@ class ProcessModelService(FileSystemService):
             return []
         return process_group.process_models
 
-    def get_process_group(self, process_group_id: str) -> Optional[ProcessGroup]:
+    def get_process_group(self, process_group_id: str) -> ProcessGroup:
         """Look for a given process_group, and return it."""
-        if not os.path.exists(FileSystemService.root_path()):
-            return None  # Nothing to scan yet.  There are no files.
-        with os.scandir(FileSystemService.root_path()) as directory_items:
-            for item in directory_items:
-                if item.is_dir() and item.name == process_group_id:
-                    return self.__scan_process_group(item)
-        return None
+        if os.path.exists(FileSystemService.root_path()):
+            with os.scandir(FileSystemService.root_path()) as directory_items:
+                for item in directory_items:
+                    if item.is_dir() and item.name == process_group_id:
+                        return self.__scan_process_group(item)
+
+        raise ProcessEntityNotFoundError("process_group_not_found", f"Process Group Id: {process_group_id}")
 
     def add_process_group(self, process_group: ProcessGroup) -> ProcessGroup:
         """Add_process_group."""

@@ -282,10 +282,10 @@ def process_instance_create(
 
 
 def process_instance_run(
-    _process_group_id: str,
-    _process_model_id: str,
+    process_group_id: str,
+    process_model_id: str,
     process_instance_id: int,
-    _do_engine_steps: bool = False,
+    do_engine_steps: bool = False,
 ) -> flask.wrappers.Response:
     """Process_instance_run."""
     process_instance = ProcessInstanceService().get_process_instance(
