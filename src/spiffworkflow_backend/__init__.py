@@ -14,7 +14,6 @@ from spiffworkflow_backend.routes.admin_blueprint.admin_blueprint import admin_b
 from spiffworkflow_backend.routes.api_blueprint import api_blueprint
 from spiffworkflow_backend.routes.process_api_blueprint import process_api_blueprint
 from spiffworkflow_backend.routes.user_blueprint import user_blueprint
-from spiffworkflow_backend.services.acceptance_test_fixtures import load_fixtures
 
 
 def create_app() -> flask.app.Flask:
@@ -55,9 +54,5 @@ def create_app() -> flask.app.Flask:
     CORS(app, origins=origins_re)
 
     connexion_app.add_api("api.yml", base_path="/v1.0")
-
-    if os.environ.get("SPIFFWORKFLOW_BACKEND_LOAD_FIXTURE_DATA") == "true":
-        with app.app_context():
-            load_fixtures()
 
     return app  # type: ignore

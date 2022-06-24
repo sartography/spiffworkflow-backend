@@ -17,5 +17,6 @@ if [[ -z "${BPMN_SPEC_ABSOLUTE_DIR:-}" ]]; then
 fi
 
 export FLASK_SESSION_SECRET_KEY=super_secret_key
+export APPLICATION_ROOT="/"
 
-FLASK_APP=src/spiffworkflow_backend poetry run flask run -p 7000
+./bin/boot_server_in_docker
