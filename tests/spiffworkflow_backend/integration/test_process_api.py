@@ -2,7 +2,7 @@
 import io
 import json
 import time
-from typing import Dict
+from typing import Any, Dict
 from typing import Optional
 from typing import Union
 
