@@ -14,6 +14,7 @@ class ErrorHandlingService:
 
     @staticmethod
     def set_instance_status(instance_id, status):
+        """Set_instance_status."""
         instance = db.session.query(ProcessInstanceModel).filter(ProcessInstanceModel.id == instance_id).first()
         if instance:
             instance.status = status
@@ -23,15 +24,15 @@ class ErrorHandlingService:
     def handle_error(
         self, _processor: ProcessInstanceProcessor, _error: ApiError
     ) -> None:
-        """On unhandled exceptions, set instance.status based on model.fault_or_suspend_on_exception"""
+        """On unhandled exceptions, set instance.status based on model.fault_or_suspend_on_exception."""
         process_model = ProcessModelService().get_process_model(
             _processor.process_model_identifier, _processor.process_group_identifier
         )
         if process_model.fault_or_suspend_on_exception == "suspend":
-            process_instance = self.set_instance_status(_processor.process_instance_model.id, ProcessInstanceStatus.suspended.value)
+            self.set_instance_status(_processor.process_instance_model.id, ProcessInstanceStatus.suspended.value)
         else:
             # fault is the default
-            process_instance = self.set_instance_status(_processor.process_instance_model.id, ProcessInstanceStatus.faulted.value)
+            self.set_instance_status(_processor.process_instance_model.id, ProcessInstanceStatus.faulted.value)
 
         if len(process_model.exception_notification_addresses) > 0:
             try:

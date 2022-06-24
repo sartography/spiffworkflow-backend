@@ -811,7 +811,8 @@ def test_error_handler(
 
     api_error = json.loads(response.get_data(as_text=True))
     assert api_error['code'] == 'unknown_exception'
-    assert api_error['message'] == 'An unknown error occurred. Original error: ApiError: Activity_CauseError: TypeError:can only concatenate str (not "int") to str. Error in task \'Cause Error\' (Activity_CauseError). Error is on line 1. In file error.bpmn. '
+    assert api_error[
+        'message'] == 'An unknown error occurred. Original error: ApiError: Activity_CauseError: TypeError:can only concatenate str (not "int") to str. Error in task \'Cause Error\' (Activity_CauseError). Error is on line 1. In file error.bpmn. '
 
     process = db.session.query(ProcessInstanceModel).filter(ProcessInstanceModel.id == process_instance_id).first()
     assert process.status == 'faulted'
