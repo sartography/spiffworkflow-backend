@@ -788,6 +788,9 @@ def test_error_handler(
     app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
     """Test_error_handler."""
+    db.session.query(ProcessInstanceModel).delete()
+    db.session.commit()
+
     process_group_id = "data"
     process_model_id = "error"
 
@@ -796,14 +799,22 @@ def test_error_handler(
     response = create_process_instance(
         client, process_group_id, process_model_id, headers
     )
-
     process_instance_id = response.json["id"]
+    process = db.session.query(ProcessInstanceModel).filter(ProcessInstanceModel.id == process_instance_id).first()
+    assert process.status == 'not_started'
+
     response = client.post(
         f"/v1.0/process-models/{process_group_id}/{process_model_id}/process-instances/{process_instance_id}/run",
         headers=logged_in_headers(user),
     )
+    assert response.status_code == 400
 
-    print(f"test_error_handler: {response}")
+    api_error = json.loads(response.get_data(as_text=True))
+    assert api_error['code'] == 'unknown_exception'
+    assert api_error['message'] == 'An unknown error occurred. Original error: ApiError: Activity_CauseError: TypeError:can only concatenate str (not "int") to str. Error in task \'Cause Error\' (Activity_CauseError). Error is on line 1. In file error.bpmn. '
+
+    process = db.session.query(ProcessInstanceModel).filter(ProcessInstanceModel.id == process_instance_id).first()
+    assert process.status == 'faulted'
 
 
 def test_process_model_file_create(
