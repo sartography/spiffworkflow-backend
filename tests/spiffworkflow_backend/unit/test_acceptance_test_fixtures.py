@@ -11,6 +11,6 @@ def test_start_dates_are_one_hour_apart(app: Flask) -> None:
     assert len(process_instances) > 2
     assert process_instances[0].start_in_seconds is not None
     assert process_instances[1].start_in_seconds is not None
-    assert (process_instances[0].start_in_seconds + 3600) == (
+    assert (process_instances[0].start_in_seconds - 3600) == (
         process_instances[1].start_in_seconds
     )
