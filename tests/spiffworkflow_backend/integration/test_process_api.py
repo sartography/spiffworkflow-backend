@@ -888,7 +888,7 @@ def test_process_model_file_create(
     assert result["process_group_id"] == process_group_id
     assert result["process_model_id"] == process_model_id
     assert result["name"] == file_name
-    assert bytes(result["file_contents"], "utf-8") == file_data
+    assert bytes(str(result["file_contents"]), "utf-8") == file_data
 
 
 def create_process_instance(
@@ -909,12 +909,12 @@ def create_process_instance(
 
 def create_process_model(
     client: FlaskClient,
-    process_group_id=None,
-    process_model_id: str = None,
-    process_model_display_name: str = None,
-    process_model_description: str = None,
-    fault_or_suspend_on_exception: NotificationType = None,
-    exception_notification_addresses: list = None,
+    process_group_id: Optional[str] = None,
+    process_model_id: Optional[str] = None,
+    process_model_display_name: Optional[str] = None,
+    process_model_description: Optional[str] = None,
+    fault_or_suspend_on_exception: Optional[str] = None,
+    exception_notification_addresses: Optional[list] = None,
 ) -> TestResponse:
     """Create_process_model."""
     process_model_service = ProcessModelService()
@@ -935,7 +935,7 @@ def create_process_model(
     if process_model_description is None:
         process_model_description = "Om nom nom delicious cookies"
     if fault_or_suspend_on_exception is None:
-        fault_or_suspend_on_exception = NotificationType.suspend
+        fault_or_suspend_on_exception = NotificationType.suspend.value
     if exception_notification_addresses is None:
         exception_notification_addresses = []
     model = ProcessModelInfo(
@@ -970,7 +970,7 @@ def create_spec_file(
     process_model_id: str = "",
     file_name: str = "",
     file_data: bytes = b"",
-) -> Dict[str, Optional[Union[str, bool, int]]]:
+) -> Any:
     """Test_create_spec_file."""
     if process_group_id == "":
         process_group_id = "random_fact"
@@ -1018,8 +1018,9 @@ def create_process_group(client: FlaskClient, user: Any, process_group_id: str, 
         data=json.dumps(ProcessGroupSchema().dump(process_group)),
     )
     assert response.status_code == 201
+    assert response.json is not None
     assert response.json["id"] == process_group_id
-    return response.json["id"]
+    return process_group_id
 
 
 # def test_get_process_model(self):
