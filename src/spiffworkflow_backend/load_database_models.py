@@ -1,4 +1,3 @@
-"""Load_database_models."""
 """Loads and sets up all database models for SQLAlchemy.
 
 autoflake8 will remove these lines without the noqa comment
