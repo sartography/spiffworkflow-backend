@@ -21,7 +21,7 @@ def setup_logger_for_sql_statements(app: Flask) -> None:
 
 def setup_database_uri(app: Flask) -> None:
     """Setup_database_uri."""
-    if os.environ.get("DATABASE_URI") is None:
+    if os.environ.get("SPIFFWORKFLOW_BACKEND_DATABASE_URI") is None:
         if os.environ.get("SPIFF_DATABASE_TYPE") == "sqlite":
             app.config[
                 "SQLALCHEMY_DATABASE_URI"
@@ -39,7 +39,9 @@ def setup_database_uri(app: Flask) -> None:
                 "SQLALCHEMY_DATABASE_URI"
             ] = f"mysql+mysqlconnector://root:{db_pswd}@localhost/spiffworkflow_backend_{app.env}"
     else:
-        app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URI")
+        app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
+            "SPIFFWORKFLOW_BACKEND_DATABASE_URI"
+        )
 
 
 def setup_config(app: Flask) -> None:

@@ -10,6 +10,21 @@ security:
   - jwt: ["secret"]
 
 paths:
+  /status:
+    get:
+      security: []
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.status
+      summary: Returns 200 if the server is Responding
+      tags:
+        - Liveness
+        - Status
+      responses:
+        "200":
+          description: The server is running.
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/OkTrue"
   /process-groups:
     parameters:
       - name: page

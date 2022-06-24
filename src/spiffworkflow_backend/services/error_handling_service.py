@@ -1,4 +1,6 @@
 """Error_handling_service."""
+from typing import Union
+
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
 
@@ -27,7 +29,7 @@ class ErrorHandlingService:
             return instance
 
     def handle_error(
-        self, _processor: ProcessInstanceProcessor, _error: ApiError
+        self, _processor: ProcessInstanceProcessor, _error: Union[ApiError, Exception]
     ) -> None:
         """On unhandled exceptions, set instance.status based on model.fault_or_suspend_on_exception."""
         process_model = ProcessModelService().get_process_model(

@@ -5,16 +5,16 @@ services:
     image: mysql:8.0.29
     cap_add:
       - SYS_NICE
-    restart: always
+    restart: "${SPIFFWORKFLOW_BACKEND_DATABASE_DOCKER_RESTART_POLICY:-no}"
     environment:
-      - MYSQL_DATABASE=spiffworkflow_backend_staging
-      - MYSQL_ROOT_PASSWORD=St4g3Th1515
+      - MYSQL_DATABASE=${SPIFFWORKFLOW_BACKEND_DATABASE_NAME:-spiffworkflow_backend_development}
+      - MYSQL_ROOT_PASSWORD=${SPIFFWORKFLOW_BACKEND_MYSQL_ROOT_DATABASE:-my-secret-pw}
     ports:
       - "3306"
     volumes:
       - spiffworkflow_backend:/var/lib/mysql
     healthcheck:
-      test: mysql --user=root --password=St4g3Th1515 -e 'select 1' spiffworkflow_backend_staging
+      test: mysql --user=root --password=${SPIFFWORKFLOW_BACKEND_MYSQL_ROOT_DATABASE:-my-secret-pw} -e 'select 1' ${SPIFFWORKFLOW_BACKEND_DATABASE_NAME:-spiffworkflow_backend_development}
 
   spiffworkflow-backend:
     container_name: spiffworkflow-backend
@@ -27,19 +27,19 @@ services:
       context: .
     environment:
       - APPLICATION_ROOT=/
-      - FLASK_ENV=staging
-      - FLASK_SESSION_SECRET_KEY=super_secret_key
-      - DEVELOPMENT=true
-      - LDAP_URL=mock
-      - PORT0=7000
-      - PRODUCTION=false
-      - UPGRADE_DB=true
-      - DATABASE_URI=mysql+mysqlconnector://root:St4g3Th1515@db/spiffworkflow_backend_staging
+      - FLASK_ENV=${FLASK_ENV:-development}
+      - FLASK_SESSION_SECRET_KEY=${FLASK_SESSION_SECRET_KEY:-super_secret_key}
+      - SPIFFWORKFLOW_BACKEND_PORT=7000
+      - SPIFFWORKFLOW_BACKEND_UPGRADE_DB=true
+      - SPIFFWORKFLOW_BACKEND_DATABASE_URI=mysql+mysqlconnector://root:${SPIFFWORKFLOW_BACKEND_MYSQL_ROOT_DATABASE:-my-secret-pw}@db/${SPIFFWORKFLOW_BACKEND_DATABASE_NAME:-spiffworkflow_backend_development}
       - BPMN_SPEC_ABSOLUTE_DIR=/app/process_models
+      - SPIFFWORKFLOW_BACKEND_LOAD_FIXTURE_DATA=${SPIFFWORKFLOW_BACKEND_LOAD_FIXTURE_DATA:-false}
     ports:
       - "7000:7000"
     volumes:
-      - ${BPMN_SPEC_ABSOLUTE_DIR}:/app/process_models
+      - ${BPMN_SPEC_ABSOLUTE_DIR:-./../sample-process-models}:/app/process_models
+    healthcheck:
+      test: curl localhost:7000/v1.0/status --fail
 
 volumes:
   spiffworkflow_backend:

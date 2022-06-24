@@ -15,12 +15,12 @@ if [ "${DOWNGRADE_DB:-}" = "true" ]; then
   poetry run flask db downgrade
 fi
 
-if [ "${UPGRADE_DB:-}" = "true" ]; then
+if [[ "${SPIFFWORKFLOW_BACKEND_UPGRADE_DB:-}" == "true" ]]; then
   echo 'Upgrading database...'
   poetry run flask db upgrade
 fi
 
-port="${PORT0:-}"
+port="${SPIFFWORKFLOW_BACKEND_PORT:-}"
 if [[ -z "$port" ]]; then
   port=7000
 fi
@@ -32,4 +32,4 @@ if [[ "${APPLICATION_ROOT:-}" != "/" ]]; then
 fi
 
 # THIS MUST BE THE LAST COMMAND!
-exec poetry run gunicorn ${additional_args} --bind "0.0.0.0:$PORT0" --workers=3 --timeout 90 --log-level debug wsgi:app
+exec poetry run gunicorn ${additional_args} --bind "0.0.0.0:$SPIFFWORKFLOW_BACKEND_PORT" --workers=3 --timeout 90 --log-level debug wsgi:app
