@@ -1,11 +1,12 @@
 """Acceptance_test_fixtures."""
-
-
 import json
 import time
-from spiffworkflow_backend.models.process_instance import ProcessInstanceModel, ProcessInstanceStatus
+
 from flask_bpmn.models.db import db
 from tests.spiffworkflow_backend.helpers.test_data import find_or_create_user
+
+from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
+from spiffworkflow_backend.models.process_instance import ProcessInstanceStatus
 
 
 def load_fixtures() -> list[ProcessInstanceModel]:

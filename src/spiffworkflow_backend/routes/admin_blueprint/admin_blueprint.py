@@ -1,5 +1,6 @@
 """APIs for dealing with process groups, process models, and process instances."""
-from typing import Any, Union
+from typing import Any
+from typing import Union
 
 from flask import Blueprint
 from flask import current_app
@@ -8,8 +9,8 @@ from flask import redirect
 from flask import render_template
 from flask import request
 from flask import url_for
-from werkzeug.wrappers.response import Response
 from flask_bpmn.models.db import db
+from werkzeug.wrappers.response import Response
 
 from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.services.process_instance_processor import (
@@ -66,9 +67,7 @@ def process_model_show(process_model_id: str) -> Union[str, Response]:
     current_file_name = process_model.primary_file_name
     if current_file_name is None:
         flash("No primary_file_name", "error")
-        return redirect(
-            url_for("admin.process_groups_list")
-        )
+        return redirect(url_for("admin.process_groups_list"))
     bpmn_xml = SpecFileService.get_data(process_model, current_file_name)
     return render_template(
         "process_model_show.html",
@@ -149,9 +148,7 @@ def process_model_save(process_model_id: str, file_name: str) -> Union[str, Resp
     SpecFileService.update_file(process_model, file_name, request.get_data())
     if process_model.primary_file_name is None:
         flash("No primary_file_name", "error")
-        return redirect(
-            url_for("admin.process_groups_list")
-        )
+        return redirect(url_for("admin.process_groups_list"))
     bpmn_xml = SpecFileService.get_data(process_model, process_model.primary_file_name)
     return render_template(
         "process_model_edit.html",
@@ -177,9 +174,7 @@ def process_model_run(process_model_id: str) -> Union[str, Response]:
     current_file_name = process_model.primary_file_name
     if current_file_name is None:
         flash("No primary_file_name", "error")
-        return redirect(
-            url_for("admin.process_groups_list")
-        )
+        return redirect(url_for("admin.process_groups_list"))
     bpmn_xml = SpecFileService.get_data(process_model, current_file_name)
 
     return render_template(
