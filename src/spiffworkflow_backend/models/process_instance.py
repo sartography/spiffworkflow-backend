@@ -91,7 +91,7 @@ class ProcessInstanceModel(SpiffworkflowBaseDBModel):
     end_in_seconds: int | None = db.Column(db.Integer)  # type: ignore
     updated_at_in_seconds: int = db.Column(db.Integer)  # type: ignore
     created_at_in_seconds: int = db.Column(db.Integer)  # type: ignore
-    status: str = db.Column(db.String())  # type: ignore
+    status: str = db.Column(db.String(50))  # type: ignore
 
     @property
     def serialized(self) -> dict[str, int | str | None]:

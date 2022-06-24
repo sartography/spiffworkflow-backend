@@ -10,7 +10,7 @@ import pytest
 from flask.app import Flask
 from flask.testing import FlaskClient
 from flask_bpmn.models.db import db
-from tests.spiffworkflow_backend.helpers.test_data import find_or_create_user
+from spiffworkflow_backend.helpers.fixture_data import find_or_create_user
 from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
 from tests.spiffworkflow_backend.helpers.test_data import logged_in_headers
 from werkzeug.test import TestResponse
