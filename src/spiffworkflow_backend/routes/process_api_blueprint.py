@@ -117,10 +117,24 @@ def process_model_add(
 ) -> flask.wrappers.Response:
     """Add_process_model."""
     process_model_info = ProcessModelInfoSchema().load(body)
+    if process_model_info is None:
+        raise ApiError(
+            code="process_model_could_not_be_created",
+            message=f"Process Model could not be created from given body: {body}",
+            status_code=400,
+        )
+
     process_model_service = ProcessModelService()
     process_group = process_model_service.get_process_group(
         process_model_info.process_group_id
     )
+    if process_group is None:
+        raise ApiError(
+            code="process_model_could_not_be_created",
+            message=f"Process Model could not be created from given body because Process Group could not be found: {body}",
+            status_code=400,
+        )
+
     process_model_info.process_group = process_group
     workflows = process_model_service.cleanup_workflow_spec_display_order(process_group)
     size = len(workflows)
@@ -143,7 +157,7 @@ def process_model_delete(
 
 def process_model_update(
     process_group_id: str, process_model_id: str, body: Dict[str, Union[str, bool, int]]
-) -> Dict[str, Union[str, bool, int]]:
+) -> Any:
     """Process_model_update."""
     process_model = ProcessModelInfoSchema().load(body)
     ProcessModelService().update_spec(process_model)
@@ -152,7 +166,7 @@ def process_model_update(
 
 def process_model_show(
     process_group_id: str, process_model_id: str
-) -> Dict[str, Union[str, List[Dict[str, Optional[Union[str, int, bool]]]], bool, int]]:
+) -> Any:
     """Process_model_show."""
     process_model = get_process_model(process_model_id, process_group_id)
     files = sorted(SpecFileService.get_files(process_model))
@@ -187,7 +201,7 @@ def process_model_list(
 
 def get_file(
     process_group_id: str, process_model_id: str, file_name: str
-) -> Dict[str, Optional[Union[str, int, bool]]]:
+) -> Any:
     """Get_file."""
     process_model = get_process_model(process_model_id, process_group_id)
     files = SpecFileService.get_files(process_model, file_name)
@@ -231,6 +245,13 @@ def add_file(process_group_id: str, process_model_id: str) -> flask.wrappers.Res
     process_model_service = ProcessModelService()
     process_model = get_process_model(process_model_id, process_group_id)
     request_file = get_file_from_request()
+    if not request_file.filename:
+        raise ApiError(
+            code="could_not_get_filename",
+            message="Could not get filename from request",
+            status_code=400,
+        )
+
     file = SpecFileService.add_file(
         process_model, request_file.filename, request_file.stream.read()
     )
@@ -261,10 +282,10 @@ def process_instance_create(
 
 
 def process_instance_run(
-    process_group_id: str,
-    process_model_id: str,
-    process_instance_id: str,
-    do_engine_steps: bool = None,
+    _process_group_id: str,
+    _process_model_id: str,
+    process_instance_id: int,
+    _do_engine_steps: bool = False,
 ) -> flask.wrappers.Response:
     """Process_instance_run."""
     process_instance = ProcessInstanceService().get_process_instance(
@@ -314,6 +335,17 @@ def process_instance_list(
     results = ProcessInstanceModel.query.filter_by(
         process_model_identifier=process_model.id
     )
+
+    # this can never happen. obviously the class has the columns it defines. this is just to appease mypy.
+    if ProcessInstanceModel.start_in_seconds is None or ProcessInstanceModel.end_in_seconds is None:
+        raise (
+            ApiError(
+                code="unexpected_condition",
+                message="Something went very wrong",
+                status_code=500,
+            )
+        )
+
     if start_from is not None:
         results = results.filter(ProcessInstanceModel.start_in_seconds >= start_from)
     if start_till is not None:
@@ -326,7 +358,7 @@ def process_instance_list(
         results = results.filter(ProcessInstanceModel.status == process_status)
 
     process_instances = results.order_by(
-        ProcessInstanceModel.start_in_seconds.desc(), ProcessInstanceModel.id.desc()
+        ProcessInstanceModel.start_in_seconds.desc(), ProcessInstanceModel.id.desc()  # type: ignore
     ).paginate(page, per_page, False)
 
     serialized_results = []
@@ -346,7 +378,7 @@ def process_instance_list(
     return Response(json.dumps(response_json), status=200, mimetype="application/json")
 
 
-def process_instance_delete(process_group_id, process_model_id, process_instance_id):
+def process_instance_delete(_process_group_id: str, _process_model_id: str, process_instance_id: int) -> flask.wrappers.Response:
     """Create_process_instance."""
     process_instance = ProcessInstanceModel.query.filter_by(
         id=process_instance_id
@@ -374,7 +406,7 @@ def process_instance_report(
     process_instances = (
         ProcessInstanceModel.query.filter_by(process_model_identifier=process_model.id)
         .order_by(
-            ProcessInstanceModel.start_in_seconds.desc(), ProcessInstanceModel.id.desc()
+            ProcessInstanceModel.start_in_seconds.desc(), ProcessInstanceModel.id.desc()  # type: ignore
         )
         .paginate(page, per_page, False)
     )
@@ -399,7 +431,7 @@ def process_instance_report(
     return Response(json.dumps(response_json), status=200, mimetype="application/json")
 
 
-def get_file_from_request() -> FileStorage:
+def get_file_from_request() -> Any:
     """Get_file_from_request."""
     request_file = connexion.request.files.get("file")
     if not request_file:

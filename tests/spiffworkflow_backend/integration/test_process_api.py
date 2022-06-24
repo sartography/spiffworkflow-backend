@@ -547,9 +547,9 @@ def test_get_process_model_when_not_found(
     """Test_get_process_model_when_not_found."""
     user = find_or_create_user()
     process_model_dir_name = "THIS_NO_EXISTS"
-    group = create_process_group(client, user, "my_group")
+    group_id = create_process_group(client, user, "my_group")
     response = client.get(
-        f"/v1.0/process-models/{group.json['id']}/{process_model_dir_name}",
+        f"/v1.0/process-models/{group_id}/{process_model_dir_name}",
         headers=logged_in_headers(user),
     )
     assert response.status_code == 400
@@ -1001,7 +1001,7 @@ def create_spec_file(
     return file
 
 
-def create_process_group(client, user, process_group_id, display_name=""):
+def create_process_group(client: FlaskClient, user: Any, process_group_id: str, display_name: str = "") -> str:
     """Create_process_group."""
     process_group = ProcessGroup(
         id=process_group_id, display_name=display_name, display_order=0, admin=False
@@ -1014,7 +1014,7 @@ def create_process_group(client, user, process_group_id, display_name=""):
     )
     assert response.status_code == 201
     assert response.json["id"] == process_group_id
-    return response
+    return response.json["id"]
 
 
 # def test_get_process_model(self):

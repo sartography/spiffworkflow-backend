@@ -105,7 +105,7 @@ class File:
     irb_doc_code: Optional[str] = None
     data_store: Optional[dict] = field(default_factory=dict)
     user_uid: Optional[str] = None
-    file_contents: Optional[str] = None
+    file_contents: Optional[bytes] = None
     process_model_id: Optional[str] = None
     process_group_id: Optional[str] = None
     archived: bool = False
