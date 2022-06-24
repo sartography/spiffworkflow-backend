@@ -16,7 +16,7 @@ class ErrorHandlingService:
     """ErrorHandlingService."""
 
     @staticmethod
-    def set_instance_status(instance_id: str, status: str) -> None:
+    def set_instance_status(instance_id: int, status: str) -> None:
         """Set_instance_status."""
         instance = (
             db.session.query(ProcessInstanceModel)
@@ -26,7 +26,6 @@ class ErrorHandlingService:
         if instance:
             instance.status = status
             db.session.commit()
-            return instance
 
     def handle_error(
         self, _processor: ProcessInstanceProcessor, _error: Union[ApiError, Exception]

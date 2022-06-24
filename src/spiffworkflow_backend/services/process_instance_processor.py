@@ -254,7 +254,7 @@ class ProcessInstanceProcessor:
                 % (process_instance_model.id, e.__class__.__name__, str(e))
             )
         process_instance_model.bpmn_json = None
-        process_instance_model.status = ProcessInstanceStatus.not_started
+        process_instance_model.status = ProcessInstanceStatus.not_started.value
 
         # clear out any task assignments
         db.session.query(TaskEventModel).filter(

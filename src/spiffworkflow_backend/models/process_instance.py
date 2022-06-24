@@ -231,7 +231,7 @@ class ProcessInstanceMetadata:
     description: str | None = None
     spec_version: str | None = None
     state: str | None = None
-    status: ProcessInstanceStatus | None = None
+    status: str | None = None
     total_tasks: int | None = None
     completed_tasks: int | None = None
     is_review: bool | None = None

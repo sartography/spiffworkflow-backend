@@ -126,7 +126,7 @@ class ProcessInstanceService:
         else:
             return {}
 
-    def get_process_instance(self, process_instance_id: int) -> ProcessInstanceModel:
+    def get_process_instance(self, process_instance_id: int) -> Any:
         """Get_process_instance."""
         result = (
             db.session.query(ProcessInstanceModel)
