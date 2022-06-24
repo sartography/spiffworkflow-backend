@@ -800,8 +800,12 @@ def test_error_handler(
         client, process_group_id, process_model_id, headers
     )
     process_instance_id = response.json["id"]
-    process = db.session.query(ProcessInstanceModel).filter(ProcessInstanceModel.id == process_instance_id).first()
-    assert process.status == 'not_started'
+    process = (
+        db.session.query(ProcessInstanceModel)
+        .filter(ProcessInstanceModel.id == process_instance_id)
+        .first()
+    )
+    assert process.status == "not_started"
 
     response = client.post(
         f"/v1.0/process-models/{process_group_id}/{process_model_id}/process-instances/{process_instance_id}/run",
@@ -810,12 +814,21 @@ def test_error_handler(
     assert response.status_code == 400
 
     api_error = json.loads(response.get_data(as_text=True))
-    assert api_error['code'] == 'unknown_exception'
-    assert api_error[
-        'message'] == 'An unknown error occurred. Original error: ApiError: Activity_CauseError: TypeError:can only concatenate str (not "int") to str. Error in task \'Cause Error\' (Activity_CauseError). Error is on line 1. In file error.bpmn. '
+    assert api_error["code"] == "unknown_exception"
+    assert "An unknown error occurred." in api_error["message"]
+    assert (
+        'Original error: ApiError: Activity_CauseError: TypeError:can only concatenate str (not "int") to str.'
+        in api_error["message"]
+    )
+    assert "Error in task 'Cause Error' (Activity_CauseError)." in api_error["message"]
+    assert "Error is on line 1. In file error.bpmn." in api_error["message"]
 
-    process = db.session.query(ProcessInstanceModel).filter(ProcessInstanceModel.id == process_instance_id).first()
-    assert process.status == 'faulted'
+    process = (
+        db.session.query(ProcessInstanceModel)
+        .filter(ProcessInstanceModel.id == process_instance_id)
+        .first()
+    )
+    assert process.status == "faulted"
 
 
 def test_process_model_file_create(
