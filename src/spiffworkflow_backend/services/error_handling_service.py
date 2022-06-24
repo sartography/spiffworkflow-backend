@@ -1,36 +1,58 @@
 """Error_handling_service."""
 from flask_bpmn.api.api_error import ApiError
+from flask_bpmn.models.db import db
 
-from spiffworkflow_backend.services.process_instance_processor import (
-    ProcessInstanceProcessor,
-)
+from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
+from spiffworkflow_backend.models.process_instance import ProcessInstanceStatus
+
+from spiffworkflow_backend.services.process_instance_processor import ProcessInstanceProcessor
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 
 
 class ErrorHandlingService:
     """ErrorHandlingService."""
 
+    @staticmethod
+    def set_instance_status(instance_id, status):
+        instance = db.session.query(ProcessInstanceModel).filter(ProcessInstanceModel.id == instance_id).first()
+        if instance:
+            instance.status = status
+            db.session.commit()
+            return instance
+
     def handle_error(
         self, _processor: ProcessInstanceProcessor, _error: ApiError
     ) -> None:
-        """Handle_error."""
+        """On unhandled exceptions, set instance.status based on model.fault_or_suspend_on_exception"""
         process_model = ProcessModelService().get_process_model(
             _processor.process_model_identifier, _processor.process_group_identifier
         )
-        # If fault_or_suspend_on_exception is not configured, default to `fault`
         if process_model.fault_or_suspend_on_exception == "suspend":
-            ...
+            process_instance = self.set_instance_status(_processor.process_instance_model.id, ProcessInstanceStatus.suspended.value)
         else:
-            # fault
-            ...
+            # fault is the default
+            process_instance = self.set_instance_status(_processor.process_instance_model.id, ProcessInstanceStatus.faulted.value)
+
         if len(process_model.exception_notification_addresses) > 0:
             try:
-                # some email notification method
+                # some notification method (waku?)
                 ...
             except Exception as e:
-                # hmm...
+                # hmm... what to do if a notification method fails. Probably log, at least
                 print(e)
-        print("handle_error")
+        print(f"handle_error: {_error}")
+
+
+class SentryHandler:
+    ...
+
+
+class EmailHandler:
+    ...
+
+
+class WakuHandler:
+    ...
 
 
 class FailingService:

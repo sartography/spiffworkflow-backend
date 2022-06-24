@@ -286,6 +286,11 @@ def process_instance_run(
         processor.do_engine_steps()
     except Exception as e:
         ErrorHandlingService().handle_error(processor, e)
+        task = processor.bpmn_process_instance.last_task
+        raise ApiError.from_task(code='unknown_exception',
+                                 message=f'An unknown error occurred. Original error: {e}',
+                                 status_code=400,
+                                 task=task)
     processor.save()
     # ProcessInstanceService.update_task_assignments(processor)
 
