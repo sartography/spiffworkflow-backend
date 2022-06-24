@@ -71,6 +71,7 @@ def test_process_model_delete(
         headers=logged_in_headers(user),
     )
     assert response.status_code == 200
+    assert response.json is not None
     assert response.json["ok"] is True
 
     # assert we no longer have a model
@@ -133,6 +134,7 @@ def test_process_model_update(
         data=json.dumps(ProcessModelInfoSchema().dump(process_model)),
     )
     assert response.status_code == 200
+    assert response.json is not None
     assert response.json["display_name"] == "Updated Display Name"
 
 
@@ -159,6 +161,7 @@ def test_process_model_list(
         f"/v1.0/process-groups/{group_id}/process-models",
         headers=logged_in_headers(user),
     )
+    assert response.json is not None
     assert len(response.json["results"]) == 5
     assert response.json["pagination"]["count"] == 5
     assert response.json["pagination"]["total"] == 5
@@ -169,6 +172,7 @@ def test_process_model_list(
         f"/v1.0/process-groups/{group_id}/process-models?page=1&per_page=1",
         headers=logged_in_headers(user),
     )
+    assert response.json is not None
     assert len(response.json["results"]) == 1
     assert response.json["results"][0]["id"] == "test_model_0"
     assert response.json["pagination"]["count"] == 1
@@ -180,6 +184,7 @@ def test_process_model_list(
         f"/v1.0/process-groups/{group_id}/process-models?page=2&per_page=1",
         headers=logged_in_headers(user),
     )
+    assert response.json is not None
     assert len(response.json["results"]) == 1
     assert response.json["results"][0]["id"] == "test_model_1"
     assert response.json["pagination"]["count"] == 1
@@ -191,6 +196,7 @@ def test_process_model_list(
         f"/v1.0/process-groups/{group_id}/process-models?page=1&per_page=3",
         headers=logged_in_headers(user),
     )
+    assert response.json is not None
     assert len(response.json["results"]) == 3
     assert response.json["results"][0]["id"] == "test_model_0"
     assert response.json["pagination"]["count"] == 3
@@ -203,6 +209,7 @@ def test_process_model_list(
         headers=logged_in_headers(user),
     )
     # there should only be 2 left
+    assert response.json is not None
     assert len(response.json["results"]) == 2
     assert response.json["results"][0]["id"] == "test_model_3"
     assert response.json["pagination"]["count"] == 2
@@ -303,6 +310,7 @@ def test_process_group_list(
         "/v1.0/process-groups",
         headers=logged_in_headers(user),
     )
+    assert response.json is not None
     assert len(response.json["results"]) == 5
     assert response.json["pagination"]["count"] == 5
     assert response.json["pagination"]["total"] == 5
@@ -313,6 +321,7 @@ def test_process_group_list(
         "/v1.0/process-groups?page=1&per_page=1",
         headers=logged_in_headers(user),
     )
+    assert response.json is not None
     assert len(response.json["results"]) == 1
     assert response.json["results"][0]["id"] == "test_process_group_0"
     assert response.json["pagination"]["count"] == 1
@@ -324,6 +333,7 @@ def test_process_group_list(
         "/v1.0/process-groups?page=2&per_page=1",
         headers=logged_in_headers(user),
     )
+    assert response.json is not None
     assert len(response.json["results"]) == 1
     assert response.json["results"][0]["id"] == "test_process_group_1"
     assert response.json["pagination"]["count"] == 1
@@ -335,6 +345,7 @@ def test_process_group_list(
         "/v1.0/process-groups?page=1&per_page=3",
         headers=logged_in_headers(user),
     )
+    assert response.json is not None
     assert len(response.json["results"]) == 3
     assert response.json["results"][0]["id"] == "test_process_group_0"
     assert response.json["results"][1]["id"] == "test_process_group_1"
@@ -349,6 +360,7 @@ def test_process_group_list(
         headers=logged_in_headers(user),
     )
     # there should only be 2 left
+    assert response.json is not None
     assert len(response.json["results"]) == 2
     assert response.json["results"][0]["id"] == "test_process_group_3"
     assert response.json["results"][1]["id"] == "test_process_group_4"
@@ -375,6 +387,7 @@ def test_process_model_file_update_fails_if_no_file_given(
     )
 
     assert response.status_code == 400
+    assert response.json is not None
     assert response.json["code"] == "no_file_given"
 
 
@@ -396,6 +409,7 @@ def test_process_model_file_update_fails_if_contents_is_empty(
     )
 
     assert response.status_code == 400
+    assert response.json is not None
     assert response.json["code"] == "file_contents_empty"
 
 
@@ -418,6 +432,7 @@ def test_process_model_file_update(
     )
 
     assert response.status_code == 200
+    assert response.json is not None
     assert response.json["ok"]
 
     response = client.get(
@@ -443,12 +458,13 @@ def test_get_file(
         headers=logged_in_headers(user),
     )
     assert response.status_code == 200
+    assert response.json is not None
     assert response.json["name"] == "hello_world.bpmn"
     assert response.json["process_group_id"] == "group_id1"
     assert response.json["process_model_id"] == "hello_world"
 
 
-def test_get_workflow_from_workflow_spec(
+def dest_get_workflow_from_workflow_spec(
     app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
     """Test_get_workflow_from_workflow_spec."""
@@ -459,6 +475,7 @@ def test_get_workflow_from_workflow_spec(
         headers=logged_in_headers(user),
     )
     assert response.status_code == 201
+    assert response.json is not None
     assert "hello_world" == response.json["process_model_identifier"]
     # assert('Task_GetName' == response.json['next_task']['name'])
 
@@ -470,6 +487,7 @@ def test_get_process_groups_when_none(
     user = find_or_create_user()
     response = client.get("/v1.0/process-groups", headers=logged_in_headers(user))
     assert response.status_code == 200
+    assert response.json is not None
     assert response.json["results"] == []
 
 
@@ -481,6 +499,7 @@ def test_get_process_groups_when_there_are_some(
     load_test_spec(app, "hello_world")
     response = client.get("/v1.0/process-groups", headers=logged_in_headers(user))
     assert response.status_code == 200
+    assert response.json is not None
     assert len(response.json["results"]) == 1
     assert response.json["pagination"]["count"] == 1
     assert response.json["pagination"]["total"] == 1
@@ -499,6 +518,7 @@ def test_get_process_group_when_found(
         f"/v1.0/process-groups/{test_process_group_id}", headers=logged_in_headers(user)
     )
     assert response.status_code == 200
+    assert response.json is not None
     assert response.json["id"] == test_process_group_id
     assert response.json["process_models"][0]["id"] == process_model_dir_name
 
@@ -516,6 +536,7 @@ def test_get_process_model_when_found(
         headers=logged_in_headers(user),
     )
     assert response.status_code == 200
+    assert response.json is not None
     assert response.json["id"] == process_model_dir_name
     assert len(response.json["files"]) == 1
     assert response.json["files"][0]["name"] == "hello_world.bpmn"
@@ -533,6 +554,7 @@ def test_get_process_model_when_not_found(
         headers=logged_in_headers(user),
     )
     assert response.status_code == 400
+    assert response.json is not None
     assert response.json["code"] == "process_model_cannot_be_found"
 
 
@@ -547,6 +569,7 @@ def test_process_instance_create(
     response = create_process_instance(
         app, client, test_process_group_id, test_process_model_id, headers
     )
+    assert response.json is not None
     assert response.json["updated_at_in_seconds"] is not None
     assert response.json["status"] == "complete"
     assert response.json["process_model_identifier"] == test_process_model_id
@@ -575,6 +598,7 @@ def test_process_instance_list_with_default_list(
         headers=logged_in_headers(user),
     )
     assert response.status_code == 200
+    assert response.json is not None
     assert len(response.json["results"]) == 1
     assert response.json["pagination"]["count"] == 1
     assert response.json["pagination"]["pages"] == 1
@@ -627,6 +651,7 @@ def test_process_instance_list_with_paginated_items(
         headers=logged_in_headers(user),
     )
     assert response.status_code == 200
+    assert response.json is not None
     assert len(response.json["results"]) == 1
     assert response.json["pagination"]["count"] == 1
     assert response.json["pagination"]["pages"] == 3
@@ -637,6 +662,7 @@ def test_process_instance_list_with_paginated_items(
         headers=logged_in_headers(user),
     )
     assert response.status_code == 200
+    assert response.json is not None
     assert len(response.json["results"]) == 2
     assert response.json["pagination"]["count"] == 2
     assert response.json["pagination"]["pages"] == 3
@@ -676,6 +702,7 @@ def test_process_instance_list_filter(
         f"/v1.0/process-models/{test_process_group_id}/{test_process_model_id}/process-instances",
         headers=logged_in_headers(user),
     )
+    assert response.json is not None
     results = response.json["results"]
     assert len(results) == 5
 
@@ -686,6 +713,7 @@ def test_process_instance_list_filter(
             f"/v1.0/process-models/{test_process_group_id}/{test_process_model_id}/process-instances?process_status={ProcessInstanceStatus[statuses[i]].value}",
             headers=logged_in_headers(user),
         )
+        assert response.json is not None
         results = response.json["results"]
         assert len(results) == 1
         assert results[0]["status"] == ProcessInstanceStatus[statuses[i]].value
@@ -696,6 +724,7 @@ def test_process_instance_list_filter(
         f"/v1.0/process-models/{test_process_group_id}/{test_process_model_id}/process-instances?start_from=1001",
         headers=logged_in_headers(user),
     )
+    assert response.json is not None
     results = response.json["results"]
     assert len(results) == 4
     for i in range(4):
@@ -706,6 +735,7 @@ def test_process_instance_list_filter(
         f"/v1.0/process-models/{test_process_group_id}/{test_process_model_id}/process-instances?start_from=2001&end_till=5999",
         headers=logged_in_headers(user),
     )
+    assert response.json is not None
     results = response.json["results"]
     assert len(results) == 2
     assert json.loads(results[0]["bpmn_json"])["i"] in (2, 3)
@@ -716,6 +746,7 @@ def test_process_instance_list_filter(
         f"/v1.0/process-models/{test_process_group_id}/{test_process_model_id}/process-instances?start_from=1001&start_till=3999",
         headers=logged_in_headers(user),
     )
+    assert response.json is not None
     results = response.json["results"]
     assert len(results) == 2
     assert json.loads(results[0]["bpmn_json"])["i"] in (1, 2)
@@ -726,6 +757,7 @@ def test_process_instance_list_filter(
         f"/v1.0/process-models/{test_process_group_id}/{test_process_model_id}/process-instances?end_from=2001&end_till=5999",
         headers=logged_in_headers(user),
     )
+    assert response.json is not None
     results = response.json["results"]
     assert len(results) == 3
     for i in range(3):
@@ -752,6 +784,7 @@ def test_process_instance_report_with_default_list(
         headers=logged_in_headers(user),
     )
     assert response.status_code == 200
+    assert response.json is not None
     assert len(response.json["results"]) == 1
     assert response.json["pagination"]["count"] == 1
     assert response.json["pagination"]["pages"] == 1

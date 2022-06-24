@@ -1,5 +1,5 @@
 """APIs for dealing with process groups, process models, and process instances."""
-from typing import Any
+from typing import Any, Union
 
 from flask import Blueprint
 from flask import current_app
@@ -8,6 +8,7 @@ from flask import redirect
 from flask import render_template
 from flask import request
 from flask import url_for
+from werkzeug.wrappers.response import Response
 from flask_bpmn.models.db import db
 
 from spiffworkflow_backend.models.user import UserModel
@@ -28,7 +29,7 @@ ALLOWED_BPMN_EXTENSIONS = {"bpmn", "dmn"}
 
 
 @admin_blueprint.route("/token", methods=["GET"])
-def token():
+def token() -> str:
     """Token."""
     if current_app.env == "production":
         return "Not authorized"
@@ -44,25 +45,30 @@ def token():
 
 
 @admin_blueprint.route("/process-groups", methods=["GET"])
-def process_groups_list():
+def process_groups_list() -> str:
     """Process_groups_list."""
     process_groups = ProcessModelService().get_process_groups()
     return render_template("process_groups_list.html", process_groups=process_groups)
 
 
 @admin_blueprint.route("/process-groups/<process_group_id>", methods=["GET"])
-def process_group_show(process_group_id):
+def process_group_show(process_group_id: str) -> str:
     """Show_process_group."""
     process_group = ProcessModelService().get_process_group(process_group_id)
     return render_template("process_group_show.html", process_group=process_group)
 
 
 @admin_blueprint.route("/process-models/<process_model_id>", methods=["GET"])
-def process_model_show(process_model_id):
+def process_model_show(process_model_id: str) -> Union[str, Response]:
     """Show_process_model."""
     process_model = ProcessModelService().get_process_model(process_model_id)
     files = SpecFileService.get_files(process_model, extension_filter="bpmn")
     current_file_name = process_model.primary_file_name
+    if current_file_name is None:
+        flash("No primary_file_name", "error")
+        return redirect(
+            url_for("admin.process_groups_list")
+        )
     bpmn_xml = SpecFileService.get_data(process_model, current_file_name)
     return render_template(
         "process_model_show.html",
@@ -76,7 +82,7 @@ def process_model_show(process_model_id):
 @admin_blueprint.route(
     "/process-models/<process_model_id>/<file_name>", methods=["GET"]
 )
-def process_model_show_file(process_model_id, file_name):
+def process_model_show_file(process_model_id: str, file_name: str) -> str:
     """Process_model_show_file."""
     process_model = ProcessModelService().get_process_model(process_model_id)
     bpmn_xml = SpecFileService.get_data(process_model, file_name)
@@ -93,7 +99,7 @@ def process_model_show_file(process_model_id, file_name):
 @admin_blueprint.route(
     "/process-models/<process_model_id>/upload-file", methods=["POST"]
 )
-def process_model_upload_file(process_model_id):
+def process_model_upload_file(process_model_id: str) -> Response:
     """Process_model_upload_file."""
     process_model_service = ProcessModelService()
     process_model = process_model_service.get_process_model(process_model_id)
@@ -103,13 +109,15 @@ def process_model_upload_file(process_model_id):
     request_file = request.files["file"]
     # If the user does not select a file, the browser submits an
     # empty file without a filename.
-    if request_file.filename == "":
+    if request_file.filename == "" or request_file.filename is None:
         flash("No selected file", "error")
-    if request_file and _allowed_file(request_file.filename):
-        SpecFileService.add_file(
-            process_model, request_file.filename, request_file.stream.read()
-        )
-        process_model_service.update_spec(process_model)
+    else:
+        if request_file and _allowed_file(request_file.filename):
+            if request_file.filename is not None:
+                SpecFileService.add_file(
+                    process_model, request_file.filename, request_file.stream.read()
+                )
+                process_model_service.update_spec(process_model)
 
     return redirect(
         url_for("admin.process_model_show", process_model_id=process_model.id)
@@ -119,7 +127,7 @@ def process_model_upload_file(process_model_id):
 @admin_blueprint.route(
     "/process_models/<process_model_id>/edit/<file_name>", methods=["GET"]
 )
-def process_model_edit(process_model_id, file_name):
+def process_model_edit(process_model_id: str, file_name: str) -> str:
     """Edit_bpmn."""
     process_model = ProcessModelService().get_process_model(process_model_id)
     bpmn_xml = SpecFileService.get_data(process_model, file_name)
@@ -135,10 +143,15 @@ def process_model_edit(process_model_id, file_name):
 @admin_blueprint.route(
     "/process-models/<process_model_id>/save/<file_name>", methods=["POST"]
 )
-def process_model_save(process_model_id, file_name):
+def process_model_save(process_model_id: str, file_name: str) -> Union[str, Response]:
     """Process_model_save."""
     process_model = ProcessModelService().get_process_model(process_model_id)
     SpecFileService.update_file(process_model, file_name, request.get_data())
+    if process_model.primary_file_name is None:
+        flash("No primary_file_name", "error")
+        return redirect(
+            url_for("admin.process_groups_list")
+        )
     bpmn_xml = SpecFileService.get_data(process_model, process_model.primary_file_name)
     return render_template(
         "process_model_edit.html",
@@ -149,7 +162,7 @@ def process_model_save(process_model_id, file_name):
 
 
 @admin_blueprint.route("/process-models/<process_model_id>/run", methods=["GET"])
-def process_model_run(process_model_id):
+def process_model_run(process_model_id: str) -> Union[str, Response]:
     """Process_model_run."""
     user = _find_or_create_user("Mr. Test")  # Fixme - sheesh!
     process_instance = ProcessInstanceService.create_process_instance(
@@ -162,7 +175,12 @@ def process_model_run(process_model_id):
     process_model = ProcessModelService().get_process_model(process_model_id)
     files = SpecFileService.get_files(process_model, extension_filter="bpmn")
     current_file_name = process_model.primary_file_name
-    bpmn_xml = SpecFileService.get_data(process_model, process_model.primary_file_name)
+    if current_file_name is None:
+        flash("No primary_file_name", "error")
+        return redirect(
+            url_for("admin.process_groups_list")
+        )
+    bpmn_xml = SpecFileService.get_data(process_model, current_file_name)
 
     return render_template(
         "process_model_show.html",
@@ -184,7 +202,7 @@ def _find_or_create_user(username: str = "test_user1") -> Any:
     return user
 
 
-def _allowed_file(filename):
+def _allowed_file(filename: str) -> bool:
     """_allowed_file."""
     return (
         "." in filename
