@@ -14,6 +14,6 @@ class PrincipalModel(SpiffworkflowBaseDBModel):
     __tablename__ = "principal"
     __table_args__ = (CheckConstraint("NOT(user_id IS NULL AND group_id IS NULL)"),)
 
-    id = db.Column(db.Integer, primary_key=True)  # type: ignore
-    user_id = db.Column(ForeignKey(UserModel.id), nullable=True)  # type: ignore
-    group_id = db.Column(ForeignKey(GroupModel.id), nullable=True)  # type: ignore
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(ForeignKey(UserModel.id), nullable=True)
+    group_id = db.Column(ForeignKey(GroupModel.id), nullable=True)

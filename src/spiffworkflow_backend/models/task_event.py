@@ -33,29 +33,29 @@ class TaskEventModel(SpiffworkflowBaseDBModel):
     """TaskEventModel."""
 
     __tablename__ = "task_event"
-    id = db.Column(db.Integer, primary_key=True)  # type: ignore
-    user_uid = db.Column(  # type: ignore
-        db.String(50), nullable=False  # type: ignore
+    id = db.Column(db.Integer, primary_key=True)
+    user_uid = db.Column(
+        db.String(50), nullable=False
     )  # In some cases the unique user id may not exist in the db yet.
-    process_instance_id = db.Column(  # type: ignore
-        db.Integer, db.ForeignKey("process_instance.id"), nullable=False  # type: ignore
+    process_instance_id = db.Column(
+        db.Integer, db.ForeignKey("process_instance.id"), nullable=False
     )
-    spec_version = db.Column(db.String(50))  # type: ignore
-    action = db.Column(db.String(50))  # type: ignore
-    task_id = db.Column(db.String(50))  # type: ignore
-    task_name = db.Column(db.String(50))  # type: ignore
-    task_title = db.Column(db.String(50))  # type: ignore
-    task_type = db.Column(db.String(50))  # type: ignore
-    task_state = db.Column(db.String(50))  # type: ignore
-    task_lane = db.Column(db.String(50))  # type: ignore
-    form_data = db.Column(  # type: ignore
-        db.JSON  # type: ignore
+    spec_version = db.Column(db.String(50))
+    action = db.Column(db.String(50))
+    task_id = db.Column(db.String(50))
+    task_name = db.Column(db.String(50))
+    task_title = db.Column(db.String(50))
+    task_type = db.Column(db.String(50))
+    task_state = db.Column(db.String(50))
+    task_lane = db.Column(db.String(50))
+    form_data = db.Column(
+        db.JSON
     )  # And form data submitted when the task was completed.
-    mi_type = db.Column(db.String(50))  # type: ignore
-    mi_count = db.Column(db.Integer)  # type: ignore
-    mi_index = db.Column(db.Integer)  # type: ignore
-    process_name = db.Column(db.String(50))  # type: ignore
-    date = db.Column(db.DateTime(timezone=True), default=func.now())  # type: ignore
+    mi_type = db.Column(db.String(50))
+    mi_count = db.Column(db.Integer)
+    mi_index = db.Column(db.Integer)
+    process_name = db.Column(db.String(50))
+    date = db.Column(db.DateTime(timezone=True), default=func.now())
 
 
 class TaskEventModelSchema(SQLAlchemyAutoSchema):

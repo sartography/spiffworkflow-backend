@@ -14,14 +14,14 @@ class ProcessInstanceReportModel(SpiffworkflowBaseDBModel):
     """ProcessInstanceReportModel."""
 
     __tablename__ = "process_instance_report"
-    id = db.Column(db.Integer, primary_key=True)  # type: ignore
-    process_model_identifier = db.Column(db.String(50), nullable=False, index=True)  # type: ignore
-    process_group_identifier = db.Column(db.String(50), nullable=False, index=True)  # type: ignore
+    id = db.Column(db.Integer, primary_key=True)
+    process_model_identifier = db.Column(db.String(50), nullable=False, index=True)
+    process_group_identifier = db.Column(db.String(50), nullable=False, index=True)
     report_json = deferred(db.Column(db.JSON))  # type: ignore
-    created_by_id = db.Column(ForeignKey(UserModel.id), nullable=False)  # type: ignore
+    created_by_id = db.Column(ForeignKey(UserModel.id), nullable=False)
     created_by = relationship("UserModel")
-    created_at_in_seconds = db.Column(db.Integer)  # type: ignore
-    updated_at_in_seconds = db.Column(db.Integer)  # type: ignore
+    created_at_in_seconds = db.Column(db.Integer)
+    updated_at_in_seconds = db.Column(db.Integer)
 
     @property
     def serialized(self) -> dict[str, Union[str, int]]:

@@ -80,18 +80,18 @@ class ProcessInstanceModel(SpiffworkflowBaseDBModel):
     """ProcessInstanceModel."""
 
     __tablename__ = "process_instance"
-    id: int = db.Column(db.Integer, primary_key=True)  # type: ignore
-    process_model_identifier: str = db.Column(db.String(50), nullable=False, index=True)  # type: ignore
-    process_group_identifier: str = db.Column(db.String(50), nullable=False, index=True)  # type: ignore
-    process_initiator_id: int = db.Column(ForeignKey(UserModel.id), nullable=False)  # type: ignore
+    id: int = db.Column(db.Integer, primary_key=True)
+    process_model_identifier: str = db.Column(db.String(50), nullable=False, index=True)
+    process_group_identifier: str = db.Column(db.String(50), nullable=False, index=True)
+    process_initiator_id: int = db.Column(ForeignKey(UserModel.id), nullable=False)
     process_initiator = relationship("UserModel")
 
     bpmn_json: str | None = deferred(db.Column(db.JSON))  # type: ignore
-    start_in_seconds: int | None = db.Column(db.Integer)  # type: ignore
-    end_in_seconds: int | None = db.Column(db.Integer)  # type: ignore
-    updated_at_in_seconds: int = db.Column(db.Integer)  # type: ignore
-    created_at_in_seconds: int = db.Column(db.Integer)  # type: ignore
-    status: str = db.Column(db.String(50))  # type: ignore
+    start_in_seconds: int | None = db.Column(db.Integer)
+    end_in_seconds: int | None = db.Column(db.Integer)
+    updated_at_in_seconds: int = db.Column(db.Integer)
+    created_at_in_seconds: int = db.Column(db.Integer)
+    status: str = db.Column(db.String(50))
 
     @property
     def serialized(self) -> dict[str, int | str | None]:

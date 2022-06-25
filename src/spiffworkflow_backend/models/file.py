@@ -19,25 +19,25 @@ class FileModel(SpiffworkflowBaseDBModel):
     """FileModel."""
 
     __tablename__ = "file"
-    id = db.Column(db.Integer, primary_key=True)  # type: ignore
-    name = db.Column(db.String(50), nullable=False)  # type: ignore
-    type = db.Column(db.String(50), nullable=False)  # type: ignore
-    content_type = db.Column(db.String(50), nullable=False)  # type: ignore
-    process_instance_id = db.Column(  # type: ignore
-        db.Integer, db.ForeignKey("process_instance.id"), nullable=True  # type: ignore
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)
+    type = db.Column(db.String(50), nullable=False)
+    content_type = db.Column(db.String(50), nullable=False)
+    process_instance_id = db.Column(
+        db.Integer, db.ForeignKey("process_instance.id"), nullable=True
     )
-    task_spec = db.Column(db.String(50), nullable=True)  # type: ignore
-    irb_doc_code = db.Column(  # type: ignore
-        db.String(50), nullable=False  # type: ignore
+    task_spec = db.Column(db.String(50), nullable=True)
+    irb_doc_code = db.Column(
+        db.String(50), nullable=False
     )  # Code reference to the documents.xlsx reference file.
     data_stores = relationship(DataStoreModel, cascade="all,delete", backref="file")
-    md5_hash = db.Column(db.String(50), unique=False, nullable=False)  # type: ignore
+    md5_hash = db.Column(db.String(50), unique=False, nullable=False)
     data = deferred(db.Column(db.LargeBinary))  # type: ignore
-    size = db.Column(db.Integer, default=0)  # type: ignore
-    updated_at_in_seconds = db.Column(db.Integer)  # type: ignore
-    created_at_in_seconds = db.Column(db.Integer)  # type: ignore
-    user_uid = db.Column(db.String(50), db.ForeignKey("user.uid"), nullable=True)  # type: ignore
-    archived = db.Column(db.Boolean, default=False)  # type: ignore
+    size = db.Column(db.Integer, default=0)
+    updated_at_in_seconds = db.Column(db.Integer)
+    created_at_in_seconds = db.Column(db.Integer)
+    user_uid = db.Column(db.String(50), db.ForeignKey("user.uid"), nullable=True)
+    archived = db.Column(db.Boolean, default=False)
 
 
 class FileType(SpiffEnum):
