@@ -821,7 +821,9 @@ def test_process_instance_report_with_default_list(
     assert process_instance_dict["status"] == "not_started"
 
 
-def setup_testing_instance(client: FlaskClient, process_group_id: str, process_model_id: str, user: UserModel) -> Any:
+def setup_testing_instance(
+    client: FlaskClient, process_group_id: str, process_model_id: str, user: UserModel
+) -> Any:
     """Setup_testing_instance."""
     headers = logged_in_headers(user)
     response = create_process_instance(

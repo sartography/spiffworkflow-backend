@@ -1,5 +1,7 @@
 """Error_handling_service."""
-from typing import Any, List, Union
+from typing import Any
+from typing import List
+from typing import Union
 
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
@@ -64,7 +66,11 @@ class ErrorHandlingService:
         ...
 
     @staticmethod
-    def handle_email_notification(processor: ProcessInstanceProcessor, error: Union[ApiError, Exception], recipients: List) ->None:
+    def handle_email_notification(
+        processor: ProcessInstanceProcessor,
+        error: Union[ApiError, Exception],
+        recipients: List,
+    ) -> None:
         """EmailHandler."""
         subject = "Unexpected error in app"
         if isinstance(error, ApiError):
