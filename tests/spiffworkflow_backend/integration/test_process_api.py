@@ -2,16 +2,15 @@
 import io
 import json
 import time
+from typing import Any
 from typing import Dict
 from typing import Optional
-from typing import Union
 
 import pytest
 from flask.app import Flask
 from flask.testing import FlaskClient
 from flask_bpmn.models.db import db
-from flask_mail import Mail
-from tests.spiffworkflow_backend.helpers.test_data import find_or_create_user
+
 from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
 from tests.spiffworkflow_backend.helpers.test_data import logged_in_headers
 from werkzeug.test import TestResponse
@@ -19,6 +18,7 @@ from werkzeug.test import TestResponse
 from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
     ProcessEntityNotFoundError,
 )
+from spiffworkflow_backend.helpers.fixture_data import find_or_create_user
 from spiffworkflow_backend.models.process_group import ProcessGroup
 from spiffworkflow_backend.models.process_group import ProcessGroupSchema
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
@@ -235,6 +235,7 @@ def test_process_group_add(
 
     # Check what is returned
     result = ProcessGroupSchema().loads(response.get_data(as_text=True))
+    assert result is not None
     assert result.display_name == "Another Test Category"
     assert result.id == "test"
 
@@ -263,8 +264,8 @@ def test_process_group_delete(
         f"/v1.0/process-groups/{process_group_id}", headers=logged_in_headers(user)
     )
 
-    deleted = ProcessModelService().get_process_group(process_group_id)
-    assert deleted is None
+    with pytest.raises(ProcessEntityNotFoundError):
+        ProcessModelService().get_process_group(process_group_id)
 
 
 def test_process_group_update(
@@ -548,9 +549,9 @@ def test_get_process_model_when_not_found(
     """Test_get_process_model_when_not_found."""
     user = find_or_create_user()
     process_model_dir_name = "THIS_NO_EXISTS"
-    group = create_process_group(client, user, "my_group")
+    group_id = create_process_group(client, user, "my_group")
     response = client.get(
-        f"/v1.0/process-models/{group.json['id']}/{process_model_dir_name}",
+        f"/v1.0/process-models/{group_id}/{process_model_dir_name}",
         headers=logged_in_headers(user),
     )
     assert response.status_code == 400
@@ -577,7 +578,7 @@ def test_process_instance_create(
 
 def test_process_instance_run(
     app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
-):
+) -> None:
     """Test_process_instance_run."""
     process_group_id = "runs_without_input"
     process_model_id = "sample"
@@ -586,12 +587,14 @@ def test_process_instance_run(
     response = create_process_instance(
         client, process_group_id, process_model_id, headers
     )
+    assert response.json is not None
     process_instance_id = response.json["id"]
     response = client.post(
         f"/v1.0/process-models/{process_group_id}/{process_model_id}/process-instances/{process_instance_id}/run",
         headers=logged_in_headers(user),
     )
 
+    assert response.json is not None
     assert type(response.json["updated_at_in_seconds"]) is int
     assert response.json["updated_at_in_seconds"] > 0
     assert response.json["status"] == "complete"
@@ -929,7 +932,7 @@ def test_process_model_file_create(
     assert result["process_group_id"] == process_group_id
     assert result["process_model_id"] == process_model_id
     assert result["name"] == file_name
-    assert bytes(result["file_contents"], "utf-8") == file_data
+    assert bytes(str(result["file_contents"]), "utf-8") == file_data
 
 
 def create_process_instance(
@@ -950,14 +953,14 @@ def create_process_instance(
 
 def create_process_model(
     client: FlaskClient,
-    process_group_id=None,
-    process_model_id: str = None,
-    process_model_display_name: str = None,
-    process_model_description: str = None,
-    fault_or_suspend_on_exception: NotificationType = None,
-    exception_notification_addresses: list = None,
+    process_group_id: Optional[str] = None,
+    process_model_id: Optional[str] = None,
+    process_model_display_name: Optional[str] = None,
+    process_model_description: Optional[str] = None,
+    fault_or_suspend_on_exception: Optional[str] = None,
+    exception_notification_addresses: Optional[list] = None,
     primary_process_id: str = None,
-    primary_file_name: str = None
+    primary_file_name: str = None,
 ) -> TestResponse:
     """Create_process_model."""
     process_model_service = ProcessModelService()
@@ -978,7 +981,7 @@ def create_process_model(
     if process_model_description is None:
         process_model_description = "Om nom nom delicious cookies"
     if fault_or_suspend_on_exception is None:
-        fault_or_suspend_on_exception = NotificationType.suspend
+        fault_or_suspend_on_exception = NotificationType.suspend.value
     if exception_notification_addresses is None:
         exception_notification_addresses = []
     if primary_process_id is None:
@@ -1013,19 +1016,19 @@ def create_process_model(
 
 def create_spec_file(
     client: FlaskClient,
-    process_group_id: str = None,
-    process_model_id: str = None,
-    file_name: str = None,
-    file_data: bytes = None,
-) -> Dict[str, Optional[Union[str, bool, int]]]:
+    process_group_id: str = "",
+    process_model_id: str = "",
+    file_name: str = "",
+    file_data: bytes = b"",
+) -> Any:
     """Test_create_spec_file."""
-    if process_group_id is None:
+    if process_group_id == "":
         process_group_id = "random_fact"
-    if process_model_id is None:
+    if process_model_id == "":
         process_model_id = "random_fact"
-    if file_name is None:
+    if file_name == "":
         file_name = "random_fact.svg"
-    if file_data is None:
+    if file_data == b"":
         file_data = b"abcdef"
     spec = load_test_spec(process_model_id, process_group_id=process_group_id)
     data = {"file": (io.BytesIO(file_data), file_name)}
@@ -1053,7 +1056,9 @@ def create_spec_file(
     return file
 
 
-def create_process_group(client, user, process_group_id, display_name=""):
+def create_process_group(
+    client: FlaskClient, user: Any, process_group_id: str, display_name: str = ""
+) -> str:
     """Create_process_group."""
     process_group = ProcessGroup(
         id=process_group_id, display_name=display_name, display_order=0, admin=False
@@ -1065,8 +1070,9 @@ def create_process_group(client, user, process_group_id, display_name=""):
         data=json.dumps(ProcessGroupSchema().dump(process_group)),
     )
     assert response.status_code == 201
+    assert response.json is not None
     assert response.json["id"] == process_group_id
-    return response
+    return process_group_id
 
 
 # def test_get_process_model(self):

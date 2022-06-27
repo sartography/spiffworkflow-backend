@@ -39,7 +39,7 @@ Spiffworkflow Backend
 Features
 --------
 
-* TODO
+* Backend API portion of the spiffworkflow engine webapp
 
 
 Requirements

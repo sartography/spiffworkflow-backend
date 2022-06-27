@@ -40,7 +40,7 @@ class ProcessModelInfo:
     display_order: int | None = 0
     is_review: bool = False
     files: list[File] | None = field(default_factory=list[File])
-    fault_or_suspend_on_exception: NotificationType = NotificationType.fault.value
+    fault_or_suspend_on_exception: str = NotificationType.fault.value
     exception_notification_addresses: list[str] = field(default_factory=list)
 
     def __post_init__(self) -> None:

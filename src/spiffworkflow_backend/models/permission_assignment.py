@@ -29,10 +29,10 @@ class PermissionAssignmentModel(SpiffworkflowBaseDBModel):
     """PermissionAssignmentModel."""
 
     __tablename__ = "permission_assignment"
-    id = db.Column(db.Integer, primary_key=True)  # type: ignore
-    principal_id = db.Column(ForeignKey(PrincipalModel.id), nullable=False)  # type: ignore
-    permission_target_id = db.Column(  # type: ignore
+    id = db.Column(db.Integer, primary_key=True)
+    principal_id = db.Column(ForeignKey(PrincipalModel.id), nullable=False)
+    permission_target_id = db.Column(
         ForeignKey(PermissionTargetModel.id), nullable=False
     )
-    grant_type = db.Column(Enum(GrantDeny))  # type: ignore
-    permission = db.Column(Enum(Permission))  # type: ignore
+    grant_type = db.Column(Enum(GrantDeny))
+    permission = db.Column(Enum(Permission))

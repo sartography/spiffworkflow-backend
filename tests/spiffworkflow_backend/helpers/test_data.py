@@ -1,9 +1,7 @@
 """User."""
-from typing import Any
 from typing import Dict
 from typing import Optional
 
-from flask_bpmn.models.db import db
 from tests.spiffworkflow_backend.helpers.example_data import ExampleDataLoader
 
 from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
@@ -15,23 +13,16 @@ from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 
 
-def find_or_create_user(username: str = "test_user1") -> Any:
-    """Find_or_create_user."""
-    user = UserModel.query.filter_by(username=username).first()
-    if user is None:
-        user = UserModel(username=username)
-        db.session.add(user)
-        db.session.commit()
-
-    return user
-
-
 def assure_process_group_exists(process_group_id: Optional[str] = None) -> ProcessGroup:
     """Assure_process_group_exists."""
     process_group = None
     workflow_spec_service = ProcessModelService()
     if process_group_id is not None:
-        process_group = workflow_spec_service.get_process_group(process_group_id)
+        try:
+            process_group = workflow_spec_service.get_process_group(process_group_id)
+        except ProcessEntityNotFoundError:
+            process_group = None
+
     if process_group is None:
         process_group_id_to_create = "test_process_group"
         if process_group_id is not None:

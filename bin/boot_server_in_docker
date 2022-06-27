@@ -10,7 +10,7 @@ set -o errtrace -o errexit -o nounset -o pipefail
 # run migrations
 export FLASK_APP=/app/src/spiffworkflow_backend
 
-if [ "${DOWNGRADE_DB:-}" = "true" ]; then
+if [[ "${DOWNGRADE_DB:-}" == "true" ]]; then
   echo 'Downgrading database...'
   poetry run flask db downgrade
 fi
@@ -32,4 +32,4 @@ if [[ "${APPLICATION_ROOT:-}" != "/" ]]; then
 fi
 
 # THIS MUST BE THE LAST COMMAND!
-exec poetry run gunicorn ${additional_args} --bind "0.0.0.0:$SPIFFWORKFLOW_BACKEND_PORT" --workers=3 --timeout 90 --log-level debug wsgi:app
+exec poetry run gunicorn ${additional_args} --bind "0.0.0.0:$port" --workers=3 --timeout 90 --log-level debug wsgi:app
