@@ -1,11 +1,13 @@
 """Error_handling_service."""
 from typing import Union
 
+from flask import current_app
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
 
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 from spiffworkflow_backend.models.process_instance import ProcessInstanceStatus
+from spiffworkflow_backend.services.email_service import EmailService
 from spiffworkflow_backend.services.process_instance_processor import (
     ProcessInstanceProcessor,
 )
@@ -50,29 +52,46 @@ class ErrorHandlingService:
         if len(process_model.exception_notification_addresses) > 0:
             try:
                 # some notification method (waku?)
-                ...
+                self.handle_email_notification(_processor, _error, process_model.exception_notification_addresses)
             except Exception as e:
                 # hmm... what to do if a notification method fails. Probably log, at least
                 print(e)
         print(f"handle_error: {_error}")
 
 
-class SentryHandler:
-    """SentryHandler."""
+    @staticmethod
+    def hanle_sentry_notification(_error, _recipients):
+        """SentryHandler."""
 
-    ...
-
-
-class EmailHandler:
-    """EmailHandler."""
-
-    ...
+        ...
 
 
-class WakuHandler:
-    """WakuHandler."""
+    @staticmethod
+    def handle_email_notification(processor, error, recipients):
+        """EmailHandler."""
 
-    ...
+        subject = f"Unexpected error in app"
+        content = f"{error.message}"
+        content_html = content
+
+        EmailService.add_email(
+            subject,
+            'sender@company.com',
+            recipients,
+            content,
+            content_html,
+            cc=None,
+            bcc=None,
+            reply_to=None,
+            attachment_files=None
+        )
+
+
+    @staticmethod
+    def handle_waku_notification(_error, _recipients):
+        """WakuHandler."""
+
+        ...
 
 
 class FailingService:
