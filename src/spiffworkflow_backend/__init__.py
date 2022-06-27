@@ -7,6 +7,8 @@ from flask_bpmn.api.api_error import api_error_blueprint
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import migrate
 from flask_cors import CORS  # type: ignore
+from flask_mail import Mail
+
 
 import spiffworkflow_backend.load_database_models  # noqa: F401
 from spiffworkflow_backend.config import setup_config
@@ -54,5 +56,8 @@ def create_app() -> flask.app.Flask:
     CORS(app, origins=origins_re)
 
     connexion_app.add_api("api.yml", base_path="/v1.0")
+
+    mail = Mail(app)
+    app.config["MAIL_APP"] = mail
 
     return app  # type: ignore
