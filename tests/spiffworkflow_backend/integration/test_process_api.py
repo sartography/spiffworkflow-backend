@@ -849,6 +849,7 @@ def test_error_handler(
     process_instance_id = setup_testing_instance(
         client, process_group_id, process_model_id, user
     )
+
     process = (
         db.session.query(ProcessInstanceModel)
         .filter(ProcessInstanceModel.id == process_instance_id)
@@ -878,6 +879,44 @@ def test_error_handler(
         .first()
     )
     assert process.status == "faulted"
+
+
+def test_error_handler_suspend(
+    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+) -> None:
+    db.session.query(ProcessInstanceModel).delete()
+    db.session.commit()
+
+    process_group_id = "data"
+    process_model_id = "error"
+    user = find_or_create_user()
+
+    process_instance_id = setup_testing_instance(
+        client, process_group_id, process_model_id, user
+    )
+    process_model = ProcessModelService().get_process_model(process_model_id, process_group_id)
+    process_model.fault_or_suspend_on_exception = NotificationType.suspend.value
+    ProcessModelService().update_spec(process_model)
+
+    process = (
+        db.session.query(ProcessInstanceModel)
+        .filter(ProcessInstanceModel.id == process_instance_id)
+        .first()
+    )
+    assert process.status == "not_started"
+
+    response = client.post(
+        f"/v1.0/process-models/{process_group_id}/{process_model_id}/process-instances/{process_instance_id}/run",
+        headers=logged_in_headers(user),
+    )
+    assert response.status_code == 400
+
+    process = (
+        db.session.query(ProcessInstanceModel)
+        .filter(ProcessInstanceModel.id == process_instance_id)
+        .first()
+    )
+    assert process.status == "suspended"
 
 
 def test_error_handler_with_email(
