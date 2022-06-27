@@ -884,6 +884,7 @@ def test_error_handler(
 def test_error_handler_suspend(
     app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
+    """Test_error_handler_suspend."""
     db.session.query(ProcessInstanceModel).delete()
     db.session.commit()
 
@@ -894,7 +895,9 @@ def test_error_handler_suspend(
     process_instance_id = setup_testing_instance(
         client, process_group_id, process_model_id, user
     )
-    process_model = ProcessModelService().get_process_model(process_model_id, process_group_id)
+    process_model = ProcessModelService().get_process_model(
+        process_model_id, process_group_id
+    )
     process_model.fault_or_suspend_on_exception = NotificationType.suspend.value
     ProcessModelService().update_spec(process_model)
 
