@@ -10,7 +10,6 @@ import pytest
 from flask.app import Flask
 from flask.testing import FlaskClient
 from flask_bpmn.models.db import db
-
 from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
 from tests.spiffworkflow_backend.helpers.test_data import logged_in_headers
 from werkzeug.test import TestResponse
@@ -822,7 +821,7 @@ def test_process_instance_report_with_default_list(
 
 
 def setup_testing_instance(client, process_group_id, process_model_id, user):
-
+    """Setup_testing_instance."""
     headers = logged_in_headers(user)
     response = create_process_instance(
         client, process_group_id, process_model_id, headers
@@ -842,7 +841,9 @@ def test_error_handler(
     process_model_id = "error"
     user = find_or_create_user()
 
-    process_instance_id = setup_testing_instance(client, process_group_id, process_model_id, user)
+    process_instance_id = setup_testing_instance(
+        client, process_group_id, process_model_id, user
+    )
     process = (
         db.session.query(ProcessInstanceModel)
         .filter(ProcessInstanceModel.id == process_instance_id)
@@ -885,10 +886,16 @@ def test_error_handler_with_email(
     process_model_id = "error"
     user = find_or_create_user()
 
-    process_instance_id = setup_testing_instance(client, process_group_id, process_model_id, user)
+    process_instance_id = setup_testing_instance(
+        client, process_group_id, process_model_id, user
+    )
 
-    process_model = ProcessModelService().get_process_model(process_model_id, process_group_id)
-    process_model.exception_notification_addresses = ['user@example.com',]
+    process_model = ProcessModelService().get_process_model(
+        process_model_id, process_group_id
+    )
+    process_model.exception_notification_addresses = [
+        "user@example.com",
+    ]
     ProcessModelService().update_spec(process_model)
 
     mail = app.config["MAIL_APP"]
@@ -901,8 +908,11 @@ def test_error_handler_with_email(
         assert response.status_code == 400
         assert len(outbox) == 1
         message = outbox[0]
-        assert message.subject == 'Unexpected error in app'
-        assert message.body == 'Activity_CauseError: TypeError:can only concatenate str (not "int") to str'
+        assert message.subject == "Unexpected error in app"
+        assert (
+            message.body
+            == 'Activity_CauseError: TypeError:can only concatenate str (not "int") to str'
+        )
         assert message.recipients == process_model.exception_notification_addresses
 
     process = (
@@ -985,9 +995,9 @@ def create_process_model(
     if exception_notification_addresses is None:
         exception_notification_addresses = []
     if primary_process_id is None:
-        primary_process_id = ''
+        primary_process_id = ""
     if primary_file_name is None:
-        primary_file_name = ''
+        primary_file_name = ""
     model = ProcessModelInfo(
         id=process_model_id,
         display_name=process_model_display_name,
