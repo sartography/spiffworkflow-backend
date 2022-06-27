@@ -25,6 +25,7 @@ from spiffworkflow_backend.models.process_instance import ProcessInstanceStatus
 from spiffworkflow_backend.models.process_model import NotificationType
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
+from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 
 
@@ -820,13 +821,15 @@ def test_process_instance_report_with_default_list(
     assert process_instance_dict["status"] == "not_started"
 
 
-def setup_testing_instance(client, process_group_id, process_model_id, user):
+def setup_testing_instance(client: FlaskClient, process_group_id: str, process_model_id: str, user: UserModel) -> Any:
     """Setup_testing_instance."""
     headers = logged_in_headers(user)
     response = create_process_instance(
         client, process_group_id, process_model_id, headers
     )
-    process_instance_id = response.json["id"]
+    process_instance = response.json
+    assert isinstance(process_instance, dict)
+    process_instance_id = process_instance["id"]
     return process_instance_id
 
 
@@ -969,8 +972,8 @@ def create_process_model(
     process_model_description: Optional[str] = None,
     fault_or_suspend_on_exception: Optional[str] = None,
     exception_notification_addresses: Optional[list] = None,
-    primary_process_id: str = None,
-    primary_file_name: str = None,
+    primary_process_id: Optional[str] = None,
+    primary_file_name: Optional[str] = None,
 ) -> TestResponse:
     """Create_process_model."""
     process_model_service = ProcessModelService()

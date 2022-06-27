@@ -1,5 +1,5 @@
 """Error_handling_service."""
-from typing import Union
+from typing import Any, List, Union
 
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
@@ -59,15 +59,18 @@ class ErrorHandlingService:
         print(f"handle_error: {_error}")
 
     @staticmethod
-    def hanle_sentry_notification(_error, _recipients):
+    def hanle_sentry_notification(_error: ApiError, _recipients: List) -> None:
         """SentryHandler."""
         ...
 
     @staticmethod
-    def handle_email_notification(processor, error, recipients):
+    def handle_email_notification(processor: ProcessInstanceProcessor, error: Union[ApiError, Exception], recipients: List) ->None:
         """EmailHandler."""
         subject = "Unexpected error in app"
-        content = f"{error.message}"
+        if isinstance(error, ApiError):
+            content = f"{error.message}"
+        else:
+            content = str(error)
         content_html = content
 
         EmailService.add_email(
@@ -83,7 +86,7 @@ class ErrorHandlingService:
         )
 
     @staticmethod
-    def handle_waku_notification(_error, _recipients):
+    def handle_waku_notification(_error: ApiError, _recipients: List) -> Any:
         """WakuHandler."""
         ...
 

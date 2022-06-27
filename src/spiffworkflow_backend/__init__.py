@@ -7,7 +7,7 @@ from flask_bpmn.api.api_error import api_error_blueprint
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import migrate
 from flask_cors import CORS  # type: ignore
-from flask_mail import Mail
+from flask_mail import Mail  # type: ignore
 
 import spiffworkflow_backend.load_database_models  # noqa: F401
 from spiffworkflow_backend.config import setup_config
