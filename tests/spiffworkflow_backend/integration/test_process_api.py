@@ -10,6 +10,7 @@ import pytest
 from flask.app import Flask
 from flask.testing import FlaskClient
 from flask_bpmn.models.db import db
+from flask_mail import Mail
 from tests.spiffworkflow_backend.helpers.test_data import find_or_create_user
 from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
 from tests.spiffworkflow_backend.helpers.test_data import logged_in_headers
@@ -817,6 +818,16 @@ def test_process_instance_report_with_default_list(
     assert process_instance_dict["status"] == "not_started"
 
 
+def setup_testing_instance(client, process_group_id, process_model_id, user):
+
+    headers = logged_in_headers(user)
+    response = create_process_instance(
+        client, process_group_id, process_model_id, headers
+    )
+    process_instance_id = response.json["id"]
+    return process_instance_id
+
+
 def test_error_handler(
     app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
@@ -826,13 +837,9 @@ def test_error_handler(
 
     process_group_id = "data"
     process_model_id = "error"
-
     user = find_or_create_user()
-    headers = logged_in_headers(user)
-    response = create_process_instance(
-        client, process_group_id, process_model_id, headers
-    )
-    process_instance_id = response.json["id"]
+
+    process_instance_id = setup_testing_instance(client, process_group_id, process_model_id, user)
     process = (
         db.session.query(ProcessInstanceModel)
         .filter(ProcessInstanceModel.id == process_instance_id)
@@ -855,6 +862,45 @@ def test_error_handler(
     )
     assert "Error in task 'Cause Error' (Activity_CauseError)." in api_error["message"]
     assert "Error is on line 1. In file error.bpmn." in api_error["message"]
+
+    process = (
+        db.session.query(ProcessInstanceModel)
+        .filter(ProcessInstanceModel.id == process_instance_id)
+        .first()
+    )
+    assert process.status == "faulted"
+
+
+def test_error_handler_with_email(
+    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+) -> None:
+    """Test_error_handler."""
+    db.session.query(ProcessInstanceModel).delete()
+    db.session.commit()
+
+    process_group_id = "data"
+    process_model_id = "error"
+    user = find_or_create_user()
+
+    process_instance_id = setup_testing_instance(client, process_group_id, process_model_id, user)
+
+    process_model = ProcessModelService().get_process_model(process_model_id, process_group_id)
+    process_model.exception_notification_addresses = ['user@example.com',]
+    ProcessModelService().update_spec(process_model)
+
+    mail = app.config["MAIL_APP"]
+    with mail.record_messages() as outbox:
+
+        response = client.post(
+            f"/v1.0/process-models/{process_group_id}/{process_model_id}/process-instances/{process_instance_id}/run",
+            headers=logged_in_headers(user),
+        )
+        assert response.status_code == 400
+        assert len(outbox) == 1
+        message = outbox[0]
+        assert message.subject == 'Unexpected error in app'
+        assert message.body == 'Activity_CauseError: TypeError:can only concatenate str (not "int") to str'
+        assert message.recipients == process_model.exception_notification_addresses
 
     process = (
         db.session.query(ProcessInstanceModel)
@@ -910,6 +956,8 @@ def create_process_model(
     process_model_description: str = None,
     fault_or_suspend_on_exception: NotificationType = None,
     exception_notification_addresses: list = None,
+    primary_process_id: str = None,
+    primary_file_name: str = None
 ) -> TestResponse:
     """Create_process_model."""
     process_model_service = ProcessModelService()
@@ -933,6 +981,10 @@ def create_process_model(
         fault_or_suspend_on_exception = NotificationType.suspend
     if exception_notification_addresses is None:
         exception_notification_addresses = []
+    if primary_process_id is None:
+        primary_process_id = ''
+    if primary_file_name is None:
+        primary_file_name = ''
     model = ProcessModelInfo(
         id=process_model_id,
         display_name=process_model_display_name,
@@ -943,8 +995,8 @@ def create_process_model(
         is_master_spec=False,
         libraries=[],
         library=False,
-        primary_process_id="",
-        primary_file_name="",
+        primary_process_id=primary_process_id,
+        primary_file_name=primary_file_name,
         fault_or_suspend_on_exception=fault_or_suspend_on_exception,
         exception_notification_addresses=exception_notification_addresses,
     )
