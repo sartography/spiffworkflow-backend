@@ -19,4 +19,8 @@ fi
 export FLASK_SESSION_SECRET_KEY=super_secret_key
 export APPLICATION_ROOT="/"
 
-./bin/boot_server_in_docker
+if [[ -n "${SPIFFWORKFLOW_BACKEND_LOAD_FIXTURE_DATA:-}" ]]; then
+  ./bin/boot_server_in_docker
+else
+  FLASK_APP=src/spiffworkflow_backend poetry run flask run -p 7000
+fi
