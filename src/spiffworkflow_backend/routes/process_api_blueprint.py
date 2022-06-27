@@ -376,7 +376,7 @@ def process_instance_list(
 
 
 def process_instance_delete(
-    _process_group_id: str, _process_model_id: str, process_instance_id: int
+    process_group_id: str, process_model_id: str, process_instance_id: int
 ) -> flask.wrappers.Response:
     """Create_process_instance."""
     process_instance = ProcessInstanceModel.query.filter_by(
