@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: ae997451b037
+Revision ID: 86938cb17c3d
 Revises: 
-Create Date: 2022-06-24 13:47:56.423142
+Create Date: 2022-06-28 14:21:54.294238
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'ae997451b037'
+revision = '86938cb17c3d'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -88,6 +88,19 @@ def upgrade():
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('user_id', 'group_id', name='user_group_assignment_unique')
     )
+    op.create_table('active_task',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('task_id', sa.String(length=50), nullable=False),
+    sa.Column('process_instance_id', sa.Integer(), nullable=False),
+    sa.Column('assigned_principal_id', sa.Integer(), nullable=True),
+    sa.Column('task_data', sa.Text(), nullable=True),
+    sa.Column('status', sa.String(length=50), nullable=False),
+    sa.Column('updated_at_in_seconds', sa.Integer(), nullable=True),
+    sa.Column('created_at_in_seconds', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['assigned_principal_id'], ['principal.id'], ),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('task_id', 'process_instance_id', name='active_task_unique')
+    )
     op.create_table('file',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=50), nullable=False),
@@ -149,6 +162,7 @@ def downgrade():
     op.drop_table('data_store')
     op.drop_table('task_event')
     op.drop_table('file')
+    op.drop_table('active_task')
     op.drop_table('user_group_assignment')
     op.drop_index(op.f('ix_process_instance_report_process_model_identifier'), table_name='process_instance_report')
     op.drop_index(op.f('ix_process_instance_report_process_group_identifier'), table_name='process_instance_report')
