@@ -16,6 +16,7 @@ from flask_bpmn.models.db import db
 from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
     ProcessEntityNotFoundError,
 )
+from spiffworkflow_backend.models.active_task import ActiveTaskModel
 from spiffworkflow_backend.models.file import FileSchema
 from spiffworkflow_backend.models.file import FileType
 from spiffworkflow_backend.models.principal import PrincipalModel
@@ -428,6 +429,35 @@ def process_instance_report(
         },
     }
     return Response(json.dumps(response_json), status=200, mimetype="application/json")
+
+
+def task_list_my_tasks(page: int = 1, per_page: int = 100) -> flask.wrappers.Response:
+    """Task_list_my_tasks."""
+    principal = PrincipalModel.query.filter_by(user_id=g.user.id).first()
+    if principal is None:
+        raise (
+            ApiError(
+                code="principal_not_found",
+                message=f"Principal not found from user id: {g.user.id}",
+                status_code=400,
+            )
+        )
+
+    active_tasks = (
+        ActiveTaskModel.query.filter_by(assigned_principal_id=principal.id)
+        .order_by(ActiveTaskModel.id.desc())
+        .paginate(page, per_page, False)
+    )
+
+    response_json = {
+        "results": active_tasks.items,
+        "pagination": {
+            "count": len(active_tasks.items),
+            "total": active_tasks.total,
+            "pages": active_tasks.pages,
+        },
+    }
+    return response_json
 
 
 def get_file_from_request() -> Any:

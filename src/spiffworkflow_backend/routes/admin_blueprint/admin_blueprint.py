@@ -12,6 +12,7 @@ from flask import url_for
 from flask_bpmn.models.db import db
 from werkzeug.wrappers.response import Response
 
+from spiffworkflow_backend.models.principal import PrincipalModel
 from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.services.process_instance_processor import (
     ProcessInstanceProcessor,
@@ -39,6 +40,12 @@ def token() -> str:
     if user is None:
         user = UserModel(username="test_user1")
         db.session.add(user)
+        db.session.commit()
+
+    principal = PrincipalModel.query.filter_by(user_id=user.id).first()
+    if principal is None:
+        principal = PrincipalModel(user_id=user.id)
+        db.session.add(principal)
         db.session.commit()
 
     auth_token = user.encode_auth_token()
