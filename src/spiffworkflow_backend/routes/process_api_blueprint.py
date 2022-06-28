@@ -460,6 +460,30 @@ def task_list_my_tasks(page: int = 1, per_page: int = 100) -> flask.wrappers.Res
     return response_json
 
 
+def task_show(task_id: int) -> flask.wrappers.Response:
+    """Task_list_my_tasks."""
+    principal = PrincipalModel.query.filter_by(user_id=g.user.id).first()
+    if principal is None:
+        raise (
+            ApiError(
+                code="principal_not_found",
+                message=f"Principal not found from user id: {g.user.id}",
+                status_code=400,
+            )
+        )
+    active_task_assigned_to_me = ActiveTaskModel.query.filter_by(id=task_id, assigned_principal_id=principal.id).first()
+    if active_task_assigned_to_me is None:
+        raise (
+            ApiError(
+                code="task_not_found",
+                message=f"Task not found for principal user: {g.user.id} and id: {task_id}",
+                status_code=400,
+            )
+        )
+
+    return active_task_assigned_to_me
+
+
 def get_file_from_request() -> Any:
     """Get_file_from_request."""
     request_file = connexion.request.files.get("file")
