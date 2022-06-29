@@ -623,9 +623,11 @@ def test_process_instance_run_user_task_creates_task_event(
     )
 
     assert response.json is not None
-    task_events = db.session.query(TaskEventModel)\
-        .filter(TaskEventModel.process_instance_id == process_instance_id)\
+    task_events = (
+        db.session.query(TaskEventModel)
+        .filter(TaskEventModel.process_instance_id == process_instance_id)
         .all()
+    )
     assert len(task_events) == 1
     task_event = task_events[0]
     assert task_event.user_id == user.id
