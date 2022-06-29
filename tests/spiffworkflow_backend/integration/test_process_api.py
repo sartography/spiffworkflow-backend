@@ -25,7 +25,6 @@ from spiffworkflow_backend.models.process_instance import ProcessInstanceStatus
 from spiffworkflow_backend.models.process_model import NotificationType
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
-from spiffworkflow_backend.models.task_event import TaskEventModel
 from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 
@@ -605,9 +604,9 @@ def test_process_instance_run(
 def test_process_instance_run_user_task(
     app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
-
-    process_group_id = 'my_process_group'
-    process_model_id = 'user_task'
+    """Test_process_instance_run_user_task."""
+    process_group_id = "my_process_group"
+    process_model_id = "user_task"
 
     user = find_or_create_user()
     headers = logged_in_headers(user)
@@ -624,7 +623,7 @@ def test_process_instance_run_user_task(
 
     assert response.json is not None
 
-    print(f'test_process_instance_run_user_task: {process_instance_id}')
+    print(f"test_process_instance_run_user_task: {process_instance_id}")
 
 
 def test_process_instance_list_with_default_list(

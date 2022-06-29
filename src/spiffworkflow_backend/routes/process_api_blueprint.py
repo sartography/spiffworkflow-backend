@@ -472,7 +472,9 @@ def task_show(task_id: int) -> flask.wrappers.Response:
                 status_code=400,
             )
         )
-    active_task_assigned_to_me = ActiveTaskModel.query.filter_by(id=task_id, assigned_principal_id=principal.id).first()
+    active_task_assigned_to_me = ActiveTaskModel.query.filter_by(
+        id=task_id, assigned_principal_id=principal.id
+    ).first()
     if active_task_assigned_to_me is None:
         raise (
             ApiError(
