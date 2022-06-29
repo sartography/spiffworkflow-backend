@@ -170,9 +170,9 @@ class ProcessInstanceService:
 
     @staticmethod
     def update_task_assignments(processor):
-        """For every upcoming user task, log a task action
-        that connects the assigned user(s) to that task.  All
-        existing assignment actions for this workflow are removed from the database,
+        """For every upcoming user task, log a task action that connects the assigned user(s) to that task.
+
+        All existing assignment actions for this workflow are removed from the database,
         so that only the current valid actions are available. update_task_assignments
         should be called whenever progress is made on a workflow.
         """
@@ -300,9 +300,7 @@ class ProcessInstanceService:
 
     @staticmethod
     def extract_form_data(latest_data, task):
-        """Extracts data from the latest_data that is directly related to the form that is being
-        submitted.
-        """
+        """Extracts data from the latest_data that is directly related to the form that is being submitted."""
         data = {}
 
         if hasattr(task.task_spec, "form"):
