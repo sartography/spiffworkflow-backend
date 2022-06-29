@@ -198,11 +198,11 @@ class FormFieldSchema(Schema):
     )
 
 
-# class FormSchema(Schema):
-#     """FormSchema."""
-#
-#     key = marshmallow.fields.String(required=True, allow_none=False)
-#     fields = marshmallow.fields.List(marshmallow.fields.Nested(FormFieldSchema))
+class FormSchema(Schema):
+    """FormSchema."""
+
+    key = marshmallow.fields.String(required=True, allow_none=False)
+    fields = marshmallow.fields.List(marshmallow.fields.Nested(FormFieldSchema))
 
 
 class TaskSchema(Schema):
@@ -230,7 +230,7 @@ class TaskSchema(Schema):
 
     multi_instance_type = EnumField(MultiInstanceType)
     documentation = marshmallow.fields.String(required=False, allow_none=True)
-    # form = marshmallow.fields.Nested(FormSchema, required=False, allow_none=True)
+    form = marshmallow.fields.Nested(FormSchema, required=False, allow_none=True)
     title = marshmallow.fields.String(required=False, allow_none=True)
     process_name = marshmallow.fields.String(required=False, allow_none=True)
     lane = marshmallow.fields.String(required=False, allow_none=True)

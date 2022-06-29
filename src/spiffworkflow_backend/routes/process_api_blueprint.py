@@ -279,7 +279,7 @@ def process_instance_run(
     process_group_id: str,
     process_model_id: str,
     process_instance_id: int,
-    do_engine_steps: bool = False,
+    do_engine_steps: bool = True,
 ) -> flask.wrappers.Response:
     """Process_instance_run."""
     process_instance = ProcessInstanceService().get_process_instance(
@@ -287,19 +287,20 @@ def process_instance_run(
     )
     processor = ProcessInstanceProcessor(process_instance)
 
-    try:
-        processor.do_engine_steps()
-    except Exception as e:
-        ErrorHandlingService().handle_error(processor, e)
-        task = processor.bpmn_process_instance.last_task
-        raise ApiError.from_task(
-            code="unknown_exception",
-            message=f"An unknown error occurred. Original error: {e}",
-            status_code=400,
-            task=task,
-        ) from e
-    processor.save()
-    # ProcessInstanceService.update_task_assignments(processor)
+    if do_engine_steps:
+        try:
+            processor.do_engine_steps()
+        except Exception as e:
+            ErrorHandlingService().handle_error(processor, e)
+            task = processor.bpmn_process_instance.last_task
+            raise ApiError.from_task(
+                code="unknown_exception",
+                message=f"An unknown error occurred. Original error: {e}",
+                status_code=400,
+                task=task,
+            ) from e
+        processor.save()
+        ProcessInstanceService.update_task_assignments(processor)
 
     process_instance_api = ProcessInstanceService.processor_to_process_instance_api(
         processor
@@ -308,7 +309,7 @@ def process_instance_run(
     process_instance_metadata = ProcessInstanceApiSchema().dump(process_instance_api)
     process_instance_metadata["data"] = process_instance_data
     return Response(
-        json.dumps(process_instance_metadata), status=201, mimetype="application/json"
+        json.dumps(process_instance_metadata), status=200, mimetype="application/json"
     )
 
 

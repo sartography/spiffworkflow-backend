@@ -25,6 +25,7 @@ from spiffworkflow_backend.models.process_instance import ProcessInstanceStatus
 from spiffworkflow_backend.models.process_model import NotificationType
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
+from spiffworkflow_backend.models.task_event import TaskEventModel
 from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 
@@ -604,10 +605,39 @@ def test_process_instance_run(
     assert response.json["data"]["person"] == "Kevin"
 
 
+def test_process_instance_run_user_task(
+    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+) -> None:
+    db.session.query(TaskEventModel).delete()
+    db.session.query(ProcessInstanceModel).delete()
+    db.session.commit()
+
+    process_group_id = 'my_process_group'
+    process_model_id = 'user_task'
+
+    user = find_or_create_user()
+    headers = logged_in_headers(user)
+    response = create_process_instance(
+        client, process_group_id, process_model_id, headers
+    )
+    assert response.json is not None
+    process_instance_id = response.json["id"]
+
+    response = client.post(
+        f"/v1.0/process-models/{process_group_id}/{process_model_id}/process-instances/{process_instance_id}/run",
+        headers=logged_in_headers(user),
+    )
+
+    assert response.json is not None
+
+    print(f'test_process_instance_run_user_task: {process_instance_id}')
+
+
 def test_process_instance_list_with_default_list(
     app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_instance_list_with_default_list."""
+    db.session.query(TaskEventModel).delete()
     db.session.query(ProcessInstanceModel).delete()
     db.session.commit()
 
@@ -644,6 +674,7 @@ def test_process_instance_list_with_paginated_items(
     app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_instance_list_with_paginated_items."""
+    db.session.query(TaskEventModel).delete()
     db.session.query(ProcessInstanceModel).delete()
     db.session.commit()
 
@@ -694,6 +725,7 @@ def test_process_instance_list_filter(
     app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_instance_list_filter."""
+    db.session.query(TaskEventModel).delete()
     db.session.query(ProcessInstanceModel).delete()
     db.session.commit()
 
@@ -839,6 +871,7 @@ def test_error_handler(
     app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
 ) -> None:
     """Test_error_handler."""
+    db.session.query(TaskEventModel).delete()
     db.session.query(ProcessInstanceModel).delete()
     db.session.commit()
 
