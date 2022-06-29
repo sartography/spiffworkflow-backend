@@ -32,7 +32,7 @@ from spiffworkflow_backend.services.process_model_service import ProcessModelSer
 
 # phase 1: req_id: 7.1 Deploy process
 def test_process_model_add(
-    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_add_new_process_model."""
     # group_id = None,
@@ -55,7 +55,7 @@ def test_process_model_add(
 
 
 def test_process_model_delete(
-    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_model_delete."""
     create_process_model(client)
@@ -81,7 +81,7 @@ def test_process_model_delete(
 
 
 def test_process_model_delete_with_instances(
-    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_model_delete_with_instances."""
     db.session.query(ProcessInstanceModel).delete()
@@ -117,7 +117,7 @@ def test_process_model_delete_with_instances(
 
 
 def test_process_model_update(
-    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_model_update."""
     create_process_model(client)
@@ -140,7 +140,7 @@ def test_process_model_update(
 
 
 def test_process_model_list(
-    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_model_list."""
     # create a group
@@ -219,7 +219,7 @@ def test_process_model_list(
 
 
 def test_process_group_add(
-    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_add_process_group."""
     process_group = ProcessGroup(
@@ -247,7 +247,7 @@ def test_process_group_add(
 
 
 def test_process_group_delete(
-    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_group_delete."""
     process_group_id = "test"
@@ -270,7 +270,7 @@ def test_process_group_delete(
 
 
 def test_process_group_update(
-    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test Process Group Update."""
     group_id = "test_process_group"
@@ -297,7 +297,7 @@ def test_process_group_update(
 
 
 def test_process_group_list(
-    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_group_list."""
     # add 5 groups
@@ -372,7 +372,7 @@ def test_process_group_list(
 
 
 def test_process_model_file_update_fails_if_no_file_given(
-    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_model_file_update."""
     create_spec_file(client)
@@ -394,7 +394,7 @@ def test_process_model_file_update_fails_if_no_file_given(
 
 
 def test_process_model_file_update_fails_if_contents_is_empty(
-    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_model_file_update."""
     create_spec_file(client)
@@ -416,7 +416,7 @@ def test_process_model_file_update_fails_if_contents_is_empty(
 
 
 def test_process_model_file_update(
-    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_model_file_update."""
     original_file = create_spec_file(client)
@@ -448,7 +448,7 @@ def test_process_model_file_update(
 
 
 def test_get_file(
-    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_get_file."""
     user = find_or_create_user()
@@ -467,7 +467,7 @@ def test_get_file(
 
 
 def dest_get_workflow_from_workflow_spec(
-    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_get_workflow_from_workflow_spec."""
     user = find_or_create_user()
@@ -483,7 +483,7 @@ def dest_get_workflow_from_workflow_spec(
 
 
 def test_get_process_groups_when_none(
-    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_get_process_groups_when_none."""
     user = find_or_create_user()
@@ -494,7 +494,7 @@ def test_get_process_groups_when_none(
 
 
 def test_get_process_groups_when_there_are_some(
-    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_get_process_groups_when_there_are_some."""
     user = find_or_create_user()
@@ -509,7 +509,7 @@ def test_get_process_groups_when_there_are_some(
 
 
 def test_get_process_group_when_found(
-    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_get_process_group_when_found."""
     user = find_or_create_user()
@@ -526,7 +526,7 @@ def test_get_process_group_when_found(
 
 
 def test_get_process_model_when_found(
-    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_get_process_model_when_found."""
     user = find_or_create_user()
@@ -545,7 +545,7 @@ def test_get_process_model_when_found(
 
 
 def test_get_process_model_when_not_found(
-    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_get_process_model_when_not_found."""
     user = find_or_create_user()
@@ -561,7 +561,7 @@ def test_get_process_model_when_not_found(
 
 
 def test_process_instance_create(
-    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_instance_create."""
     test_process_group_id = "runs_without_input"
@@ -578,7 +578,7 @@ def test_process_instance_create(
 
 
 def test_process_instance_run(
-    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_instance_run."""
     process_group_id = "runs_without_input"
@@ -634,7 +634,7 @@ def test_process_instance_run_user_task(
 
 
 def test_process_instance_list_with_default_list(
-    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_instance_list_with_default_list."""
     db.session.query(TaskEventModel).delete()
@@ -671,7 +671,7 @@ def test_process_instance_list_with_default_list(
 
 
 def test_process_instance_list_with_paginated_items(
-    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_instance_list_with_paginated_items."""
     db.session.query(TaskEventModel).delete()
@@ -722,7 +722,7 @@ def test_process_instance_list_with_paginated_items(
 
 
 def test_process_instance_list_filter(
-    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_instance_list_filter."""
     db.session.query(TaskEventModel).delete()
@@ -818,7 +818,7 @@ def test_process_instance_list_filter(
 
 
 def test_process_instance_report_with_default_list(
-    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_instance_report_with_default_list."""
     db.session.query(ProcessInstanceModel).delete()
@@ -868,7 +868,7 @@ def setup_testing_instance(
 
 
 def test_error_handler(
-    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_error_handler."""
     db.session.query(TaskEventModel).delete()
@@ -915,7 +915,7 @@ def test_error_handler(
 
 
 def test_error_handler_suspend(
-    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_error_handler_suspend."""
     db.session.query(ProcessInstanceModel).delete()
@@ -956,7 +956,7 @@ def test_error_handler_suspend(
 
 
 def test_error_handler_with_email(
-    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_error_handler."""
     db.session.query(ProcessInstanceModel).delete()
@@ -1004,7 +1004,7 @@ def test_error_handler_with_email(
 
 
 def test_process_model_file_create(
-    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_model_file_create."""
     process_group_id = "hello_world"

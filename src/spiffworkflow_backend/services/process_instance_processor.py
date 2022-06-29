@@ -32,7 +32,7 @@ from SpiffWorkflow.serializer.exceptions import MissingSpecError  # type: ignore
 from SpiffWorkflow.specs import WorkflowSpec  # type: ignore
 from SpiffWorkflow.task import Task
 
-from spiffworkflow_backend.models.active_task import ActiveTaskModel  # type: ignore
+from spiffworkflow_backend.models.active_task import ActiveTaskModel
 from spiffworkflow_backend.models.file import File
 from spiffworkflow_backend.models.file import FileType
 from spiffworkflow_backend.models.principal import PrincipalModel
@@ -342,7 +342,7 @@ class ProcessInstanceProcessor:
                 # FIXME: look for the correct principal based on ready_or_waiting_task.lane
                 assigned_principal_id=PrincipalModel.query.first().id,
                 process_instance_data=json.dumps(self.get_data()),
-                status=ready_or_waiting_task.state.value,
+                status=ready_or_waiting_task.state.name,
             )
             db.session.add(active_task)
 
