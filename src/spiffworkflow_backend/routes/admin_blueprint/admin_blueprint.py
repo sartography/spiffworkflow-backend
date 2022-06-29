@@ -32,6 +32,7 @@ ALLOWED_BPMN_EXTENSIONS = {"bpmn", "dmn"}
 
 @admin_blueprint.before_app_first_request
 def before_first_request() -> None:
+    """Before_first_request."""
     token()
 
 

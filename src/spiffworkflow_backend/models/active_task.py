@@ -23,7 +23,7 @@ class ActiveTaskModel(SpiffworkflowBaseDBModel):
         ),
     )
 
-    form_json: Optional[str]
+    form_json: Optional[str] = ""
     bpmn_json: str = ""
     id: int = db.Column(db.Integer, primary_key=True)
     task_id: str = db.Column(db.String(50), nullable=False)

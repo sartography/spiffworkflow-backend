@@ -597,6 +597,29 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Task"
+  /tasks/{task_id}/submit:
+    parameters:
+      - name: task_id
+        in: path
+        required: true
+        description: The unique id of an existing process group.
+        schema:
+          type: string
+    post:
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.task_submit_user_data
+      summary: Update the form data for a tasks
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WorkflowSpecCategory"
+      responses:
+        "200":
+          description: 'ok: true'
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkTrue"
 
 components:
   securitySchemes:

@@ -482,11 +482,18 @@ def task_show(task_id: int) -> flask.wrappers.Response:
         )
 
     process_instance = ProcessInstanceModel.query.filter_by(id=active_task_assigned_to_me.process_instance_id).first()
-    process_model = get_process_model(process_instance.process_model_identifier, process_instance.process_group_identifier)
+    process_model = get_process_model(process_instance.process_model_identifier,
+                                      process_instance.process_group_identifier)
     file_contents = SpecFileService.get_data(process_model, active_task_assigned_to_me.form_file_name)
-    active_task_assigned_to_me.form_json = str(file_contents)
+    active_task_assigned_to_me.form_json = file_contents.decode('utf-8')
 
+    # return Response(json.dumps(active_task_assigned_to_me), status=200, mimetype="application/json")
     return active_task_assigned_to_me
+
+
+def task_submit_user_data(task_id: int) -> flask.wrappers.Response:
+    """Task_submit_user_data."""
+    return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
 
 
 def get_file_from_request() -> Any:
