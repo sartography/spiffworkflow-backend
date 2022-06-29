@@ -12,6 +12,7 @@ from flask import g
 from flask import Response
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
+from sqlalchemy import desc
 
 from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
     ProcessEntityNotFoundError,
@@ -446,7 +447,7 @@ def task_list_my_tasks(page: int = 1, per_page: int = 100) -> flask.wrappers.Res
 
     active_tasks = (
         ActiveTaskModel.query.filter_by(assigned_principal_id=principal.id)
-        .order_by(ActiveTaskModel.id.desc())
+        .order_by(desc(ActiveTaskModel.id))
         .paginate(page, per_page, False)
     )
 

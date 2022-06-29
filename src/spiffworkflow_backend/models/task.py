@@ -1,6 +1,7 @@
 """Task."""
 import enum
 from typing import Any
+from typing import Optional
 
 import marshmallow
 from marshmallow import Schema
@@ -91,7 +92,7 @@ class Task:
         type: str,
         state: str,
         lane: str,
-        form: str,
+        form: Optional[dict],
         documentation: str,
         data: dict[str, Any],
         multi_instance_type: str,

@@ -14,6 +14,7 @@ from SpiffWorkflow.bpmn.specs.events import StartEvent
 from SpiffWorkflow.bpmn.specs.ManualTask import ManualTask
 from SpiffWorkflow.bpmn.specs.ScriptTask import ScriptTask
 from SpiffWorkflow.bpmn.specs.UserTask import UserTask
+from SpiffWorkflow.camunda.specs.UserTask import EnumFormField
 from SpiffWorkflow.dmn.specs.BusinessRuleTask import BusinessRuleTask
 from SpiffWorkflow.specs import CancelTask
 from SpiffWorkflow.specs import StartTask
@@ -169,7 +170,7 @@ class ProcessInstanceService:
         return result
 
     @staticmethod
-    def update_task_assignments(processor):
+    def update_task_assignments(processor: ProcessInstanceProcessor) -> None:
         """For every upcoming user task, log a task action that connects the assigned user(s) to that task.
 
         All existing assignment actions for this workflow are removed from the database,
@@ -212,7 +213,9 @@ class ProcessInstanceService:
             ):
                 current_user = spiff_task.data["current_user"]
                 principal = UserService().get_principal_by_user_id(current_user.id)
-                return (principal.id,)
+                return [
+                    principal.id,
+                ]
                 # return [processor.process_instance_model.process_initiator_id]
 
             if spiff_task.task_spec.lane not in spiff_task.data:
@@ -514,7 +517,7 @@ class ProcessInstanceService:
         return field
 
     @staticmethod
-    def get_options_from_task_data(spiff_task, field):
+    def get_options_from_task_data(spiff_task: Task, field: EnumFormField) -> List:
         """Get_options_from_task_data."""
         prop = field.get_property(Task.FIELD_PROP_DATA_NAME)
         if prop not in spiff_task.data:
@@ -529,7 +532,7 @@ class ProcessInstanceService:
         value_column = field.get_property(Task.FIELD_PROP_VALUE_COLUMN)
         label_column = field.get_property(Task.FIELD_PROP_LABEL_COLUMN)
         items = data_model.items() if isinstance(data_model, dict) else data_model
-        options = []
+        options: List[Any] = []
         for item in items:
             if value_column not in item:
                 raise ApiError.from_task(
