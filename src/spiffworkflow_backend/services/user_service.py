@@ -1,6 +1,7 @@
 """User_service."""
 from typing import Any
 from typing import Optional
+from typing import Union
 
 from flask import g
 from flask_bpmn.api.api_error import ApiError
@@ -174,12 +175,11 @@ class UserService:
             )
 
     @staticmethod
-    def get_principal_by_user_id(user_id):
+    def get_principal_by_user_id(user_id: int) -> Union[PrincipalModel, None]:
         """Get_principal_by_user_id."""
-        principal = (
+        principal: Union[PrincipalModel, None] = (
             db.session.query(PrincipalModel)
             .filter(PrincipalModel.user_id == user_id)
             .first()
         )
-        if principal:
-            return principal
+        return principal

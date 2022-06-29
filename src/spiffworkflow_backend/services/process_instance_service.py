@@ -9,20 +9,21 @@ from typing import Optional
 from flask import current_app
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
-from SpiffWorkflow.bpmn.specs.events import EndEvent
+from SpiffWorkflow.bpmn.specs.events import EndEvent  # type: ignore
 from SpiffWorkflow.bpmn.specs.events import StartEvent
-from SpiffWorkflow.bpmn.specs.ManualTask import ManualTask
-from SpiffWorkflow.bpmn.specs.ScriptTask import ScriptTask
-from SpiffWorkflow.bpmn.specs.UserTask import UserTask
-from SpiffWorkflow.camunda.specs.UserTask import EnumFormField
-from SpiffWorkflow.dmn.specs.BusinessRuleTask import BusinessRuleTask
-from SpiffWorkflow.specs import CancelTask
+from SpiffWorkflow.bpmn.specs.ManualTask import ManualTask  # type: ignore
+from SpiffWorkflow.bpmn.specs.ScriptTask import ScriptTask  # type: ignore
+from SpiffWorkflow.bpmn.specs.UserTask import UserTask  # type: ignore
+from SpiffWorkflow.camunda.specs.UserTask import EnumFormField  # type: ignore
+from SpiffWorkflow.dmn.specs.BusinessRuleTask import BusinessRuleTask  # type: ignore
+from SpiffWorkflow.specs import CancelTask  # type: ignore
 from SpiffWorkflow.specs import StartTask
 from SpiffWorkflow.util.deep_merge import DeepMerge  # type: ignore
 
 from spiffworkflow_backend.models.process_instance import ProcessInstanceApi
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 from spiffworkflow_backend.models.process_instance import ProcessInstanceStatus
+from spiffworkflow_backend.models.task import MultiInstanceType
 from spiffworkflow_backend.models.task import Task
 from spiffworkflow_backend.models.task_event import TaskAction
 from spiffworkflow_backend.models.task_event import TaskEventModel
@@ -32,17 +33,8 @@ from spiffworkflow_backend.services.process_instance_processor import (
 )
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 from spiffworkflow_backend.services.user_service import UserService
-
+from SpiffWorkflow.task import Task as SpiffTask  # type: ignore
 # from SpiffWorkflow.task import TaskState  # type: ignore
-
-
-class MultiInstanceType(enum.Enum):
-    """MultiInstanceType."""
-
-    none = "none"
-    looping = "looping"
-    parallel = "parallel"
-    sequential = "sequential"
 
 
 class ProcessInstanceService:
@@ -104,7 +96,7 @@ class ProcessInstanceService:
             # This may or may not work, sometimes there is no next task to complete.
             next_task_trying_again = processor.next_task()
 
-        if next_task_trying_again:
+        if next_task_trying_again is not None:
             previous_form_data = ProcessInstanceService.get_previously_submitted_data(
                 processor.process_instance_model.id, next_task_trying_again
             )
@@ -127,7 +119,7 @@ class ProcessInstanceService:
 
     @staticmethod
     def get_previously_submitted_data(
-        process_instance_id: int, spiff_task: Task
+        process_instance_id: int, spiff_task: SpiffTask
     ) -> Dict[Any, Any]:
         """If the user has completed this task previously, find the form data for the last submission."""
         query = (
@@ -193,7 +185,7 @@ class ProcessInstanceService:
                 )
 
     @staticmethod
-    def get_users_assigned_to_task(processor, spiff_task) -> List[str]:
+    def get_users_assigned_to_task(processor: ProcessInstanceProcessor, spiff_task: SpiffTask) -> List[int]:
         """Get_users_assigned_to_task."""
         if processor.process_instance_model.process_initiator_id is None:
             raise ApiError.from_task(
@@ -248,32 +240,32 @@ class ProcessInstanceService:
 
             return lane_uids
 
+    # @staticmethod
+    # def get_task_type(spiff_task: SpiffTask):
+    #     """Get_task_type."""
+    #     task_type = spiff_task.task_spec.__class__.__name__
+    #
+    #     task_types = [
+    #         UserTask,
+    #         ManualTask,
+    #         BusinessRuleTask,
+    #         CancelTask,
+    #         ScriptTask,
+    #         StartTask,
+    #         EndEvent,
+    #         StartEvent,
+    #     ]
+    #
+    #     for t in task_types:
+    #         if isinstance(spiff_task.task_spec, t):
+    #             task_type = t.__name__
+    #             break
+    #         else:
+    #             task_type = "NoneTask"
+    #     return task_type
+
     @staticmethod
-    def get_task_type(spiff_task):
-        """Get_task_type."""
-        task_type = spiff_task.task_spec.__class__.__name__
-
-        task_types = [
-            UserTask,
-            ManualTask,
-            BusinessRuleTask,
-            CancelTask,
-            ScriptTask,
-            StartTask,
-            EndEvent,
-            StartEvent,
-        ]
-
-        for t in task_types:
-            if isinstance(spiff_task.task_spec, t):
-                task_type = t.__name__
-                break
-            else:
-                task_type = "NoneTask"
-        return task_type
-
-    @staticmethod
-    def log_task_action(user_id, processor, spiff_task, action):
+    def log_task_action(user_id: int, processor:ProcessInstanceProcessor, spiff_task: Task, action: str) -> None:
         """Log_task_action."""
         task = ProcessInstanceService.spiff_task_to_api_task(spiff_task)
         form_data = ProcessInstanceService.extract_form_data(
@@ -302,7 +294,7 @@ class ProcessInstanceService:
         db.session.commit()
 
     @staticmethod
-    def extract_form_data(latest_data, task):
+    def extract_form_data(latest_data:dict, task:SpiffTask) -> dict:
         """Extracts data from the latest_data that is directly related to the form that is being submitted."""
         data = {}
 
@@ -319,7 +311,7 @@ class ProcessInstanceService:
         return data
 
     @staticmethod
-    def get_dot_value(path, source):
+    def get_dot_value(path: str, source: dict) -> Any:
         """Get_dot_value."""
         # Given a path in dot notation, uas as 'fruit.type' tries to find that value in
         # the source, but looking deep in the dictionary.
@@ -338,7 +330,7 @@ class ProcessInstanceService:
         return None
 
     @staticmethod
-    def set_dot_value(path, value, target):
+    def set_dot_value(path: str, value: Any, target: dict) -> dict:
         """Set_dot_value."""
         # Given a path in dot notation, such as "fruit.type", and a value "apple", will
         # set the value in the target dictionary, as target["fruit"]["type"]="apple"
@@ -356,7 +348,7 @@ class ProcessInstanceService:
         return target
 
     @staticmethod
-    def spiff_task_to_api_task(spiff_task, add_docs_and_forms=False):
+    def spiff_task_to_api_task(spiff_task: SpiffTask, add_docs_and_forms: bool=False) -> Task:
         """Spiff_task_to_api_task."""
         task_type = spiff_task.task_spec.__class__.__name__
 
@@ -420,7 +412,7 @@ class ProcessInstanceService:
         # not be a previously completed MI Task.
         if add_docs_and_forms:
             task.data = spiff_task.data
-            if hasattr(spiff_task.task_spec, "form"):
+            if hasattr(spiff_task.task_spec, "form") and spiff_task.task_spec.form is not None:
                 task.form = spiff_task.task_spec.form
                 for i, field in enumerate(task.form.fields):
                     task.form.fields[i] = ProcessInstanceService.process_options(
@@ -444,10 +436,10 @@ class ProcessInstanceService:
         #
         # task.title = ProcessInstanceService.__calculate_title(spiff_task)
 
-        if task.properties and "clear_data" in task.properties:
-            if task.form and task.properties["clear_data"] == "True":
-                for i in range(len(task.form.fields)):
-                    task.data.pop(task.form.fields[i].id, None)
+        # if task.properties and "clear_data" in task.properties:
+        #     if task.form and task.properties["clear_data"] == "True":
+        #         for i in range(len(task.form.fields)):
+        #             task.data.pop(task.form.fields[i].id, None)
 
         # # Pass help text through the Jinja parser
         # if task.form and task.form.fields:
@@ -475,7 +467,7 @@ class ProcessInstanceService:
     #     return props
 
     @staticmethod
-    def process_options(spiff_task, field):
+    def process_options(spiff_task: SpiffTask, field: EnumFormField) -> EnumFormField:
         """Process_options."""
         if field.type != Task.FIELD_TYPE_ENUM:
             return field
@@ -517,7 +509,7 @@ class ProcessInstanceService:
         return field
 
     @staticmethod
-    def get_options_from_task_data(spiff_task: Task, field: EnumFormField) -> List:
+    def get_options_from_task_data(spiff_task: SpiffTask, field: EnumFormField) -> List:
         """Get_options_from_task_data."""
         prop = field.get_property(Task.FIELD_PROP_DATA_NAME)
         if prop not in spiff_task.data:
