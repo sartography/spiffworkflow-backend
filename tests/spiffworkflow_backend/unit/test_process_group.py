@@ -6,7 +6,7 @@ from spiffworkflow_backend.services.process_model_service import ProcessModelSer
 
 
 def test_there_is_at_least_one_group_after_we_create_one(
-    app: Flask, with_bpmn_file_cleanup: None
+    app: Flask, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_there_is_at_least_one_group_after_we_create_one."""
     process_model_service = ProcessModelService()

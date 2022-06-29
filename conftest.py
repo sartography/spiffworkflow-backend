@@ -5,6 +5,8 @@ from typing import Iterator
 
 import pytest
 from flask.app import Flask
+from flask_bpmn.models.db import db
+from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 
@@ -39,8 +41,11 @@ def app() -> Flask:
 
 
 @pytest.fixture()
-def with_bpmn_file_cleanup() -> Iterator[None]:
+def with_db_and_bpmn_file_cleanup() -> Iterator[None]:
     """Process_group_resource."""
+    for model in SpiffworkflowBaseDBModel._all_subclasses():
+        db.session.query(model).delete()
+
     try:
         yield
     finally:
