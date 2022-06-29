@@ -312,6 +312,7 @@ class ProcessInstanceProcessor:
             bpmn_process_instance.data[
                 ProcessInstanceProcessor.VALIDATION_PROCESS_KEY
             ] = validate_only
+        print(f"bpmn_process_instance: {bpmn_process_instance}")
         return bpmn_process_instance
 
     def save(self) -> None:
@@ -336,15 +337,24 @@ class ProcessInstanceProcessor:
 
         ready_or_waiting_tasks = self.get_all_ready_or_waiting_tasks()
         for ready_or_waiting_task in ready_or_waiting_tasks:
-            active_task = ActiveTaskModel(
-                task_id=str(ready_or_waiting_task.id),
-                process_instance_id=self.process_instance_model.id,
-                # FIXME: look for the correct principal based on ready_or_waiting_task.lane
-                assigned_principal_id=PrincipalModel.query.first().id,
-                process_instance_data=json.dumps(self.get_data()),
-                status=ready_or_waiting_task.state.name,
-            )
-            db.session.add(active_task)
+            # filter out non-usertasks
+            if not self.bpmn_process_instance._is_engine_task(ready_or_waiting_task.task_spec):
+                extensions = ready_or_waiting_task.task_spec.extensions
+
+                form_file_name = None
+                if 'formKey' in extensions:
+                    form_file_name = extensions['formKey']
+
+                active_task = ActiveTaskModel(
+                    task_id=str(ready_or_waiting_task.id),
+                    process_instance_id=self.process_instance_model.id,
+                    # FIXME: look for the correct principal based on ready_or_waiting_task.lane
+                    assigned_principal_id=PrincipalModel.query.first().id,
+                    process_instance_data=json.dumps(self.get_data()),
+                    status=ready_or_waiting_task.state.name,
+                    form_file_name=form_file_name
+                )
+                db.session.add(active_task)
 
         db.session.commit()
 

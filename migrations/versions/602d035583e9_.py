@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: a650f4061955
+Revision ID: 602d035583e9
 Revises: 
-Create Date: 2022-06-28 15:15:08.319053
+Create Date: 2022-06-29 15:53:50.319748
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'a650f4061955'
+revision = '602d035583e9'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -48,7 +48,9 @@ def upgrade():
     sa.CheckConstraint('NOT(user_id IS NULL AND group_id IS NULL)'),
     sa.ForeignKeyConstraint(['group_id'], ['group.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('group_id'),
+    sa.UniqueConstraint('user_id')
     )
     op.create_table('process_instance',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -94,10 +96,12 @@ def upgrade():
     sa.Column('process_instance_id', sa.Integer(), nullable=False),
     sa.Column('assigned_principal_id', sa.Integer(), nullable=True),
     sa.Column('process_instance_data', sa.Text(), nullable=True),
-    sa.Column('status', sa.String(length=50), nullable=False),
+    sa.Column('status', sa.String(length=20), nullable=False),
+    sa.Column('form_file_name', sa.String(length=50), nullable=False),
     sa.Column('updated_at_in_seconds', sa.Integer(), nullable=True),
     sa.Column('created_at_in_seconds', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['assigned_principal_id'], ['principal.id'], ),
+    sa.ForeignKeyConstraint(['process_instance_id'], ['process_instance.id'], ),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('task_id', 'process_instance_id', name='active_task_unique')
     )

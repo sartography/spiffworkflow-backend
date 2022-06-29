@@ -481,6 +481,11 @@ def task_show(task_id: int) -> flask.wrappers.Response:
             )
         )
 
+    process_instance = ProcessInstanceModel.query.filter_by(id=active_task_assigned_to_me.process_instance_id).first()
+    process_model = get_process_model(process_instance.process_model_identifier, process_instance.process_group_identifier)
+    file_contents = SpecFileService.get_data(process_model, active_task_assigned_to_me.form_file_name)
+    active_task_assigned_to_me.form_json = str(file_contents)
+
     return active_task_assigned_to_me
 
 

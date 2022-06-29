@@ -30,6 +30,11 @@ admin_blueprint = Blueprint(
 ALLOWED_BPMN_EXTENSIONS = {"bpmn", "dmn"}
 
 
+@admin_blueprint.before_app_first_request
+def before_first_request() -> None:
+    token()
+
+
 @admin_blueprint.route("/token", methods=["GET"])
 def token() -> str:
     """Token."""
