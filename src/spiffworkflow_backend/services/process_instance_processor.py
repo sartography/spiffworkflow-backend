@@ -30,10 +30,12 @@ from SpiffWorkflow.dmn.serializer import BusinessRuleTaskConverter  # type: igno
 from SpiffWorkflow.exceptions import WorkflowTaskExecException  # type: ignore
 from SpiffWorkflow.serializer.exceptions import MissingSpecError  # type: ignore
 from SpiffWorkflow.specs import WorkflowSpec  # type: ignore
-from SpiffWorkflow.task import Task  # type: ignore
+from SpiffWorkflow.task import Task
 
+from spiffworkflow_backend.models.active_task import ActiveTaskModel  # type: ignore
 from spiffworkflow_backend.models.file import File
 from spiffworkflow_backend.models.file import FileType
+from spiffworkflow_backend.models.principal import PrincipalModel
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 from spiffworkflow_backend.models.process_instance import ProcessInstanceStatus
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
@@ -331,6 +333,19 @@ class ProcessInstanceProcessor:
                 self.process_instance_model.end_in_seconds = round(time.time())
 
         db.session.add(self.process_instance_model)
+
+        ready_or_waiting_tasks = self.get_all_ready_or_waiting_tasks()
+        for ready_or_waiting_task in ready_or_waiting_tasks:
+            active_task = ActiveTaskModel(
+                task_id=str(ready_or_waiting_task.id),
+                process_instance_id=self.process_instance_model.id,
+                # FIXME: look for the correct principal based on ready_or_waiting_task.lane
+                assigned_principal_id=PrincipalModel.query.first().id,
+                process_instance_data=json.dumps(self.get_data()),
+                status=ready_or_waiting_task.state.value,
+            )
+            db.session.add(active_task)
+
         db.session.commit()
 
     @staticmethod
@@ -554,6 +569,11 @@ class ProcessInstanceProcessor:
             if not self.bpmn_process_instance._is_engine_task(t.task_spec)
             and t.state in [TaskState.COMPLETED, TaskState.CANCELLED]
         ]
+
+    def get_all_ready_or_waiting_tasks(self) -> list[Task]:
+        """Get_all_ready_or_waiting_tasks."""
+        all_tasks = self.bpmn_process_instance.get_tasks(TaskState.ANY_MASK)
+        return [t for t in all_tasks if t.state in [TaskState.WAITING, TaskState.READY]]
 
     def get_nav_item(self, task: Task) -> Any:
         """Get_nav_item."""

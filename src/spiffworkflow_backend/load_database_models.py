@@ -4,6 +4,7 @@ autoflake8 will remove these lines without the noqa comment
 """
 from flask_bpmn.models.db import add_listeners
 
+from spiffworkflow_backend.models.active_task import ActiveTaskModel  # noqa: F401
 from spiffworkflow_backend.models.data_store import DataStoreModel  # noqa: F401
 from spiffworkflow_backend.models.file import FileModel  # noqa: F401
 from spiffworkflow_backend.models.principal import PrincipalModel  # noqa: F401

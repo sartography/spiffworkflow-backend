@@ -50,6 +50,7 @@ class FileType(SpiffEnum):
     docx = "docx"
     gif = "gif"
     jpg = "jpg"
+    json = "json"
     md = "md"
     pdf = "pdf"
     png = "png"
@@ -73,6 +74,7 @@ CONTENT_TYPES = {
     "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     "gif": "image/gif",
     "jpg": "image/jpeg",
+    "json": "application/json",
     "md": "text/plain",
     "pdf": "application/pdf",
     "png": "image/png",
