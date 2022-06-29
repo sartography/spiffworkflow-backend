@@ -84,9 +84,6 @@ def test_process_model_delete_with_instances(
     app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_model_delete_with_instances."""
-    db.session.query(ProcessInstanceModel).delete()
-    db.session.commit()
-
     test_process_group_id = "runs_without_input"
     test_process_model_id = "sample"
     user = find_or_create_user()
@@ -606,11 +603,8 @@ def test_process_instance_run(
 
 
 def test_process_instance_run_user_task(
-    app: Flask, client: FlaskClient, with_bpmn_file_cleanup: None
+    app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
-    db.session.query(TaskEventModel).delete()
-    db.session.query(ProcessInstanceModel).delete()
-    db.session.commit()
 
     process_group_id = 'my_process_group'
     process_model_id = 'user_task'
@@ -637,10 +631,6 @@ def test_process_instance_list_with_default_list(
     app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_instance_list_with_default_list."""
-    db.session.query(TaskEventModel).delete()
-    db.session.query(ProcessInstanceModel).delete()
-    db.session.commit()
-
     test_process_group_id = "runs_without_input"
     process_model_dir_name = "sample"
     user = find_or_create_user()
@@ -674,10 +664,6 @@ def test_process_instance_list_with_paginated_items(
     app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_instance_list_with_paginated_items."""
-    db.session.query(TaskEventModel).delete()
-    db.session.query(ProcessInstanceModel).delete()
-    db.session.commit()
-
     test_process_group_id = "runs_without_input"
     process_model_dir_name = "sample"
     user = find_or_create_user()
@@ -725,10 +711,6 @@ def test_process_instance_list_filter(
     app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_instance_list_filter."""
-    db.session.query(TaskEventModel).delete()
-    db.session.query(ProcessInstanceModel).delete()
-    db.session.commit()
-
     test_process_group_id = "runs_without_input"
     test_process_model_id = "sample"
     user = find_or_create_user()
@@ -821,9 +803,6 @@ def test_process_instance_report_with_default_list(
     app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_instance_report_with_default_list."""
-    db.session.query(ProcessInstanceModel).delete()
-    db.session.commit()
-
     test_process_group_id = "runs_without_input"
     process_model_dir_name = "sample"
     user = find_or_create_user()
@@ -871,10 +850,6 @@ def test_error_handler(
     app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_error_handler."""
-    db.session.query(TaskEventModel).delete()
-    db.session.query(ProcessInstanceModel).delete()
-    db.session.commit()
-
     process_group_id = "data"
     process_model_id = "error"
     user = find_or_create_user()
@@ -918,9 +893,6 @@ def test_error_handler_suspend(
     app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_error_handler_suspend."""
-    db.session.query(ProcessInstanceModel).delete()
-    db.session.commit()
-
     process_group_id = "data"
     process_model_id = "error"
     user = find_or_create_user()
@@ -959,9 +931,6 @@ def test_error_handler_with_email(
     app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_error_handler."""
-    db.session.query(ProcessInstanceModel).delete()
-    db.session.commit()
-
     process_group_id = "data"
     process_model_id = "error"
     user = find_or_create_user()
