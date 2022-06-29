@@ -122,7 +122,7 @@ def upgrade():
     )
     op.create_table('task_event',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('principal_id', sa.String(length=50), nullable=False),
+    sa.Column('user_id', sa.String(length=50), nullable=False),
     sa.Column('process_instance_id', sa.Integer(), nullable=False),
     sa.Column('spec_version', sa.String(length=50), nullable=True),
     sa.Column('action', sa.String(length=50), nullable=True),

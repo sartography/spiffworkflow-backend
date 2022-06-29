@@ -273,7 +273,7 @@ class ProcessInstanceService:
         return task_type
 
     @staticmethod
-    def log_task_action(principal_id, processor, spiff_task, action):
+    def log_task_action(user_id, processor, spiff_task, action):
         """Log_task_action."""
         task = ProcessInstanceService.spiff_task_to_api_task(spiff_task)
         form_data = ProcessInstanceService.extract_form_data(
@@ -281,7 +281,7 @@ class ProcessInstanceService:
         )
         task_event = TaskEventModel(
             # study_id=processor.workflow_model.study_id,
-            principal_id=principal_id,
+            user_id=user_id,
             process_instance_id=processor.process_instance_model.id,
             # workflow_spec_id=processor.workflow_model.workflow_spec_id,
             action=action,
