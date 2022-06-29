@@ -25,6 +25,7 @@ from spiffworkflow_backend.models.process_instance import ProcessInstanceStatus
 from spiffworkflow_backend.models.process_model import NotificationType
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
+from spiffworkflow_backend.models.task_event import TaskEventModel
 from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 
@@ -601,7 +602,7 @@ def test_process_instance_run(
     assert response.json["data"]["person"] == "Kevin"
 
 
-def test_process_instance_run_user_task(
+def test_process_instance_run_user_task_creates_task_event(
     app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_instance_run_user_task."""
@@ -622,8 +623,13 @@ def test_process_instance_run_user_task(
     )
 
     assert response.json is not None
-
-    print(f"test_process_instance_run_user_task: {process_instance_id}")
+    task_events = db.session.query(TaskEventModel)\
+        .filter(TaskEventModel.process_instance_id == process_instance_id)\
+        .all()
+    assert len(task_events) == 1
+    task_event = task_events[0]
+    assert task_event.user_id == user.id
+    # TODO: When user tasks work, we need to add some more assertions for action, task_state, etc.
 
 
 def test_process_instance_list_with_default_list(
