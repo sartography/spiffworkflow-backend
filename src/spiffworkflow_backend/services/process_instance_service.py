@@ -32,7 +32,6 @@ from spiffworkflow_backend.services.process_instance_processor import (
     ProcessInstanceProcessor,
 )
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
-from spiffworkflow_backend.services.user_service import UserService
 
 # from SpiffWorkflow.task import TaskState  # type: ignore
 
@@ -209,7 +208,9 @@ class ProcessInstanceService:
                 or spiff_task.task_spec.lane is None
             ):
                 current_user = spiff_task.data["current_user"]
-                return [current_user.id,]
+                return [
+                    current_user.id,
+                ]
                 # return [processor.process_instance_model.process_initiator_id]
 
             if spiff_task.task_spec.lane not in spiff_task.data:
