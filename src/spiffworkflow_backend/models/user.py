@@ -1,12 +1,12 @@
 """User."""
-from flask_bpmn.api.api_error import ApiError
-from flask_bpmn.models.db import db
-from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from typing import Union
 
 import jwt
 import marshmallow
 from flask import current_app
+from flask_bpmn.api.api_error import ApiError
+from flask_bpmn.models.db import db
+from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from marshmallow import Schema
 from sqlalchemy.orm import relationship
 

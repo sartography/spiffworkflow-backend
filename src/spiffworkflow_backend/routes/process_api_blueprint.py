@@ -1,7 +1,5 @@
 """APIs for dealing with process groups, process models, and process instances."""
 import json
-from flask_bpmn.api.api_error import ApiError
-from flask_bpmn.models.db import db
 from typing import Any
 from typing import Dict
 from typing import Optional
@@ -14,6 +12,8 @@ from flask import g
 from flask import jsonify
 from flask import make_response
 from flask.wrappers import Response
+from flask_bpmn.api.api_error import ApiError
+from flask_bpmn.models.db import db
 from sqlalchemy import desc
 
 from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
@@ -518,7 +518,9 @@ def task_submit_user_data(
             )
         )
 
-    process_instance = ProcessInstanceModel.query.filter_by(process_instance_id=active_task_assigned_to_me.process_instance.id)
+    process_instance = ProcessInstanceModel.query.filter_by(
+        process_instance_id=active_task_assigned_to_me.process_instance.id
+    )
     if process_instance is None:
         raise (
             ApiError(
@@ -528,6 +530,7 @@ def task_submit_user_data(
             )
         )
     return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
+
 
 # def update_task(workflow_id, task_id, body, terminate_loop=None, update_all=False):
 #     workflow_model = session.query(WorkflowModel).filter_by(id=workflow_id).first()
@@ -576,7 +579,7 @@ def task_submit_user_data(
 # def __update_task(processor, task, data, user):
 #     """All the things that need to happen when we complete a form, abstracted
 #     here because we need to do it multiple times when completing all tasks in
-#     a multi-instance task"""
+#     a multi-instance task."""
 #     task.update_data(data)
 #     WorkflowService.post_process_form(task)  # some properties may update the data store.
 #     processor.complete_task(task)
@@ -586,7 +589,6 @@ def task_submit_user_data(
 #     WorkflowService.log_task_action(user.uid, processor, task, TaskAction.COMPLETE.value)
 #     processor.do_engine_steps()
 #     processor.save()
-
 
 
 def get_file_from_request() -> Any:

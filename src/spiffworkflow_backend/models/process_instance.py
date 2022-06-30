@@ -2,16 +2,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from flask_bpmn.models.db import db
-from flask_bpmn.models.db import SpiffworkflowBaseDBModel
-from SpiffWorkflow.navigation import NavItem  # type: ignore
 from typing import Any
-from typing import Optional
 
 import marshmallow
+from flask_bpmn.models.db import db
+from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from marshmallow import INCLUDE
 from marshmallow import Schema
 from marshmallow_enum import EnumField  # type: ignore
+from SpiffWorkflow.navigation import NavItem  # type: ignore
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import deferred
 from sqlalchemy.orm import relationship
@@ -145,7 +144,7 @@ class ProcessInstanceApi:
         self,
         id: int,
         status: ProcessInstanceStatus,
-        next_task: Optional[Task],
+        next_task: Task | None,
         process_model_identifier: str,
         process_group_identifier: str,
         total_tasks: int,
