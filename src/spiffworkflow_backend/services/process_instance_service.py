@@ -1,5 +1,4 @@
 """Process_instance_service."""
-import enum
 import time
 from typing import Any
 from typing import Dict
@@ -18,6 +17,7 @@ from SpiffWorkflow.camunda.specs.UserTask import EnumFormField  # type: ignore
 from SpiffWorkflow.dmn.specs.BusinessRuleTask import BusinessRuleTask  # type: ignore
 from SpiffWorkflow.specs import CancelTask  # type: ignore
 from SpiffWorkflow.specs import StartTask
+from SpiffWorkflow.task import Task as SpiffTask  # type: ignore
 from SpiffWorkflow.util.deep_merge import DeepMerge  # type: ignore
 
 from spiffworkflow_backend.models.process_instance import ProcessInstanceApi
@@ -33,7 +33,7 @@ from spiffworkflow_backend.services.process_instance_processor import (
 )
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 from spiffworkflow_backend.services.user_service import UserService
-from SpiffWorkflow.task import Task as SpiffTask  # type: ignore
+
 # from SpiffWorkflow.task import TaskState  # type: ignore
 
 
@@ -185,7 +185,9 @@ class ProcessInstanceService:
                 )
 
     @staticmethod
-    def get_users_assigned_to_task(processor: ProcessInstanceProcessor, spiff_task: SpiffTask) -> List[int]:
+    def get_users_assigned_to_task(
+        processor: ProcessInstanceProcessor, spiff_task: SpiffTask
+    ) -> List[int]:
         """Get_users_assigned_to_task."""
         if processor.process_instance_model.process_initiator_id is None:
             raise ApiError.from_task(
@@ -265,7 +267,9 @@ class ProcessInstanceService:
     #     return task_type
 
     @staticmethod
-    def log_task_action(user_id: int, processor:ProcessInstanceProcessor, spiff_task: Task, action: str) -> None:
+    def log_task_action(
+        user_id: int, processor: ProcessInstanceProcessor, spiff_task: Task, action: str
+    ) -> None:
         """Log_task_action."""
         task = ProcessInstanceService.spiff_task_to_api_task(spiff_task)
         form_data = ProcessInstanceService.extract_form_data(
@@ -294,7 +298,7 @@ class ProcessInstanceService:
         db.session.commit()
 
     @staticmethod
-    def extract_form_data(latest_data:dict, task:SpiffTask) -> dict:
+    def extract_form_data(latest_data: dict, task: SpiffTask) -> dict:
         """Extracts data from the latest_data that is directly related to the form that is being submitted."""
         data = {}
 
@@ -348,7 +352,9 @@ class ProcessInstanceService:
         return target
 
     @staticmethod
-    def spiff_task_to_api_task(spiff_task: SpiffTask, add_docs_and_forms: bool=False) -> Task:
+    def spiff_task_to_api_task(
+        spiff_task: SpiffTask, add_docs_and_forms: bool = False
+    ) -> Task:
         """Spiff_task_to_api_task."""
         task_type = spiff_task.task_spec.__class__.__name__
 
@@ -412,7 +418,10 @@ class ProcessInstanceService:
         # not be a previously completed MI Task.
         if add_docs_and_forms:
             task.data = spiff_task.data
-            if hasattr(spiff_task.task_spec, "form") and spiff_task.task_spec.form is not None:
+            if (
+                hasattr(spiff_task.task_spec, "form")
+                and spiff_task.task_spec.form is not None
+            ):
                 task.form = spiff_task.task_spec.form
                 for i, field in enumerate(task.form.fields):
                     task.form.fields[i] = ProcessInstanceService.process_options(

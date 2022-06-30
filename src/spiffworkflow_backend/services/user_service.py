@@ -1,7 +1,6 @@
 """User_service."""
 from typing import Any
 from typing import Optional
-from typing import Union
 
 from flask import g
 from flask_bpmn.api.api_error import ApiError
@@ -184,5 +183,7 @@ class UserService:
         )
         if principal:
             return principal
-        raise ApiError(code='no_principal_found',
-                       message=f"No principal was found for user_id: {user_id}")
+        raise ApiError(
+            code="no_principal_found",
+            message=f"No principal was found for user_id: {user_id}",
+        )
