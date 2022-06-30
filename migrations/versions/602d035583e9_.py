@@ -126,7 +126,7 @@ def upgrade():
     )
     op.create_table('task_event',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('user_uid', sa.String(length=50), nullable=False),
+    sa.Column('user_id', sa.Integer, nullable=False),
     sa.Column('process_instance_id', sa.Integer(), nullable=False),
     sa.Column('spec_version', sa.String(length=50), nullable=True),
     sa.Column('action', sa.String(length=50), nullable=True),
@@ -143,6 +143,7 @@ def upgrade():
     sa.Column('process_name', sa.String(length=50), nullable=True),
     sa.Column('date', sa.DateTime(timezone=True), nullable=True),
     sa.ForeignKeyConstraint(['process_instance_id'], ['process_instance.id'], ),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('data_store',

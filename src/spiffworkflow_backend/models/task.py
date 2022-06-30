@@ -1,10 +1,21 @@
 """Task."""
 import enum
 from typing import Any
+from typing import Optional
 
 import marshmallow
 from marshmallow import Schema
 from marshmallow_enum import EnumField  # type: ignore
+from SpiffWorkflow.camunda.specs.UserTask import Form  # type: ignore
+
+
+class MultiInstanceType(enum.Enum):
+    """MultiInstanceType."""
+
+    none = "none"
+    looping = "looping"
+    parallel = "parallel"
+    sequential = "sequential"
 
 
 class Task:
@@ -91,14 +102,14 @@ class Task:
         type: str,
         state: str,
         lane: str,
-        form: str,
+        form: Optional[Form],
         documentation: str,
         data: dict[str, Any],
-        multi_instance_type: str,
+        multi_instance_type: MultiInstanceType,
         multi_instance_count: str,
         multi_instance_index: str,
         process_name: str,
-        properties: str,
+        properties: dict,
     ):
         """__init__."""
         self.id = id
@@ -135,15 +146,6 @@ class Task:
         return [
             value for name, value in vars(cls).items() if name.startswith("FIELD_TYPE")
         ]
-
-
-class MultiInstanceType(enum.Enum):
-    """MultiInstanceType."""
-
-    none = "none"
-    looping = "looping"
-    parallel = "parallel"
-    sequential = "sequential"
 
 
 class OptionSchema(Schema):
@@ -198,11 +200,11 @@ class FormFieldSchema(Schema):
     )
 
 
-# class FormSchema(Schema):
-#     """FormSchema."""
-#
-#     key = marshmallow.fields.String(required=True, allow_none=False)
-#     fields = marshmallow.fields.List(marshmallow.fields.Nested(FormFieldSchema))
+class FormSchema(Schema):
+    """FormSchema."""
+
+    key = marshmallow.fields.String(required=True, allow_none=False)
+    fields = marshmallow.fields.List(marshmallow.fields.Nested(FormFieldSchema))
 
 
 class TaskSchema(Schema):
@@ -230,7 +232,7 @@ class TaskSchema(Schema):
 
     multi_instance_type = EnumField(MultiInstanceType)
     documentation = marshmallow.fields.String(required=False, allow_none=True)
-    # form = marshmallow.fields.Nested(FormSchema, required=False, allow_none=True)
+    form = marshmallow.fields.Nested(FormSchema, required=False, allow_none=True)
     title = marshmallow.fields.String(required=False, allow_none=True)
     process_name = marshmallow.fields.String(required=False, allow_none=True)
     lane = marshmallow.fields.String(required=False, allow_none=True)

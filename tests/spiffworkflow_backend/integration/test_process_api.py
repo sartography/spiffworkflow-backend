@@ -25,6 +25,7 @@ from spiffworkflow_backend.models.process_instance import ProcessInstanceStatus
 from spiffworkflow_backend.models.process_model import NotificationType
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
+from spiffworkflow_backend.models.task_event import TaskEventModel
 from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 
@@ -83,9 +84,6 @@ def test_process_model_delete_with_instances(
     app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_model_delete_with_instances."""
-    db.session.query(ProcessInstanceModel).delete()
-    db.session.commit()
-
     test_process_group_id = "runs_without_input"
     test_process_model_id = "sample"
     user = find_or_create_user()
@@ -604,13 +602,42 @@ def test_process_instance_run(
     assert response.json["data"]["person"] == "Kevin"
 
 
+def test_process_instance_run_user_task_creates_task_event(
+    app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+) -> None:
+    """Test_process_instance_run_user_task."""
+    process_group_id = "my_process_group"
+    process_model_id = "user_task"
+
+    user = find_or_create_user()
+    headers = logged_in_headers(user)
+    response = create_process_instance(
+        client, process_group_id, process_model_id, headers
+    )
+    assert response.json is not None
+    process_instance_id = response.json["id"]
+
+    response = client.post(
+        f"/v1.0/process-models/{process_group_id}/{process_model_id}/process-instances/{process_instance_id}/run",
+        headers=logged_in_headers(user),
+    )
+
+    assert response.json is not None
+    task_events = (
+        db.session.query(TaskEventModel)
+        .filter(TaskEventModel.process_instance_id == process_instance_id)
+        .all()
+    )
+    assert len(task_events) == 1
+    task_event = task_events[0]
+    assert task_event.user_id == user.id
+    # TODO: When user tasks work, we need to add some more assertions for action, task_state, etc.
+
+
 def test_process_instance_list_with_default_list(
     app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_instance_list_with_default_list."""
-    db.session.query(ProcessInstanceModel).delete()
-    db.session.commit()
-
     test_process_group_id = "runs_without_input"
     process_model_dir_name = "sample"
     user = find_or_create_user()
@@ -644,9 +671,6 @@ def test_process_instance_list_with_paginated_items(
     app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_instance_list_with_paginated_items."""
-    db.session.query(ProcessInstanceModel).delete()
-    db.session.commit()
-
     test_process_group_id = "runs_without_input"
     process_model_dir_name = "sample"
     user = find_or_create_user()
@@ -694,9 +718,6 @@ def test_process_instance_list_filter(
     app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_instance_list_filter."""
-    db.session.query(ProcessInstanceModel).delete()
-    db.session.commit()
-
     test_process_group_id = "runs_without_input"
     test_process_model_id = "sample"
     user = find_or_create_user()
@@ -789,9 +810,6 @@ def test_process_instance_report_with_default_list(
     app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_process_instance_report_with_default_list."""
-    db.session.query(ProcessInstanceModel).delete()
-    db.session.commit()
-
     test_process_group_id = "runs_without_input"
     process_model_dir_name = "sample"
     user = find_or_create_user()
@@ -839,9 +857,6 @@ def test_error_handler(
     app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_error_handler."""
-    db.session.query(ProcessInstanceModel).delete()
-    db.session.commit()
-
     process_group_id = "data"
     process_model_id = "error"
     user = find_or_create_user()
@@ -885,9 +900,6 @@ def test_error_handler_suspend(
     app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_error_handler_suspend."""
-    db.session.query(ProcessInstanceModel).delete()
-    db.session.commit()
-
     process_group_id = "data"
     process_model_id = "error"
     user = find_or_create_user()
@@ -926,9 +938,6 @@ def test_error_handler_with_email(
     app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_error_handler."""
-    db.session.query(ProcessInstanceModel).delete()
-    db.session.commit()
-
     process_group_id = "data"
     process_model_id = "error"
     user = find_or_create_user()

@@ -12,6 +12,7 @@ from flask import g
 from flask import Response
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
+from sqlalchemy import desc
 
 from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
     ProcessEntityNotFoundError,
@@ -280,7 +281,7 @@ def process_instance_run(
     process_group_id: str,
     process_model_id: str,
     process_instance_id: int,
-    do_engine_steps: bool = False,
+    do_engine_steps: bool = True,
 ) -> flask.wrappers.Response:
     """Process_instance_run."""
     process_instance = ProcessInstanceService().get_process_instance(
@@ -288,19 +289,20 @@ def process_instance_run(
     )
     processor = ProcessInstanceProcessor(process_instance)
 
-    try:
-        processor.do_engine_steps()
-    except Exception as e:
-        ErrorHandlingService().handle_error(processor, e)
-        task = processor.bpmn_process_instance.last_task
-        raise ApiError.from_task(
-            code="unknown_exception",
-            message=f"An unknown error occurred. Original error: {e}",
-            status_code=400,
-            task=task,
-        ) from e
-    processor.save()
-    # ProcessInstanceService.update_task_assignments(processor)
+    if do_engine_steps:
+        try:
+            processor.do_engine_steps()
+        except Exception as e:
+            ErrorHandlingService().handle_error(processor, e)
+            task = processor.bpmn_process_instance.last_task
+            raise ApiError.from_task(
+                code="unknown_exception",
+                message=f"An unknown error occurred. Original error: {e}",
+                status_code=400,
+                task=task,
+            ) from e
+        processor.save()
+        ProcessInstanceService.update_task_assignments(processor)
 
     process_instance_api = ProcessInstanceService.processor_to_process_instance_api(
         processor
@@ -309,7 +311,7 @@ def process_instance_run(
     process_instance_metadata = ProcessInstanceApiSchema().dump(process_instance_api)
     process_instance_metadata["data"] = process_instance_data
     return Response(
-        json.dumps(process_instance_metadata), status=201, mimetype="application/json"
+        json.dumps(process_instance_metadata), status=200, mimetype="application/json"
     )
 
 
@@ -445,7 +447,7 @@ def task_list_my_tasks(page: int = 1, per_page: int = 100) -> flask.wrappers.Res
 
     active_tasks = (
         ActiveTaskModel.query.filter_by(assigned_principal_id=principal.id)
-        .order_by(ActiveTaskModel.id.desc())
+        .order_by(desc(ActiveTaskModel.id))
         .paginate(page, per_page, False)
     )
 
@@ -471,7 +473,9 @@ def task_show(task_id: int) -> flask.wrappers.Response:
                 status_code=400,
             )
         )
-    active_task_assigned_to_me = ActiveTaskModel.query.filter_by(id=task_id, assigned_principal_id=principal.id).first()
+    active_task_assigned_to_me = ActiveTaskModel.query.filter_by(
+        id=task_id, assigned_principal_id=principal.id
+    ).first()
     if active_task_assigned_to_me is None:
         raise (
             ApiError(

@@ -6,6 +6,7 @@ from flask import g
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
 
+from spiffworkflow_backend.models.principal import PrincipalModel
 from spiffworkflow_backend.models.user import AdminSessionModel
 from spiffworkflow_backend.models.user import UserModel
 
@@ -171,3 +172,18 @@ class UserService:
                 "You do not have permissions to do this.",
                 status_code=403,
             )
+
+    @staticmethod
+    def get_principal_by_user_id(user_id: int) -> PrincipalModel:
+        """Get_principal_by_user_id."""
+        principal: PrincipalModel = (
+            db.session.query(PrincipalModel)
+            .filter(PrincipalModel.user_id == user_id)
+            .first()
+        )
+        if principal:
+            return principal
+        raise ApiError(
+            code="no_principal_found",
+            message=f"No principal was found for user_id: {user_id}",
+        )

@@ -34,8 +34,8 @@ class TaskEventModel(SpiffworkflowBaseDBModel):
 
     __tablename__ = "task_event"
     id = db.Column(db.Integer, primary_key=True)
-    user_uid = db.Column(
-        db.String(50), nullable=False
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("user.id"), nullable=False
     )  # In some cases the unique user id may not exist in the db yet.
     process_instance_id = db.Column(
         db.Integer, db.ForeignKey("process_instance.id"), nullable=False
@@ -77,7 +77,7 @@ class TaskEvent:
         """__init__."""
         self.id = model.id
         self.process_instance = process_instance
-        self.user_uid = model.user_uid
+        self.user_id = model.user_id
         self.action = model.action
         self.task_id = model.task_id
         self.task_title = model.task_title
@@ -100,7 +100,7 @@ class TaskEventSchema(Schema):
         model = TaskEvent
         additional = [
             "id",
-            "user_uid",
+            "user_id",
             "action",
             "task_id",
             "task_title",
