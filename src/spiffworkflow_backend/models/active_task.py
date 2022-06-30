@@ -6,7 +6,7 @@ from flask_bpmn.models.db import db
 from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 
 from sqlalchemy import ForeignKey
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import RelationshipProperty, relationship
 
 from spiffworkflow_backend.models.principal import PrincipalModel
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
@@ -25,11 +25,11 @@ class ActiveTaskModel(SpiffworkflowBaseDBModel):
 
     form_json: str | None = ""
     bpmn_json: str = ""
-    assigned_principal: PrincipalModel = relationship(PrincipalModel)
+    assigned_principal: RelationshipProperty[PrincipalModel] = relationship(PrincipalModel)
     id: int = db.Column(db.Integer, primary_key=True)
     task_id: str = db.Column(db.String(50), nullable=False)
     process_instance_id: int = db.Column(
-        ForeignKey(ProcessInstanceModel.id), nullable=False
+            ForeignKey(ProcessInstanceModel.id), nullable=False  # type: ignore
     )
     assigned_principal_id: int = db.Column(ForeignKey(PrincipalModel.id))
     process_instance_data: str = db.Column(db.Text)

@@ -9,6 +9,7 @@ import flask.app
 import flask.json
 from flask_cors import CORS  # type: ignore
 from flask_mail import Mail  # type: ignore
+from typing import Any
 
 import spiffworkflow_backend.load_database_models  # noqa: F401
 from spiffworkflow_backend.config import setup_config
@@ -21,7 +22,7 @@ from spiffworkflow_backend.routes.user_blueprint import user_blueprint
 class MyJSONEncoder(flask.json.JSONEncoder):
     """MyJSONEncoder."""
 
-    def default(self, obj):
+    def default(self, obj: Any) -> Any:
         """Default."""
         if hasattr(obj, "serialized"):
             return obj.serialized
