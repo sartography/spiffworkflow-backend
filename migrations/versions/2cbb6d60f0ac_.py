@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 602d035583e9
+Revision ID: 2cbb6d60f0ac
 Revises: 
-Create Date: 2022-06-29 15:53:50.319748
+Create Date: 2022-06-30 10:45:49.832257
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '602d035583e9'
+revision = '2cbb6d60f0ac'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -97,7 +97,7 @@ def upgrade():
     sa.Column('assigned_principal_id', sa.Integer(), nullable=True),
     sa.Column('process_instance_data', sa.Text(), nullable=True),
     sa.Column('status', sa.String(length=20), nullable=False),
-    sa.Column('form_file_name', sa.String(length=50), nullable=False),
+    sa.Column('form_file_name', sa.String(length=50), nullable=True),
     sa.Column('updated_at_in_seconds', sa.Integer(), nullable=True),
     sa.Column('created_at_in_seconds', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['assigned_principal_id'], ['principal.id'], ),
@@ -126,7 +126,7 @@ def upgrade():
     )
     op.create_table('task_event',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('user_id', sa.Integer, nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('process_instance_id', sa.Integer(), nullable=False),
     sa.Column('spec_version', sa.String(length=50), nullable=True),
     sa.Column('action', sa.String(length=50), nullable=True),

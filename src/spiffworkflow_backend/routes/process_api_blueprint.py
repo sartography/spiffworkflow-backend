@@ -357,21 +357,16 @@ def process_instance_list(
         ProcessInstanceModel.start_in_seconds.desc(), ProcessInstanceModel.id.desc()  # type: ignore
     ).paginate(page, per_page, False)
 
-    serialized_results = []
-    for process_instance in process_instances.items:
-        process_instance_serialized = process_instance.serialized
-        process_instance_serialized["process_group_id"] = process_model.process_group_id
-        serialized_results.append(process_instance_serialized)
-
     response_json = {
-        "results": serialized_results,
+        "results": process_instances.items,
         "pagination": {
             "count": len(process_instances.items),
             "total": process_instances.total,
             "pages": process_instances.pages,
         },
     }
-    return Response(json.dumps(response_json), status=200, mimetype="application/json")
+
+    return make_response(jsonify(response_json), 200)
 
 
 def process_instance_delete(

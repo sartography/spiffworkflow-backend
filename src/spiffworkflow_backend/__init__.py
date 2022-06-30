@@ -16,6 +16,18 @@ from spiffworkflow_backend.routes.api_blueprint import api_blueprint
 from spiffworkflow_backend.routes.process_api_blueprint import process_api_blueprint
 from spiffworkflow_backend.routes.user_blueprint import user_blueprint
 
+import flask.json
+
+
+class MyJSONEncoder(flask.json.JSONEncoder):
+    """MyJSONEncoder."""
+
+    def default(self, obj):
+        """Default."""
+        if hasattr(obj, 'serialized'):
+            return obj.serialized
+        return super(MyJSONEncoder, self).default(obj)
+
 
 def create_app() -> flask.app.Flask:
     """Create_app."""
@@ -58,5 +70,7 @@ def create_app() -> flask.app.Flask:
 
     mail = Mail(app)
     app.config["MAIL_APP"] = mail
+
+    app.json_encoder = MyJSONEncoder
 
     return app  # type: ignore

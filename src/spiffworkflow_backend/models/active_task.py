@@ -7,6 +7,7 @@ from typing import Optional
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from sqlalchemy import ForeignKey
+from sqlalchemy.orm import relationship
 
 from spiffworkflow_backend.models.principal import PrincipalModel
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
@@ -25,6 +26,7 @@ class ActiveTaskModel(SpiffworkflowBaseDBModel):
 
     form_json: Optional[str] = ""
     bpmn_json: str = ""
+    assigned_principal: PrincipalModel = relationship(PrincipalModel)
     id: int = db.Column(db.Integer, primary_key=True)
     task_id: str = db.Column(db.String(50), nullable=False)
     process_instance_id: int = db.Column(ForeignKey(ProcessInstanceModel.id), nullable=False)
