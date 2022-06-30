@@ -181,6 +181,7 @@ class ProcessInstanceService:
             user_ids = ProcessInstanceService.get_users_assigned_to_task(
                 processor, task
             )
+
             for user_id in user_ids:
                 ProcessInstanceService().log_task_action(
                     user_id, processor, task, TaskAction.ASSIGNMENT.value
@@ -209,7 +210,7 @@ class ProcessInstanceService:
             ):
                 current_user = spiff_task.data["current_user"]
                 return [
-                    current_user.id,
+                    current_user["id"],
                 ]
                 # return [processor.process_instance_model.process_initiator_id]
 
@@ -266,6 +267,30 @@ class ProcessInstanceService:
     #         else:
     #             task_type = "NoneTask"
     #     return task_type
+
+    @staticmethod
+    def complete_form_task(
+        processor: ProcessInstanceProcessor,
+        spiff_task: SpiffTask,
+        data: dict[str, Any],
+        user: UserModel,
+    ) -> None:
+        """All the things that need to happen when we complete a form.
+
+        Abstracted here because we need to do it multiple times when completing all tasks in
+        a multi-instance task.
+        """
+        spiff_task.update_data(data)
+        # ProcessInstanceService.post_process_form(spiff_task)  # some properties may update the data store.
+        processor.complete_task(spiff_task)
+        # Log the action before doing the engine steps, as doing so could effect the state of the task
+        # the workflow could wrap around in the ngine steps, and the task could jump from being completed to
+        # another state.  What we are logging here is the completion.
+        ProcessInstanceService.log_task_action(
+            user.id, processor, spiff_task, TaskAction.COMPLETE.value
+        )
+        processor.do_engine_steps()
+        processor.save()
 
     @staticmethod
     def log_task_action(

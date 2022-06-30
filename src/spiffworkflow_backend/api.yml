@@ -605,6 +605,13 @@ paths:
         description: The unique id of an existing process group.
         schema:
           type: string
+      - name: terminate_loop
+        in: query
+        required: false
+        description: Terminate the loop on a looping task
+        schema:
+          type: boolean
+
     post:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.task_submit_user_data
       summary: Update the form data for a tasks

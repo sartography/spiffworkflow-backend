@@ -30,7 +30,6 @@ from SpiffWorkflow.dmn.serializer import BusinessRuleTaskConverter  # type: igno
 from SpiffWorkflow.exceptions import WorkflowTaskExecException  # type: ignore
 from SpiffWorkflow.serializer.exceptions import MissingSpecError  # type: ignore
 from SpiffWorkflow.specs import WorkflowSpec  # type: ignore
-from SpiffWorkflow.task import Task  # type: ignore
 
 from spiffworkflow_backend.models.active_task import ActiveTaskModel
 from spiffworkflow_backend.models.file import File
@@ -56,7 +55,7 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
     scripts directory available for execution.
     """
 
-    def evaluate(self, task: Task, expression: str) -> Any:
+    def evaluate(self, task: SpiffTask, expression: str) -> Any:
         """Evaluate."""
         return self._evaluate(expression, task.data, task)
 
@@ -64,7 +63,7 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
         self,
         expression: str,
         context: Dict[str, Union[Box, str]],
-        task: Optional[Task] = None,
+        task: Optional[SpiffTask] = None,
         _external_methods: None = None,
     ) -> Any:
         """Evaluate the given expression, within the context of the given task and return the result."""
@@ -312,7 +311,6 @@ class ProcessInstanceProcessor:
             bpmn_process_instance.data[
                 ProcessInstanceProcessor.VALIDATION_PROCESS_KEY
             ] = validate_only
-        print(f"bpmn_process_instance: {bpmn_process_instance}")
         return bpmn_process_instance
 
     def save(self) -> None:
@@ -334,6 +332,10 @@ class ProcessInstanceProcessor:
                 self.process_instance_model.end_in_seconds = round(time.time())
 
         db.session.add(self.process_instance_model)
+
+        ActiveTaskModel.query.filter_by(
+            process_instance_id=self.process_instance_model.id
+        ).delete()
 
         ready_or_waiting_tasks = self.get_all_ready_or_waiting_tasks()
         for ready_or_waiting_task in ready_or_waiting_tasks:
@@ -450,11 +452,11 @@ class ProcessInstanceProcessor:
         """Serialize."""
         return self._serializer.serialize_json(self.bpmn_process_instance)  # type: ignore
 
-    def next_user_tasks(self) -> list[Task]:
+    def next_user_tasks(self) -> list[SpiffTask]:
         """Next_user_tasks."""
         return self.bpmn_process_instance.get_ready_user_tasks()  # type: ignore
 
-    def next_task(self) -> Task:
+    def next_task(self) -> SpiffTask:
         """Returns the next task that should be completed even if there are parallel tasks and multiple options are available.
 
         If the process_instance is complete
@@ -523,7 +525,7 @@ class ProcessInstanceProcessor:
             next_task = task
         return next_task
 
-    def completed_user_tasks(self) -> List[Task]:
+    def completed_user_tasks(self) -> List[SpiffTask]:
         """Completed_user_tasks."""
         user_tasks = self.bpmn_process_instance.get_tasks(TaskState.COMPLETED)
         user_tasks.reverse()
@@ -537,7 +539,7 @@ class ProcessInstanceProcessor:
         )
         return user_tasks  # type: ignore
 
-    def complete_task(self, task: Task) -> None:
+    def complete_task(self, task: SpiffTask) -> None:
         """Complete_task."""
         self.bpmn_process_instance.complete_task_from_id(task.id)
 
@@ -549,11 +551,11 @@ class ProcessInstanceProcessor:
         """Get_process_instance_id."""
         return self.process_instance_model.id
 
-    def get_ready_user_tasks(self) -> list[Task]:
+    def get_ready_user_tasks(self) -> list[SpiffTask]:
         """Get_ready_user_tasks."""
         return self.bpmn_process_instance.get_ready_user_tasks()  # type: ignore
 
-    def get_current_user_tasks(self) -> list[Task]:
+    def get_current_user_tasks(self) -> list[SpiffTask]:
         """Return a list of all user tasks that are READY or COMPLETE and are parallel to the READY Task."""
         ready_tasks = self.bpmn_process_instance.get_ready_user_tasks()
         additional_tasks = []
@@ -563,7 +565,7 @@ class ProcessInstanceProcessor:
                     additional_tasks.append(child)
         return ready_tasks + additional_tasks  # type: ignore
 
-    def get_all_user_tasks(self) -> List[Task]:
+    def get_all_user_tasks(self) -> List[SpiffTask]:
         """Get_all_user_tasks."""
         all_tasks = self.bpmn_process_instance.get_tasks(TaskState.ANY_MASK)
         return [
@@ -572,7 +574,7 @@ class ProcessInstanceProcessor:
             if not self.bpmn_process_instance._is_engine_task(t.task_spec)
         ]
 
-    def get_all_completed_tasks(self) -> list[Task]:
+    def get_all_completed_tasks(self) -> list[SpiffTask]:
         """Get_all_completed_tasks."""
         all_tasks = self.bpmn_process_instance.get_tasks(TaskState.ANY_MASK)
         return [
@@ -582,12 +584,12 @@ class ProcessInstanceProcessor:
             and t.state in [TaskState.COMPLETED, TaskState.CANCELLED]
         ]
 
-    def get_all_ready_or_waiting_tasks(self) -> list[Task]:
+    def get_all_ready_or_waiting_tasks(self) -> list[SpiffTask]:
         """Get_all_ready_or_waiting_tasks."""
         all_tasks = self.bpmn_process_instance.get_tasks(TaskState.ANY_MASK)
         return [t for t in all_tasks if t.state in [TaskState.WAITING, TaskState.READY]]
 
-    def get_nav_item(self, task: Task) -> Any:
+    def get_nav_item(self, task: SpiffTask) -> Any:
         """Get_nav_item."""
         for nav_item in self.bpmn_process_instance.get_nav_list():
             if nav_item["task_id"] == task.id:

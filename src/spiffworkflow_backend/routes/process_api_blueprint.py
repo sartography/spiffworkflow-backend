@@ -1,5 +1,6 @@
 """APIs for dealing with process groups, process models, and process instances."""
 import json
+import uuid
 from typing import Any
 from typing import Dict
 from typing import Optional
@@ -14,6 +15,7 @@ from flask import make_response
 from flask.wrappers import Response
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
+from SpiffWorkflow import TaskState  # type: ignore
 from sqlalchemy import desc
 
 from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
@@ -375,17 +377,7 @@ def process_instance_delete(
     process_group_id: str, process_model_id: str, process_instance_id: int
 ) -> flask.wrappers.Response:
     """Create_process_instance."""
-    process_instance = ProcessInstanceModel.query.filter_by(
-        id=process_instance_id
-    ).first()
-    if process_instance is None:
-        raise (
-            ApiError(
-                code="process_instance_cannot_be_found",
-                message=f"Process instance cannot be found: {process_instance_id}",
-                status_code=400,
-            )
-        )
+    process_instance = find_process_instance_by_id_or_raise(process_instance_id)
 
     db.session.delete(process_instance)
     db.session.commit()
@@ -428,15 +420,7 @@ def process_instance_report(
 
 def task_list_my_tasks(page: int = 1, per_page: int = 100) -> flask.wrappers.Response:
     """Task_list_my_tasks."""
-    principal = PrincipalModel.query.filter_by(user_id=g.user.id).first()
-    if principal is None:
-        raise (
-            ApiError(
-                code="principal_not_found",
-                message=f"Principal not found from user id: {g.user.id}",
-                status_code=400,
-            )
-        )
+    principal = find_principal_or_raise()
 
     active_tasks = (
         ActiveTaskModel.query.filter_by(assigned_principal_id=principal.id)
@@ -457,26 +441,8 @@ def task_list_my_tasks(page: int = 1, per_page: int = 100) -> flask.wrappers.Res
 
 def task_show(task_id: int) -> flask.wrappers.Response:
     """Task_list_my_tasks."""
-    principal = PrincipalModel.query.filter_by(user_id=g.user.id).first()
-    if principal is None:
-        raise (
-            ApiError(
-                code="principal_not_found",
-                message=f"Principal not found from user id: {g.user.id}",
-                status_code=400,
-            )
-        )
-    active_task_assigned_to_me = ActiveTaskModel.query.filter_by(
-        id=task_id, assigned_principal_id=principal.id
-    ).first()
-    if active_task_assigned_to_me is None:
-        raise (
-            ApiError(
-                code="task_not_found",
-                message=f"Task not found for principal user: {g.user.id} and id: {task_id}",
-                status_code=400,
-            )
-        )
+    principal = find_principal_or_raise()
+    active_task_assigned_to_me = find_active_task_by_id_or_raise(task_id, principal.id)
 
     process_instance = ProcessInstanceModel.query.filter_by(
         id=active_task_assigned_to_me.process_instance_id
@@ -485,6 +451,16 @@ def task_show(task_id: int) -> flask.wrappers.Response:
         process_instance.process_model_identifier,
         process_instance.process_group_identifier,
     )
+
+    if active_task_assigned_to_me.form_file_name is None:
+        raise (
+            ApiError(
+                code="missing_form_file",
+                message=f"Cannot find a form file for active task {task_id}",
+                status_code=500,
+            )
+        )
+
     file_contents = SpecFileService.get_data(
         process_model, active_task_assigned_to_me.form_file_name
     )
@@ -494,101 +470,61 @@ def task_show(task_id: int) -> flask.wrappers.Response:
 
 
 def task_submit_user_data(
-    task_id: int, body: Dict[str, Any]
+    task_id: int, body: Dict[str, Any], terminate_loop: bool = False
 ) -> flask.wrappers.Response:
     """Task_submit_user_data."""
-    principal = PrincipalModel.query.filter_by(user_id=g.user.id).first()
-    if principal is None:
-        raise (
-            ApiError(
-                code="principal_not_found",
-                message=f"Principal not found from user id: {g.user.id}",
-                status_code=400,
-            )
-        )
-    active_task_assigned_to_me = ActiveTaskModel.query.filter_by(
-        id=task_id, assigned_principal_id=principal.id
-    ).first()
-    if active_task_assigned_to_me is None:
-        raise (
-            ApiError(
-                code="task_not_found",
-                message=f"Task not found for principal user: {g.user.id} and id: {task_id}",
-                status_code=400,
-            )
-        )
+    principal = find_principal_or_raise()
+    active_task_assigned_to_me = find_active_task_by_id_or_raise(task_id, principal.id)
 
-    process_instance = ProcessInstanceModel.query.filter_by(
-        process_instance_id=active_task_assigned_to_me.process_instance.id
+    process_instance = find_process_instance_by_id_or_raise(
+        active_task_assigned_to_me.process_instance_id
     )
-    if process_instance is None:
+
+    processor = ProcessInstanceProcessor(process_instance)
+    spiffworkflow_task_uuid = uuid.UUID(
+        active_task_assigned_to_me.spiffworkflow_task_id
+    )
+    spiff_task = processor.bpmn_process_instance.get_task(spiffworkflow_task_uuid)
+
+    if spiff_task is None:
         raise (
             ApiError(
-                code="process_instance_cannot_be_found",
-                message=f"Process instance cannot be found for active task: {active_task_assigned_to_me.id}",
+                code="empty_task",
+                message="Processor failed to obtain task.",
+                status_code=500,
+            )
+        )
+    if spiff_task.state != TaskState.READY:
+        raise (
+            ApiError(
+                code="invalid_state",
+                message="You may not update a task unless it is in the READY state.",
                 status_code=400,
             )
         )
+
+    if terminate_loop and spiff_task.is_looping():
+        spiff_task.terminate_loop()
+
+    # TODO: support repeating fields
+    # Extract the details specific to the form submitted
+    # form_data = WorkflowService().extract_form_data(body, spiff_task)
+
+    ProcessInstanceService.complete_form_task(processor, spiff_task, body, g.user)
+
+    # If we need to update all tasks, then get the next ready task and if it a multi-instance with the same
+    # task spec, complete that form as well.
+    # if update_all:
+    #     last_index = spiff_task.task_info()["mi_index"]
+    #     next_task = processor.next_task()
+    #     while next_task and next_task.task_info()["mi_index"] > last_index:
+    #         __update_task(processor, next_task, form_data, user)
+    #         last_index = next_task.task_info()["mi_index"]
+    #         next_task = processor.next_task()
+
+    ProcessInstanceService.update_task_assignments(processor)
+
     return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
-
-
-# def update_task(workflow_id, task_id, body, terminate_loop=None, update_all=False):
-#     workflow_model = session.query(WorkflowModel).filter_by(id=workflow_id).first()
-#     if workflow_model is None:
-#         raise ApiError("invalid_workflow_id", "The given workflow id is not valid.", status_code=404)
-#     if workflow_model.state in ('hidden', 'disabled', 'locked'):
-#         raise ApiError(code='locked_workflow',
-#                        message='You tried to update a task for a workflow that is hidden, locked, or disabled.')
-#
-#     processor = WorkflowProcessor(workflow_model)
-#     task_id = uuid.UUID(task_id)
-#     spiff_task = processor.bpmn_workflow.get_task(task_id)
-#     _verify_user_and_role(processor, spiff_task)
-#     user = UserService.current_user(allow_admin_impersonate=False) # Always log as the real user.
-#
-#     if not spiff_task:
-#         raise ApiError("empty_task", "Processor failed to obtain task.", status_code=404)
-#     if spiff_task.state != TaskState.READY:
-#         raise ApiError("invalid_state", "You may not update a task unless it is in the READY state. "
-#                                         "Consider calling a token reset to make this task Ready.")
-#
-#     if terminate_loop and spiff_task.is_looping():
-#         spiff_task.terminate_loop()
-#
-#     # Extract the details specific to the form submitted
-#     form_data = WorkflowService().extract_form_data(body, spiff_task)
-#
-#     # Update the task
-#     __update_task(processor, spiff_task, form_data, user)
-#
-#     # If we need to update all tasks, then get the next ready task and if it a multi-instance with the same
-#     # task spec, complete that form as well.
-#     if update_all:
-#         last_index = spiff_task.task_info()["mi_index"]
-#         next_task = processor.next_task()
-#         while next_task and next_task.task_info()["mi_index"] > last_index:
-#             __update_task(processor, next_task, form_data, user)
-#             last_index = next_task.task_info()["mi_index"]
-#             next_task = processor.next_task()
-#
-#     WorkflowService.update_task_assignments(processor)
-#     workflow_api_model = WorkflowService.processor_to_workflow_api(processor)
-#     return WorkflowApiSchema().dump(workflow_api_model)
-#
-#
-# def __update_task(processor, task, data, user):
-#     """All the things that need to happen when we complete a form, abstracted
-#     here because we need to do it multiple times when completing all tasks in
-#     a multi-instance task."""
-#     task.update_data(data)
-#     WorkflowService.post_process_form(task)  # some properties may update the data store.
-#     processor.complete_task(task)
-#     # Log the action before doing the engine steps, as doing so could effect the state of the task
-#     # the workflow could wrap around in the ngine steps, and the task could jump from being completed to
-#     # another state.  What we are logging here is the completion.
-#     WorkflowService.log_task_action(user.uid, processor, task, TaskAction.COMPLETE.value)
-#     processor.do_engine_steps()
-#     processor.save()
 
 
 def get_file_from_request() -> Any:
@@ -620,3 +556,53 @@ def get_process_model(process_model_id: str, process_group_id: str) -> ProcessMo
         ) from exception
 
     return process_model
+
+
+def find_principal_or_raise() -> PrincipalModel:
+    """Find_principal_or_raise."""
+    principal = PrincipalModel.query.filter_by(user_id=g.user.id).first()
+    if principal is None:
+        raise (
+            ApiError(
+                code="principal_not_found",
+                message=f"Principal not found from user id: {g.user.id}",
+                status_code=400,
+            )
+        )
+    return principal  # type: ignore
+
+
+def find_active_task_by_id_or_raise(
+    task_id: int, principal_id: PrincipalModel
+) -> ActiveTaskModel:
+    """Find_active_task_by_id_or_raise."""
+    active_task_assigned_to_me = ActiveTaskModel.query.filter_by(
+        id=task_id, assigned_principal_id=principal_id
+    ).first()
+    if active_task_assigned_to_me is None:
+        raise (
+            ApiError(
+                code="task_not_found",
+                message=f"Task not found for principal user: {principal_id} and id: {task_id}",
+                status_code=400,
+            )
+        )
+    return active_task_assigned_to_me  # type: ignore
+
+
+def find_process_instance_by_id_or_raise(
+    process_instance_id: int,
+) -> ProcessInstanceModel:
+    """Find_process_instance_by_id_or_raise."""
+    process_instance = ProcessInstanceModel.query.filter_by(
+        id=process_instance_id
+    ).first()
+    if process_instance is None:
+        raise (
+            ApiError(
+                code="process_instance_cannot_be_found",
+                message=f"Process instance cannot be found: {process_instance_id}",
+                status_code=400,
+            )
+        )
+    return process_instance  # type: ignore
