@@ -1,7 +1,6 @@
 """Grabs tickets from csv and makes process instances."""
 import csv
 import os
-
 from flask_bpmn.models.db import db
 
 from spiffworkflow_backend import create_app

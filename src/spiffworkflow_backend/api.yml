@@ -615,7 +615,7 @@ paths:
               $ref: "#/components/schemas/WorkflowSpecCategory"
       responses:
         "200":
-          description: 'ok: true'
+          description: "ok: true"
           content:
             application/json:
               schema:

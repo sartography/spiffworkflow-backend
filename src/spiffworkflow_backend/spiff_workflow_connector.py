@@ -1,10 +1,4 @@
 """Spiff Workflow Connector."""
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Union
-
 from flask_bpmn.models.db import db
 from SpiffWorkflow.bpmn.serializer.workflow import BpmnWorkflowSerializer  # type: ignore
 from SpiffWorkflow.bpmn.specs.events.event_types import CatchingEvent  # type: ignore
@@ -20,6 +14,12 @@ from SpiffWorkflow.dmn.parser.BpmnDmnParser import BpmnDmnParser  # type: ignore
 from SpiffWorkflow.dmn.serializer.task_spec_converters import BusinessRuleTaskConverter  # type: ignore
 from SpiffWorkflow.task import Task  # type: ignore
 from SpiffWorkflow.task import TaskState
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Union
+
 from typing_extensions import TypedDict
 
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel

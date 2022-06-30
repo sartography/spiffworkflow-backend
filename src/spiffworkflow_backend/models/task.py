@@ -1,12 +1,12 @@
 """Task."""
 import enum
+from SpiffWorkflow.camunda.specs.UserTask import Form  # type: ignore
 from typing import Any
 from typing import Optional
 
 import marshmallow
 from marshmallow import Schema
 from marshmallow_enum import EnumField  # type: ignore
-from SpiffWorkflow.camunda.specs.UserTask import Form  # type: ignore
 
 
 class MultiInstanceType(enum.Enum):

@@ -1,6 +1,7 @@
 """Data_store."""
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import SpiffworkflowBaseDBModel
+
 from flask_marshmallow.sqla import SQLAlchemyAutoSchema  # type: ignore
 
 

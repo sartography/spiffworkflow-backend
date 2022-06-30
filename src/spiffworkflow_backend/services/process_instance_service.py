@@ -1,11 +1,5 @@
 """Process_instance_service."""
 import time
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-
-from flask import current_app
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
 from SpiffWorkflow.bpmn.specs.events import EndEvent  # type: ignore
@@ -19,6 +13,12 @@ from SpiffWorkflow.specs import CancelTask  # type: ignore
 from SpiffWorkflow.specs import StartTask
 from SpiffWorkflow.task import Task as SpiffTask  # type: ignore
 from SpiffWorkflow.util.deep_merge import DeepMerge  # type: ignore
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+
+from flask import current_app
 
 from spiffworkflow_backend.models.process_instance import ProcessInstanceApi
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel

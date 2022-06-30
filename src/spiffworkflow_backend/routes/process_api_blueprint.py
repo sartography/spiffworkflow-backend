@@ -1,5 +1,7 @@
 """APIs for dealing with process groups, process models, and process instances."""
 import json
+from flask_bpmn.api.api_error import ApiError
+from flask_bpmn.models.db import db
 from typing import Any
 from typing import Dict
 from typing import Optional
@@ -7,11 +9,11 @@ from typing import Union
 
 import connexion  # type: ignore
 import flask.wrappers
-from flask import Blueprint, jsonify, make_response
+from flask import Blueprint
 from flask import g
+from flask import jsonify
+from flask import make_response
 from flask.wrappers import Response
-from flask_bpmn.api.api_error import ApiError
-from flask_bpmn.models.db import db
 from sqlalchemy import desc
 
 from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
@@ -476,16 +478,24 @@ def task_show(task_id: int) -> flask.wrappers.Response:
             )
         )
 
-    process_instance = ProcessInstanceModel.query.filter_by(id=active_task_assigned_to_me.process_instance_id).first()
-    process_model = get_process_model(process_instance.process_model_identifier,
-                                      process_instance.process_group_identifier)
-    file_contents = SpecFileService.get_data(process_model, active_task_assigned_to_me.form_file_name)
-    active_task_assigned_to_me.form_json = file_contents.decode('utf-8')
+    process_instance = ProcessInstanceModel.query.filter_by(
+        id=active_task_assigned_to_me.process_instance_id
+    ).first()
+    process_model = get_process_model(
+        process_instance.process_model_identifier,
+        process_instance.process_group_identifier,
+    )
+    file_contents = SpecFileService.get_data(
+        process_model, active_task_assigned_to_me.form_file_name
+    )
+    active_task_assigned_to_me.form_json = file_contents.decode("utf-8")
 
     return make_response(jsonify(active_task_assigned_to_me), 200)
 
 
-def task_submit_user_data(task_id: int, body: Dict[str, Any]) -> flask.wrappers.Response:
+def task_submit_user_data(
+    task_id: int, body: Dict[str, Any]
+) -> flask.wrappers.Response:
     """Task_submit_user_data."""
     print(f"body: {body}")
     print(f"task_id: {task_id}")

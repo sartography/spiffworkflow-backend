@@ -1,7 +1,6 @@
 """Acceptance_test_fixtures."""
 import json
 import time
-
 from flask_bpmn.models.db import db
 
 from spiffworkflow_backend.helpers.fixture_data import find_or_create_user

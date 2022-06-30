@@ -1,11 +1,12 @@
 """__init__."""
 import os
-
-import connexion  # type: ignore
-import flask.app
 from flask_bpmn.api.api_error import api_error_blueprint
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import migrate
+
+import connexion  # type: ignore
+import flask.app
+import flask.json
 from flask_cors import CORS  # type: ignore
 from flask_mail import Mail  # type: ignore
 
@@ -16,17 +17,15 @@ from spiffworkflow_backend.routes.api_blueprint import api_blueprint
 from spiffworkflow_backend.routes.process_api_blueprint import process_api_blueprint
 from spiffworkflow_backend.routes.user_blueprint import user_blueprint
 
-import flask.json
-
 
 class MyJSONEncoder(flask.json.JSONEncoder):
     """MyJSONEncoder."""
 
     def default(self, obj):
         """Default."""
-        if hasattr(obj, 'serialized'):
+        if hasattr(obj, "serialized"):
             return obj.serialized
-        return super(MyJSONEncoder, self).default(obj)
+        return super().default(obj)
 
 
 def create_app() -> flask.app.Flask:

@@ -1,16 +1,8 @@
 """Process_instance_processor."""
 import json
 import time
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Union
-
-from flask import current_app
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
-from lxml import etree  # type: ignore
 from SpiffWorkflow import Task as SpiffTask  # type: ignore
 from SpiffWorkflow import TaskState
 from SpiffWorkflow import WorkflowException
@@ -31,6 +23,14 @@ from SpiffWorkflow.exceptions import WorkflowTaskExecException  # type: ignore
 from SpiffWorkflow.serializer.exceptions import MissingSpecError  # type: ignore
 from SpiffWorkflow.specs import WorkflowSpec  # type: ignore
 from SpiffWorkflow.task import Task  # type: ignore
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Union
+
+from flask import current_app
+from lxml import etree  # type: ignore
 
 from spiffworkflow_backend.models.active_task import ActiveTaskModel
 from spiffworkflow_backend.models.file import File
@@ -338,12 +338,14 @@ class ProcessInstanceProcessor:
         ready_or_waiting_tasks = self.get_all_ready_or_waiting_tasks()
         for ready_or_waiting_task in ready_or_waiting_tasks:
             # filter out non-usertasks
-            if not self.bpmn_process_instance._is_engine_task(ready_or_waiting_task.task_spec):
+            if not self.bpmn_process_instance._is_engine_task(
+                ready_or_waiting_task.task_spec
+            ):
                 extensions = ready_or_waiting_task.task_spec.extensions
 
                 form_file_name = None
-                if 'formKey' in extensions:
-                    form_file_name = extensions['formKey']
+                if "formKey" in extensions:
+                    form_file_name = extensions["formKey"]
 
                 active_task = ActiveTaskModel(
                     task_id=str(ready_or_waiting_task.id),
@@ -352,7 +354,7 @@ class ProcessInstanceProcessor:
                     assigned_principal_id=PrincipalModel.query.first().id,
                     process_instance_data=json.dumps(self.get_data()),
                     status=ready_or_waiting_task.state.name,
-                    form_file_name=form_file_name
+                    form_file_name=form_file_name,
                 )
                 db.session.add(active_task)
 
