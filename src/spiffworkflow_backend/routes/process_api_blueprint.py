@@ -373,6 +373,17 @@ def process_instance_list(
     return make_response(jsonify(response_json), 200)
 
 
+def process_instance_show(
+    process_group_id: str, process_model_id: str, process_instance_id: int
+) -> flask.wrappers.Response:
+    """Create_process_instance."""
+    process_instance = find_process_instance_by_id_or_raise(process_instance_id)
+    processor = ProcessInstanceProcessor(process_instance)
+    process_instance.data = processor.get_data()
+
+    return make_response(jsonify(process_instance), 200)
+
+
 def process_instance_delete(
     process_group_id: str, process_model_id: str, process_instance_id: int
 ) -> flask.wrappers.Response:

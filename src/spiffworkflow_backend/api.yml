@@ -391,6 +391,16 @@ paths:
         description: The unique id of an existing process instance.
         schema:
           type: integer
+    get:
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.process_instance_show
+      summary: Show information about a process instance
+      responses:
+        "200":
+          description: One Process Instance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Workflow"
     # process_instance_delete
     delete:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.process_instance_delete

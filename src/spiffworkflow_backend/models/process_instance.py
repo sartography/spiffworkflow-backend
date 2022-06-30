@@ -94,8 +94,10 @@ class ProcessInstanceModel(SpiffworkflowBaseDBModel):
     created_at_in_seconds: int = db.Column(db.Integer)
     status: str = db.Column(db.String(50))
 
+    data: dict | None = None
+
     @property
-    def serialized(self) -> dict[str, int | str | None]:
+    def serialized(self) -> dict[str, Any]:
         """Return object data in serializeable format."""
         return {
             "id": self.id,
@@ -106,6 +108,7 @@ class ProcessInstanceModel(SpiffworkflowBaseDBModel):
             "start_in_seconds": self.start_in_seconds,
             "end_in_seconds": self.end_in_seconds,
             "process_initiator_id": self.process_initiator_id,
+            "data": self.data,
         }
 
 
