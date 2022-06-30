@@ -102,7 +102,7 @@ class Task:
         type: str,
         state: str,
         lane: str,
-        form: Optional[Form],
+        form: None,
         documentation: str,
         data: dict[str, Any],
         multi_instance_type: MultiInstanceType,
@@ -117,7 +117,7 @@ class Task:
         self.title = title
         self.type = type
         self.state = state
-        self.form = form
+        self.form = None
         self.documentation = documentation
         self.data = data
         self.lane = lane
@@ -200,11 +200,11 @@ class FormFieldSchema(Schema):
     )
 
 
-class FormSchema(Schema):
-    """FormSchema."""
-
-    key = marshmallow.fields.String(required=True, allow_none=False)
-    fields = marshmallow.fields.List(marshmallow.fields.Nested(FormFieldSchema))
+# class FormSchema(Schema):
+#     """FormSchema."""
+#
+#     key = marshmallow.fields.String(required=True, allow_none=False)
+#     fields = marshmallow.fields.List(marshmallow.fields.Nested(FormFieldSchema))
 
 
 class TaskSchema(Schema):
@@ -232,7 +232,7 @@ class TaskSchema(Schema):
 
     multi_instance_type = EnumField(MultiInstanceType)
     documentation = marshmallow.fields.String(required=False, allow_none=True)
-    form = marshmallow.fields.Nested(FormSchema, required=False, allow_none=True)
+    # form = marshmallow.fields.Nested(FormSchema, required=False, allow_none=True)
     title = marshmallow.fields.String(required=False, allow_none=True)
     process_name = marshmallow.fields.String(required=False, allow_none=True)
     lane = marshmallow.fields.String(required=False, allow_none=True)

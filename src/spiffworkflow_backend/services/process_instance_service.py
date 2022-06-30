@@ -110,6 +110,9 @@ class ProcessInstanceService:
                     next_task_trying_again, add_docs_and_forms=True
                 )
             )
+            # TODO: Hack for now, until we decide how to implment forms
+            process_instance_api.next_task.form = None
+
             # Update the state of the task to locked if the current user does not own the task.
             # user_uids = WorkflowService.get_users_assigned_to_task(processor, next_task)
             # if not UserService.in_list(user_uids, allow_admin_impersonate=True):

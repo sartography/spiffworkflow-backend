@@ -447,7 +447,7 @@ def task_list_my_tasks(page: int = 1, per_page: int = 100) -> flask.wrappers.Res
 
     active_tasks = (
         ActiveTaskModel.query.filter_by(assigned_principal_id=principal.id)
-        .order_by(desc(ActiveTaskModel.id))
+        .order_by(desc(ActiveTaskModel.id))  # type: ignore
         .paginate(page, per_page, False)
     )
 
