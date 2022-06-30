@@ -497,9 +497,96 @@ def task_submit_user_data(
     task_id: int, body: Dict[str, Any]
 ) -> flask.wrappers.Response:
     """Task_submit_user_data."""
-    print(f"body: {body}")
-    print(f"task_id: {task_id}")
+    principal = PrincipalModel.query.filter_by(user_id=g.user.id).first()
+    if principal is None:
+        raise (
+            ApiError(
+                code="principal_not_found",
+                message=f"Principal not found from user id: {g.user.id}",
+                status_code=400,
+            )
+        )
+    active_task_assigned_to_me = ActiveTaskModel.query.filter_by(
+        id=task_id, assigned_principal_id=principal.id
+    ).first()
+    if active_task_assigned_to_me is None:
+        raise (
+            ApiError(
+                code="task_not_found",
+                message=f"Task not found for principal user: {g.user.id} and id: {task_id}",
+                status_code=400,
+            )
+        )
+
+    process_instance = ProcessInstanceModel.query.filter_by(process_instance_id=active_task_assigned_to_me.process_instance.id)
+    if process_instance is None:
+        raise (
+            ApiError(
+                code="process_instance_cannot_be_found",
+                message=f"Process instance cannot be found for active task: {active_task_assigned_to_me.id}",
+                status_code=400,
+            )
+        )
     return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
+
+# def update_task(workflow_id, task_id, body, terminate_loop=None, update_all=False):
+#     workflow_model = session.query(WorkflowModel).filter_by(id=workflow_id).first()
+#     if workflow_model is None:
+#         raise ApiError("invalid_workflow_id", "The given workflow id is not valid.", status_code=404)
+#     if workflow_model.state in ('hidden', 'disabled', 'locked'):
+#         raise ApiError(code='locked_workflow',
+#                        message='You tried to update a task for a workflow that is hidden, locked, or disabled.')
+#
+#     processor = WorkflowProcessor(workflow_model)
+#     task_id = uuid.UUID(task_id)
+#     spiff_task = processor.bpmn_workflow.get_task(task_id)
+#     _verify_user_and_role(processor, spiff_task)
+#     user = UserService.current_user(allow_admin_impersonate=False) # Always log as the real user.
+#
+#     if not spiff_task:
+#         raise ApiError("empty_task", "Processor failed to obtain task.", status_code=404)
+#     if spiff_task.state != TaskState.READY:
+#         raise ApiError("invalid_state", "You may not update a task unless it is in the READY state. "
+#                                         "Consider calling a token reset to make this task Ready.")
+#
+#     if terminate_loop and spiff_task.is_looping():
+#         spiff_task.terminate_loop()
+#
+#     # Extract the details specific to the form submitted
+#     form_data = WorkflowService().extract_form_data(body, spiff_task)
+#
+#     # Update the task
+#     __update_task(processor, spiff_task, form_data, user)
+#
+#     # If we need to update all tasks, then get the next ready task and if it a multi-instance with the same
+#     # task spec, complete that form as well.
+#     if update_all:
+#         last_index = spiff_task.task_info()["mi_index"]
+#         next_task = processor.next_task()
+#         while next_task and next_task.task_info()["mi_index"] > last_index:
+#             __update_task(processor, next_task, form_data, user)
+#             last_index = next_task.task_info()["mi_index"]
+#             next_task = processor.next_task()
+#
+#     WorkflowService.update_task_assignments(processor)
+#     workflow_api_model = WorkflowService.processor_to_workflow_api(processor)
+#     return WorkflowApiSchema().dump(workflow_api_model)
+#
+#
+# def __update_task(processor, task, data, user):
+#     """All the things that need to happen when we complete a form, abstracted
+#     here because we need to do it multiple times when completing all tasks in
+#     a multi-instance task"""
+#     task.update_data(data)
+#     WorkflowService.post_process_form(task)  # some properties may update the data store.
+#     processor.complete_task(task)
+#     # Log the action before doing the engine steps, as doing so could effect the state of the task
+#     # the workflow could wrap around in the ngine steps, and the task could jump from being completed to
+#     # another state.  What we are logging here is the completion.
+#     WorkflowService.log_task_action(user.uid, processor, task, TaskAction.COMPLETE.value)
+#     processor.do_engine_steps()
+#     processor.save()
+
 
 
 def get_file_from_request() -> Any:

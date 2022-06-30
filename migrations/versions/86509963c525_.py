@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 2cbb6d60f0ac
+Revision ID: 86509963c525
 Revises: 
-Create Date: 2022-06-30 10:45:49.832257
+Create Date: 2022-06-30 11:55:54.677991
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '2cbb6d60f0ac'
+revision = '86509963c525'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -92,7 +92,7 @@ def upgrade():
     )
     op.create_table('active_task',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('task_id', sa.String(length=50), nullable=False),
+    sa.Column('spiffworkflow_task_id', sa.String(length=50), nullable=False),
     sa.Column('process_instance_id', sa.Integer(), nullable=False),
     sa.Column('assigned_principal_id', sa.Integer(), nullable=True),
     sa.Column('process_instance_data', sa.Text(), nullable=True),
@@ -103,7 +103,7 @@ def upgrade():
     sa.ForeignKeyConstraint(['assigned_principal_id'], ['principal.id'], ),
     sa.ForeignKeyConstraint(['process_instance_id'], ['process_instance.id'], ),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('task_id', 'process_instance_id', name='active_task_unique')
+    sa.UniqueConstraint('spiffworkflow_task_id', 'process_instance_id', name='active_task_unique')
     )
     op.create_table('file',
     sa.Column('id', sa.Integer(), nullable=False),

@@ -19,7 +19,7 @@ class ActiveTaskModel(SpiffworkflowBaseDBModel):
     __tablename__ = "active_task"
     __table_args__ = (
         db.UniqueConstraint(
-            "task_id", "process_instance_id", name="active_task_unique"
+            "spiffworkflow_task_id", "process_instance_id", name="active_task_unique"
         ),
     )
 
@@ -27,9 +27,9 @@ class ActiveTaskModel(SpiffworkflowBaseDBModel):
     bpmn_json: str = ""
     assigned_principal: RelationshipProperty[PrincipalModel] = relationship(PrincipalModel)
     id: int = db.Column(db.Integer, primary_key=True)
-    task_id: str = db.Column(db.String(50), nullable=False)
+    spiffworkflow_task_id: str = db.Column(db.String(50), nullable=False)
     process_instance_id: int = db.Column(
-            ForeignKey(ProcessInstanceModel.id), nullable=False  # type: ignore
+        ForeignKey(ProcessInstanceModel.id), nullable=False  # type: ignore
     )
     assigned_principal_id: int = db.Column(ForeignKey(PrincipalModel.id))
     process_instance_data: str = db.Column(db.Text)

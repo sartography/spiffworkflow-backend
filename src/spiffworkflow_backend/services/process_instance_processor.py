@@ -348,7 +348,7 @@ class ProcessInstanceProcessor:
                     form_file_name = extensions["formKey"]
 
                 active_task = ActiveTaskModel(
-                    task_id=str(ready_or_waiting_task.id),
+                    spiffworkflow_task_id=str(ready_or_waiting_task.id),
                     process_instance_id=self.process_instance_model.id,
                     # FIXME: look for the correct principal based on ready_or_waiting_task.lane
                     assigned_principal_id=PrincipalModel.query.first().id,

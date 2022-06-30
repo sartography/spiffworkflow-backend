@@ -660,7 +660,7 @@ def test_process_instance_list_with_default_list(
     process_instance_dict = response.json["results"][0]
     assert type(process_instance_dict["id"]) is int
     assert process_instance_dict["process_model_identifier"] == process_model_dir_name
-    assert process_instance_dict["process_group_id"] == test_process_group_id
+    assert process_instance_dict["process_group_identifier"] == test_process_group_id
     assert type(process_instance_dict["start_in_seconds"]) is int
     assert process_instance_dict["start_in_seconds"] > 0
     assert process_instance_dict["end_in_seconds"] is None

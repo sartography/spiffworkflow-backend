@@ -598,7 +598,7 @@ description = "Flask Bpmn"
 category = "main"
 optional = false
 python-versions = "^3.7"
-develop = true
+develop = false
 
 [package.dependencies]
 click = "^8.0.1"
@@ -612,12 +612,14 @@ flask-migrate = "*"
 flask-restful = "*"
 sentry-sdk = "0.14.4"
 sphinx-autoapi = "^1.8.4"
-spiffworkflow = {path = "/home/jason/projects/github/sartography/SpiffWorkflow", develop = true}
+spiffworkflow = {git = "https://github.com/sartography/SpiffWorkflow", rev = "feature/parse_spiffworkflow_extensions"}
 werkzeug = "*"
 
 [package.source]
-type = "directory"
-url = "../flask-bpmn"
+type = "git"
+url = "https://github.com/sartography/flask-bpmn"
+reference = "main"
+resolved_reference = "e421d8797975a1360e5057067072b16f8ebe934a"
 
 [[package]]
 name = "flask-cors"
@@ -1715,11 +1717,11 @@ test = ["pytest"]
 [[package]]
 name = "SpiffWorkflow"
 version = "1.1.7"
-description = "A workflow framework and BPMN/DMN Processor"
+description = ""
 category = "main"
 optional = false
 python-versions = "*"
-develop = true
+develop = false
 
 [package.dependencies]
 celery = "*"
@@ -1729,8 +1731,10 @@ lxml = "*"
 pytz = "*"
 
 [package.source]
-type = "directory"
-url = "../SpiffWorkflow"
+type = "git"
+url = "https://github.com/sartography/SpiffWorkflow"
+reference = "feature/parse_spiffworkflow_extensions"
+resolved_reference = "67054883d4040d6755bf0555f072ff85aa42093c"
 
 [[package]]
 name = "sqlalchemy"
@@ -2017,7 +2021,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "ca131da7f816bbda38aa2aea41679280d6d941bb79cd98d7d057db34acc1489a"
+content-hash = "e737217fd58d75c3a35e968d36ed2f1b2579bf8554ec24ec5452bbfb465fd509"
 
 [metadata.files]
 alabaster = [
