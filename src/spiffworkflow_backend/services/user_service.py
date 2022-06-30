@@ -175,11 +175,14 @@ class UserService:
             )
 
     @staticmethod
-    def get_principal_by_user_id(user_id: int) -> Union[PrincipalModel, None]:
+    def get_principal_by_user_id(user_id: int) -> PrincipalModel:
         """Get_principal_by_user_id."""
-        principal: Union[PrincipalModel, None] = (
+        principal: PrincipalModel = (
             db.session.query(PrincipalModel)
             .filter(PrincipalModel.user_id == user_id)
             .first()
         )
-        return principal
+        if principal:
+            return principal
+        raise ApiError(code='no_principal_found',
+                       message=f"No principal was found for user_id: {user_id}")
