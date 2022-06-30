@@ -6,6 +6,7 @@ from flask_bpmn.models.db import db
 from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from SpiffWorkflow.navigation import NavItem  # type: ignore
 from typing import Any
+from typing import Optional
 
 import marshmallow
 from marshmallow import INCLUDE
@@ -17,6 +18,7 @@ from sqlalchemy.orm import relationship
 
 from spiffworkflow_backend.helpers.spiff_enum import SpiffEnum
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
+from spiffworkflow_backend.models.task import Task
 from spiffworkflow_backend.models.task import TaskSchema
 from spiffworkflow_backend.models.user import UserModel
 
@@ -143,7 +145,7 @@ class ProcessInstanceApi:
         self,
         id: int,
         status: ProcessInstanceStatus,
-        next_task: None,
+        next_task: Optional[Task],
         process_model_identifier: str,
         process_group_identifier: str,
         total_tasks: int,

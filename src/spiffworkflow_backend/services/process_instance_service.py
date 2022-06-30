@@ -110,6 +110,9 @@ class ProcessInstanceService:
                     next_task_trying_again, add_docs_and_forms=True
                 )
             )
+            # TODO: Hack for now, until we decide how to implment forms
+            process_instance_api.next_task.form = None
+
             # Update the state of the task to locked if the current user does not own the task.
             # user_uids = WorkflowService.get_users_assigned_to_task(processor, next_task)
             # if not UserService.in_list(user_uids, allow_admin_impersonate=True):
@@ -413,29 +416,29 @@ class ProcessInstanceService:
             properties=props,
         )
 
-        # Only process the form and documentation if requested.
-        # The task should be in a completed or a ready state, and should
-        # not be a previously completed MI Task.
-        if add_docs_and_forms:
-            task.data = spiff_task.data
-            if (
-                hasattr(spiff_task.task_spec, "form")
-                and spiff_task.task_spec.form is not None
-            ):
-                task.form = spiff_task.task_spec.form
-                for i, field in enumerate(task.form.fields):
-                    task.form.fields[i] = ProcessInstanceService.process_options(
-                        spiff_task, field
-                    )
-                    # If there is a default value, set it.
-                    # if field.id not in task.data and ProcessInstanceService.get_default_value(field, spiff_task) is not None:
-                    #    task.data[field.id] = ProcessInstanceService.get_default_value(field, spiff_task)
-            # task.documentation = ProcessInstanceService._process_documentation(spiff_task)
-            task.documentation = (
-                spiff_task.task_spec.documentation
-                if hasattr(spiff_task.task_spec, "documentation")
-                else None
-            )
+        # # Only process the form and documentation if requested.
+        # # The task should be in a completed or a ready state, and should
+        # # not be a previously completed MI Task.
+        # if add_docs_and_forms:
+        #     task.data = spiff_task.data
+        #     if (
+        #         hasattr(spiff_task.task_spec, "form")
+        #         and spiff_task.task_spec.form is not None
+        #     ):
+        #         task.form = spiff_task.task_spec.form
+        #         for i, field in enumerate(task.form.fields):
+        #             task.form.fields[i] = ProcessInstanceService.process_options(
+        #                 spiff_task, field
+        #             )
+        #             # If there is a default value, set it.
+        #             # if field.id not in task.data and ProcessInstanceService.get_default_value(field, spiff_task) is not None:
+        #             #    task.data[field.id] = ProcessInstanceService.get_default_value(field, spiff_task)
+        #     # task.documentation = ProcessInstanceService._process_documentation(spiff_task)
+        #     task.documentation = (
+        #         spiff_task.task_spec.documentation
+        #         if hasattr(spiff_task.task_spec, "documentation")
+        #         else None
+        #     )
 
         # All ready tasks should have a valid name, and this can be computed for
         # some tasks, particularly multi-instance tasks that all have the same spec
