@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 86509963c525
+Revision ID: e7557de20067
 Revises: 
-Create Date: 2022-06-30 11:55:54.677991
+Create Date: 2022-06-30 16:28:51.558359
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '86509963c525'
+revision = 'e7557de20067'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -95,7 +95,7 @@ def upgrade():
     sa.Column('spiffworkflow_task_id', sa.String(length=50), nullable=False),
     sa.Column('process_instance_id', sa.Integer(), nullable=False),
     sa.Column('assigned_principal_id', sa.Integer(), nullable=True),
-    sa.Column('process_instance_data', sa.Text(), nullable=True),
+    sa.Column('spiffworkflow_task_data', sa.Text(), nullable=True),
     sa.Column('status', sa.String(length=20), nullable=False),
     sa.Column('form_file_name', sa.String(length=50), nullable=True),
     sa.Column('updated_at_in_seconds', sa.Integer(), nullable=True),

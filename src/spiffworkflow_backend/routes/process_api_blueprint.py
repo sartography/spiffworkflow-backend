@@ -474,8 +474,18 @@ def task_show(task_id: int) -> flask.wrappers.Response:
 
     file_contents = SpecFileService.get_data(
         process_model, active_task_assigned_to_me.form_file_name
+    ).decode("utf-8")
+
+    spiffworkflow_data_json = json.loads(
+        active_task_assigned_to_me.spiffworkflow_task_data
     )
-    active_task_assigned_to_me.form_json = file_contents.decode("utf-8")
+
+    # trade out pieces like "{{variable_name}}" for the corresponding form data value
+    for key, value in spiffworkflow_data_json.items():
+        if isinstance(value, str) or isinstance(value, int):
+            file_contents = file_contents.replace("{{" + key + "}}", str(value))
+
+    active_task_assigned_to_me.form_json = file_contents
 
     return make_response(jsonify(active_task_assigned_to_me), 200)
 

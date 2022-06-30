@@ -35,7 +35,7 @@ class ActiveTaskModel(SpiffworkflowBaseDBModel):
         ForeignKey(ProcessInstanceModel.id), nullable=False  # type: ignore
     )
     assigned_principal_id: int = db.Column(ForeignKey(PrincipalModel.id))
-    process_instance_data: str = db.Column(db.Text)
+    spiffworkflow_task_data: str = db.Column(db.Text)
     status: str = db.Column(db.String(20), nullable=False)
     form_file_name: str | None = db.Column(db.String(50))
 
