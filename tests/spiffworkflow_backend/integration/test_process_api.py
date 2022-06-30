@@ -463,7 +463,7 @@ def test_get_file(
     assert response.json["process_model_id"] == "hello_world"
 
 
-def dest_get_workflow_from_workflow_spec(
+def test_get_workflow_from_workflow_spec(
     app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
     """Test_get_workflow_from_workflow_spec."""

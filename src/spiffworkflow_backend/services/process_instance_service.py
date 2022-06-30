@@ -209,10 +209,7 @@ class ProcessInstanceService:
                 or spiff_task.task_spec.lane is None
             ):
                 current_user = spiff_task.data["current_user"]
-                principal = UserService().get_principal_by_user_id(current_user.id)
-                return [
-                    principal.id,
-                ]
+                return [current_user.id,]
                 # return [processor.process_instance_model.process_initiator_id]
 
             if spiff_task.task_spec.lane not in spiff_task.data:
