@@ -7,9 +7,9 @@ from typing import Union
 
 import connexion  # type: ignore
 import flask.wrappers
-from flask import Blueprint
+from flask import Blueprint, jsonify, make_response
 from flask import g
-from flask import Response
+from flask.wrappers import Response
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
 from sqlalchemy import desc
@@ -54,10 +54,6 @@ def process_group_add(
     body: Dict[str, Union[str, bool, int]]
 ) -> flask.wrappers.Response:
     """Add_process_group."""
-    # just so the import is used. oh, and it's imported because spiffworkflow_backend/unit/test_permissions.py
-    # depends on it, and otherwise flask migrations won't include it in the list of database tables.
-    PrincipalModel()
-
     process_model_service = ProcessModelService()
     process_group = ProcessGroupSchema().load(body)
     process_model_service.add_process_group(process_group)
@@ -447,7 +443,7 @@ def task_list_my_tasks(page: int = 1, per_page: int = 100) -> flask.wrappers.Res
 
     active_tasks = (
         ActiveTaskModel.query.filter_by(assigned_principal_id=principal.id)
-        .order_by(desc(ActiveTaskModel.id))
+        .order_by(desc(ActiveTaskModel.id))  # type: ignore
         .paginate(page, per_page, False)
     )
 
@@ -459,7 +455,7 @@ def task_list_my_tasks(page: int = 1, per_page: int = 100) -> flask.wrappers.Res
             "pages": active_tasks.pages,
         },
     }
-    return response_json
+    return make_response(jsonify(response_json), 200)
 
 
 def task_show(task_id: int) -> flask.wrappers.Response:
@@ -491,12 +487,13 @@ def task_show(task_id: int) -> flask.wrappers.Response:
     file_contents = SpecFileService.get_data(process_model, active_task_assigned_to_me.form_file_name)
     active_task_assigned_to_me.form_json = file_contents.decode('utf-8')
 
-    # return Response(json.dumps(active_task_assigned_to_me), status=200, mimetype="application/json")
-    return active_task_assigned_to_me
+    return make_response(jsonify(active_task_assigned_to_me), 200)
 
 
-def task_submit_user_data(task_id: int) -> flask.wrappers.Response:
+def task_submit_user_data(task_id: int, body: Dict[str, Any]) -> flask.wrappers.Response:
     """Task_submit_user_data."""
+    print(f"body: {body}")
+    print(f"task_id: {task_id}")
     return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
 
 
