@@ -7,7 +7,8 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
-docker run -p 8080:8080 --rm --name keycloak -e KEYCLOAK_LOGLEVEL=ALL -e ROOT_LOGLEVEL=ALL -e KEYCLOAK_ADMIN=admin -e KEYCLOAK_ADMIN_PASSWORD=admin quay.io/keycloak/keycloak:18.0.0 start-dev
+docker rm keycloak || echo 'no keycloak container found'
+docker run -p 8080:8080 -d  --name keycloak -e KEYCLOAK_LOGLEVEL=ALL -e ROOT_LOGLEVEL=ALL -e KEYCLOAK_ADMIN=admin -e KEYCLOAK_ADMIN_PASSWORD=admin quay.io/keycloak/keycloak:18.0.0 start-dev
 
 # to export:
 # /opt/keycloak/bin/kc.sh export --dir /tmp/hey --users realm_file
@@ -15,5 +16,6 @@ docker run -p 8080:8080 --rm --name keycloak -e KEYCLOAK_LOGLEVEL=ALL -e ROOT_LO
 # NOTE: creds - user1 / password
 
 docker cp  bin/finance-realm.json keycloak:/tmp
-docker exec keycloak /opt/keycloak/bin/kc.sh import --file /tmp/finance-realm.json
+# docker exec keycloak /opt/keycloak/bin/kc.sh import --file /tmp/finance-realm.json
+echo 'ran import finance realm'
 docker logs -f keycloak
