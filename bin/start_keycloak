@@ -7,7 +7,7 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
-docker run -p 8080:8080 -d --rm --name keycloak -e KEYCLOAK_LOGLEVEL=ALL -e ROOT_LOGLEVEL=ALL -e KEYCLOAK_ADMIN=admin -e KEYCLOAK_ADMIN_PASSWORD=admin quay.io/keycloak/keycloak:18.0.0 start-dev
+docker run -p 8080:8080 --rm --name keycloak -e KEYCLOAK_LOGLEVEL=ALL -e ROOT_LOGLEVEL=ALL -e KEYCLOAK_ADMIN=admin -e KEYCLOAK_ADMIN_PASSWORD=admin quay.io/keycloak/keycloak:18.0.0 start-dev
 
 # to export:
 # /opt/keycloak/bin/kc.sh export --dir /tmp/hey --users realm_file

@@ -3,6 +3,7 @@ services:
   db:
     container_name: db
     image: mysql:8.0.29
+    platform: linux/amd64
     cap_add:
       - SYS_NICE
     restart: "${SPIFFWORKFLOW_BACKEND_DATABASE_DOCKER_RESTART_POLICY:-no}"

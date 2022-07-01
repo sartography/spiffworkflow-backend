@@ -1,5 +1,11 @@
 # type: ignore
 """keycloak_test_server."""
+
+# ./bin/start_keycloak # starts keycloak on 8080
+# pip install flask_oidc
+# pip install itsdangerous==2.0.1
+# python ./bin/keycloak_test_server.py # starts flask on 5005
+
 import json
 import logging
 
@@ -74,7 +80,7 @@ def hello_me():
     return """{} your email is {} and your user_id is {}!
                <ul>
                  <li><a href="/">Home</a></li>
-                 <li><a href="//localhost:8080/auth/realms/finance/account?referrer=flask-app&referrer_uri=http://localhost:5000/private&">Account</a></li>
+                 <li><a href="//localhost:8080/auth/realms/finance/account?referrer=flask-app&referrer_uri=http://localhost:5005/private&">Account</a></li>
                 </ul>""".format(
         greeting,
         email,
@@ -97,4 +103,4 @@ def logout():
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(port=5005)

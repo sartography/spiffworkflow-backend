@@ -625,7 +625,7 @@
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "secret": "OAh6rkjXIiPJDtPOz4459i3VtdlxGcce",
-      "redirectUris": ["http://localhost:5000/*"],
+      "redirectUris": ["http://localhost:5005/*"],
       "webOrigins": ["https://www.keycloak.org"],
       "notBefore": 0,
       "bearerOnly": false,
