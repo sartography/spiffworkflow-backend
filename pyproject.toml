@@ -40,7 +40,7 @@ pytest-flask-sqlalchemy = "^1.1.0"
 psycopg2 = "^2.9.3"
 typing-extensions = "^4.2.0"
 connexion = {extras = [ "swagger-ui",], version = "^2.13.1"}
-lxml = "^4.8.0"
+lxml = "^4.9.1"
 marshmallow-enum = "^1.5.1"
 marshmallow-sqlalchemy = "^0.28.0"
 PyJWT = "^2.4.0"
