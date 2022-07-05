@@ -1,7 +1,7 @@
 """Test_authentication."""
-from keycloak.authorization import Authorization
-from keycloak.keycloak_openid import KeycloakOpenID
-from keycloak.uma_permissions import AuthStatus
+from keycloak.authorization import Authorization  # type: ignore
+from keycloak.keycloak_openid import KeycloakOpenID  # type: ignore
+from keycloak.uma_permissions import AuthStatus  # type: ignore
 
 from spiffworkflow_backend.services.authentication_service import AuthenticationService
 
@@ -17,7 +17,7 @@ resource = "View Account Resource"
 scope = "account:view"
 
 
-def test_get_keycloak_openid_client():
+def test_get_keycloak_openid_client() -> None:
     """Test_get_keycloak_openid_client."""
     keycloak_openid_client = AuthenticationService.get_keycloak_openid(
         server_url, client_id, realm_name, client_secret_key
@@ -26,7 +26,7 @@ def test_get_keycloak_openid_client():
     assert isinstance(keycloak_openid_client.authorization, Authorization)
 
 
-def test_get_keycloak_token():
+def test_get_keycloak_token() -> None:
     """Test_get_keycloak_token."""
     keycloak_openid = AuthenticationService.get_keycloak_openid(
         server_url, client_id, realm_name, client_secret_key
@@ -40,7 +40,7 @@ def test_get_keycloak_token():
     assert token["token_type"] == "Bearer"
 
 
-def test_get_permission_by_token():
+def test_get_permission_by_token() -> None:
     """Test_get_permission_by_token."""
     keycloak_openid = AuthenticationService.get_keycloak_openid(
         server_url, client_id, realm_name, client_secret_key
@@ -50,12 +50,12 @@ def test_get_permission_by_token():
     )
     token = keycloak_openid.token(user, password)
 
-    AuthenticationService.get_permission_by_token(keycloak_openid, token)
+    permissions = AuthenticationService.get_permission_by_token(keycloak_openid, token)
     # TODO: permissions comes back as None. Is this right?
     print("test_get_permission_by_token")
 
 
-def test_get_uma_permissions_by_token():
+def test_get_uma_permissions_by_token() -> None:
     """Test_get_uma_permissions_by_token."""
     keycloak_openid = AuthenticationService.get_keycloak_openid(
         server_url, client_id, realm_name, client_secret_key
@@ -75,7 +75,7 @@ def test_get_uma_permissions_by_token():
             assert permission["scopes"][0] == "account:view"
 
 
-def test_get_uma_permissions_by_token_for_resource_and_scope():
+def test_get_uma_permissions_by_token_for_resource_and_scope() -> None:
     """Test_get_uma_permissions_by_token_for_resource_and_scope."""
     keycloak_openid = AuthenticationService.get_keycloak_openid(
         server_url, client_id, realm_name, client_secret_key
@@ -98,7 +98,7 @@ def test_get_uma_permissions_by_token_for_resource_and_scope():
     assert permission["scopes"][0] == scope
 
 
-def test_get_auth_status_for_resource_and_scope_by_token():
+def test_get_auth_status_for_resource_and_scope_by_token() -> None:
     """Test_get_auth_status_for_resource_and_scope_by_token."""
     keycloak_openid = AuthenticationService.get_keycloak_openid(
         server_url, client_id, realm_name, client_secret_key
