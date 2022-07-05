@@ -8,9 +8,7 @@
       "ownerManagedAccess": false,
       "attributes": {},
       "_id": "0f0c6dcf-9b86-419d-8331-ce6dd1f779a1",
-      "uris": [
-        "/*"
-      ]
+      "uris": ["/*"]
     },
     {
       "name": "View Account Resource",
@@ -18,9 +16,7 @@
       "displayName": "View Account Resource",
       "attributes": {},
       "_id": "6934ad55-cd6a-46d9-8653-7b1966973917",
-      "uris": [
-        "account/{id}"
-      ],
+      "uris": ["account/{id}"],
       "scopes": [
         {
           "name": "account:view"
