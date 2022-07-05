@@ -1,11 +1,9 @@
 # type: ignore
 """keycloak_test_server."""
-
 # ./bin/start_keycloak # starts keycloak on 8080
 # pip install flask_oidc
 # pip install itsdangerous==2.0.1
 # python ./bin/keycloak_test_server.py # starts flask on 5005
-
 import json
 import logging
 
