@@ -63,14 +63,19 @@ def main():
             # if there is no month, who cares about it.
             if month:
                 process_instance = ProcessInstanceService.create_process_instance(
-                    process_model_identifier=process_model_identifier_ticket, user=user, process_group_identifier='sartography-admin'
+                    process_model_identifier=process_model_identifier_ticket,
+                    user=user,
+                    process_group_identifier="sartography-admin",
                 )
                 processor = ProcessInstanceProcessor(process_instance)
 
                 processor.do_engine_steps()
                 # processor.save()
 
-                for column_name, desired_data_key in columns_to_data_key_mappings.items():
+                for (
+                    column_name,
+                    desired_data_key,
+                ) in columns_to_data_key_mappings.items():
                     appropriate_index = columns_to_header_index_mappings[column_name]
                     print(f"appropriate_index: {appropriate_index}")
                     processor.bpmn_process_instance.data[desired_data_key] = row[
