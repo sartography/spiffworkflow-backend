@@ -8,7 +8,19 @@ trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
 docker rm keycloak || echo 'no keycloak container found'
-docker run -p 8180:8080 -d  --name keycloak -e KEYCLOAK_LOGLEVEL=ALL -e ROOT_LOGLEVEL=ALL -e KEYCLOAK_ADMIN=admin -e KEYCLOAK_ADMIN_PASSWORD=admin quay.io/keycloak/keycloak:18.0.0 start-dev
+docker run -p 7002:8080 -d  --name keycloak -e KEYCLOAK_LOGLEVEL=ALL -e ROOT_LOGLEVEL=ALL -e KEYCLOAK_ADMIN=admin -e KEYCLOAK_ADMIN_PASSWORD=admin quay.io/keycloak/keycloak:18.0.0 start-dev
+
+docker cp  bin/finance-realm.json keycloak:/tmp
+docker cp  bin/spiffworkflow-realm.json keycloak:/tmp
+
+sleep 10
+docker exec keycloak /opt/keycloak/bin/kc.sh import --file /tmp/finance-realm.json || echo ''
+docker exec keycloak /opt/keycloak/bin/kc.sh import --file /tmp/spiffworkflow-realm.json || echo ''
+echo 'ran import finance realm'
+
+docker logs -f keycloak
+
+
 
 # to export:
 # /opt/keycloak/bin/kc.sh export --dir /tmp/hey --users realm_file
@@ -35,13 +47,8 @@ docker run -p 8180:8080 -d  --name keycloak -e KEYCLOAK_LOGLEVEL=ALL -e ROOT_LOG
 #   HTTP/1.1 403 Forbidden..Referrer-Policy: no-referrer..X-Frame-Options: SAMEORIGIN..Strict-Transport-Security: max-age=31536000; includeSubDomains..Cache-Control: no-store..X-Content-Type-Options: nosniff..Pragma: no-cache..X-XSS-Protection: 1; mode=block..Content-Type: application/json..content-length: 62....{"error":"access_denied","error_description":"not_authorized"}
 ########
 
-
-docker cp  bin/finance-realm.json keycloak:/tmp
-docker cp  bin/spiffworkflow-realm.json keycloak:/tmp
-
-sleep 10
-docker exec keycloak /opt/keycloak/bin/kc.sh import --file /tmp/finance-realm.json || echo ''
-docker exec keycloak /opt/keycloak/bin/kc.sh import --file /tmp/spiffworkflow-realm.json || echo ''
-echo 'ran import finance realm'
-
-docker logs -f keycloak
+#### quarkus for example
+# https://quarkus.io/guides/security-keycloak-authorization
+# from that guide, we ultimately found that we hit GET /resource_set described at:
+# https://github.com/keycloak/keycloak-documentation/blob/main/authorization_services/topics/service-protection-resources-api-papi.adoc
+# when we get the resource, we just hit the token endpoint and provide the resource and scope, and token will say pass or fail.
