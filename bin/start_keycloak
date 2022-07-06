@@ -50,3 +50,6 @@ echo 'ran import finance realm'
 # from that guide, we ultimately found that we hit GET /resource_set described at:
 # https://github.com/keycloak/keycloak-documentation/blob/main/authorization_services/topics/service-protection-resources-api-papi.adoc
 # when we get the resource, we just hit the token endpoint and provide the resource and scope, and token will say pass or fail.
+# More info:
+# * https://stackoverflow.com/a/58861610/6090676
+# * https://github.com/keycloak/keycloak/discussions/10044
