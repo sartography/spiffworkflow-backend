@@ -38,7 +38,7 @@ class AuthenticationService:
         # KEYCLOAK_PUBLIC_KEY = "-----BEGIN PUBLIC KEY-----\n" + keycloak_openid.public_key() + "\n-----END PUBLIC KEY-----"
         # policies = keycloak_openid.get_policies(token['access_token'], method_token_info='decode',
         #                                         key=KEYCLOAK_PUBLIC_KEY)
-        permissions: list = keycloak_openid.get_permissions(
+        permissions: list = keycloak_openid.get_permissions(  # noqa: S106
             token["access_token"], method_token_info="introspect"
         )
         # TODO: Not sure if this is good. Permissions comes back as None

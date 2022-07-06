@@ -8,10 +8,10 @@ from spiffworkflow_backend.services.authentication_service import Authentication
 server_url = "http://localhost:8080/"
 client_id = "bank-api"
 realm_name = "stackoverflow-demo"
-client_secret_key = "seciKpRanUReL0ksZaFm5nfjhMUKHVAO"
+client_secret_key = "seciKpRanUReL0ksZaFm5nfjhMUKHVAO"  # noqa: S105
 
 user = "bob"
-password = "LetMeIn"
+password = "LetMeIn"  # noqa: S105
 
 resource = "View Account Resource"
 scope = "account:view"
