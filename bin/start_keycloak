@@ -18,8 +18,6 @@ docker exec keycloak /opt/keycloak/bin/kc.sh import --file /tmp/finance-realm.js
 docker exec keycloak /opt/keycloak/bin/kc.sh import --file /tmp/spiffworkflow-realm.json || echo ''
 echo 'ran import finance realm'
 
-docker logs -f keycloak
-
 
 
 # to export:
