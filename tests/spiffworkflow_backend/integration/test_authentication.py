@@ -52,7 +52,7 @@ def test_get_permission_by_token() -> None:
 
     permissions = AuthenticationService.get_permission_by_token(keycloak_openid, token)
     # TODO: permissions comes back as None. Is this right?
-    print("test_get_permission_by_token")
+    print(f"test_get_permission_by_token: {permissions}")
 
 
 def test_get_uma_permissions_by_token() -> None:
