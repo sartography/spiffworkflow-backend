@@ -294,7 +294,10 @@ class ProcessInstanceService:
 
     @staticmethod
     def log_task_action(
-        user_id: int, processor: ProcessInstanceProcessor, spiff_task: Task, action: str
+        user_id: int,
+        processor: ProcessInstanceProcessor,
+        spiff_task: SpiffTask,
+        action: str,
     ) -> None:
         """Log_task_action."""
         task = ProcessInstanceService.spiff_task_to_api_task(spiff_task)

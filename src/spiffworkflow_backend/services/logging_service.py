@@ -2,6 +2,8 @@
 import json
 import logging
 import os
+from typing import Any
+from typing import Optional
 
 from flask.app import Flask
 
@@ -17,7 +19,7 @@ class JsonFormatter(logging.Formatter):
 
     def __init__(
         self,
-        fmt_dict: dict = None,
+        fmt_dict: Optional[dict] = None,
         time_format: str = "%Y-%m-%dT%H:%M:%S",
         msec_format: str = "%s.%03dZ",
     ):
@@ -31,7 +33,8 @@ class JsonFormatter(logging.Formatter):
         """Overwritten to look for the attribute in the format dict values instead of the fmt string."""
         return "asctime" in self.fmt_dict.values()
 
-    def formatMessage(self, record) -> dict:
+    # we are overriding a method that returns a string and returning a dict, hence the Any
+    def formatMessage(self, record: logging.LogRecord) -> Any:
         """Overwritten to return a dictionary of the relevant LogRecord attributes instead of a string.
 
         KeyError is raised if an unknown attribute is provided in the fmt_dict.
@@ -41,7 +44,7 @@ class JsonFormatter(logging.Formatter):
             for fmt_key, fmt_val in self.fmt_dict.items()
         }
 
-    def format(self, record) -> str:
+    def format(self, record: logging.LogRecord) -> str:
         """Mostly the same as the parent's class method.
 
         The difference being that a dict is manipulated and dumped as JSON instead of a string.

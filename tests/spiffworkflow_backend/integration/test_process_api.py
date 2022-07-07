@@ -602,6 +602,43 @@ def test_process_instance_run(
     assert response.json["data"]["person"] == "Kevin"
 
 
+def test_process_instance_delete(
+    app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+) -> None:
+    """Test_process_instance_delete."""
+    process_group_id = "my_process_group"
+    process_model_id = "user_task"
+
+    user = find_or_create_user()
+    headers = logged_in_headers(user)
+    response = create_process_instance(
+        client, process_group_id, process_model_id, headers
+    )
+    assert response.json is not None
+    process_instance_id = response.json["id"]
+
+    response = client.post(
+        f"/v1.0/process-models/{process_group_id}/{process_model_id}/process-instances/{process_instance_id}/run",
+        headers=logged_in_headers(user),
+    )
+
+    assert response.json is not None
+    task_events = (
+        db.session.query(TaskEventModel)
+        .filter(TaskEventModel.process_instance_id == process_instance_id)
+        .all()
+    )
+    assert len(task_events) == 1
+    task_event = task_events[0]
+    assert task_event.user_id == user.id
+
+    delete_response = client.delete(
+        f"/v1.0/process-models/{process_group_id}/{process_model_id}/process-instances/{process_instance_id}",
+        headers=logged_in_headers(user),
+    )
+    assert delete_response.status_code == 200
+
+
 def test_process_instance_run_user_task_creates_task_event(
     app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
