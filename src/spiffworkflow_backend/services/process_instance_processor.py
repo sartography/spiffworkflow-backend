@@ -1,8 +1,6 @@
 """Process_instance_processor."""
 import json
 import time
-from flask_bpmn.api.api_error import ApiError
-from flask_bpmn.models.db import db
 from typing import Any
 from typing import Dict
 from typing import List
@@ -10,6 +8,8 @@ from typing import Optional
 from typing import Union
 
 from flask import current_app
+from flask_bpmn.api.api_error import ApiError
+from flask_bpmn.models.db import db
 from lxml import etree  # type: ignore
 from SpiffWorkflow import Task as SpiffTask  # type: ignore
 from SpiffWorkflow import TaskState

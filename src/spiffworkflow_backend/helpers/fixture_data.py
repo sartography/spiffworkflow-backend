@@ -1,6 +1,7 @@
 """Fixture_data."""
-from flask_bpmn.models.db import db
 from typing import Any
+
+from flask_bpmn.models.db import db
 
 from spiffworkflow_backend.models.principal import PrincipalModel
 from spiffworkflow_backend.models.user import UserModel

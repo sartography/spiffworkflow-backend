@@ -1,11 +1,11 @@
 """Spiff Workflow Connector."""
-from flask_bpmn.models.db import db
 from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Union
 
+from flask_bpmn.models.db import db
 from SpiffWorkflow.bpmn.serializer.workflow import BpmnWorkflowSerializer  # type: ignore
 from SpiffWorkflow.bpmn.specs.events.event_types import CatchingEvent  # type: ignore
 from SpiffWorkflow.bpmn.specs.events.event_types import ThrowingEvent

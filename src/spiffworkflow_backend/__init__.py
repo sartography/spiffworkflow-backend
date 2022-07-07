@@ -1,13 +1,13 @@
 """__init__."""
 import os
-from flask_bpmn.api.api_error import api_error_blueprint
-from flask_bpmn.models.db import db
-from flask_bpmn.models.db import migrate
 from typing import Any
 
 import connexion  # type: ignore
 import flask.app
 import flask.json
+from flask_bpmn.api.api_error import api_error_blueprint
+from flask_bpmn.models.db import db
+from flask_bpmn.models.db import migrate
 from flask_cors import CORS  # type: ignore
 from flask_mail import Mail  # type: ignore
 
