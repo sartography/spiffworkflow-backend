@@ -163,6 +163,13 @@ jobs:
           name: docs
           path: docs/_build
 
+      - name: Upload logs
+        if: failure() && matrix.session == 'tests'
+        uses: "actions/upload-artifact@v3.0.0"
+        with:
+          name: logs
+          path: "./log/*.log"
+
   coverage:
     runs-on: ubuntu-latest
     needs: tests

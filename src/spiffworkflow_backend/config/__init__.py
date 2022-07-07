@@ -19,6 +19,24 @@ def setup_logger_for_sql_statements(app: Flask) -> None:
     db_logger.setLevel(db_logger_log_level)
 
 
+# formats:
+#   from: https://www.askpython.com/python-modules/flask/flask-logging
+# %(asctime)s— The timestamp as a string.
+# %(levelname)s—The logging level as a string.
+# %(name)s—The logger name as a string.
+# %(threadname)s—The thread name as a string.
+# %(message)s—The log message.
+def setup_logger(app: Flask) -> None:
+    """Setup_logger."""
+    server_log_file_name = f"log/server_{app.env}.log"
+    formatting = "%(asctime)s - %(levelname)s - %(message)s"
+    logging.basicConfig(
+        filename=server_log_file_name, level=logging.DEBUG, format=formatting
+    )
+
+    setup_logger_for_sql_statements(app)
+
+
 def setup_database_uri(app: Flask) -> None:
     """Setup_database_uri."""
     if os.environ.get("SPIFFWORKFLOW_BACKEND_DATABASE_URI") is None:
@@ -56,7 +74,7 @@ def setup_config(app: Flask) -> None:
     app.config.from_object("spiffworkflow_backend.config.default")
 
     setup_database_uri(app)
-    setup_logger_for_sql_statements(app)
+    setup_logger(app)
 
     env_config_module = "spiffworkflow_backend.config." + app.env
     try:

@@ -1,4 +1,5 @@
 """__init__."""
+import logging
 import os
 from typing import Any
 
@@ -72,5 +73,6 @@ def create_app() -> flask.app.Flask:
     app.config["MAIL_APP"] = mail
 
     app.json_encoder = MyJSONEncoder
+    logging.basicConfig(filename="filename.log", level=logging.DEBUG)
 
     return app  # type: ignore
