@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+HOSTNAME=localhost:7002
+REALM_NAME=spiffworkflow
+USERNAME=${1-ciuser1}
+PASSWORD=${2-ciuser1}
+CLIENT_ID=spiffworkflow-frontend
+SECURE=false
+
+KEYCLOAK_URL=http://$HOSTNAME/realms/$REALM_NAME/protocol/openid-connect/token
+
+echo "Using Keycloak: $KEYCLOAK_URL"
+echo "realm: $REALM_NAME"
+echo "client-id: $CLIENT_ID"
+echo "username: $USERNAME"
+echo "password: $PASSWORD"
+echo "secure: $SECURE"
+
+
+if [[ $SECURE = 'y' ]]; then
+	INSECURE=
+else
+	INSECURE=--insecure
+fi
+
+result=$(curl -s -X POST "$KEYCLOAK_URL" "$INSECURE" \
+ -H "Content-Type: application/x-www-form-urlencoded" \
+ -d "username=$USERNAME" \
+ -d "password=$PASSWORD" \
+ -d 'grant_type=password' \
+ -d "client_id=$CLIENT_ID")
+TOKEN=$(jq -r '.access_token' <<< "$result")
+
+echo TOKEN: $TOKEN
+
+if [[ $(echo $TOKEN) != 'null' ]]; then
+	export KEYCLOAK_TOKEN=$TOKEN
+fi
