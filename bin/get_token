@@ -36,10 +36,11 @@ result=$(curl -s -X POST "$KEYCLOAK_URL" "$INSECURE" \
  -d "password=$PASSWORD" \
  -d 'grant_type=password' \
  -d "client_id=$CLIENT_ID")
-TOKEN=$(jq -r '.access_token' <<< "$result")
 
-echo TOKEN: $TOKEN
+token=$(jq -r '.access_token' <<< "$result")
 
-if [[ $(echo $TOKEN) != 'null' ]]; then
-	export KEYCLOAK_TOKEN=$TOKEN
+if [[ "$token" != 'null' ]]; then
+  echo "token: $token"
+else
+  echo "Failed auth result: $result"
 fi
