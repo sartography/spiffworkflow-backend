@@ -16,6 +16,9 @@ services:
       - spiffworkflow_backend:/var/lib/mysql
     healthcheck:
       test: mysql --user=root --password=${SPIFFWORKFLOW_BACKEND_MYSQL_ROOT_DATABASE:-my-secret-pw} -e 'select 1' ${SPIFFWORKFLOW_BACKEND_DATABASE_NAME:-spiffworkflow_backend_development}
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   spiffworkflow-backend:
     container_name: spiffworkflow-backend
@@ -29,6 +32,7 @@ services:
     environment:
       - APPLICATION_ROOT=/
       - FLASK_ENV=${FLASK_ENV:-development}
+      - FLASK_DEBUG=0
       - FLASK_SESSION_SECRET_KEY=${FLASK_SESSION_SECRET_KEY:-super_secret_key}
       - SPIFFWORKFLOW_BACKEND_PORT=7000
       - SPIFFWORKFLOW_BACKEND_UPGRADE_DB=true
@@ -42,6 +46,9 @@ services:
       - ./log:/app/log
     healthcheck:
       test: curl localhost:7000/v1.0/status --fail
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
 volumes:
   spiffworkflow_backend:

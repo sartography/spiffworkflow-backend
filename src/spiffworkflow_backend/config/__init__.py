@@ -1,40 +1,10 @@
 """__init__.py."""
-import logging
 import os
 
 from flask.app import Flask
 from werkzeug.utils import ImportStringError
 
-
-def setup_logger_for_sql_statements(app: Flask) -> None:
-    """Setup_logger_for_sql_statements."""
-    db_log_file_name = f"log/db_{app.env}.log"
-    db_handler_log_level = logging.INFO
-    db_logger_log_level = logging.DEBUG
-    db_handler = logging.FileHandler(db_log_file_name)
-    db_handler.setLevel(db_handler_log_level)
-    db_logger = logging.getLogger("sqlalchemy")
-    db_logger.propagate = False
-    db_logger.addHandler(db_handler)
-    db_logger.setLevel(db_logger_log_level)
-
-
-# formats:
-#   from: https://www.askpython.com/python-modules/flask/flask-logging
-# %(asctime)s— The timestamp as a string.
-# %(levelname)s—The logging level as a string.
-# %(name)s—The logger name as a string.
-# %(threadname)s—The thread name as a string.
-# %(message)s—The log message.
-def setup_logger(app: Flask) -> None:
-    """Setup_logger."""
-    server_log_file_name = f"log/server_{app.env}.log"
-    formatting = "%(asctime)s - %(levelname)s - %(message)s"
-    logging.basicConfig(
-        filename=server_log_file_name, level=logging.DEBUG, format=formatting
-    )
-
-    setup_logger_for_sql_statements(app)
+from spiffworkflow_backend.services.logging_service import setup_logger
 
 
 def setup_database_uri(app: Flask) -> None:

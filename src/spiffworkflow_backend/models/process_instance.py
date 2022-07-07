@@ -2,11 +2,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from flask_bpmn.models.db import db
+from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from typing import Any
 
 import marshmallow
-from flask_bpmn.models.db import db
-from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from marshmallow import INCLUDE
 from marshmallow import Schema
 from marshmallow_enum import EnumField  # type: ignore

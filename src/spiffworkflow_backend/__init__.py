@@ -1,14 +1,13 @@
 """__init__."""
-import logging
 import os
+from flask_bpmn.api.api_error import api_error_blueprint
+from flask_bpmn.models.db import db
+from flask_bpmn.models.db import migrate
 from typing import Any
 
 import connexion  # type: ignore
 import flask.app
 import flask.json
-from flask_bpmn.api.api_error import api_error_blueprint
-from flask_bpmn.models.db import db
-from flask_bpmn.models.db import migrate
 from flask_cors import CORS  # type: ignore
 from flask_mail import Mail  # type: ignore
 
@@ -73,6 +72,5 @@ def create_app() -> flask.app.Flask:
     app.config["MAIL_APP"] = mail
 
     app.json_encoder = MyJSONEncoder
-    logging.basicConfig(filename="filename.log", level=logging.DEBUG)
 
     return app  # type: ignore

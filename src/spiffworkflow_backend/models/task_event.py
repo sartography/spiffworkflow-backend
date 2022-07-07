@@ -2,10 +2,10 @@
 from __future__ import annotations
 
 import enum
-from typing import TYPE_CHECKING
-
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import SpiffworkflowBaseDBModel
+from typing import TYPE_CHECKING
+
 from marshmallow import fields
 from marshmallow import INCLUDE
 from marshmallow import Schema
