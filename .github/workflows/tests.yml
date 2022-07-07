@@ -167,7 +167,7 @@ jobs:
         if: failure() && matrix.session == 'tests'
         uses: "actions/upload-artifact@v3.0.0"
         with:
-          name: logs
+          name: logs-${{matrix.python}}-${{matrix.os}}-${{matrix.database}}
           path: "./log/*.log"
 
   coverage:
