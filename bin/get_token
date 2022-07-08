@@ -7,6 +7,9 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
+# this tests we can get a token from a public client and exchange it with a confidential client
+# so we can see what resources that user has access to
+
 # originally from https://medium.com/keycloak/keycloak-jwt-token-using-curl-post-72c9e791ba8c
 # btw, meta config endpoint: http://localhost:7002/realms/spiffworkflow/.well-known/openid-configuration
 
@@ -14,6 +17,7 @@ HOSTNAME=localhost:7002
 REALM_NAME=spiffworkflow
 USERNAME=${1-ciuser1}
 PASSWORD=${2-ciuser1}
+
 FRONTEND_CLIENT_ID=spiffworkflow-frontend
 BACKEND_CLIENT_ID=spiffworkflow-backend
 BACKEND_CLIENT_SECRET="JXeQExm0JhQPLumgHtIIqf52bDalHz0q"  # noqa: S105
@@ -53,13 +57,13 @@ result=$(curl -s -X POST "$KEYCLOAK_URL" "$INSECURE" \
  -H "Authorization: Basic $BACKEND_BASIC_AUTH" \
  -d "audience=${BACKEND_CLIENT_ID}" \
 )
-token=$(jq -r '.access_token' <<< "$result")
+backend_token=$(jq -r '.access_token' <<< "$result")
 
-if [[ "$token" != 'null' ]]; then
-  echo "token: $token"
+if [[ "$backend_token" != 'null' ]]; then
+  echo "backend_token: $backend_token"
 
   echo "Getting resource set"
-  resource_result=$(curl -s "http://localhost:7002/realms/spiffworkflow/authz/protection/resource_set?matchingUri=true&deep=true&max=-1&exactName=false&uri=%2Fprocess-models%2Fcategory_number_one%2Fprocess-model-with-repeating-form" -H "Authorization: Bearer $token")
+  resource_result=$(curl -s "http://localhost:7002/realms/spiffworkflow/authz/protection/resource_set?matchingUri=true&deep=true&max=-1&exactName=false&uri=%2Fprocess-models%2Fcategory_number_one%2Fprocess-model-with-repeating-form" -H "Authorization: Bearer $backend_token")
 
   resource_ids=$(jq -r '.[] | ._id' <<<"$resource_result" || echo '')
   if [[ -z "$resource_ids" || "$resource_ids" == "null" ]]; then
@@ -75,7 +79,7 @@ if [[ "$token" != 'null' ]]; then
       -d "audience=${BACKEND_CLIENT_ID}" \
       --data-urlencode "grant_type=urn:ietf:params:oauth:grant-type:uma-ticket" \
       -d "permission=${resource_id}" \
-      -d "subject_token=${token}" \
+      -d "subject_token=${backend_token}" \
       | jq .
   done
 else
