@@ -9,6 +9,17 @@ from typing import Optional
 from flask.app import Flask
 
 
+# flask logging formats:
+#   from: https://www.askpython.com/python-modules/flask/flask-logging
+# %(asctime)s— The timestamp as a string.
+# %(levelname)s—The logging level as a string.
+# %(name)s—The logger name as a string.
+# %(threadname)s—The thread name as a string.
+# %(message)s—The log message.
+
+# full message list:
+# {'name': 'gunicorn.error', 'msg': 'GET /admin/token', 'args': (), 'levelname': 'DEBUG', 'levelno': 10, 'pathname': '~/.cache/pypoetry/virtualenvs/spiffworkflow-backend-R_hdWfN1-py3.10/lib/python3.10/site-packages/gunicorn/glogging.py', 'filename': 'glogging.py', 'module': 'glogging', 'exc_info': None, 'exc_text': None, 'stack_info': None, 'lineno': 267, 'funcName': 'debug', 'created': 1657307111.4513023, 'msecs': 451.30228996276855, 'relativeCreated': 1730.785846710205, 'thread': 139945864087360, 'threadName': 'MainThread', 'processName': 'MainProcess', 'process': 2109561, 'message': 'GET /admin/token', 'asctime': '2022-07-08T15:05:11.451Z'}
+
 # originally from https://stackoverflow.com/a/70223539/6090676
 class JsonFormatter(logging.Formatter):
     """Formatter that outputs JSON strings after parsing the LogRecord.
@@ -85,13 +96,6 @@ def setup_logger_for_sql_statements(app: Flask) -> None:
     db_logger.setLevel(db_logger_log_level)
 
 
-# formats:
-#   from: https://www.askpython.com/python-modules/flask/flask-logging
-# %(asctime)s— The timestamp as a string.
-# %(levelname)s—The logging level as a string.
-# %(name)s—The logger name as a string.
-# %(threadname)s—The thread name as a string.
-# %(message)s—The log message.
 def setup_logger(app: Flask) -> None:
     """Setup_logger."""
     log_level = logging.DEBUG
@@ -114,6 +118,12 @@ def setup_logger(app: Flask) -> None:
         gunicorn_logger_error = logging.getLogger("gunicorn.error")
         log_level = gunicorn_logger_error.level
         ghandler = gunicorn_logger_error.handlers[0]
+        ghandler.setFormatter(json_formatter)
+        handlers.append(ghandler)
+
+        gunicorn_logger_access = logging.getLogger("gunicorn.access")
+        log_level = gunicorn_logger_access.level
+        ghandler = gunicorn_logger_access.handlers[0]
         ghandler.setFormatter(json_formatter)
         handlers.append(ghandler)
 
