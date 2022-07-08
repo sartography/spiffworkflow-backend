@@ -14,7 +14,9 @@ HOSTNAME=localhost:7002
 REALM_NAME=spiffworkflow
 USERNAME=${1-ciuser1}
 PASSWORD=${2-ciuser1}
-CLIENT_ID=spiffworkflow-frontend
+# CLIENT_ID=spiffworkflow-frontend
+CLIENT_ID=spiffworkflow-backend
+CLIENT_SECRET="JXeQExm0JhQPLumgHtIIqf52bDalHz0q"  # noqa: S105
 SECURE=false
 
 KEYCLOAK_URL=http://$HOSTNAME/realms/$REALM_NAME/protocol/openid-connect/token
@@ -38,14 +40,29 @@ result=$(curl -s -X POST "$KEYCLOAK_URL" "$INSECURE" \
  -d "username=$USERNAME" \
  -d "password=$PASSWORD" \
  -d 'grant_type=password' \
- -d "client_id=$CLIENT_ID")
+ -d "client_id=$CLIENT_ID" \
+ -d "client_secret=$CLIENT_SECRET" \
+)
 
 token=$(jq -r '.access_token' <<< "$result")
 
 if [[ "$token" != 'null' ]]; then
   echo "token: $token"
   echo "getting user info"
-  curl -s "http://localhost:7002/realms/spiffworkflow/protocol/openid-connect/userinfo" -H "Authorization: Bearer $token"
-else
-  echo "Failed auth result: $result"
+  # curl -s "http://localhost:7002/realms/spiffworkflow/protocol/openid-connect/userinfo" -H "Authorization: Bearer $token"
+  curl -s "http://localhost:7002/realms/spiffworkflow/authz/protection/resource_set?matchingUri=true&deep=true&max=-1&exactName=false&uri=%2Fprocess-models%2Fcategory_number_one%2Fprocess-model-with-repeating-form" -H "Authorization: Bearer $token" | jq .
+
+  # -H "Authorization: Basic $basic_auth" \
+  basic_auth=$(echo -n "${CLIENT_ID}:${CLIENT_SECRET}" | base64 -w0)
+  # -H "Authorization: Bearer $token" \
+  curl -s -X POST "$KEYCLOAK_URL" "$INSECURE" \
+    -H "Content-Type: application/x-www-form-urlencoded" \
+    -H "Authorization: Basic $basic_auth" \
+    -d "audience=${CLIENT_ID}" \
+    --data-urlencode "grant_type=urn:ietf:params:oauth:grant-type:uma-ticket" \
+    -d "permission=e294304c-796e-4c56-bdf2-8c854f65db59" \
+    -d "subject_token=${token}" \
+    | jq .
+  else
+    echo "Failed auth result: $result"
 fi
