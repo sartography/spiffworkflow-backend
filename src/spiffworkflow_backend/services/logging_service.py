@@ -2,6 +2,7 @@
 import json
 import logging
 import os
+import sys
 from typing import Any
 from typing import Optional
 
@@ -93,18 +94,8 @@ def setup_logger_for_sql_statements(app: Flask) -> None:
 # %(message)s—The log message.
 def setup_logger(app: Flask) -> None:
     """Setup_logger."""
-    server_log_file_name = f"log/server_{app.env}.log"
-
     log_level = logging.DEBUG
     handlers = []
-
-    if os.environ.get("IS_GUNICORN") == "true":
-        gunicorn_logger = logging.getLogger("gunicorn.error")
-        log_level = gunicorn_logger.level
-        handlers.extend(gunicorn_logger.handlers)
-
-    handler = logging.FileHandler(server_log_file_name)
-    handler.setLevel(log_level)
 
     json_formatter = JsonFormatter(
         {
@@ -119,8 +110,19 @@ def setup_logger(app: Flask) -> None:
         }
     )
 
+    if os.environ.get("IS_GUNICORN") == "true":
+        gunicorn_logger_error = logging.getLogger("gunicorn.error")
+        log_level = gunicorn_logger_error.level
+        ghandler = gunicorn_logger_error.handlers[0]
+        ghandler.setFormatter(json_formatter)
+        handlers.append(ghandler)
+
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(log_level)
+
     handler.setFormatter(json_formatter)
     handlers.append(handler)
+
     logging.basicConfig(handlers=handlers)
 
     setup_logger_for_sql_statements(app)
