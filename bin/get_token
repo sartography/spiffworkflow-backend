@@ -14,16 +14,17 @@ HOSTNAME=localhost:7002
 REALM_NAME=spiffworkflow
 USERNAME=${1-ciuser1}
 PASSWORD=${2-ciuser1}
-# CLIENT_ID=spiffworkflow-frontend
-CLIENT_ID=spiffworkflow-backend
-CLIENT_SECRET="JXeQExm0JhQPLumgHtIIqf52bDalHz0q"  # noqa: S105
+FRONTEND_CLIENT_ID=spiffworkflow-frontend
+BACKEND_CLIENT_ID=spiffworkflow-backend
+BACKEND_CLIENT_SECRET="JXeQExm0JhQPLumgHtIIqf52bDalHz0q"  # noqa: S105
 SECURE=false
 
+BACKEND_BASIC_AUTH=$(echo -n "${BACKEND_CLIENT_ID}:${BACKEND_CLIENT_SECRET}" | base64 -w0)
 KEYCLOAK_URL=http://$HOSTNAME/realms/$REALM_NAME/protocol/openid-connect/token
 
 echo "Using Keycloak: $KEYCLOAK_URL"
 echo "realm: $REALM_NAME"
-echo "client-id: $CLIENT_ID"
+echo "client-id: $FRONTEND_CLIENT_ID"
 echo "username: $USERNAME"
 echo "password: $PASSWORD"
 echo "secure: $SECURE"
@@ -40,16 +41,24 @@ result=$(curl -s -X POST "$KEYCLOAK_URL" "$INSECURE" \
  -d "username=$USERNAME" \
  -d "password=$PASSWORD" \
  -d 'grant_type=password' \
- -d "client_id=$CLIENT_ID" \
- -d "client_secret=$CLIENT_SECRET" \
+ -d "client_id=$FRONTEND_CLIENT_ID" \
 )
+frontend_token=$(jq -r '.access_token' <<< "$result")
 
+result=$(curl -s -X POST "$KEYCLOAK_URL" "$INSECURE" \
+ -H "Content-Type: application/x-www-form-urlencoded" \
+ --data-urlencode 'grant_type=urn:ietf:params:oauth:grant-type:token-exchange' \
+ -d "client_id=$BACKEND_CLIENT_ID" \
+ -d "subject_token=${frontend_token}" \
+ -H "Authorization: Basic $BACKEND_BASIC_AUTH" \
+ -d "audience=${BACKEND_CLIENT_ID}" \
+)
 token=$(jq -r '.access_token' <<< "$result")
 
 if [[ "$token" != 'null' ]]; then
   echo "token: $token"
 
-  # curl -s "http://localhost:7002/realms/spiffworkflow/protocol/openid-connect/userinfo" -H "Authorization: Bearer $token"
+  echo "Getting resource set"
   resource_result=$(curl -s "http://localhost:7002/realms/spiffworkflow/authz/protection/resource_set?matchingUri=true&deep=true&max=-1&exactName=false&uri=%2Fprocess-models%2Fcategory_number_one%2Fprocess-model-with-repeating-form" -H "Authorization: Bearer $token")
 
   resource_ids=$(jq -r '.[] | ._id' <<<"$resource_result" || echo '')
@@ -58,12 +67,12 @@ if [[ "$token" != 'null' ]]; then
     exit 1
   fi
 
+  echo "Getting permissions"
   for resource_id in $resource_ids ; do
-    basic_auth=$(echo -n "${CLIENT_ID}:${CLIENT_SECRET}" | base64 -w0)
     curl -s -X POST "$KEYCLOAK_URL" "$INSECURE" \
       -H "Content-Type: application/x-www-form-urlencoded" \
-      -H "Authorization: Basic $basic_auth" \
-      -d "audience=${CLIENT_ID}" \
+      -H "Authorization: Basic $BACKEND_BASIC_AUTH" \
+      -d "audience=${BACKEND_CLIENT_ID}" \
       --data-urlencode "grant_type=urn:ietf:params:oauth:grant-type:uma-ticket" \
       -d "permission=${resource_id}" \
       -d "subject_token=${token}" \
