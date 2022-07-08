@@ -8,6 +8,7 @@ trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
 # originally from https://medium.com/keycloak/keycloak-jwt-token-using-curl-post-72c9e791ba8c
+# btw, meta config endpoint: http://localhost:7002/realms/spiffworkflow/.well-known/openid-configuration
 
 HOSTNAME=localhost:7002
 REALM_NAME=spiffworkflow
@@ -43,6 +44,8 @@ token=$(jq -r '.access_token' <<< "$result")
 
 if [[ "$token" != 'null' ]]; then
   echo "token: $token"
+  echo "getting user info"
+  curl -s "http://localhost:7002/realms/spiffworkflow/protocol/openid-connect/userinfo" -H "Authorization: Bearer $token"
 else
   echo "Failed auth result: $result"
 fi
