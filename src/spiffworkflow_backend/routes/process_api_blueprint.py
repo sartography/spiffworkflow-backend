@@ -395,7 +395,7 @@ def process_instance_delete(
     return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
 
 
-def process_instance_report(
+def process_instance_report_show(
     process_group_id: str, process_model_id: str, page: int = 1, per_page: int = 100
 ) -> flask.wrappers.Response:
     """Process_instance_list."""

@@ -843,10 +843,10 @@ def test_process_instance_list_filter(
         assert json.loads(results[i]["bpmn_json"])["i"] in (1, 2, 3)
 
 
-def test_process_instance_report_with_default_list(
+def test_process_instance_report_show_with_default_list(
     app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
 ) -> None:
-    """Test_process_instance_report_with_default_list."""
+    """Test_process_instance_report_show_with_default_list."""
     test_process_group_id = "runs_without_input"
     process_model_dir_name = "sample"
     user = find_or_create_user()

@@ -482,7 +482,7 @@ paths:
         schema:
           type: integer
     get:
-      operationId: spiffworkflow_backend.routes.process_api_blueprint.process_instance_report
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.process_instance_report_show
       summary: Returns a report of process instances for a given process model
       tags:
         - Process Instances
