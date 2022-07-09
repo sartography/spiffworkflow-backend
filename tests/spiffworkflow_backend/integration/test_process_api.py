@@ -22,6 +22,9 @@ from spiffworkflow_backend.models.process_group import ProcessGroup
 from spiffworkflow_backend.models.process_group import ProcessGroupSchema
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 from spiffworkflow_backend.models.process_instance import ProcessInstanceStatus
+from spiffworkflow_backend.models.process_instance_report import (
+    ProcessInstanceReportModel,
+)
 from spiffworkflow_backend.models.process_model import NotificationType
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
@@ -841,6 +844,35 @@ def test_process_instance_list_filter(
     assert len(results) == 3
     for i in range(3):
         assert json.loads(results[i]["bpmn_json"])["i"] in (1, 2, 3)
+
+
+def test_process_instance_report_list(
+    app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+) -> None:
+    """Test_process_instance_report_list."""
+    process_group_identifier = "runs_without_input"
+    process_model_identifier = "sample"
+    user = find_or_create_user()
+    logged_in_headers(user)
+    load_test_spec(process_model_identifier, process_group_id=process_group_identifier)
+    report_identifier = "testreport"
+    report_metadata = {"order": ["month asc"]}
+    ProcessInstanceReportModel.create_with_attributes(
+        identifier=report_identifier,
+        process_group_identifier=process_group_identifier,
+        process_model_identifier=process_model_identifier,
+        report_metadata=report_metadata,
+        user=user,
+    )
+    response = client.get(
+        f"/v1.0/process-models/{process_group_identifier}/{process_model_identifier}/process-instances/reports",
+        headers=logged_in_headers(user),
+    )
+    assert response.status_code == 200
+    assert response.json is not None
+    assert len(response.json) == 1
+    assert response.json[0]["identifier"] == report_identifier
+    assert response.json[0]["report_metadata"]["order"] == ["month asc"]
 
 
 def test_process_instance_report_show_with_default_list(

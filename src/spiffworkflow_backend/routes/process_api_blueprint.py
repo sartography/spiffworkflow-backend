@@ -29,6 +29,9 @@ from spiffworkflow_backend.models.process_group import ProcessGroupSchema
 from spiffworkflow_backend.models.process_instance import ProcessInstanceApiSchema
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModelSchema
+from spiffworkflow_backend.models.process_instance_report import (
+    ProcessInstanceReportModel,
+)
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
 from spiffworkflow_backend.services.error_handling_service import ErrorHandlingService
@@ -393,6 +396,21 @@ def process_instance_delete(
     db.session.delete(process_instance)
     db.session.commit()
     return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
+
+
+def process_instance_report_list(
+    process_group_id: str, process_model_id: str, page: int = 1, per_page: int = 100
+) -> flask.wrappers.Response:
+    """Process_instance_report_list."""
+    ProcessInstanceReportModel.add_fixtures()
+    process_model = get_process_model(process_model_id, process_group_id)
+
+    process_instance_reports = ProcessInstanceReportModel.query.filter_by(
+        process_group_identifier=process_group_id,
+        process_model_identifier=process_model.id,
+    ).all()
+
+    return make_response(jsonify(process_instance_reports), 200)
 
 
 def process_instance_report_show(
