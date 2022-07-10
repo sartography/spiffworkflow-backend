@@ -1,3 +1,4 @@
+"""Test_authentication."""
 # """Test_authentication."""
 # from keycloak.authorization import Authorization  # type: ignore
 # from keycloak.keycloak_openid import KeycloakOpenID  # type: ignore

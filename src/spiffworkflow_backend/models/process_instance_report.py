@@ -36,15 +36,15 @@ class ProcessInstanceReportResult(TypedDict):
 class Reversor:
     """Reversor."""
 
-    def __init__(self, obj):
+    def __init__(self, obj: Any):
         """__init__."""
         self.obj = obj
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> Any:
         """__eq__."""
         return other.obj == self.obj
 
-    def __lt__(self, other):
+    def __lt__(self, other: Any) -> Any:
         """__lt__."""
         return other.obj < self.obj
 
@@ -126,7 +126,7 @@ class ProcessInstanceReportModel(SpiffworkflowBaseDBModel):
         db.session.commit()
         return process_instance_report
 
-    def with_substitutions(self, field_value: any, substitution_variables: dict) -> str:
+    def with_substitutions(self, field_value: Any, substitution_variables: dict) -> Any:
         """With_substitutions."""
         if substitution_variables is not None:
             for key, value in substitution_variables.items():
@@ -161,7 +161,7 @@ class ProcessInstanceReportModel(SpiffworkflowBaseDBModel):
         """Order_things."""
         order_by = self.report_metadata["order_by"]
 
-        def order_by_function_for_lambda(process_instance_dict: dict) -> str:
+        def order_by_function_for_lambda(process_instance_dict: dict) -> list[Reversor]:
             """Order_by_function_for_lambda."""
             comparison_values = []
             for order_by_item in order_by:
@@ -180,9 +180,11 @@ class ProcessInstanceReportModel(SpiffworkflowBaseDBModel):
     def generate_report(
         self,
         process_instances: list[ProcessInstanceModel],
-        substitution_variables: dict,
+        substitution_variables: dict | None,
     ) -> ProcessInstanceReportResult:
         """Generate_report."""
+        if substitution_variables is None:
+            substitution_variables = {}
 
         def to_serialized(process_instance: ProcessInstanceModel) -> dict:
             """To_serialized."""
