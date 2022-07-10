@@ -143,7 +143,6 @@ class ProcessInstanceReportModel(SpiffworkflowBaseDBModel):
         self, process_instance_dict: dict, substitution_variables: dict
     ) -> bool:
         """Passes_filter."""
-        process_instance_data = process_instance_dict["data"]
         if "filter_by" in self.report_metadata:
             for filter_by in self.report_metadata["filter_by"]:
                 field_name = filter_by["field_name"]
@@ -152,7 +151,7 @@ class ProcessInstanceReportModel(SpiffworkflowBaseDBModel):
                     filter_by["field_value"], substitution_variables
                 )
                 if operator == "equals":
-                    if str(process_instance_data.get(field_name)) != str(field_value):
+                    if str(process_instance_dict.get(field_name)) != str(field_value):
                         return False
 
         return True
@@ -190,7 +189,7 @@ class ProcessInstanceReportModel(SpiffworkflowBaseDBModel):
             """To_serialized."""
             processor = ProcessInstanceProcessor(process_instance)
             process_instance.data = processor.get_data()
-            return process_instance.serialized
+            return process_instance.serialized_flat
 
         process_instance_dicts = map(to_serialized, process_instances)
         results = []
@@ -208,11 +207,10 @@ class ProcessInstanceReportModel(SpiffworkflowBaseDBModel):
 
             pruned_results = []
             for result in results:
-                data = result["data"]
                 dict_you_want = {
-                    your_key: data[your_key]
+                    your_key: result[your_key]
                     for your_key in column_keys_to_keep
-                    if data.get(your_key)
+                    if result.get(your_key)
                 }
                 pruned_results.append(dict_you_want)
             results = pruned_results

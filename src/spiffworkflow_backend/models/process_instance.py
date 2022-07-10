@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Any
+from typing import cast
 
 import marshmallow
 from flask_bpmn.models.db import db
@@ -11,6 +12,7 @@ from marshmallow import INCLUDE
 from marshmallow import Schema
 from marshmallow_enum import EnumField  # type: ignore
 from SpiffWorkflow.navigation import NavItem  # type: ignore
+from SpiffWorkflow.util.deep_merge import DeepMerge  # type: ignore
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import deferred
 from sqlalchemy.orm import relationship
@@ -113,6 +115,14 @@ class ProcessInstanceModel(SpiffworkflowBaseDBModel):
             "process_initiator_id": self.process_initiator_id,
             "data": self.data,
         }
+
+    @property
+    def serialized_flat(self) -> dict:
+        """Return object in serializeable format with data merged together with top-level attributes.
+
+        Top-level attributes like process_model_identifier and status win over data attributes.
+        """
+        return cast(dict, DeepMerge.merge(self.data, self.serialized))
 
 
 class ProcessInstanceModelSchema(Schema):

@@ -106,7 +106,10 @@ def test_generate_report_with_columns(
     """Test_user_can_be_given_permission_to_administer_process_group."""
     process_instances = setup_process_instances_for_reports
     report_metadata = {
-        "columns": [{"Header": "Name", "accessor": "name"}],
+        "columns": [
+            {"Header": "Name", "accessor": "name"},
+            {"Header": "Status", "accessor": "status"},
+        ],
         "order_by": ["test_score"],
         "filter_by": [
             {"field_name": "grade_level", "operator": "equals", "field_value": 1}
@@ -114,7 +117,7 @@ def test_generate_report_with_columns(
     }
     results = do_report_with_metadata_and_instances(report_metadata, process_instances)
     assert len(results) == 1
-    assert results == [{"name": "ray"}]
+    assert results == [{"name": "ray", "status": "waiting"}]
 
 
 def do_report_with_metadata_and_instances(
