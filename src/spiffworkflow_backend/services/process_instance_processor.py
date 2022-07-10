@@ -30,6 +30,7 @@ from SpiffWorkflow.dmn.serializer import BusinessRuleTaskConverter  # type: igno
 from SpiffWorkflow.exceptions import WorkflowTaskExecException  # type: ignore
 from SpiffWorkflow.serializer.exceptions import MissingSpecError  # type: ignore
 from SpiffWorkflow.specs import WorkflowSpec  # type: ignore
+from SpiffWorkflow.util.deep_merge import DeepMerge  # type: ignore
 
 from spiffworkflow_backend.models.active_task import ActiveTaskModel
 from spiffworkflow_backend.models.file import File
@@ -312,6 +313,14 @@ class ProcessInstanceProcessor:
                 ProcessInstanceProcessor.VALIDATION_PROCESS_KEY
             ] = validate_only
         return bpmn_process_instance
+
+    def slam_in_data(self, data: dict) -> None:
+        """Slam_in_data."""
+        self.bpmn_process_instance.data = DeepMerge.merge(
+            self.bpmn_process_instance.data, data
+        )
+
+        self.save()
 
     def save(self) -> None:
         """Saves the current state of this processor to the database."""
