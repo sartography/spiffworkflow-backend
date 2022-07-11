@@ -414,26 +414,25 @@ def process_instance_report_list(
 
 
 def process_instance_report_create(
-    process_group_id: str, process_model_id: str,
-    body: Dict[str, Any]
+    process_group_id: str, process_model_id: str, body: Dict[str, Any]
 ) -> flask.wrappers.Response:
     """Process_instance_report_create."""
-
     ProcessInstanceReportModel.create_report(
-        identifier=body['identifier'],
+        identifier=body["identifier"],
         process_group_identifier=process_group_id,
         process_model_identifier=process_model_id,
         user=g.user,
-        report_metadata=body['report_metadata'],
+        report_metadata=body["report_metadata"],
     )
 
     return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
 
 
 def process_instance_report_update(
-    process_group_id: str, process_model_id: str,
+    process_group_id: str,
+    process_model_id: str,
     report_identifier: str,
-    body: Dict[str, Any]
+    body: Dict[str, Any],
 ) -> flask.wrappers.Response:
     """Process_instance_report_create."""
     process_instance_report = ProcessInstanceReportModel.query.filter_by(
@@ -448,14 +447,15 @@ def process_instance_report_update(
             status_code=404,
         )
 
-    process_instance_report.report_metadata = body['report_metadata']
+    process_instance_report.report_metadata = body["report_metadata"]
     db.session.commit()
 
     return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
 
 
 def process_instance_report_delete(
-    process_group_id: str, process_model_id: str,
+    process_group_id: str,
+    process_model_id: str,
     report_identifier: str,
 ) -> flask.wrappers.Response:
     """Process_instance_report_create."""

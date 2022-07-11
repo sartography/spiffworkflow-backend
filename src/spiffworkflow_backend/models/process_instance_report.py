@@ -58,7 +58,10 @@ class ProcessInstanceReportModel(SpiffworkflowBaseDBModel):
     __tablename__ = "process_instance_report"
     __table_args__ = (
         db.UniqueConstraint(
-            "process_group_identifier", "process_model_identifier", "identifier", name="process_instance_report_unique"
+            "process_group_identifier",
+            "process_model_identifier",
+            "identifier",
+            name="process_instance_report_unique",
         ),
     )
 
