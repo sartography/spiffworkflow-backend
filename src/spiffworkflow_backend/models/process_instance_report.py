@@ -83,10 +83,17 @@ class ProcessInstanceReportModel(SpiffworkflowBaseDBModel):
     def add_fixtures(cls) -> None:
         """Add_fixtures."""
         try:
+            db.session.query(ProcessInstanceReportModel).filter_by(process_group_identifier="sartography-admin", process_model_identifier="ticket").delete()
+            db.session.commit()
             process_model = ProcessModelService().get_process_model(
                 group_id="sartography-admin", process_model_id="ticket"
             )
-            json = {"order": "month asc"}
+            columns = [
+                {"Header": "id", "accessor": "id"},
+                {"Header": "month", "accessor": "month"},
+                {"Header": "milestone", "accessor": "milestone"},
+            ]
+            json = {"order": "month asc", "columns": columns}
             user = UserModel.query.first()
             process_instance_report = cls(
                 identifier="for-month",
