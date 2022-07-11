@@ -28,5 +28,5 @@ if [[ -z "${SPIFFWORKFLOW_BACKEND_DATABASE_DOCKER_RESTART_POLICY:-}" ]]; then
 fi
 
 git pull
-./bin/docker_restart
+./bin/build_and_run_with_docker_compose
 ./bin/wait_for_server_to_be_up

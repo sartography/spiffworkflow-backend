@@ -170,6 +170,21 @@ jobs:
           name: logs-${{matrix.python}}-${{matrix.os}}-${{matrix.database}}
           path: "./log/*.log"
 
+  check_docker_start_script:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v3.0.2
+        with:
+          # Disabling shallow clone is recommended for improving relevancy of reporting in sonarcloud
+          fetch-depth: 0
+      - name: start_backend
+        run: ./bin/build_and_run_with_docker_compose
+        env:
+          SPIFFWORKFLOW_BACKEND_LOAD_FIXTURE_DATA: "true"
+      - name: wait_for_backend
+        run: ./bin/wait_for_server_to_be_up 5
+
   coverage:
     runs-on: ubuntu-latest
     needs: tests

@@ -17,4 +17,6 @@ if [[ "${RUN_WITH_DAEMON:-}" != "false" ]]; then
   additional_args="${additional_args} -d"
 fi
 
-docker compose up --wait --build $additional_args
+docker compose build
+docker compose stop
+docker compose up --wait $additional_args
