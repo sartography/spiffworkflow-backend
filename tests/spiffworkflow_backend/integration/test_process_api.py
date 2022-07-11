@@ -856,7 +856,7 @@ def test_process_instance_report_list(
     logged_in_headers(user)
     load_test_spec(process_model_identifier, process_group_id=process_group_identifier)
     report_identifier = "testreport"
-    report_metadata = {"order": ["month asc"]}
+    report_metadata = {"order_by": ["month"]}
     ProcessInstanceReportModel.create_with_attributes(
         identifier=report_identifier,
         process_group_identifier=process_group_identifier,
@@ -872,40 +872,123 @@ def test_process_instance_report_list(
     assert response.json is not None
     assert len(response.json) == 1
     assert response.json[0]["identifier"] == report_identifier
-    assert response.json[0]["report_metadata"]["order"] == ["month asc"]
+    assert response.json[0]["report_metadata"]["order_by"] == ["month"]
 
 
 def test_process_instance_report_show_with_default_list(
-    app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    app: Flask,
+    client: FlaskClient,
+    with_db_and_bpmn_file_cleanup: None,
+    setup_process_instances_for_reports: list[ProcessInstanceModel],
 ) -> None:
     """Test_process_instance_report_show_with_default_list."""
     test_process_group_id = "runs_without_input"
     process_model_dir_name = "sample"
     user = find_or_create_user()
-    headers = logged_in_headers(user)
-    create_process_instance(
-        client, test_process_group_id, process_model_dir_name, headers
+
+    report_metadata = {
+        "columns": [
+            {"Header": "id", "accessor": "id"},
+            {
+                "Header": "process_model_identifier",
+                "accessor": "process_model_identifier",
+            },
+            {"Header": "process_group_id", "accessor": "process_group_identifier"},
+            {"Header": "start_in_seconds", "accessor": "start_in_seconds"},
+            {"Header": "status", "accessor": "status"},
+            {"Header": "Name", "accessor": "name"},
+            {"Header": "Status", "accessor": "status"},
+        ],
+        "order_by": ["test_score"],
+        "filter_by": [
+            {"field_name": "grade_level", "operator": "equals", "field_value": 2}
+        ],
+    }
+
+    ProcessInstanceReportModel.create_with_attributes(
+        identifier="sure",
+        process_group_identifier=test_process_group_id,
+        process_model_identifier=process_model_dir_name,
+        report_metadata=report_metadata,
+        user=find_or_create_user(),
     )
 
     response = client.get(
-        f"/v1.0/process-models/{test_process_group_id}/{process_model_dir_name}/process-instances/report",
+        f"/v1.0/process-models/{test_process_group_id}/{process_model_dir_name}/process-instances/reports/sure",
+        headers=logged_in_headers(user),
+    )
+    assert response.status_code == 200
+    assert response.json is not None
+    assert len(response.json["results"]) == 2
+    assert response.json["pagination"]["count"] == 2
+    assert response.json["pagination"]["pages"] == 1
+    assert response.json["pagination"]["total"] == 2
+
+    process_instance_dict = response.json["results"][0]
+    assert type(process_instance_dict["id"]) is int
+    assert process_instance_dict["process_model_identifier"] == process_model_dir_name
+    assert process_instance_dict["process_group_identifier"] == test_process_group_id
+    assert type(process_instance_dict["start_in_seconds"]) is int
+    assert process_instance_dict["start_in_seconds"] > 0
+    assert process_instance_dict["status"] == "waiting"
+
+
+def test_process_instance_report_show_with_dynamic_filter_and_query_param(
+    app: Flask,
+    client: FlaskClient,
+    with_db_and_bpmn_file_cleanup: None,
+    setup_process_instances_for_reports: list[ProcessInstanceModel],
+) -> None:
+    """Test_process_instance_report_show_with_default_list."""
+    test_process_group_id = "runs_without_input"
+    process_model_dir_name = "sample"
+    user = find_or_create_user()
+
+    report_metadata = {
+        "filter_by": [
+            {
+                "field_name": "grade_level",
+                "operator": "equals",
+                "field_value": "{{grade_level}}",
+            }
+        ],
+    }
+
+    ProcessInstanceReportModel.create_with_attributes(
+        identifier="sure",
+        process_group_identifier=test_process_group_id,
+        process_model_identifier=process_model_dir_name,
+        report_metadata=report_metadata,
+        user=find_or_create_user(),
+    )
+
+    response = client.get(
+        f"/v1.0/process-models/{test_process_group_id}/{process_model_dir_name}/process-instances/reports/sure?grade_level=1",
         headers=logged_in_headers(user),
     )
     assert response.status_code == 200
     assert response.json is not None
     assert len(response.json["results"]) == 1
-    assert response.json["pagination"]["count"] == 1
-    assert response.json["pagination"]["pages"] == 1
-    assert response.json["pagination"]["total"] == 1
 
-    process_instance_dict = response.json["results"][0]
-    assert type(process_instance_dict["id"]) is int
-    assert process_instance_dict["process_model_identifier"] == process_model_dir_name
-    assert process_instance_dict["process_group_id"] == test_process_group_id
-    assert type(process_instance_dict["start_in_seconds"]) is int
-    assert process_instance_dict["start_in_seconds"] > 0
-    assert process_instance_dict["end_in_seconds"] is None
-    assert process_instance_dict["status"] == "not_started"
+
+def test_process_instance_report_show_with_bad_identifier(
+    app: Flask,
+    client: FlaskClient,
+    with_db_and_bpmn_file_cleanup: None,
+    setup_process_instances_for_reports: list[ProcessInstanceModel],
+) -> None:
+    """Test_process_instance_report_show_with_default_list."""
+    test_process_group_id = "runs_without_input"
+    process_model_dir_name = "sample"
+    user = find_or_create_user()
+
+    response = client.get(
+        f"/v1.0/process-models/{test_process_group_id}/{process_model_dir_name}/process-instances/reports/sure?grade_level=1",
+        headers=logged_in_headers(user),
+    )
+    assert response.status_code == 404
+    data = json.loads(response.get_data(as_text=True))
+    assert data["code"] == "unknown_process_instance_report"
 
 
 def setup_testing_instance(

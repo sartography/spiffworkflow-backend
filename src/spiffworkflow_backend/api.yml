@@ -496,7 +496,7 @@ paths:
                 items:
                   $ref: "#/components/schemas/Workflow"
 
-  /process-models/{process_group_id}/{process_model_id}/process-instances/report:
+  /process-models/{process_group_id}/{process_model_id}/process-instances/reports/{report_identifier}:
     parameters:
       - name: process_group_id
         in: path
@@ -508,6 +508,12 @@ paths:
         in: path
         required: true
         description: The unique id of an existing workflow specification.
+        schema:
+          type: string
+      - name: report_identifier
+        in: path
+        required: true
+        description: The unique id of an existing report
         schema:
           type: string
       - name: page

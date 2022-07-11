@@ -12,6 +12,7 @@ from flask import Blueprint
 from flask import g
 from flask import jsonify
 from flask import make_response
+from flask import request
 from flask.wrappers import Response
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
@@ -414,7 +415,11 @@ def process_instance_report_list(
 
 
 def process_instance_report_show(
-    process_group_id: str, process_model_id: str, page: int = 1, per_page: int = 100
+    process_group_id: str,
+    process_model_id: str,
+    report_identifier: str,
+    page: int = 1,
+    per_page: int = 100,
 ) -> flask.wrappers.Response:
     """Process_instance_list."""
     process_model = get_process_model(process_model_id, process_group_id)
@@ -427,24 +432,29 @@ def process_instance_report_show(
         .paginate(page, per_page, False)
     )
 
-    serialized_results = []
-    for process_instance in process_instances.items:
-        process_instance_serialized = process_instance.serialized
-        process_instance_serialized["process_group_id"] = process_model.process_group_id
-        processor = ProcessInstanceProcessor(process_instance)
-        process_instance_data = processor.get_data()
-        process_instance_serialized["data"] = process_instance_data
-        serialized_results.append(process_instance_serialized)
+    process_instance_report = ProcessInstanceReportModel.query.filter_by(
+        identifier=report_identifier
+    ).first()
+    if process_instance_report is None:
+        raise ApiError(
+            code="unknown_process_instance_report",
+            message="Unknown process instance report",
+            status_code=404,
+        )
 
-    response_json = {
-        "results": serialized_results,
-        "pagination": {
-            "count": len(process_instances.items),
-            "total": process_instances.total,
-            "pages": process_instances.pages,
-        },
+    substitution_variables = request.args.to_dict()
+    result_dict = process_instance_report.generate_report(
+        process_instances.items, substitution_variables
+    )
+
+    # update this if we go back to a database query instead of filtering in memory
+    result_dict["pagination"] = {
+        "count": len(result_dict["results"]),
+        "total": len(result_dict["results"]),
+        "pages": 1,
     }
-    return Response(json.dumps(response_json), status=200, mimetype="application/json")
+
+    return Response(json.dumps(result_dict), status=200, mimetype="application/json")
 
 
 def task_list_my_tasks(page: int = 1, per_page: int = 100) -> flask.wrappers.Response:

@@ -141,4 +141,4 @@ def do_report_with_metadata_and_instances(
 
 def get_names_from_results(results: list[dict]) -> list[str]:
     """Get_names_from_results."""
-    return [result["data"]["name"] for result in results]
+    return [result["name"] for result in results]

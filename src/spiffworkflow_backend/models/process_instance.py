@@ -122,7 +122,9 @@ class ProcessInstanceModel(SpiffworkflowBaseDBModel):
 
         Top-level attributes like process_model_identifier and status win over data attributes.
         """
-        return cast(dict, DeepMerge.merge(self.data, self.serialized))
+        serialized_top_level_attributes = self.serialized
+        serialized_top_level_attributes.pop("data", None)
+        return cast(dict, DeepMerge.merge(self.data, serialized_top_level_attributes))
 
 
 class ProcessInstanceModelSchema(Schema):

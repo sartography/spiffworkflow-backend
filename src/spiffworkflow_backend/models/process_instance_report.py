@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Any
+from typing import cast
+from typing import Optional
 from typing import TypedDict
 
 from flask_bpmn.models.db import db
@@ -160,17 +162,21 @@ class ProcessInstanceReportModel(SpiffworkflowBaseDBModel):
         """Order_things."""
         order_by = self.report_metadata["order_by"]
 
-        def order_by_function_for_lambda(process_instance_dict: dict) -> list[Reversor]:
+        def order_by_function_for_lambda(
+            process_instance_dict: dict,
+        ) -> list[Reversor | str | None]:
             """Order_by_function_for_lambda."""
-            comparison_values = []
+            comparison_values: list[Reversor | str | None] = []
             for order_by_item in order_by:
                 if order_by_item.startswith("-"):
                     # remove leading - from order_by_item
                     order_by_item = order_by_item[1:]
-                    sort_value = process_instance_dict["data"].get(order_by_item)
+                    sort_value = process_instance_dict.get(order_by_item)
                     comparison_values.append(Reversor(sort_value))
                 else:
-                    sort_value = process_instance_dict["data"].get(order_by_item)
+                    sort_value = cast(
+                        Optional[str], process_instance_dict.get(order_by_item)
+                    )
                     comparison_values.append(sort_value)
             return comparison_values
 
