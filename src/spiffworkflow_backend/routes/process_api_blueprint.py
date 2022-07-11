@@ -403,7 +403,6 @@ def process_instance_report_list(
     process_group_id: str, process_model_id: str, page: int = 1, per_page: int = 100
 ) -> flask.wrappers.Response:
     """Process_instance_report_list."""
-    ProcessInstanceReportModel.add_fixtures()
     process_model = get_process_model(process_model_id, process_group_id)
 
     process_instance_reports = ProcessInstanceReportModel.query.filter_by(
@@ -412,6 +411,70 @@ def process_instance_report_list(
     ).all()
 
     return make_response(jsonify(process_instance_reports), 200)
+
+
+def process_instance_report_create(
+    process_group_id: str, process_model_id: str,
+    body: Dict[str, Any]
+) -> flask.wrappers.Response:
+    """Process_instance_report_create."""
+
+    ProcessInstanceReportModel.create_report(
+        identifier=body['identifier'],
+        process_group_identifier=process_group_id,
+        process_model_identifier=process_model_id,
+        user=g.user,
+        report_metadata=body['report_metadata'],
+    )
+
+    return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
+
+
+def process_instance_report_update(
+    process_group_id: str, process_model_id: str,
+    report_identifier: str,
+    body: Dict[str, Any]
+) -> flask.wrappers.Response:
+    """Process_instance_report_create."""
+    process_instance_report = ProcessInstanceReportModel.query.filter_by(
+        identifier=report_identifier,
+        process_group_identifier=process_group_id,
+        process_model_identifier=process_model_id,
+    ).first()
+    if process_instance_report is None:
+        raise ApiError(
+            code="unknown_process_instance_report",
+            message="Unknown process instance report",
+            status_code=404,
+        )
+
+    process_instance_report.report_metadata = body['report_metadata']
+    db.session.commit()
+
+    return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
+
+
+def process_instance_report_delete(
+    process_group_id: str, process_model_id: str,
+    report_identifier: str,
+) -> flask.wrappers.Response:
+    """Process_instance_report_create."""
+    process_instance_report = ProcessInstanceReportModel.query.filter_by(
+        identifier=report_identifier,
+        process_group_identifier=process_group_id,
+        process_model_identifier=process_model_id,
+    ).first()
+    if process_instance_report is None:
+        raise ApiError(
+            code="unknown_process_instance_report",
+            message="Unknown process instance report",
+            status_code=404,
+        )
+
+    db.session.delete(process_instance_report)
+    db.session.commit()
+
+    return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
 
 
 def process_instance_report_show(

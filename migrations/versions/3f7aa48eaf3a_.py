@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: c96f24ebe8d2
+Revision ID: 3f7aa48eaf3a
 Revises: 
-Create Date: 2022-07-09 13:14:09.924901
+Create Date: 2022-07-11 16:08:00.002287
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'c96f24ebe8d2'
+revision = '3f7aa48eaf3a'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -78,7 +78,8 @@ def upgrade():
     sa.Column('created_at_in_seconds', sa.Integer(), nullable=True),
     sa.Column('updated_at_in_seconds', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['created_by_id'], ['user.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('process_group_identifier', 'process_model_identifier', 'identifier', name='process_instance_report_unique')
     )
     op.create_index(op.f('ix_process_instance_report_identifier'), 'process_instance_report', ['identifier'], unique=False)
     op.create_index(op.f('ix_process_instance_report_process_group_identifier'), 'process_instance_report', ['process_group_identifier'], unique=False)

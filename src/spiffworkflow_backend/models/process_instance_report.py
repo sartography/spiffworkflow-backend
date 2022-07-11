@@ -56,6 +56,12 @@ class ProcessInstanceReportModel(SpiffworkflowBaseDBModel):
     """ProcessInstanceReportModel."""
 
     __tablename__ = "process_instance_report"
+    __table_args__ = (
+        db.UniqueConstraint(
+            "process_group_identifier", "process_model_identifier", "identifier", name="process_instance_report_unique"
+        ),
+    )
+
     id = db.Column(db.Integer, primary_key=True)
     identifier: str = db.Column(db.String(50), nullable=False, index=True)
     process_model_identifier: str = db.Column(db.String(50), nullable=False, index=True)
@@ -70,16 +76,6 @@ class ProcessInstanceReportModel(SpiffworkflowBaseDBModel):
     def add_fixtures(cls) -> None:
         """Add_fixtures."""
         try:
-            db.session.query(ProcessInstanceReportModel).filter_by(
-                process_group_identifier="sartography-admin",
-                process_model_identifier="ticket",
-            ).delete()
-            db.session.commit()
-            db.session.query(ProcessInstanceReportModel).filter_by(
-                process_group_identifier="category_number_one",
-                process_model_identifier="process-model-with-form",
-            ).delete()
-            db.session.commit()
             process_model = ProcessModelService().get_process_model(
                 group_id="sartography-admin", process_model_id="ticket"
             )
@@ -95,28 +91,28 @@ class ProcessInstanceReportModel(SpiffworkflowBaseDBModel):
             ]
             json = {"order": "month asc", "columns": columns}
 
-            cls.make_fixture_report(
+            cls.create_report(
                 identifier="standard",
                 process_group_identifier=process_model.process_group_id,
                 process_model_identifier=process_model.id,
                 user=user,
                 report_metadata=json,
             )
-            cls.make_fixture_report(
+            cls.create_report(
                 identifier="for-month",
                 process_group_identifier="sartography-admin",
                 process_model_identifier="ticket",
                 user=user,
                 report_metadata=cls.ticket_for_month_report(),
             )
-            cls.make_fixture_report(
+            cls.create_report(
                 identifier="for-month-3",
                 process_group_identifier="sartography-admin",
                 process_model_identifier="ticket",
                 user=user,
                 report_metadata=cls.ticket_for_month_3_report(),
             )
-            cls.make_fixture_report(
+            cls.create_report(
                 identifier="hot-report",
                 process_group_identifier="category_number_one",
                 process_model_identifier="process-model-with-form",
@@ -128,7 +124,7 @@ class ProcessInstanceReportModel(SpiffworkflowBaseDBModel):
             print("Did not find process models so not adding report fixtures for them")
 
     @classmethod
-    def make_fixture_report(
+    def create_report(
         cls,
         identifier: str,
         process_group_identifier: str,
@@ -137,15 +133,22 @@ class ProcessInstanceReportModel(SpiffworkflowBaseDBModel):
         report_metadata: ReportMetadata,
     ) -> None:
         """Make_fixture_report."""
-        process_instance_report = cls(
+        process_instance_report = ProcessInstanceReportModel.query.filter_by(
             identifier=identifier,
             process_group_identifier=process_group_identifier,
-            process_model_identifier=process_model_identifier,
-            created_by_id=user.id,
-            report_metadata=report_metadata,
-        )
-        db.session.add(process_instance_report)
-        db.session.commit()
+            process_model_identifier=process_group_identifier,
+        ).first()
+
+        if process_instance_report is None:
+            process_instance_report = cls(
+                identifier=identifier,
+                process_group_identifier=process_group_identifier,
+                process_model_identifier=process_model_identifier,
+                created_by_id=user.id,
+                report_metadata=report_metadata,
+            )
+            db.session.add(process_instance_report)
+            db.session.commit()
 
     @classmethod
     def ticket_for_month_report(cls) -> dict:

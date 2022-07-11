@@ -13,6 +13,7 @@ from flask_bpmn.models.db import db
 from werkzeug.wrappers.response import Response
 
 from spiffworkflow_backend.models.principal import PrincipalModel
+from spiffworkflow_backend.models.process_instance_report import ProcessInstanceReportModel
 from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.services.process_instance_processor import (
     ProcessInstanceProcessor,
@@ -34,6 +35,7 @@ ALLOWED_BPMN_EXTENSIONS = {"bpmn", "dmn"}
 def before_first_request() -> None:
     """Before_first_request."""
     token()
+    ProcessInstanceReportModel.add_fixtures()
 
 
 @admin_blueprint.route("/token", methods=["GET"])
