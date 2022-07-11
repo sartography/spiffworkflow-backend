@@ -1445,7 +1445,7 @@ tzdata = {version = "*", markers = "python_version >= \"3.6\""}
 
 [[package]]
 name = "pyupgrade"
-version = "2.34.0"
+version = "2.37.1"
 description = "A tool to automatically upgrade syntax for newer versions."
 category = "dev"
 optional = false
@@ -2094,7 +2094,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "6dcaf535f797fa5da2ddc948fe7ab7a25915493c23faf70fc2d3d1fa3a4678e5"
+content-hash = "f9e4fda8bec6e5857f0c169af557f81f85071f391f7a0ae8e8d3733dc82035a6"
 
 [metadata.files]
 alabaster = []
