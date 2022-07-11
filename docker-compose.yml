@@ -18,7 +18,7 @@ services:
       test: mysql --user=root --password=${SPIFFWORKFLOW_BACKEND_MYSQL_ROOT_DATABASE:-my-secret-pw} -e 'select 1' ${SPIFFWORKFLOW_BACKEND_DATABASE_NAME:-spiffworkflow_backend_development}
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   spiffworkflow-backend:
     container_name: spiffworkflow-backend
@@ -48,7 +48,7 @@ services:
       test: curl localhost:7000/v1.0/status --fail
       interval: 10s
       timeout: 5s
-      retries: 10
+      retries: 20
 
 volumes:
   spiffworkflow_backend:
