@@ -66,50 +66,146 @@ class ProcessInstanceReportModel(SpiffworkflowBaseDBModel):
     created_at_in_seconds = db.Column(db.Integer)
     updated_at_in_seconds = db.Column(db.Integer)
 
-    # @property
-    # def serialized(self) -> dict[str, Union[str, int]]:
-    #     """Return object data in serializeable format."""
-    #     return {
-    #         "id": self.id,
-    #         "process_model_identifier": self.process_model_identifier,
-    #         "process_group_identifier": self.process_group_identifier,
-    #         "report_metadata": self.report_metadata,
-    #         "created_by": self.process_initiator_id,
-    #         "created_at_in_seconds": self.created_at_in_seconds,
-    #         "updated_at_in_seconds": self.updated_at_in_seconds,
-    #     }
-
     @classmethod
     def add_fixtures(cls) -> None:
         """Add_fixtures."""
         try:
-            db.session.query(ProcessInstanceReportModel).filter_by(process_group_identifier="sartography-admin", process_model_identifier="ticket").delete()
+            db.session.query(ProcessInstanceReportModel).filter_by(
+                process_group_identifier="sartography-admin",
+                process_model_identifier="ticket",
+            ).delete()
+            db.session.commit()
+            db.session.query(ProcessInstanceReportModel).filter_by(
+                process_group_identifier="category_number_one",
+                process_model_identifier="process-model-with-form",
+            ).delete()
             db.session.commit()
             process_model = ProcessModelService().get_process_model(
                 group_id="sartography-admin", process_model_id="ticket"
             )
+            user = UserModel.query.first()
             columns = [
                 {"Header": "id", "accessor": "id"},
                 {"Header": "month", "accessor": "month"},
                 {"Header": "milestone", "accessor": "milestone"},
+                {"Header": "req_id", "accessor": "req_id"},
+                {"Header": "feature", "accessor": "feature"},
+                {"Header": "dev_days", "accessor": "dev_days"},
+                {"Header": "priority", "accessor": "priority"},
             ]
             json = {"order": "month asc", "columns": columns}
-            user = UserModel.query.first()
-            process_instance_report = cls(
-                identifier="for-month",
+
+            cls.make_fixture_report(
+                identifier="standard",
                 process_group_identifier=process_model.process_group_id,
                 process_model_identifier=process_model.id,
-                created_by_id=user.id,
+                user=user,
                 report_metadata=json,
             )
-            db.session.add(process_instance_report)
-            db.session.commit()
+            cls.make_fixture_report(
+                identifier="for-month",
+                process_group_identifier="sartography-admin",
+                process_model_identifier="ticket",
+                user=user,
+                report_metadata=cls.ticket_for_month_report(),
+            )
+            cls.make_fixture_report(
+                identifier="for-month-3",
+                process_group_identifier="sartography-admin",
+                process_model_identifier="ticket",
+                user=user,
+                report_metadata=cls.ticket_for_month_3_report(),
+            )
+            cls.make_fixture_report(
+                identifier="hot-report",
+                process_group_identifier="category_number_one",
+                process_model_identifier="process-model-with-form",
+                user=user,
+                report_metadata=cls.process_model_with_form_report_fixture(),
+            )
 
         except ProcessEntityNotFoundError:
-            print("NOPE")
-            print("NOPE")
-            print("NOPE")
-            print("NOPE")
+            print("Did not find process models so not adding report fixtures for them")
+
+    @classmethod
+    def make_fixture_report(
+        cls,
+        identifier: str,
+        process_group_identifier: str,
+        process_model_identifier: str,
+        user: UserModel,
+        report_metadata: ReportMetadata,
+    ) -> None:
+        """Make_fixture_report."""
+        process_instance_report = cls(
+            identifier=identifier,
+            process_group_identifier=process_group_identifier,
+            process_model_identifier=process_model_identifier,
+            created_by_id=user.id,
+            report_metadata=report_metadata,
+        )
+        db.session.add(process_instance_report)
+        db.session.commit()
+
+    @classmethod
+    def ticket_for_month_report(cls) -> dict:
+        """Ticket_for_month_report."""
+        return {
+            "columns": [
+                {"Header": "id", "accessor": "id"},
+                {"Header": "month", "accessor": "month"},
+                {"Header": "milestone", "accessor": "milestone"},
+                {"Header": "req_id", "accessor": "req_id"},
+                {"Header": "feature", "accessor": "feature"},
+                {"Header": "priority", "accessor": "priority"},
+            ],
+            "order": "month asc",
+            "filter_by": [
+                {
+                    "field_name": "month",
+                    "operator": "equals",
+                    "field_value": "{{month}}",
+                }
+            ],
+        }
+
+    @classmethod
+    def ticket_for_month_3_report(cls) -> dict:
+        """Ticket_for_month_report."""
+        return {
+            "columns": [
+                {"Header": "id", "accessor": "id"},
+                {"Header": "month", "accessor": "month"},
+                {"Header": "milestone", "accessor": "milestone"},
+                {"Header": "req_id", "accessor": "req_id"},
+                {"Header": "feature", "accessor": "feature"},
+                {"Header": "dev_days", "accessor": "dev_days"},
+                {"Header": "priority", "accessor": "priority"},
+            ],
+            "order": "month asc",
+            "filter_by": [
+                {"field_name": "month", "operator": "equals", "field_value": "3"}
+            ],
+        }
+
+    @classmethod
+    def process_model_with_form_report_fixture(cls) -> dict:
+        """Process_model_with_form_report_fixture."""
+        return {
+            "columns": [
+                {"Header": "id", "accessor": "id"},
+                {
+                    "Header": "system_generated_number",
+                    "accessor": "system_generated_number",
+                },
+                {
+                    "Header": "user_generated_number",
+                    "accessor": "user_generated_number",
+                },
+                {"Header": "product", "accessor": "product"},
+            ],
+            "order": "-id",
+        }
 
     @classmethod
     def create_with_attributes(
