@@ -136,7 +136,7 @@ class ProcessInstanceReportModel(SpiffworkflowBaseDBModel):
         process_instance_report = ProcessInstanceReportModel.query.filter_by(
             identifier=identifier,
             process_group_identifier=process_group_identifier,
-            process_model_identifier=process_group_identifier,
+            process_model_identifier=process_model_identifier,
         ).first()
 
         if process_instance_report is None:
