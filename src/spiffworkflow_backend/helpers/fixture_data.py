@@ -2,6 +2,7 @@
 from typing import Any
 
 from flask_bpmn.models.db import db
+from sqlalchemy.exc import IntegrityError
 
 from spiffworkflow_backend.models.principal import PrincipalModel
 from spiffworkflow_backend.models.user import UserModel
@@ -19,6 +20,10 @@ def find_or_create_user(username: str = "test_user1") -> Any:
     if principal is None:
         principal = PrincipalModel(user_id=user.id)
         db.session.add(principal)
-        db.session.commit()
+        try:
+            db.session.commit()
+        except IntegrityError:
+            # we just want it to exist. if it was inserted by another process, that's cool
+            pass
 
     return user
