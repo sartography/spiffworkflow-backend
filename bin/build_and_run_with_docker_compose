@@ -29,4 +29,4 @@ docker compose stop
 # bin/wait_for_server_to_be_up script.
 docker volume rm spiffworkflow-backend_spiffworkflow_backend || echo 'docker volume not found'
 
-docker compose up $additional_args
+docker compose up --wait $additional_args
