@@ -101,36 +101,42 @@ def setup_logger(app: Flask) -> None:
     log_level = logging.DEBUG
     handlers = []
 
-    json_formatter = JsonFormatter(
-        {
-            "level": "levelname",
-            "message": "message",
-            "loggerName": "name",
-            "processName": "processName",
-            "processID": "process",
-            "threadName": "threadName",
-            "threadID": "thread",
-            "timestamp": "asctime",
-        }
-    )
+    log_formatter = logging._defaultFormatter  # type: ignore
+
+    # the json formatter is nice for real environments but makes
+    # debugging locally a little more difficult
+    if app.env != "development":
+        json_formatter = JsonFormatter(
+            {
+                "level": "levelname",
+                "message": "message",
+                "loggerName": "name",
+                "processName": "processName",
+                "processID": "process",
+                "threadName": "threadName",
+                "threadID": "thread",
+                "timestamp": "asctime",
+            }
+        )
+        log_formatter = json_formatter
 
     if os.environ.get("IS_GUNICORN") == "true":
         gunicorn_logger_error = logging.getLogger("gunicorn.error")
         log_level = gunicorn_logger_error.level
         ghandler = gunicorn_logger_error.handlers[0]
-        ghandler.setFormatter(json_formatter)
+        ghandler.setFormatter(log_formatter)
         handlers.append(ghandler)
 
         gunicorn_logger_access = logging.getLogger("gunicorn.access")
         log_level = gunicorn_logger_access.level
         ghandler = gunicorn_logger_access.handlers[0]
-        ghandler.setFormatter(json_formatter)
+        ghandler.setFormatter(log_formatter)
         handlers.append(ghandler)
 
     handler = logging.StreamHandler(sys.stdout)
     handler.setLevel(log_level)
 
-    handler.setFormatter(json_formatter)
+    handler.setFormatter(log_formatter)
     handlers.append(handler)
 
     logging.basicConfig(handlers=handlers)
