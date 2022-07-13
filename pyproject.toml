@@ -46,7 +46,7 @@ marshmallow-sqlalchemy = "^0.28.0"
 PyJWT = "^2.4.0"
 gunicorn = "^20.1.0"
 types-pytz = "^2022.1.1"
-python-keycloak = "^1.8.0"
+python-keycloak = "^1.9.0"
 
 
 [tool.poetry.dev-dependencies]
