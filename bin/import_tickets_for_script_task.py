@@ -32,9 +32,12 @@ def main():
     columns_to_data_key_mappings = {
         "Month": "month",
         "MS": "milestone",
+        "Done?": "done",
+        "#": "notion_id",
         "ID": "req_id",
         "Dev Days": "dev_days",
         "Feature": "feature",
+        "Feature description": "feature_description",
         "Priority": "priority",
     }
     columns_to_header_index_mappings = {}
