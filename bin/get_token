@@ -21,7 +21,8 @@ set -o errtrace -o errexit -o nounset -o pipefail
 # ./bin/get_token repeat_form_user_1 repeat_form_user_1 # actually has permissions to the resource in this script
 # ./bin/get_token ciadmin1 ciadmin1 '%2Fprocess-models'
 
-HOSTNAME=localhost:7002
+# HOSTNAME=localhost:7002
+HOSTNAME=localhost:8080
 REALM_NAME=spiffworkflow
 USERNAME=${1-ciuser1}
 PASSWORD=${2-ciuser1}
@@ -72,16 +73,23 @@ if [[ "$backend_token" != 'null' ]]; then
   echo "backend_token: $backend_token"
 
   echo "Getting resource set"
-  resource_result=$(curl -s "http://localhost:7002/realms/spiffworkflow/authz/protection/resource_set?matchingUri=true&deep=true&max=-1&exactName=false&uri=${URI_TO_TEST_AGAINST}" -H "Authorization: Bearer $backend_token")
+  # everything_resource_id='446bdcf4-a3bd-41c7-a0f8-67a225ba6b57'
+  resource_result=$(curl -s "http://${HOSTNAME}/realms/spiffworkflow/authz/protection/resource_set?matchingUri=true&deep=true&max=-1&exactName=false&uri=${URI_TO_TEST_AGAINST}" -H "Authorization: Bearer $backend_token")
+  # resource_result=$(curl -s "http://${HOSTNAME}/realms/spiffworkflow/authz/protection/resource_set?matchingUri=false&deep=true&max=-1&exactName=false&type=admin" -H "Authorization: Bearer $backend_token")
 
-  resource_ids=$(jq -r '.[] | ._id' <<<"$resource_result" || echo '')
-  if [[ -z "$resource_ids" || "$resource_ids" == "null" ]]; then
+  resource_id_name_pairs=$(jq -r '.[] | "\(._id):\(.name)"' <<<"$resource_result" || echo '')
+  if [[ -z "$resource_id_name_pairs" || "$resource_id_name_pairs" == "null" ]]; then
     >&2 echo "ERROR: Could not find the resource id from the result: ${resource_result}"
     exit 1
   fi
+  echo $resource_id_name_pairs
 
   echo "Getting permissions"
-  for resource_id in $resource_ids ; do
+  for resource_id_name_pair in $resource_id_name_pairs ; do
+    resource_id=$(awk -F ':' '{print $1}' <<<"$resource_id_name_pair")
+    resource_name=$(awk -F ':' '{print $2}' <<<"$resource_id_name_pair")
+
+    echo "Checking $resource_name"
     curl -s -X POST "$KEYCLOAK_URL" "$INSECURE" \
       -H "Content-Type: application/x-www-form-urlencoded" \
       -H "Authorization: Basic $BACKEND_BASIC_AUTH" \
