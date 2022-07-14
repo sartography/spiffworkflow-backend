@@ -6,19 +6,19 @@ function error_handler() {
 }
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
-#
-# docker stop keycloak || echo 'no keycloak container found'
-# docker rm keycloak 2>/dev/null || echo 'no keycloak container found'
-# docker run -p 8080:8080 -d  --name keycloak -e KEYCLOAK_LOGLEVEL=ALL -e ROOT_LOGLEVEL=ALL -e KEYCLOAK_ADMIN=admin -e KEYCLOAK_ADMIN_PASSWORD=admin quay.io/keycloak/keycloak:18.0.2 start-dev -Dkeycloak.profile.feature.token_exchange=enabled -Dkeycloak.profile.feature.admin_fine_grained_authz=enabled
-#
-# docker cp  bin/testing-realm.json keycloak:/tmp
-#
-# sleep 10
-# docker exec keycloak /opt/keycloak/bin/kc.sh import --file /tmp/testing-realm.json || echo ''
-#
-# docker stop keycloak
-# docker start keycloak
-# sleep 10
+
+docker stop keycloak || echo 'no keycloak container found'
+docker rm keycloak 2>/dev/null || echo 'no keycloak container found'
+docker run -p 8080:8080 -d  --name keycloak -e KEYCLOAK_LOGLEVEL=ALL -e ROOT_LOGLEVEL=ALL -e KEYCLOAK_ADMIN=admin -e KEYCLOAK_ADMIN_PASSWORD=admin quay.io/keycloak/keycloak:18.0.2 start-dev -Dkeycloak.profile.feature.token_exchange=enabled -Dkeycloak.profile.feature.admin_fine_grained_authz=enabled
+
+docker cp  bin/testing-realm.json keycloak:/tmp
+
+sleep 10
+docker exec keycloak /opt/keycloak/bin/kc.sh import --file /tmp/testing-realm.json || echo ''
+
+docker stop keycloak
+docker start keycloak
+sleep 10
 
 HOSTNAME=localhost:8080
 REALM_NAME=testing
@@ -27,8 +27,8 @@ USERS=(
   repeat_form_user_1
 )
 URIS_TO_TEST_AGAINST=(
-  /process-models/category_number_one/process-model-with-repeating-form
-  /process-models
+  /blog/post/1
+  /blog
 )
 
 FRONTEND_CLIENT_ID=testing-frontend

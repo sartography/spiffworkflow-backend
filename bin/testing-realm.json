@@ -1062,16 +1062,16 @@
             "uris": ["/*"]
           },
           {
-            "name": "process-model-with-repeating-form-crud",
-            "type": "process-model",
+            "name": "1-crud",
+            "type": "blog",
             "ownerManagedAccess": false,
-            "displayName": "process-model-with-repeating-form-crud",
+            "displayName": "1-crud",
             "attributes": {
               "test_resource_att1": ["this_is_the_value"]
             },
             "_id": "e294304c-796e-4c56-bdf2-8c854f65db59",
             "uris": [
-              "/process-models/category_number_one/process-model-with-repeating-form"
+              "/blog/post/1"
             ],
             "scopes": [
               {
@@ -1149,7 +1149,7 @@
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {
-              "resources": "[\"process-model-with-repeating-form-crud\"]",
+              "resources": "[\"1-crud\"]",
               "scopes": "[\"read\"]",
               "applyPolicies": "[\"repeat-form-role-policy\"]"
             }
