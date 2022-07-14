@@ -27,13 +27,13 @@ flask-marshmallow = "*"
 flask-migrate = "*"
 flask-restful = "*"
 werkzeug = "*"
-spiffworkflow = {git = "https://github.com/sartography/SpiffWorkflow", rev = "feature/parse_spiffworkflow_extensions"}
-# spiffworkflow = {develop = true, path = "/home/jason/projects/github/sartography/SpiffWorkflow"}
-sentry-sdk = "1.7.0"
+spiffworkflow = {git = "https://github.com/sartography/SpiffWorkflow", rev = "feature/spiff_properties"}
+# spiffworkflow = {develop = true, path = "/Users/kevin/projects/github/sartography/SpiffWorkflow"}
+sentry-sdk = "1.7.1"
 sphinx-autoapi = "^1.8.4"
 # flask-bpmn = {develop = true, path = "/home/jason/projects/github/sartography/flask-bpmn"}
 # flask-bpmn = {develop = true, path = "/Users/kevin/projects/github/sartography/flask-bpmn"}
-flask-bpmn = {git = "https://github.com/sartography/flask-bpmn", rev = "main"}
+flask-bpmn = {git = "https://github.com/sartography/flask-bpmn", rev = "feature/with-spiff-properties"}
 mysql-connector-python = "^8.0.29"
 pytest-flask = "^1.2.0"
 pytest-flask-sqlalchemy = "^1.1.0"
@@ -46,7 +46,7 @@ marshmallow-sqlalchemy = "^0.28.0"
 PyJWT = "^2.4.0"
 gunicorn = "^20.1.0"
 types-pytz = "^2022.1.1"
-python-keycloak = "^1.8.0"
+python-keycloak = "^1.9.1"
 
 
 [tool.poetry.dev-dependencies]

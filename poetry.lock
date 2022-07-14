@@ -618,23 +618,18 @@ develop = false
 [package.dependencies]
 click = "^8.0.1"
 flask = "*"
-flask-admin = "*"
-flask-bcrypt = "*"
-flask-cors = "*"
-flask-mail = "*"
 flask-marshmallow = "*"
 flask-migrate = "*"
-flask-restful = "*"
-sentry-sdk = "1.7.0"
+sentry-sdk = "1.7.1"
 sphinx-autoapi = "^1.8.4"
-spiffworkflow = {git = "https://github.com/sartography/SpiffWorkflow", rev = "feature/parse_spiffworkflow_extensions"}
+spiffworkflow = "*"
 werkzeug = "*"
 
 [package.source]
 type = "git"
 url = "https://github.com/sartography/flask-bpmn"
-reference = "main"
-resolved_reference = "c454e729c634c7c86ff30cf4d388480647d18d7b"
+reference = "feature/with-spiff-properties"
+resolved_reference = "c7497aabb039420d9e7c68a50d7a4b3e74100e81"
 
 [[package]]
 name = "flask-cors"
@@ -1410,19 +1405,19 @@ pycryptodome = ["pycryptodome (>=3.3.1,<4.0.0)", "pyasn1"]
 
 [[package]]
 name = "python-keycloak"
-version = "1.8.0"
+version = "1.9.1"
 description = "python-keycloak is a Python package providing access to the Keycloak API."
 category = "main"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.7,<4.0"
 
 [package.dependencies]
-python-jose = ">=1.4.0"
-requests = ">=2.20.0"
-urllib3 = ">=1.26.0"
+python-jose = ">=3.3.0,<4.0.0"
+requests = ">=2.20.0,<3.0.0"
+urllib3 = ">=1.26.0,<2.0.0"
 
 [package.extras]
-docs = ["mock", "alabaster", "commonmark", "recommonmark", "sphinx", "sphinx-rtd-theme", "readthedocs-sphinx-ext", "m2r2", "sphinx-autoapi"]
+docs = ["Sphinx (>=5.0.2,<6.0.0)", "alabaster (>=0.7.12,<0.8.0)", "commonmark (>=0.9.1,<0.10.0)", "m2r2 (>=0.3.2,<0.4.0)", "mock (>=4.0.3,<5.0.0)", "readthedocs-sphinx-ext (>=2.1.8,<3.0.0)", "recommonmark (>=0.7.1,<0.8.0)", "sphinx-autoapi (>=1.8.4,<2.0.0)", "sphinx-rtd-theme (>=1.0.0,<2.0.0)"]
 
 [[package]]
 name = "pytz"
@@ -1561,7 +1556,7 @@ requests = "*"
 
 [[package]]
 name = "sentry-sdk"
-version = "1.7.0"
+version = "1.7.1"
 description = "Python client for Sentry (https://sentry.io)"
 category = "main"
 optional = false
@@ -1806,8 +1801,8 @@ pytz = "*"
 [package.source]
 type = "git"
 url = "https://github.com/sartography/SpiffWorkflow"
-reference = "feature/parse_spiffworkflow_extensions"
-resolved_reference = "67054883d4040d6755bf0555f072ff85aa42093c"
+reference = "feature/spiff_properties"
+resolved_reference = "e108aa12da008bdd8d0319e182d28fbd3afb4c67"
 
 [[package]]
 name = "sqlalchemy"
@@ -2098,7 +2093,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "c20a647c5a3e12bb5e1e9280316566acaa548e6722b7e4e13b610f25877bd4d0"
+content-hash = "66503576ef158089a92526ed6982bc93481868a47fec14c47d1ce9a5bcc08979"
 
 [metadata.files]
 alabaster = [
@@ -2284,7 +2279,10 @@ dparse = [
     {file = "dparse-0.5.1-py3-none-any.whl", hash = "sha256:e953a25e44ebb60a5c6efc2add4420c177f1d8404509da88da9729202f306994"},
     {file = "dparse-0.5.1.tar.gz", hash = "sha256:a1b5f169102e1c894f9a7d5ccf6f9402a836a5d24be80a986c7ce9eaed78f367"},
 ]
-ecdsa = []
+ecdsa = [
+    {file = "ecdsa-0.17.0-py2.py3-none-any.whl", hash = "sha256:5cf31d5b33743abe0dfc28999036c849a69d548f994b535e527ee3cb7f3ef676"},
+    {file = "ecdsa-0.17.0.tar.gz", hash = "sha256:b9f500bb439e4153d0330610f5d26baaf18d17b8ced1bc54410d189385ea68aa"},
+]
 filelock = [
     {file = "filelock-3.7.1-py3-none-any.whl", hash = "sha256:37def7b658813cda163b56fc564cdc75e86d338246458c4c28ae84cabefa2404"},
     {file = "filelock-3.7.1.tar.gz", hash = "sha256:3a0fd85166ad9dbab54c9aec96737b744106dc5f15c0b09a6744a445299fcf04"},
@@ -2858,7 +2856,10 @@ python-dateutil = [
     {file = "python-dateutil-2.8.2.tar.gz", hash = "sha256:0123cacc1627ae19ddf3c27a5de5bd67ee4586fbdd6440d9748f8abb483d3e86"},
     {file = "python_dateutil-2.8.2-py2.py3-none-any.whl", hash = "sha256:961d03dc3453ebbc59dbdea9e4e11c5651520a876d0f4db161e8674aae935da9"},
 ]
-python-jose = []
+python-jose = [
+    {file = "python-jose-3.3.0.tar.gz", hash = "sha256:55779b5e6ad599c6336191246e95eb2293a9ddebd555f796a65f838f07e5d78a"},
+    {file = "python_jose-3.3.0-py2.py3-none-any.whl", hash = "sha256:9b1376b023f8b298536eedd47ae1089bcdb848f1535ab30555cd92002d78923a"},
+]
 python-keycloak = []
 pytz = [
     {file = "pytz-2022.1-py2.py3-none-any.whl", hash = "sha256:e68985985296d9a66a881eb3193b0906246245294a881e7c8afe623866ac6a5c"},
@@ -3057,7 +3058,10 @@ sphinx-basic-ng = [
     {file = "sphinx_basic_ng-0.0.1a11-py3-none-any.whl", hash = "sha256:9aecb5345816998789ef76658a83e3c0a12aafa14b17d40e28cd4aaeb94d1517"},
     {file = "sphinx_basic_ng-0.0.1a11.tar.gz", hash = "sha256:bf9a8fda0379c7d2ab51c9543f2b18e014b77fb295b49d64f3c1a910c863b34f"},
 ]
-sphinx-click = []
+sphinx-click = [
+    {file = "sphinx-click-4.3.0.tar.gz", hash = "sha256:bd4db5d3c1bec345f07af07b8e28a76cfc5006d997984e38ae246bbf8b9a3b38"},
+    {file = "sphinx_click-4.3.0-py3-none-any.whl", hash = "sha256:23e85a3cb0b728a421ea773699f6acadefae171d1a764a51dd8ec5981503ccbe"},
+]
 sphinxcontrib-applehelp = [
     {file = "sphinxcontrib-applehelp-1.0.2.tar.gz", hash = "sha256:a072735ec80e7675e3f432fcae8610ecf509c5f1869d17e2eecff44389cdbc58"},
     {file = "sphinxcontrib_applehelp-1.0.2-py2.py3-none-any.whl", hash = "sha256:806111e5e962be97c29ec4c1e7fe277bfd19e9652fb1a4392105b43e01af885a"},

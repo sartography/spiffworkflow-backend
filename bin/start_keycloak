@@ -20,6 +20,8 @@ docker exec keycloak /opt/keycloak/bin/kc.sh import --file /tmp/spiffworkflow-re
 docker exec keycloak /opt/keycloak/bin/kc.sh import --file /tmp/quarkus-realm.json || echo ''
 echo 'ran import finance realm'
 
+docker stop keycloak
+docker start keycloak
 
 
 # to export:

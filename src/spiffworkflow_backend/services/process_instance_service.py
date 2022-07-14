@@ -67,7 +67,7 @@ class ProcessInstanceService:
 
         If requested, and possible, next_task is set to the current_task.
         """
-        navigation = processor.bpmn_process_instance.get_deep_nav_list()
+        # navigation = processor.bpmn_process_instance.get_deep_nav_list()
         # ProcessInstanceService.update_navigation(navigation, processor)
         process_model_service = ProcessModelService()
         process_model = process_model_service.get_process_model(
@@ -82,7 +82,7 @@ class ProcessInstanceService:
             # navigation=navigation,
             process_model_identifier=processor.process_model_identifier,
             process_group_identifier=processor.process_group_identifier,
-            total_tasks=len(navigation),
+            # total_tasks=len(navigation),
             completed_tasks=processor.process_instance_model.completed_tasks,
             updated_at_in_seconds=processor.process_instance_model.updated_at_in_seconds,
             is_review=is_review_value,

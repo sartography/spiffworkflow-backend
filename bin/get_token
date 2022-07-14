@@ -12,18 +12,27 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # originally from https://medium.com/keycloak/keycloak-jwt-token-using-curl-post-72c9e791ba8c
 # btw, meta config endpoint: http://localhost:7002/realms/spiffworkflow/.well-known/openid-configuration
+# token exchange described at https://github.com/keycloak/keycloak-documentation/blob/main/securing_apps/topics/token-exchange/token-exchange.adoc
+# some UMA stuff at https://github.com/keycloak/keycloak-documentation/blob/main/authorization_services/topics/service-authorization-obtaining-permission.adoc,
+# though resource_set docs are elsewhere.
+
+# ./bin/get_token # uses ciuser1 ciuser1
+# ./bin/get_token ciadmin1 ciadmin1
+# ./bin/get_token repeat_form_user_1 repeat_form_user_1 # actually has permissions to the resource in this script
+# ./bin/get_token ciadmin1 ciadmin1 '%2Fprocess-models'
 
 HOSTNAME=localhost:7002
 REALM_NAME=spiffworkflow
 USERNAME=${1-ciuser1}
 PASSWORD=${2-ciuser1}
+URI_TO_TEST_AGAINST=${3-'%2Fprocess-models%2Fcategory_number_one%2Fprocess-model-with-repeating-form'}
 
 FRONTEND_CLIENT_ID=spiffworkflow-frontend
 BACKEND_CLIENT_ID=spiffworkflow-backend
 BACKEND_CLIENT_SECRET="JXeQExm0JhQPLumgHtIIqf52bDalHz0q"  # noqa: S105
 SECURE=false
 
-BACKEND_BASIC_AUTH=$(echo -n "${BACKEND_CLIENT_ID}:${BACKEND_CLIENT_SECRET}" | base64 -w0)
+BACKEND_BASIC_AUTH=$(echo -n "${BACKEND_CLIENT_ID}:${BACKEND_CLIENT_SECRET}" | base64)
 KEYCLOAK_URL=http://$HOSTNAME/realms/$REALM_NAME/protocol/openid-connect/token
 
 echo "Using Keycloak: $KEYCLOAK_URL"
@@ -63,7 +72,7 @@ if [[ "$backend_token" != 'null' ]]; then
   echo "backend_token: $backend_token"
 
   echo "Getting resource set"
-  resource_result=$(curl -s "http://localhost:7002/realms/spiffworkflow/authz/protection/resource_set?matchingUri=true&deep=true&max=-1&exactName=false&uri=%2Fprocess-models%2Fcategory_number_one%2Fprocess-model-with-repeating-form" -H "Authorization: Bearer $backend_token")
+  resource_result=$(curl -s "http://localhost:7002/realms/spiffworkflow/authz/protection/resource_set?matchingUri=true&deep=true&max=-1&exactName=false&uri=${URI_TO_TEST_AGAINST}" -H "Authorization: Bearer $backend_token")
 
   resource_ids=$(jq -r '.[] | ._id' <<<"$resource_result" || echo '')
   if [[ -z "$resource_ids" || "$resource_ids" == "null" ]]; then
