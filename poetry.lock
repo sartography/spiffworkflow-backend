@@ -618,23 +618,18 @@ develop = false
 [package.dependencies]
 click = "^8.0.1"
 flask = "*"
-flask-admin = "*"
-flask-bcrypt = "*"
-flask-cors = "*"
-flask-mail = "*"
 flask-marshmallow = "*"
 flask-migrate = "*"
-flask-restful = "*"
-sentry-sdk = "1.7.0"
+sentry-sdk = "1.7.1"
 sphinx-autoapi = "^1.8.4"
-spiffworkflow = {git = "https://github.com/sartography/SpiffWorkflow", rev = "feature/parse_spiffworkflow_extensions"}
+spiffworkflow = "*"
 werkzeug = "*"
 
 [package.source]
 type = "git"
 url = "https://github.com/sartography/flask-bpmn"
-reference = "main"
-resolved_reference = "c454e729c634c7c86ff30cf4d388480647d18d7b"
+reference = "feature/with-spiff-properties"
+resolved_reference = "c7497aabb039420d9e7c68a50d7a4b3e74100e81"
 
 [[package]]
 name = "flask-cors"
@@ -1561,7 +1556,7 @@ requests = "*"
 
 [[package]]
 name = "sentry-sdk"
-version = "1.7.0"
+version = "1.7.1"
 description = "Python client for Sentry (https://sentry.io)"
 category = "main"
 optional = false
@@ -1806,8 +1801,8 @@ pytz = "*"
 [package.source]
 type = "git"
 url = "https://github.com/sartography/SpiffWorkflow"
-reference = "feature/parse_spiffworkflow_extensions"
-resolved_reference = "67054883d4040d6755bf0555f072ff85aa42093c"
+reference = "feature/spiff_properties"
+resolved_reference = "e108aa12da008bdd8d0319e182d28fbd3afb4c67"
 
 [[package]]
 name = "sqlalchemy"
@@ -2098,7 +2093,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "c20a647c5a3e12bb5e1e9280316566acaa548e6722b7e4e13b610f25877bd4d0"
+content-hash = "83f09337ac9218c85a6095a8dcf82eff5153dda76453f77ca97dadfb9ed58b8a"
 
 [metadata.files]
 alabaster = [

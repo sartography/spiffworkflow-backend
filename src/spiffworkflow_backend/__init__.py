@@ -14,7 +14,6 @@ from flask_mail import Mail  # type: ignore
 import spiffworkflow_backend.load_database_models  # noqa: F401
 from spiffworkflow_backend.config import setup_config
 from spiffworkflow_backend.routes.admin_blueprint.admin_blueprint import admin_blueprint
-from spiffworkflow_backend.routes.api_blueprint import api_blueprint
 from spiffworkflow_backend.routes.process_api_blueprint import process_api_blueprint
 from spiffworkflow_backend.routes.user_blueprint import user_blueprint
 
@@ -55,7 +54,6 @@ def create_app() -> flask.app.Flask:
     migrate.init_app(app, db)
 
     app.register_blueprint(user_blueprint)
-    app.register_blueprint(api_blueprint)
     app.register_blueprint(process_api_blueprint)
     app.register_blueprint(api_error_blueprint)
     app.register_blueprint(admin_blueprint, url_prefix="/admin")

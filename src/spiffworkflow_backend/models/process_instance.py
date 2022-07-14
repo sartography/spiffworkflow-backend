@@ -165,7 +165,6 @@ class ProcessInstanceApi:
         next_task: Task | None,
         process_model_identifier: str,
         process_group_identifier: str,
-        total_tasks: int,
         completed_tasks: int,
         updated_at_in_seconds: int,
         is_review: bool,
@@ -178,7 +177,6 @@ class ProcessInstanceApi:
         #        self.navigation = navigation  fixme:  would be a hotness.
         self.process_model_identifier = process_model_identifier
         self.process_group_identifier = process_group_identifier
-        self.total_tasks = total_tasks
         self.completed_tasks = completed_tasks
         self.updated_at_in_seconds = updated_at_in_seconds
         self.title = title
@@ -199,7 +197,6 @@ class ProcessInstanceApiSchema(Schema):
             "navigation",
             "process_model_identifier",
             "process_group_identifier",
-            "total_tasks",
             "completed_tasks",
             "updated_at_in_seconds",
             "is_review",
@@ -228,7 +225,6 @@ class ProcessInstanceApiSchema(Schema):
             "navigation",
             "process_model_identifier",
             "process_group_identifier",
-            "total_tasks",
             "completed_tasks",
             "updated_at_in_seconds",
             "is_review",
@@ -251,7 +247,6 @@ class ProcessInstanceMetadata:
     spec_version: str | None = None
     state: str | None = None
     status: str | None = None
-    total_tasks: int | None = None
     completed_tasks: int | None = None
     is_review: bool | None = None
     state_message: str | None = None
@@ -270,7 +265,6 @@ class ProcessInstanceMetadata:
             process_group_id=process_model.process_group_id,
             state_message=process_instance.state_message,
             status=process_instance.status,
-            total_tasks=process_instance.total_tasks,
             completed_tasks=process_instance.completed_tasks,
             is_review=process_model.is_review,
             process_model_identifier=process_instance.process_model_identifier,
@@ -292,7 +286,6 @@ class ProcessInstanceMetadataSchema(Schema):
             "display_name",
             "description",
             "state",
-            "total_tasks",
             "completed_tasks",
             "process_group_id",
             "is_review",

@@ -14,6 +14,7 @@ from lxml import etree  # type: ignore
 from SpiffWorkflow import Task as SpiffTask  # type: ignore
 from SpiffWorkflow import TaskState
 from SpiffWorkflow import WorkflowException
+from SpiffWorkflow.bpmn.exceptions import WorkflowTaskExecException  # type: ignore
 from SpiffWorkflow.bpmn.parser.ValidationException import ValidationException  # type: ignore
 from SpiffWorkflow.bpmn.PythonScriptEngine import Box  # type: ignore
 from SpiffWorkflow.bpmn.PythonScriptEngine import PythonScriptEngine
@@ -23,13 +24,12 @@ from SpiffWorkflow.bpmn.specs.BpmnProcessSpec import BpmnProcessSpec  # type: ig
 from SpiffWorkflow.bpmn.specs.events import CancelEventDefinition  # type: ignore
 from SpiffWorkflow.bpmn.specs.events import EndEvent
 from SpiffWorkflow.bpmn.workflow import BpmnWorkflow  # type: ignore
-from SpiffWorkflow.camunda.parser.CamundaParser import CamundaParser  # type: ignore
-from SpiffWorkflow.camunda.serializer import UserTaskConverter  # type: ignore
 from SpiffWorkflow.dmn.parser.BpmnDmnParser import BpmnDmnParser  # type: ignore
 from SpiffWorkflow.dmn.serializer import BusinessRuleTaskConverter  # type: ignore
-from SpiffWorkflow.exceptions import WorkflowTaskExecException  # type: ignore
 from SpiffWorkflow.serializer.exceptions import MissingSpecError  # type: ignore
 from SpiffWorkflow.specs import WorkflowSpec  # type: ignore
+from SpiffWorkflow.spiff.parser.process import SpiffBpmnParser  # type: ignore
+from SpiffWorkflow.spiff.serializer import UserTaskConverter  # type: ignore
 from SpiffWorkflow.util.deep_merge import DeepMerge  # type: ignore
 
 from spiffworkflow_backend.models.active_task import ActiveTaskModel
@@ -90,10 +90,10 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
 
 
 class MyCustomParser(BpmnDmnParser):  # type: ignore
-    """A BPMN and DMN parser that can also parse Camunda forms."""
+    """A BPMN and DMN parser that can also parse spiffworkflow-specific extensions."""
 
     OVERRIDE_PARSER_CLASSES = BpmnDmnParser.OVERRIDE_PARSER_CLASSES
-    OVERRIDE_PARSER_CLASSES.update(CamundaParser.OVERRIDE_PARSER_CLASSES)
+    OVERRIDE_PARSER_CLASSES.update(SpiffBpmnParser.OVERRIDE_PARSER_CLASSES)
 
 
 class ProcessInstanceProcessor:
@@ -355,8 +355,13 @@ class ProcessInstanceProcessor:
                 extensions = ready_or_waiting_task.task_spec.extensions
 
                 form_file_name = None
-                if "formKey" in extensions:
-                    form_file_name = extensions["formKey"]
+                if "properties" in extensions:
+                    properties = extensions["properties"]
+                    if "formJsonSchemaFilename" in properties:
+                        form_file_name = properties["formJsonSchemaFilename"]
+                    # FIXME:
+                    # if "formUiSchemaFilename" in properties:
+                    #     form_file_name = properties["formUiSchemaFilename"]
 
                 active_task = ActiveTaskModel(
                     spiffworkflow_task_id=str(ready_or_waiting_task.id),
