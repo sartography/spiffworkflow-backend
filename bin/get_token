@@ -19,11 +19,13 @@ set -o errtrace -o errexit -o nounset -o pipefail
 # ./bin/get_token # uses ciuser1 ciuser1
 # ./bin/get_token ciadmin1 ciadmin1
 # ./bin/get_token repeat_form_user_1 repeat_form_user_1 # actually has permissions to the resource in this script
+# ./bin/get_token ciadmin1 ciadmin1 '%2Fprocess-models'
 
 HOSTNAME=localhost:7002
 REALM_NAME=spiffworkflow
 USERNAME=${1-ciuser1}
 PASSWORD=${2-ciuser1}
+URI_TO_TEST_AGAINST=${3-'%2Fprocess-models%2Fcategory_number_one%2Fprocess-model-with-repeating-form'}
 
 FRONTEND_CLIENT_ID=spiffworkflow-frontend
 BACKEND_CLIENT_ID=spiffworkflow-backend
@@ -70,7 +72,7 @@ if [[ "$backend_token" != 'null' ]]; then
   echo "backend_token: $backend_token"
 
   echo "Getting resource set"
-  resource_result=$(curl -s "http://localhost:7002/realms/spiffworkflow/authz/protection/resource_set?matchingUri=true&deep=true&max=-1&exactName=false&uri=%2Fprocess-models%2Fcategory_number_one%2Fprocess-model-with-repeating-form" -H "Authorization: Bearer $backend_token")
+  resource_result=$(curl -s "http://localhost:7002/realms/spiffworkflow/authz/protection/resource_set?matchingUri=true&deep=true&max=-1&exactName=false&uri=${URI_TO_TEST_AGAINST}" -H "Authorization: Bearer $backend_token")
 
   resource_ids=$(jq -r '.[] | ._id' <<<"$resource_result" || echo '')
   if [[ -z "$resource_ids" || "$resource_ids" == "null" ]]; then
