@@ -21,8 +21,7 @@ set -o errtrace -o errexit -o nounset -o pipefail
 # ./bin/get_token repeat_form_user_1 repeat_form_user_1 # actually has permissions to the resource in this script
 # ./bin/get_token ciadmin1 ciadmin1 '%2Fprocess-models'
 
-# HOSTNAME=localhost:7002
-HOSTNAME=localhost:8080
+HOSTNAME=localhost:7002
 REALM_NAME=spiffworkflow
 USERNAME=${1-ciuser1}
 PASSWORD=${2-ciuser1}
