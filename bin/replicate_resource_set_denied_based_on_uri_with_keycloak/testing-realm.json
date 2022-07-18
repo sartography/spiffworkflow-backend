@@ -1070,9 +1070,7 @@
               "test_resource_att1": ["this_is_the_value"]
             },
             "_id": "e294304c-796e-4c56-bdf2-8c854f65db59",
-            "uris": [
-              "/blog/post/1"
-            ],
+            "uris": ["/blog/post/1"],
             "scopes": [
               {
                 "name": "read"

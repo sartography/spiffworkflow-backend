@@ -1,16 +1,6 @@
 """Process_instance_processor."""
 import json
 import time
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Union
-
-from flask import current_app
-from flask_bpmn.api.api_error import ApiError
-from flask_bpmn.models.db import db
-from lxml import etree  # type: ignore
 from SpiffWorkflow import Task as SpiffTask  # type: ignore
 from SpiffWorkflow import TaskState
 from SpiffWorkflow import WorkflowException
@@ -31,6 +21,16 @@ from SpiffWorkflow.specs import WorkflowSpec  # type: ignore
 from SpiffWorkflow.spiff.parser.process import SpiffBpmnParser  # type: ignore
 from SpiffWorkflow.spiff.serializer import UserTaskConverter  # type: ignore
 from SpiffWorkflow.util.deep_merge import DeepMerge  # type: ignore
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Union
+
+from flask import current_app
+from flask_bpmn.api.api_error import ApiError
+from flask_bpmn.models.db import db
+from lxml import etree  # type: ignore
 
 from spiffworkflow_backend.models.active_task import ActiveTaskModel
 from spiffworkflow_backend.models.file import File
