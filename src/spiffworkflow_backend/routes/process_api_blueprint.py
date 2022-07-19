@@ -1,7 +1,6 @@
 """APIs for dealing with process groups, process models, and process instances."""
 import json
 import uuid
-from SpiffWorkflow import TaskState  # type: ignore
 from typing import Any
 from typing import Dict
 from typing import Optional
@@ -17,6 +16,7 @@ from flask import request
 from flask.wrappers import Response
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
+from SpiffWorkflow import TaskState  # type: ignore
 from sqlalchemy import desc
 
 from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
@@ -553,11 +553,12 @@ def task_list_my_tasks(page: int = 1, per_page: int = 100) -> flask.wrappers.Res
 def task_show(task_id: int) -> flask.wrappers.Response:
     """Task_list_my_tasks."""
     principal = find_principal_or_raise()
+
     active_task_assigned_to_me = find_active_task_by_id_or_raise(task_id, principal.id)
 
-    process_instance = ProcessInstanceModel.query.filter_by(
-        id=active_task_assigned_to_me.process_instance_id
-    ).first()
+    process_instance = find_process_instance_by_id_or_raise(
+        active_task_assigned_to_me.process_instance_id
+    )
     process_model = get_process_model(
         process_instance.process_model_identifier,
         process_instance.process_group_identifier,
@@ -645,7 +646,13 @@ def task_submit_user_data(
 
     ProcessInstanceService.update_task_assignments(processor)
 
-    return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
+    next_active_task_assigned_to_me = ActiveTaskModel.query.filter_by(
+        assigned_principal_id=principal.id, process_instance_id=process_instance.id
+    ).first()
+    if next_active_task_assigned_to_me:
+        return make_response(jsonify(next_active_task_assigned_to_me), 200)
+
+    return Response(json.dumps({"ok": True}), status=202, mimetype="application/json")
 
 
 def get_file_from_request() -> Any:

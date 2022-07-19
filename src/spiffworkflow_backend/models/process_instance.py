@@ -2,8 +2,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from SpiffWorkflow.navigation import NavItem  # type: ignore
-from SpiffWorkflow.util.deep_merge import DeepMerge  # type: ignore
 from typing import Any
 from typing import cast
 
@@ -13,6 +11,8 @@ from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from marshmallow import INCLUDE
 from marshmallow import Schema
 from marshmallow_enum import EnumField  # type: ignore
+from SpiffWorkflow.navigation import NavItem  # type: ignore
+from SpiffWorkflow.util.deep_merge import DeepMerge  # type: ignore
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import deferred
 from sqlalchemy.orm import relationship
