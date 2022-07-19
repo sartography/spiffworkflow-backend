@@ -1,6 +1,7 @@
 """APIs for dealing with process groups, process models, and process instances."""
 import json
 import uuid
+from SpiffWorkflow import TaskState  # type: ignore
 from typing import Any
 from typing import Dict
 from typing import Optional
@@ -16,7 +17,6 @@ from flask import request
 from flask.wrappers import Response
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
-from SpiffWorkflow import TaskState  # type: ignore
 from sqlalchemy import desc
 
 from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
@@ -112,7 +112,16 @@ def process_group_show(
     process_group_id: str,
 ) -> Any:
     """Process_group_show."""
-    process_group = ProcessModelService().get_process_group(process_group_id)
+    try:
+        process_group = ProcessModelService().get_process_group(process_group_id)
+    except ProcessEntityNotFoundError as exception:
+        raise (
+            ApiError(
+                code="process_group_cannot_be_found",
+                message=f"Process group cannot be found: {process_group_id}",
+                status_code=400,
+            )
+        ) from exception
     return ProcessGroupSchema().dump(process_group)
 
 

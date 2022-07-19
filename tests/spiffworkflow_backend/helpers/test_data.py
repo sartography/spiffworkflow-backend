@@ -1,8 +1,7 @@
 """User."""
+from tests.spiffworkflow_backend.helpers.example_data import ExampleDataLoader
 from typing import Dict
 from typing import Optional
-
-from tests.spiffworkflow_backend.helpers.example_data import ExampleDataLoader
 
 from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
     ProcessEntityNotFoundError,
