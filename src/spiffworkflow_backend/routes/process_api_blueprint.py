@@ -666,8 +666,8 @@ def task_show_completed_user_task(
         ActiveTaskModel.query.filter_by(
             assigned_principal_id=principal.id, process_instance_id=process_instance_id
         ).order_by(
-            desc(ActiveTaskModel.id)
-        )  # type: ignore
+            desc(ActiveTaskModel.id)  # type: ignore
+        )
     ).first()
 
     task.current_active_task_id = active_task.id
