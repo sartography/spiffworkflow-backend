@@ -35,6 +35,7 @@ from spiffworkflow_backend.models.process_instance_report import (
 )
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
+from spiffworkflow_backend.models.task import TaskSchema
 from spiffworkflow_backend.services.error_handling_service import ErrorHandlingService
 from spiffworkflow_backend.services.process_instance_processor import (
     ProcessInstanceProcessor,
@@ -550,11 +551,13 @@ def task_list_my_tasks(page: int = 1, per_page: int = 100) -> flask.wrappers.Res
     return make_response(jsonify(response_json), 200)
 
 
-def task_show(task_id: int) -> flask.wrappers.Response:
+def task_show(active_task_id: int) -> flask.wrappers.Response:
     """Task_list_my_tasks."""
     principal = find_principal_or_raise()
 
-    active_task_assigned_to_me = find_active_task_by_id_or_raise(task_id, principal.id)
+    active_task_assigned_to_me = find_active_task_by_id_or_raise(
+        active_task_id, principal.id
+    )
 
     process_instance = find_process_instance_by_id_or_raise(
         active_task_assigned_to_me.process_instance_id
@@ -568,35 +571,120 @@ def task_show(task_id: int) -> flask.wrappers.Response:
         raise (
             ApiError(
                 code="missing_form_file",
-                message=f"Cannot find a form file for active task {task_id}",
+                message=f"Cannot find a form file for active task {active_task_id}",
                 status_code=500,
             )
         )
 
-    file_contents = SpecFileService.get_data(
-        process_model, active_task_assigned_to_me.form_file_name
-    ).decode("utf-8")
-
-    spiffworkflow_data_json = json.loads(
-        active_task_assigned_to_me.spiffworkflow_task_data
+    form_contents = prepare_form_data(
+        active_task_assigned_to_me.form_file_name,
+        json.loads(active_task_assigned_to_me.spiffworkflow_task_data),
+        process_model,
     )
+    if form_contents:
+        active_task_assigned_to_me.form_json = form_contents
 
-    # trade out pieces like "{{variable_name}}" for the corresponding form data value
-    for key, value in spiffworkflow_data_json.items():
-        if isinstance(value, str) or isinstance(value, int):
-            file_contents = file_contents.replace("{{" + key + "}}", str(value))
-
-    active_task_assigned_to_me.form_json = file_contents
+    # FIXME: This should be stored in the db when the active task is created
+    processor = ProcessInstanceProcessor(process_instance)
+    if processor.completed_user_tasks():
+        active_task_assigned_to_me.preceding_spiffworkflow_user_task_id = (
+            processor.completed_user_tasks()[0].id
+        )
 
     return make_response(jsonify(active_task_assigned_to_me), 200)
 
 
+def task_show_completed_user_task(
+    process_instance_id: int, spiffworkflow_task_id: str
+) -> flask.wrappers.Response:
+    """Task_show_completed_user_task."""
+    process_instance = find_process_instance_by_id_or_raise(process_instance_id)
+    processor = ProcessInstanceProcessor(process_instance)
+
+    if processor.completed_user_tasks() is None:
+        raise (
+            ApiError(
+                code="no_completed_user_tasks",
+                message=f"This process instance does not have any completed user tasks: {process_instance_id}",
+                status_code=400,
+            )
+        )
+
+    spiffworkflow_task = None
+    preceding_spiffworkflow_user_task_id = None
+    following_spiffworkflow_user_task_id = None
+    for index, completed_user_task in enumerate(processor.completed_user_tasks()):
+        if str(completed_user_task.id) == spiffworkflow_task_id:
+            spiffworkflow_task = completed_user_task
+            preceding_spiffworkflow_user_task_id = get_value_from_array_with_index(
+                processor.completed_user_tasks(), index + 1
+            )
+            following_spiffworkflow_user_task_id = get_value_from_array_with_index(
+                processor.completed_user_tasks(), index - 1
+            )
+
+    if spiffworkflow_task is None:
+        raise (
+            ApiError(
+                code="no_completed_user_task_with_id",
+                message=f"This process instance does not have a completed user task with given id: {spiffworkflow_task_id}",
+                status_code=400,
+            )
+        )
+
+    process_model = get_process_model(
+        process_instance.process_model_identifier,
+        process_instance.process_group_identifier,
+    )
+
+    task = ProcessInstanceService.spiff_task_to_api_task(
+        spiffworkflow_task, add_docs_and_forms=True
+    )
+
+    form_contents = prepare_form_data(
+        task.properties["properties"]["formJsonSchemaFilename"],
+        spiffworkflow_task.data,
+        process_model,
+    )
+    if form_contents is not None:
+        task.form_schema = form_contents
+
+    task.data = spiffworkflow_task.data
+
+    if preceding_spiffworkflow_user_task_id:
+        task.preceding_spiffworkflow_user_task_id = (
+            preceding_spiffworkflow_user_task_id.id
+        )
+
+    if following_spiffworkflow_user_task_id:
+        task.following_spiffworkflow_user_task_id = (
+            following_spiffworkflow_user_task_id.id
+        )
+
+    principal = find_principal_or_raise()
+    active_task = (
+        ActiveTaskModel.query.filter_by(
+            assigned_principal_id=principal.id, process_instance_id=process_instance_id
+        ).order_by(
+            desc(ActiveTaskModel.id)
+        )  # type: ignore
+    ).first()
+
+    task.current_active_task_id = active_task.id
+
+    return Response(
+        json.dumps(TaskSchema().dump(task)), status=200, mimetype="application/json"
+    )
+
+
 def task_submit_user_data(
-    task_id: int, body: Dict[str, Any], terminate_loop: bool = False
+    active_task_id: int, body: Dict[str, Any], terminate_loop: bool = False
 ) -> flask.wrappers.Response:
     """Task_submit_user_data."""
     principal = find_principal_or_raise()
-    active_task_assigned_to_me = find_active_task_by_id_or_raise(task_id, principal.id)
+    active_task_assigned_to_me = find_active_task_by_id_or_raise(
+        active_task_id, principal.id
+    )
 
     process_instance = find_process_instance_by_id_or_raise(
         active_task_assigned_to_me.process_instance_id
@@ -701,17 +789,17 @@ def find_principal_or_raise() -> PrincipalModel:
 
 
 def find_active_task_by_id_or_raise(
-    task_id: int, principal_id: PrincipalModel
+    active_task_id: int, principal_id: PrincipalModel
 ) -> ActiveTaskModel:
     """Find_active_task_by_id_or_raise."""
     active_task_assigned_to_me = ActiveTaskModel.query.filter_by(
-        id=task_id, assigned_principal_id=principal_id
+        id=active_task_id, assigned_principal_id=principal_id
     ).first()
     if active_task_assigned_to_me is None:
         raise (
             ApiError(
                 code="task_not_found",
-                message=f"Task not found for principal user: {principal_id} and id: {task_id}",
+                message=f"Task not found for principal user: {principal_id} and id: {active_task_id}",
                 status_code=400,
             )
         )
@@ -734,3 +822,28 @@ def find_process_instance_by_id_or_raise(
             )
         )
     return process_instance  # type: ignore
+
+
+def get_value_from_array_with_index(array: list, index: int) -> Any:
+    """Get_value_from_array_with_index."""
+    if index < 0:
+        return None
+
+    if index >= len(array):
+        return None
+
+    return array[index]
+
+
+def prepare_form_data(
+    form_file: str, spiffworkflow_data_json: dict, process_model: ProcessModelInfo
+) -> str:
+    """Prepare_form_data."""
+    file_contents = SpecFileService.get_data(process_model, form_file).decode("utf-8")
+
+    # trade out pieces like "{{variable_name}}" for the corresponding form data value
+    for key, value in spiffworkflow_data_json.items():
+        if isinstance(value, str) or isinstance(value, int):
+            file_contents = file_contents.replace("{{" + key + "}}", str(value))
+
+    return file_contents

@@ -672,9 +672,9 @@ paths:
                 items:
                   # $ref: "#/components/schemas/ActiveTask"
                   $ref: "#/components/schemas/Task"
-  /tasks/{task_id}:
+  /tasks/{active_task_id}:
     parameters:
-      - name: task_id
+      - name: active_task_id
         in: path
         required: true
         description: The unique id of an existing process group.
@@ -690,9 +690,33 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Task"
-  /tasks/{task_id}/submit:
+  /tasks/completed_user_task/{process_instance_id}/{spiffworkflow_task_id}:
     parameters:
-      - name: task_id
+      - name: process_instance_id
+        in: path
+        required: true
+        description: The unique id of an existing process instance.
+        schema:
+          type: integer
+      - name: spiffworkflow_task_id
+        in: path
+        required: true
+        description: The unique id of an existing process group.
+        schema:
+          type: string
+    get:
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.task_show_completed_user_task
+      summary: Gets one task that a user wants to complete
+      responses:
+        "200":
+          description: One task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+  /tasks/{active_task_id}/submit:
+    parameters:
+      - name: active_task_id
         in: path
         required: true
         description: The unique id of an existing process group.

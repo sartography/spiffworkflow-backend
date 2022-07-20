@@ -26,6 +26,8 @@ class ActiveTaskModel(SpiffworkflowBaseDBModel):
 
     form_json: str | None = ""
     bpmn_json: str = ""
+    preceding_spiffworkflow_user_task_id: int | None = None
+
     assigned_principal: RelationshipProperty[PrincipalModel] = relationship(
         PrincipalModel
     )
