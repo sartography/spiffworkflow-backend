@@ -715,11 +715,17 @@ paths:
               $ref: "#/components/schemas/WorkflowSpecCategory"
       responses:
         "200":
+          description: One task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "202":
           description: "ok: true"
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/OkTrue"
+                $ref: "#components/schemas/OkTrue"
 
 components:
   securitySchemes:
