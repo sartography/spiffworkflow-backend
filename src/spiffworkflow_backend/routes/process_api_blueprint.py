@@ -392,8 +392,30 @@ def process_instance_show(
 ) -> flask.wrappers.Response:
     """Create_process_instance."""
     process_instance = find_process_instance_by_id_or_raise(process_instance_id)
+    process_model = get_process_model(process_model_id, process_group_id)
+
     processor = ProcessInstanceProcessor(process_instance)
     process_instance.data = processor.get_data()
+
+    if process_model.primary_file_name:
+        bpmn_xml_file_contents = SpecFileService.get_data(
+            process_model, process_model.primary_file_name
+        )
+        process_instance.bpmn_xml_file_name = process_model.primary_file_name
+        process_instance.bpmn_xml_file_contents = bpmn_xml_file_contents
+
+    active_task = (
+        ActiveTaskModel.query.filter_by(
+            process_instance_id=process_instance_id
+        ).order_by(
+            desc(ActiveTaskModel.id)  # type: ignore
+        )
+    ).first()
+
+    if active_task:
+        process_instance.spiffworkflow_active_task_id = (
+            active_task.spiffworkflow_task_id
+        )
 
     return make_response(jsonify(process_instance), 200)
 
