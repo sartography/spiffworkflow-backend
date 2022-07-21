@@ -1,6 +1,6 @@
 """Task."""
 import enum
-from typing import Any
+from typing import Any, Union
 
 import marshmallow
 from marshmallow import Schema
@@ -110,12 +110,12 @@ class Task:
         multi_instance_index: str,
         process_name: str,
         properties: dict,
-        process_instance_id: int | None = None,
-        form_schema: str | None = None,
-        form_ui_schema: str | None = None,
-        preceding_spiffworkflow_user_task_id: str | int | None = None,
-        following_spiffworkflow_user_task_id: str | int | None = None,
-        current_active_task_id: int | None = None,
+        process_instance_id: Union[int, None] = None,
+        form_schema: Union[str, None] = None,
+        form_ui_schema: Union[str, None] = None,
+        preceding_spiffworkflow_user_task_id: Union[str, int, None] = None,
+        following_spiffworkflow_user_task_id: Union[str, int, None] = None,
+        current_active_task_id: Union[int, None] = None,
     ):
         """__init__."""
         self.id = id
