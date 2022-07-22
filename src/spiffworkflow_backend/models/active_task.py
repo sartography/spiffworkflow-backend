@@ -41,3 +41,15 @@ class ActiveTaskModel(SpiffworkflowBaseDBModel):
 
     updated_at_in_seconds: int = db.Column(db.Integer)
     created_at_in_seconds: int = db.Column(db.Integer)
+
+    """
+    In case of multi-instance, perhaps more than one task may be generated.
+    After one task getting completed, the internal variable "Activity_identifier_CurrentVar" will be 
+    updated. The variable is shared for all tasks in order to satisfy the completion condition.
+    So more active_task records might be related to one active_date record.
+    if the above solution is practicable, the save of ActiveTaskModel  will be adjusted later.
+    The spiffworkflow_task_data of ActiveTaskModel will be removed either.
+    """
+    active_data_id: int = db.Column(
+        ForeignKey(ActiveDataModel.id), nullable=True
+    )
