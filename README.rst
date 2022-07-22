@@ -46,15 +46,21 @@ Running Locally
 ---------------
 
 * Install libraries using poetry:
+
 .. code:: console
+
    $ poetry install
 
 * Setup the database - currently requires mysql:
+
 .. code:: console
+
    $ ./bin/recreate_db
 
 * Run the server:
+
 .. code:: console
+
    $ ./bin/run_server_locally
 
 
