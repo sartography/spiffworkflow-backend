@@ -1,2 +1,1 @@
 """Config."""
-BPMN_SPEC_ABSOLUTE_DIR = "BPMN_SPECS_DEV"
