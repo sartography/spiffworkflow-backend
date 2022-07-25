@@ -388,7 +388,7 @@ def process_instance_list(
 
 
 def process_instance_show(
-        process_group_id: str, process_model_id: str, process_instance_id: int
+    process_group_id: str, process_model_id: str, process_instance_id: int
 ) -> flask.wrappers.Response:
     """Create_process_instance."""
     process_instance = find_process_instance_by_id_or_raise(process_instance_id)
@@ -559,7 +559,9 @@ def task_list_my_tasks(page: int = 1, per_page: int = 100) -> flask.wrappers.Res
     return make_response(jsonify(response_json), 200)
 
 
-def process_instance_task_list(process_instance_id: int, all_tasks: bool = False) -> flask.wrappers.Response:
+def process_instance_task_list(
+    process_instance_id: int, all_tasks: bool = False
+) -> flask.wrappers.Response:
     """Process_instance_task_list."""
     process_instance = find_process_instance_by_id_or_raise(process_instance_id)
     processor = ProcessInstanceProcessor(process_instance)
