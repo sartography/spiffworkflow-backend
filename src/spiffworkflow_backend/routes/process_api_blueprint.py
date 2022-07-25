@@ -793,7 +793,7 @@ def get_value_from_array_with_index(array: list, index: int) -> Any:
 
 
 def prepare_form_data(
-    form_file: str, task_data: dict | None, process_model: ProcessModelInfo
+    form_file: str, task_data: Union[dict, None], process_model: ProcessModelInfo
 ) -> str:
     """Prepare_form_data."""
     if task_data is None:
@@ -812,7 +812,7 @@ def prepare_form_data(
 def get_spiff_task_from_process_instance(
     task_id: str,
     process_instance: ProcessInstanceModel,
-    processor: ProcessInstanceProcessor | None = None,
+    processor: Union[ProcessInstanceProcessor, None] = None,
 ) -> SpiffTask:
     """Get_spiff_task_from_process_instance."""
     if processor is None:

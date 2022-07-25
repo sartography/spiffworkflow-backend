@@ -1,6 +1,6 @@
 """Task."""
 import enum
-from typing import Any
+from typing import Any, Union
 
 import marshmallow
 from marshmallow import Schema
@@ -101,18 +101,18 @@ class Task:
         title: str,
         type: str,
         state: str,
-        lane: str | None = None,
+        lane: Union[str, None] = None,
         form: None = None,
         documentation: str = "",
         data: dict[str, Any] | None = None,
-        multi_instance_type: MultiInstanceType | None = None,
+        multi_instance_type: Union[MultiInstanceType, None] = None,
         multi_instance_count: str = "",
         multi_instance_index: str = "",
         process_name: str = "",
-        properties: dict | None = None,
-        process_instance_id: int | None = None,
-        form_schema: str | None = None,
-        form_ui_schema: str | None = None,
+        properties: Union[dict, None] = None,
+        process_instance_id: Union[int, None] = None,
+        form_schema: Union[str, None] = None,
+        form_ui_schema: Union[str, None] = None,
     ):
         """__init__."""
         self.id = id
