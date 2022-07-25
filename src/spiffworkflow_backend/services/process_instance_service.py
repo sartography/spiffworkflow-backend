@@ -304,6 +304,10 @@ class ProcessInstanceService:
         form_data = ProcessInstanceService.extract_form_data(
             spiff_task.data, spiff_task
         )
+        multi_instance_type_value = ""
+        if task.multi_instance_type:
+            multi_instance_type_value = task.multi_instance_type.value
+
         task_event = TaskEventModel(
             # study_id=processor.workflow_model.study_id,
             user_id=user_id,
@@ -317,7 +321,7 @@ class ProcessInstanceService:
             task_state=task.state,
             task_lane=task.lane,
             form_data=form_data,
-            mi_type=task.multi_instance_type.value,  # Some tasks have a repeat behavior.
+            mi_type=multi_instance_type_value,  # Some tasks have a repeat behavior.
             mi_count=task.multi_instance_count,  # This is the number of times the task could repeat.
             mi_index=task.multi_instance_index,  # And the index of the currently repeating task.
             process_name=task.process_name,
@@ -433,7 +437,7 @@ class ProcessInstanceService:
             spiff_task.get_state_name(),
             lane=lane,
             multi_instance_type=mi_type,
-            multi_instance_count= info["mi_count"],
+            multi_instance_count=info["mi_count"],
             multi_instance_index=info["mi_index"],
             process_name=spiff_task.task_spec._wf_spec.description,
             properties=props,

@@ -16,8 +16,8 @@ from flask import request
 from flask.wrappers import Response
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
-from SpiffWorkflow import TaskState  # type: ignore
 from SpiffWorkflow import Task as SpiffTask  # type: ignore
+from SpiffWorkflow import TaskState
 from sqlalchemy import desc
 
 from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
@@ -36,7 +36,6 @@ from spiffworkflow_backend.models.process_instance_report import (
 )
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
-from spiffworkflow_backend.models.task import TaskSchema
 from spiffworkflow_backend.services.error_handling_service import ErrorHandlingService
 from spiffworkflow_backend.services.process_instance_processor import (
     ProcessInstanceProcessor,
@@ -556,13 +555,15 @@ def task_list_my_tasks(page: int = 1, per_page: int = 100) -> flask.wrappers.Res
 
 
 def process_instance_task_list(process_instance_id: int) -> flask.wrappers.Response:
-    process_instance = find_process_instance_by_id_or_raise(
-       process_instance_id
-    )
+    """Process_instance_task_list."""
+    process_instance = find_process_instance_by_id_or_raise(process_instance_id)
     processor = ProcessInstanceProcessor(process_instance)
     all_spiff_user_tasks = processor.get_all_user_tasks()
 
-    tasks = [ProcessInstanceService.spiff_task_to_api_task(spiff_task) for spiff_task in all_spiff_user_tasks]
+    tasks = [
+        ProcessInstanceService.spiff_task_to_api_task(spiff_task)
+        for spiff_task in all_spiff_user_tasks
+    ]
 
     return make_response(jsonify(tasks), 200)
 
@@ -571,9 +572,7 @@ def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response
     """Task_list_my_tasks."""
     principal = find_principal_or_raise()
 
-    process_instance = find_process_instance_by_id_or_raise(
-        process_instance_id
-    )
+    process_instance = find_process_instance_by_id_or_raise(process_instance_id)
     process_model = get_process_model(
         process_instance.process_model_identifier,
         process_instance.process_group_identifier,
@@ -652,7 +651,9 @@ def task_submit(
     )
 
     processor = ProcessInstanceProcessor(process_instance)
-    spiff_task = get_spiff_task_from_process_instance(task_id, process_instance, processor=processor)
+    spiff_task = get_spiff_task_from_process_instance(
+        task_id, process_instance, processor=processor
+    )
 
     if spiff_task.state != TaskState.READY:
         raise (
@@ -808,12 +809,15 @@ def prepare_form_data(
     return file_contents
 
 
-def get_spiff_task_from_process_instance(task_id: str, process_instance: ProcessInstanceModel, processor: ProcessInstanceProcessor | None = None) -> SpiffTask:
+def get_spiff_task_from_process_instance(
+    task_id: str,
+    process_instance: ProcessInstanceModel,
+    processor: ProcessInstanceProcessor | None = None,
+) -> SpiffTask:
+    """Get_spiff_task_from_process_instance."""
     if processor is None:
         processor = ProcessInstanceProcessor(process_instance)
-    task_uuid = uuid.UUID(
-        task_id
-    )
+    task_uuid = uuid.UUID(task_id)
     spiff_task = processor.bpmn_process_instance.get_task(task_uuid)
 
     if spiff_task is None:
