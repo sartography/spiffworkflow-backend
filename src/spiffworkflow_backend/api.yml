@@ -645,7 +645,7 @@ paths:
     #     '204':
     #       description: The file was removed.
 
-  /tasks/my-tasks:
+  /tasks:
     parameters:
       - name: page
         in: query
@@ -670,9 +670,28 @@ paths:
               schema:
                 type: array
                 items:
-                  # $ref: "#/components/schemas/ActiveTask"
                   $ref: "#/components/schemas/Task"
-  /tasks/{task_id}:
+  /process-instance/{process_instance_id}/tasks:
+    parameters:
+      - name: process_instance_id
+        in: path
+        required: true
+        description: The unique id of an existing process instance.
+        schema:
+          type: integer
+    get:
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.process_instance_task_list
+      summary: returns the list of all user tasks associated with process instance
+      responses:
+        "200":
+          description: list of tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+  /tasks/{process_instance_id}/{task_id}:
     parameters:
       - name: task_id
         in: path
@@ -680,6 +699,18 @@ paths:
         description: The unique id of an existing process group.
         schema:
           type: string
+      - name: process_instance_id
+        in: path
+        required: true
+        description: The unique id of an existing process instance.
+        schema:
+          type: integer
+      - name: terminate_loop
+        in: query
+        required: false
+        description: Terminate the loop on a looping task
+        schema:
+          type: boolean
     get:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.task_show
       summary: Gets one task that a user wants to complete
@@ -690,23 +721,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Task"
-  /tasks/{task_id}/submit:
-    parameters:
-      - name: task_id
-        in: path
-        required: true
-        description: The unique id of an existing process group.
-        schema:
-          type: string
-      - name: terminate_loop
-        in: query
-        required: false
-        description: Terminate the loop on a looping task
-        schema:
-          type: boolean
-
-    post:
-      operationId: spiffworkflow_backend.routes.process_api_blueprint.task_submit_user_data
+    put:
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.task_submit
       summary: Update the form data for a tasks
       requestBody:
         content:
