@@ -113,9 +113,6 @@ class Task:
         process_instance_id: int | None = None,
         form_schema: str | None = None,
         form_ui_schema: str | None = None,
-        # preceding_spiffworkflow_user_task_id: Union[str, int, None] = None,
-        # following_spiffworkflow_user_task_id: Union[str, int, None] = None,
-        # current_active_task_id: Union[int, None] = None,
     ):
         """__init__."""
         self.id = id
@@ -134,9 +131,6 @@ class Task:
         self.process_instance_id = process_instance_id
         self.form_schema = form_schema
         self.form_ui_schema = form_ui_schema
-        # self.preceding_spiffworkflow_user_task_id = preceding_spiffworkflow_user_task_id
-        # self.following_spiffworkflow_user_task_id = following_spiffworkflow_user_task_id
-        # self.current_active_task_id = current_active_task_id
 
         self.multi_instance_type = (
             multi_instance_type  # Some tasks have a repeat behavior.
@@ -278,9 +272,6 @@ class TaskSchema(Schema):
             "process_instance_id",
             "form_schema",
             "form_ui_schema",
-            # "preceding_spiffworkflow_user_task_id",
-            # "following_spiffworkflow_user_task_id",
-            # "current_active_task_id",
         ]
 
     multi_instance_type = EnumField(MultiInstanceType)
