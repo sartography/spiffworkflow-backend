@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 3f7aa48eaf3a
+Revision ID: b4f678040235
 Revises: 
-Create Date: 2022-07-11 16:08:00.002287
+Create Date: 2022-07-25 09:46:39.406847
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '3f7aa48eaf3a'
+revision = 'b4f678040235'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -95,18 +95,22 @@ def upgrade():
     )
     op.create_table('active_task',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('spiffworkflow_task_id', sa.String(length=50), nullable=False),
     sa.Column('process_instance_id', sa.Integer(), nullable=False),
     sa.Column('assigned_principal_id', sa.Integer(), nullable=True),
-    sa.Column('spiffworkflow_task_data', sa.Text(), nullable=True),
-    sa.Column('status', sa.String(length=20), nullable=False),
     sa.Column('form_file_name', sa.String(length=50), nullable=True),
+    sa.Column('ui_form_file_name', sa.String(length=50), nullable=True),
     sa.Column('updated_at_in_seconds', sa.Integer(), nullable=True),
     sa.Column('created_at_in_seconds', sa.Integer(), nullable=True),
+    sa.Column('task_id', sa.String(length=50), nullable=True),
+    sa.Column('task_name', sa.String(length=50), nullable=True),
+    sa.Column('task_title', sa.String(length=50), nullable=True),
+    sa.Column('task_type', sa.String(length=50), nullable=True),
+    sa.Column('task_status', sa.String(length=50), nullable=True),
+    sa.Column('task_data', sa.Text(), nullable=True),
     sa.ForeignKeyConstraint(['assigned_principal_id'], ['principal.id'], ),
     sa.ForeignKeyConstraint(['process_instance_id'], ['process_instance.id'], ),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('spiffworkflow_task_id', 'process_instance_id', name='active_task_unique')
+    sa.UniqueConstraint('task_id', 'process_instance_id', name='active_task_unique')
     )
     op.create_table('file',
     sa.Column('id', sa.Integer(), nullable=False),
