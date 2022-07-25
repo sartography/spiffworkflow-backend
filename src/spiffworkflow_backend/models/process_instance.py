@@ -99,10 +99,7 @@ class ProcessInstanceModel(SpiffworkflowBaseDBModel):
     created_at_in_seconds: int = db.Column(db.Integer)
     status: str = db.Column(db.String(50))
 
-    data: dict | None = None
-    bpmn_xml_file_name: str | None = None
     bpmn_xml_file_contents: bytes | None = None
-    spiffworkflow_active_task_id: str | None = None
 
     @property
     def serialized(self) -> dict[str, Any]:
@@ -116,14 +113,10 @@ class ProcessInstanceModel(SpiffworkflowBaseDBModel):
             "process_model_identifier": self.process_model_identifier,
             "process_group_identifier": self.process_group_identifier,
             "status": self.status,
-            "bpmn_json": self.bpmn_json,
             "start_in_seconds": self.start_in_seconds,
             "end_in_seconds": self.end_in_seconds,
             "process_initiator_id": self.process_initiator_id,
-            "data": self.data,
-            "bpmn_xml_file_name": self.bpmn_xml_file_name,
             "bpmn_xml_file_contents": local_bpmn_xml_file_contents,
-            "spiffworkflow_active_task_id": self.spiffworkflow_active_task_id,
         }
 
     @property
@@ -149,8 +142,6 @@ class ProcessInstanceModelSchema(Schema):
             "process_model_identifier",
             "process_group_identifier",
             "process_initiator_id",
-            # "process_initiator",
-            "bpmn_json",
             "start_in_seconds",
             "end_in_seconds",
             "updated_at_in_seconds",
