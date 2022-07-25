@@ -355,22 +355,26 @@ class ProcessInstanceProcessor:
                 extensions = ready_or_waiting_task.task_spec.extensions
 
                 form_file_name = None
+                ui_form_file_name = None
                 if "properties" in extensions:
                     properties = extensions["properties"]
                     if "formJsonSchemaFilename" in properties:
                         form_file_name = properties["formJsonSchemaFilename"]
-                    # FIXME:
-                    # if "formUiSchemaFilename" in properties:
-                    #     form_file_name = properties["formUiSchemaFilename"]
+                    if "formUiSchemaFilename" in properties:
+                        ui_form_file_name = properties["formUiSchemaFilename"]
 
                 active_task = ActiveTaskModel(
-                    spiffworkflow_task_id=str(ready_or_waiting_task.id),
                     process_instance_id=self.process_instance_model.id,
                     # FIXME: look for the correct principal based on ready_or_waiting_task.lane
                     assigned_principal_id=PrincipalModel.query.first().id,
-                    spiffworkflow_task_data=json.dumps(ready_or_waiting_task.data),
-                    status=ready_or_waiting_task.state.name,
                     form_file_name=form_file_name,
+                    ui_form_file_name=ui_form_file_name,
+                    task_id=str(ready_or_waiting_task.id),
+                    task_name=ready_or_waiting_task.task_spec.name,
+                    task_title=ready_or_waiting_task.task_spec.description,
+                    task_type=ready_or_waiting_task.task_spec.__class__.__name__,
+                    task_status=ready_or_waiting_task.state.name,
+                    task_data=json.dumps(ready_or_waiting_task.data),
                 )
                 db.session.add(active_task)
 

@@ -16,7 +16,8 @@ from flask import request
 from flask.wrappers import Response
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
-from SpiffWorkflow import TaskState  # type: ignore
+from SpiffWorkflow import Task as SpiffTask  # type: ignore
+from SpiffWorkflow import TaskState
 from sqlalchemy import desc
 
 from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
@@ -35,7 +36,6 @@ from spiffworkflow_backend.models.process_instance_report import (
 )
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
-from spiffworkflow_backend.models.task import TaskSchema
 from spiffworkflow_backend.services.error_handling_service import ErrorHandlingService
 from spiffworkflow_backend.services.process_instance_processor import (
     ProcessInstanceProcessor,
@@ -562,150 +562,110 @@ def task_list_my_tasks(page: int = 1, per_page: int = 100) -> flask.wrappers.Res
         .paginate(page, per_page, False)
     )
 
+    tasks = [active_task.to_task() for active_task in active_tasks.items]
+
     response_json = {
-        "results": active_tasks.items,
+        "results": tasks,
         "pagination": {
             "count": len(active_tasks.items),
             "total": active_tasks.total,
             "pages": active_tasks.pages,
         },
     }
+
     return make_response(jsonify(response_json), 200)
 
 
-def task_show(active_task_id: int) -> flask.wrappers.Response:
+def process_instance_task_list(process_instance_id: int) -> flask.wrappers.Response:
+    """Process_instance_task_list."""
+    process_instance = find_process_instance_by_id_or_raise(process_instance_id)
+    processor = ProcessInstanceProcessor(process_instance)
+    all_spiff_user_tasks = processor.get_all_user_tasks()
+
+    tasks = [
+        ProcessInstanceService.spiff_task_to_api_task(spiff_task)
+        for spiff_task in all_spiff_user_tasks
+    ]
+
+    return make_response(jsonify(tasks), 200)
+
+
+def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response:
     """Task_list_my_tasks."""
     principal = find_principal_or_raise()
 
-    active_task_assigned_to_me = find_active_task_by_id_or_raise(
-        active_task_id, principal.id
-    )
-
-    process_instance = find_process_instance_by_id_or_raise(
-        active_task_assigned_to_me.process_instance_id
-    )
+    process_instance = find_process_instance_by_id_or_raise(process_instance_id)
     process_model = get_process_model(
         process_instance.process_model_identifier,
         process_instance.process_group_identifier,
     )
 
-    if active_task_assigned_to_me.form_file_name is None:
+    active_task_assigned_to_me = ActiveTaskModel.query.filter_by(
+        process_instance_id=process_instance_id,
+        task_id=task_id,
+        assigned_principal_id=principal.id,
+    ).first()
+
+    form_schema_file_name = ""
+    form_ui_schema_file_name = ""
+    task = None
+    if active_task_assigned_to_me:
+        form_schema_file_name = active_task_assigned_to_me.form_file_name
+        form_ui_schema_file_name = active_task_assigned_to_me.ui_form_file_name
+        task = active_task_assigned_to_me.to_task()
+    else:
+        spiff_task = get_spiff_task_from_process_instance(task_id, process_instance)
+        extensions = spiff_task.task_spec.extensions
+
+        if "properties" in extensions:
+            properties = extensions["properties"]
+            if "formJsonSchemaFilename" in properties:
+                form_schema_file_name = properties["formJsonSchemaFilename"]
+            if "formUiSchemaFilename" in properties:
+                form_ui_schema_file_name = properties["formUiSchemaFilename"]
+        task = ProcessInstanceService.spiff_task_to_api_task(spiff_task)
+        task.data = spiff_task.data
+
+    if form_schema_file_name is None:
         raise (
             ApiError(
                 code="missing_form_file",
-                message=f"Cannot find a form file for active task {active_task_id}",
+                message=f"Cannot find a form file for process_instance_id: {process_instance_id}, task_id: {task_id}",
                 status_code=500,
             )
         )
 
     form_contents = prepare_form_data(
-        active_task_assigned_to_me.form_file_name,
-        json.loads(active_task_assigned_to_me.spiffworkflow_task_data),
+        form_schema_file_name,
+        task.data,
         process_model,
     )
+
     if form_contents:
-        active_task_assigned_to_me.form_json = form_contents
-
-    # FIXME: This should be stored in the db when the active task is created
-    processor = ProcessInstanceProcessor(process_instance)
-    if processor.completed_user_tasks():
-        active_task_assigned_to_me.preceding_spiffworkflow_user_task_id = (
-            processor.completed_user_tasks()[0].id
-        )
-
-    return make_response(jsonify(active_task_assigned_to_me), 200)
-
-
-def task_show_completed_user_task(
-    process_instance_id: int, spiffworkflow_task_id: str
-) -> flask.wrappers.Response:
-    """Task_show_completed_user_task."""
-    process_instance = find_process_instance_by_id_or_raise(process_instance_id)
-    processor = ProcessInstanceProcessor(process_instance)
-
-    if processor.completed_user_tasks() is None:
-        raise (
-            ApiError(
-                code="no_completed_user_tasks",
-                message=f"This process instance does not have any completed user tasks: {process_instance_id}",
-                status_code=400,
-            )
-        )
-
-    spiffworkflow_task = None
-    preceding_spiffworkflow_user_task_id = None
-    following_spiffworkflow_user_task_id = None
-    for index, completed_user_task in enumerate(processor.completed_user_tasks()):
-        if str(completed_user_task.id) == spiffworkflow_task_id:
-            spiffworkflow_task = completed_user_task
-            preceding_spiffworkflow_user_task_id = get_value_from_array_with_index(
-                processor.completed_user_tasks(), index + 1
-            )
-            following_spiffworkflow_user_task_id = get_value_from_array_with_index(
-                processor.completed_user_tasks(), index - 1
-            )
-
-    if spiffworkflow_task is None:
-        raise (
-            ApiError(
-                code="no_completed_user_task_with_id",
-                message=f"This process instance does not have a completed user task with given id: {spiffworkflow_task_id}",
-                status_code=400,
-            )
-        )
-
-    process_model = get_process_model(
-        process_instance.process_model_identifier,
-        process_instance.process_group_identifier,
-    )
-
-    task = ProcessInstanceService.spiff_task_to_api_task(
-        spiffworkflow_task, add_docs_and_forms=True
-    )
-
-    form_contents = prepare_form_data(
-        task.properties["properties"]["formJsonSchemaFilename"],
-        spiffworkflow_task.data,
-        process_model,
-    )
-    if form_contents is not None:
         task.form_schema = form_contents
 
-    task.data = spiffworkflow_task.data
-
-    if preceding_spiffworkflow_user_task_id:
-        task.preceding_spiffworkflow_user_task_id = (
-            preceding_spiffworkflow_user_task_id.id
+    if form_ui_schema_file_name:
+        ui_form_contents = prepare_form_data(
+            form_ui_schema_file_name,
+            task.data,
+            process_model,
         )
+        if ui_form_contents:
+            task.form_ui_schema = ui_form_contents
 
-    if following_spiffworkflow_user_task_id:
-        task.following_spiffworkflow_user_task_id = (
-            following_spiffworkflow_user_task_id.id
-        )
-
-    principal = find_principal_or_raise()
-    active_task = (
-        ActiveTaskModel.query.filter_by(
-            assigned_principal_id=principal.id, process_instance_id=process_instance_id
-        ).order_by(
-            desc(ActiveTaskModel.id)  # type: ignore
-        )
-    ).first()
-
-    task.current_active_task_id = active_task.id
-
-    return Response(
-        json.dumps(TaskSchema().dump(task)), status=200, mimetype="application/json"
-    )
+    return make_response(jsonify(task), 200)
 
 
-def task_submit_user_data(
-    active_task_id: int, body: Dict[str, Any], terminate_loop: bool = False
+def task_submit(
+    process_instance_id: int,
+    task_id: str,
+    body: Dict[str, Any],
+    terminate_loop: bool = False,
 ) -> flask.wrappers.Response:
     """Task_submit_user_data."""
     principal = find_principal_or_raise()
     active_task_assigned_to_me = find_active_task_by_id_or_raise(
-        active_task_id, principal.id
+        process_instance_id, task_id, principal.id
     )
 
     process_instance = find_process_instance_by_id_or_raise(
@@ -713,19 +673,10 @@ def task_submit_user_data(
     )
 
     processor = ProcessInstanceProcessor(process_instance)
-    spiffworkflow_task_uuid = uuid.UUID(
-        active_task_assigned_to_me.spiffworkflow_task_id
+    spiff_task = get_spiff_task_from_process_instance(
+        task_id, process_instance, processor=processor
     )
-    spiff_task = processor.bpmn_process_instance.get_task(spiffworkflow_task_uuid)
 
-    if spiff_task is None:
-        raise (
-            ApiError(
-                code="empty_task",
-                message="Processor failed to obtain task.",
-                status_code=500,
-            )
-        )
     if spiff_task.state != TaskState.READY:
         raise (
             ApiError(
@@ -760,7 +711,7 @@ def task_submit_user_data(
         assigned_principal_id=principal.id, process_instance_id=process_instance.id
     ).first()
     if next_active_task_assigned_to_me:
-        return make_response(jsonify(next_active_task_assigned_to_me), 200)
+        return make_response(jsonify(next_active_task_assigned_to_me.to_task()), 200)
 
     return Response(json.dumps({"ok": True}), status=202, mimetype="application/json")
 
@@ -811,17 +762,23 @@ def find_principal_or_raise() -> PrincipalModel:
 
 
 def find_active_task_by_id_or_raise(
-    active_task_id: int, principal_id: PrincipalModel
+    process_instance_id: int, task_id: str, principal_id: PrincipalModel
 ) -> ActiveTaskModel:
     """Find_active_task_by_id_or_raise."""
     active_task_assigned_to_me = ActiveTaskModel.query.filter_by(
-        id=active_task_id, assigned_principal_id=principal_id
+        process_instance_id=process_instance_id,
+        task_id=task_id,
+        assigned_principal_id=principal_id,
     ).first()
     if active_task_assigned_to_me is None:
+        message = (
+            f"Task not found for principal user {principal_id} "
+            f"process_instance_id: {process_instance_id}, task_id: {task_id}"
+        )
         raise (
             ApiError(
                 code="task_not_found",
-                message=f"Task not found for principal user: {principal_id} and id: {active_task_id}",
+                message=message,
                 status_code=400,
             )
         )
@@ -858,14 +815,39 @@ def get_value_from_array_with_index(array: list, index: int) -> Any:
 
 
 def prepare_form_data(
-    form_file: str, spiffworkflow_data_json: dict, process_model: ProcessModelInfo
+    form_file: str, task_data: Union[dict, None], process_model: ProcessModelInfo
 ) -> str:
     """Prepare_form_data."""
+    if task_data is None:
+        return ""
+
     file_contents = SpecFileService.get_data(process_model, form_file).decode("utf-8")
 
     # trade out pieces like "{{variable_name}}" for the corresponding form data value
-    for key, value in spiffworkflow_data_json.items():
+    for key, value in task_data.items():
         if isinstance(value, str) or isinstance(value, int):
             file_contents = file_contents.replace("{{" + key + "}}", str(value))
 
     return file_contents
+
+
+def get_spiff_task_from_process_instance(
+    task_id: str,
+    process_instance: ProcessInstanceModel,
+    processor: Union[ProcessInstanceProcessor, None] = None,
+) -> SpiffTask:
+    """Get_spiff_task_from_process_instance."""
+    if processor is None:
+        processor = ProcessInstanceProcessor(process_instance)
+    task_uuid = uuid.UUID(task_id)
+    spiff_task = processor.bpmn_process_instance.get_task(task_uuid)
+
+    if spiff_task is None:
+        raise (
+            ApiError(
+                code="empty_task",
+                message="Processor failed to obtain task.",
+                status_code=500,
+            )
+        )
+    return spiff_task

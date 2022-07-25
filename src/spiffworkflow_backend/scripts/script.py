@@ -150,6 +150,10 @@ class Script:
     def add_data_to_task(self, task: Task, data: Any) -> None:
         """Add_data_to_task."""
         key = self.__class__.__name__
+
+        if task.data is None:
+            task.data = {}
+
         if key in task.data:
             task.data[key].update(data)
         else:

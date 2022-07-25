@@ -42,26 +42,33 @@ Features
 * Backend API portion of the spiffworkflow engine webapp
 
 
+Running Locally
+---------------
+
+* Install libraries using poetry:
+
+.. code:: console
+
+   $ poetry install
+
+* Setup the database - currently requires mysql:
+
+.. code:: console
+
+   $ ./bin/recreate_db
+
+* Run the server:
+
+.. code:: console
+
+   $ ./bin/run_server_locally
+
+
 Requirements
 ------------
 
 * Python 3.9+
-
-
-Installation
-------------
-
-You can install *Spiffworkflow Backend* via pip_ from PyPI_:
-
-.. code:: console
-
-   $ pip install spiffworkflow-backend
-
-
-Usage
------
-
-Please see the `Command-line Reference <Usage_>`_ for details.
+* Poetry
 
 
 Contributing
