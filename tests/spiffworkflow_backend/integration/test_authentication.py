@@ -13,7 +13,8 @@ from keycloak.keycloak_openid import KeycloakOpenID  # type: ignore
 from keycloak.uma_permissions import AuthStatus  # type: ignore
 
 from tests.spiffworkflow_backend.integration.base_test import BaseTest
-from spiffworkflow_backend.services.authentication_service import AuthenticationService, PublicAuthenticationService, KeycloakAuthenticationService
+from spiffworkflow_backend.services.authentication_service import PublicAuthenticationService, KeycloakAuthenticationService
+from spiffworkflow_backend.services.authorization_service import AuthorizationService
 
 from urllib.parse import urlencode
 
@@ -41,7 +42,7 @@ class TestAuthentication(BaseTest):
     def test_get_bearer_token(self, app: Flask) -> None:
         for user_id in ('user_1', 'user_2', 'admin_1', 'admin_2'):
             public_access_token = self.get_public_access_token(user_id, user_id)
-            bearer_token = AuthenticationService().get_bearer_token(public_access_token)
+            bearer_token = AuthorizationService().get_bearer_token(public_access_token)
             assert isinstance(public_access_token, str)
             assert isinstance(bearer_token, dict)
             assert 'access_token' in bearer_token
@@ -56,7 +57,7 @@ class TestAuthentication(BaseTest):
     def test_get_user_info_from_public_access_token(self, app: Flask) -> None:
         for user_id in ('user_1', 'user_2', 'admin_1', 'admin_2'):
             public_access_token = self.get_public_access_token(user_id, user_id)
-            user_info = AuthenticationService().get_user_info_from_public_access_token(public_access_token)
+            user_info = AuthorizationService().get_user_info_from_public_access_token(public_access_token)
             assert 'sub' in user_info
             assert isinstance(user_info['sub'], str)
             assert len(user_info['sub']) == 36
@@ -69,7 +70,7 @@ class TestAuthentication(BaseTest):
         keycloak_server_url, keycloak_client_id, keycloak_realm_name, keycloak_client_secret_key = self.get_keycloak_constants(app)
         for user_id in ('user_1', 'user_2', 'admin_1', 'admin_2'):
             basic_token = self.get_public_access_token(user_id, user_id)
-            introspection = AuthenticationService().introspect_token(basic_token)
+            introspection = AuthorizationService().introspect_token(basic_token)
             assert isinstance(introspection, dict)
             assert introspection['typ'] == 'Bearer'
             assert introspection['preferred_username'] == user_id
@@ -103,7 +104,7 @@ class TestAuthentication(BaseTest):
         for user_id in ('user_1', 'user_2', 'admin_1', 'admin_2'):
             output[user_id] = {}
             basic_token = self.get_public_access_token(user_id, user_id)
-            permissions = AuthenticationService().get_permission_by_basic_token(basic_token)
+            permissions = AuthorizationService().get_permission_by_basic_token(basic_token)
             if isinstance(permissions, list):
                 for permission in permissions:
                     resource_name = permission['rsname']
@@ -163,7 +164,7 @@ class TestAuthentication(BaseTest):
             for resource in resources:
                 output[user_id][resource] = {}
                 for scope in 'instantiate', 'read', 'update', 'delete':
-                    auth_status = AuthenticationService().get_auth_status_for_resource_and_scope_by_token(
+                    auth_status = AuthorizationService().get_auth_status_for_resource_and_scope_by_token(
                         basic_token, resource, scope
                     )
                     output[user_id][resource][scope] = auth_status
@@ -178,7 +179,7 @@ class TestAuthentication(BaseTest):
             for resource in resource_names:
                 output[user_id][resource] = {}
                 for scope in 'instantiate', 'read', 'update', 'delete':
-                    permissions = AuthenticationService().\
+                    permissions = AuthorizationService().\
                         get_permissions_by_token_for_resource_and_scope(basic_token, resource, scope)
                     output[user_id][resource][scope] = permissions
         print("test_get_permissions_by_token_for_resource_and_scope")
