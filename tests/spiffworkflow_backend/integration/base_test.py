@@ -1,5 +1,6 @@
 """Base_test."""
 from flask.app import Flask
+from spiffworkflow_backend.services.authentication_service import PublicAuthenticationService
 
 
 class BaseTest:
@@ -14,3 +15,9 @@ class BaseTest:
         keycloak_client_secret_key = app.config["KEYCLOAK_CLIENT_SECRET_KEY"]  # noqa: S105
 
         return keycloak_server_url, keycloak_client_id, keycloak_realm_name, keycloak_client_secret_key
+
+    @staticmethod
+    def get_public_access_token(username, password) -> dict:
+        public_access_token = PublicAuthenticationService().get_public_access_token(username, password)
+        return public_access_token
+
