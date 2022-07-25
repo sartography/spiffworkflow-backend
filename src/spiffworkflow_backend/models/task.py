@@ -1,6 +1,7 @@
 """Task."""
 import enum
-from typing import Any, Union
+from typing import Any
+from typing import Union
 
 import marshmallow
 from marshmallow import Schema
@@ -104,7 +105,7 @@ class Task:
         lane: Union[str, None] = None,
         form: None = None,
         documentation: str = "",
-        data: dict[str, Any] | None = None,
+        data: Union[dict[str, Any], None] = None,
         multi_instance_type: Union[MultiInstanceType, None] = None,
         multi_instance_count: str = "",
         multi_instance_index: str = "",
