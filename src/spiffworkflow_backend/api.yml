@@ -671,6 +671,26 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Task"
+  /process-instance/{process_instance_id}/tasks:
+    parameters:
+      - name: process_instance_id
+        in: path
+        required: true
+        description: The unique id of an existing process instance.
+        schema:
+          type: integer
+    get:
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.process_instance_task_list
+      summary: returns the list of all user tasks associated with process instance
+      responses:
+        "200":
+          description: list of tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
   /tasks/{process_instance_id}/{task_id}:
     parameters:
       - name: task_id
@@ -679,6 +699,12 @@ paths:
         description: The unique id of an existing process group.
         schema:
           type: string
+      - name: process_instance_id
+        in: path
+        required: true
+        description: The unique id of an existing process instance.
+        schema:
+          type: integer
       - name: terminate_loop
         in: query
         required: false

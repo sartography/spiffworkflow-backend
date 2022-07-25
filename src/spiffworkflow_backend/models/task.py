@@ -156,6 +156,10 @@ class Task:
     @property
     def serialized(self) -> dict[str, Any]:
         """Return object data in serializeable format."""
+        multi_instance_type = None
+        if self.multi_instance_type:
+            MultiInstanceType(self.multi_instance_type)
+
         return {
             "id": self.id,
             "name": self.name,
@@ -166,7 +170,7 @@ class Task:
             "form": self.form,
             "documentation": self.documentation,
             "data": self.data,
-            "multi_instance_type": self.multi_instance_type,
+            "multi_instance_type": multi_instance_type,
             "multi_instance_count": self.multi_instance_count,
             "multi_instance_index": self.multi_instance_index,
             "process_name": self.process_name,
