@@ -392,8 +392,13 @@ def process_instance_show(
 ) -> flask.wrappers.Response:
     """Create_process_instance."""
     process_instance = find_process_instance_by_id_or_raise(process_instance_id)
-    processor = ProcessInstanceProcessor(process_instance)
-    process_instance.data = processor.get_data()
+    process_model = get_process_model(process_model_id, process_group_id)
+
+    if process_model.primary_file_name:
+        bpmn_xml_file_contents = SpecFileService.get_data(
+            process_model, process_model.primary_file_name
+        )
+        process_instance.bpmn_xml_file_contents = bpmn_xml_file_contents
 
     return make_response(jsonify(process_instance), 200)
 
@@ -554,16 +559,24 @@ def task_list_my_tasks(page: int = 1, per_page: int = 100) -> flask.wrappers.Res
     return make_response(jsonify(response_json), 200)
 
 
-def process_instance_task_list(process_instance_id: int) -> flask.wrappers.Response:
+def process_instance_task_list(
+    process_instance_id: int, all_tasks: bool = False
+) -> flask.wrappers.Response:
     """Process_instance_task_list."""
     process_instance = find_process_instance_by_id_or_raise(process_instance_id)
     processor = ProcessInstanceProcessor(process_instance)
-    all_spiff_user_tasks = processor.get_all_user_tasks()
 
-    tasks = [
-        ProcessInstanceService.spiff_task_to_api_task(spiff_task)
-        for spiff_task in all_spiff_user_tasks
-    ]
+    spiff_tasks = None
+    if all_tasks:
+        spiff_tasks = processor.bpmn_process_instance.get_tasks(TaskState.ANY_MASK)
+    else:
+        spiff_tasks = processor.get_all_user_tasks()
+
+    tasks = []
+    for spiff_task in spiff_tasks:
+        task = ProcessInstanceService.spiff_task_to_api_task(spiff_task)
+        task.data = spiff_task.data
+        tasks.append(task)
 
     return make_response(jsonify(tasks), 200)
 
