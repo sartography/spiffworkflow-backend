@@ -39,7 +39,9 @@ from spiffworkflow_backend.models.principal import PrincipalModel
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 from spiffworkflow_backend.models.process_instance import ProcessInstanceStatus
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
-from spiffworkflow_backend.models.queued_send_message import QueuedSendMessageModel
+from spiffworkflow_backend.models.queued_receive_message import (
+    QueuedReceiveMessageModel,
+)
 from spiffworkflow_backend.models.task_event import TaskAction
 from spiffworkflow_backend.models.task_event import TaskEventModel
 from spiffworkflow_backend.models.user import UserModelSchema
@@ -444,20 +446,38 @@ class ProcessInstanceProcessor:
         """Get_status."""
         return self.status_of(self.bpmn_process_instance)
 
+    def process_bpmn_events(self) -> None:
+        """Process_bpmn_events."""
+        if self.bpmn_process_instance.bpmn_events:
+            for bpmn_event in self.bpmn_process_instance.bpmn_events:
+                # FIXME: pseudocode - not sure how to determine message types yet
+                if bpmn_event.event == "ReceivedEvent":
+                    queued_message = QueuedReceiveMessageModel(
+                        process_instance_id=self.process_instance_model.id,
+                        bpmn_element_id=bpmn_event.task_name,
+                    )
+                    db.session.add(queued_message)
+                    db.session.commit()
+                elif bpmn_event.event == "SendEvent":
+                    queued_receive_message = (
+                        QueuedReceiveMessageModel.query.filter_by().first()
+                    )
+                    if queued_receive_message:
+                        process_instance = ProcessInstanceModel.query.filter_by(
+                            process_instance_id=queued_receive_message.process_instance_id
+                        ).first()
+                        if process_instance is None:
+                            raise ApiError(
+                                "process_instance_not_found",
+                                f"The process instance - {queued_receive_message.process_instance_id} - for receiving event - {queued_receive_message.id} - cannot be found",
+                            )
+
     def do_engine_steps(self, exit_at: None = None) -> None:
         """Do_engine_steps."""
         try:
             self.bpmn_process_instance.refresh_waiting_tasks()
             self.bpmn_process_instance.do_engine_steps(exit_at=exit_at)
-            # NOTE: MESSAGE - should we check for thrown_events here?
-            if self.bpmn_process_instance.thrown_events:
-                for thrown_event in self.bpmn_process_instance.thrown_events:
-                    queued_message = QueuedSendMessageModel(
-                        process_instance_id=self.process_instance_model.id,
-                        bpmn_element_id=thrown_event.task_name,
-                    )
-                    db.session.add(queued_message)
-                    db.session.commit()
+            self.process_bpmn_events()
 
         except WorkflowTaskExecException as we:
             raise ApiError.from_workflow_exception("task_error", str(we), we) from we
