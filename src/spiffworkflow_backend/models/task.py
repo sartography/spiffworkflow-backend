@@ -1,6 +1,7 @@
 """Task."""
 import enum
 from typing import Any
+from typing import Union
 
 import marshmallow
 from marshmallow import Schema
@@ -101,15 +102,18 @@ class Task:
         title: str,
         type: str,
         state: str,
-        lane: str,
-        form: None,
-        documentation: str,
-        data: dict[str, Any],
-        multi_instance_type: MultiInstanceType,
-        multi_instance_count: str,
-        multi_instance_index: str,
-        process_name: str,
-        properties: dict,
+        lane: Union[str, None] = None,
+        form: None = None,
+        documentation: str = "",
+        data: Union[dict[str, Any], None] = None,
+        multi_instance_type: Union[MultiInstanceType, None] = None,
+        multi_instance_count: str = "",
+        multi_instance_index: str = "",
+        process_name: str = "",
+        properties: Union[dict, None] = None,
+        process_instance_id: Union[int, None] = None,
+        form_schema: Union[str, None] = None,
+        form_ui_schema: Union[str, None] = None,
     ):
         """__init__."""
         self.id = id
@@ -117,10 +121,18 @@ class Task:
         self.title = title
         self.type = type
         self.state = state
-        self.form = None
+        self.form = form
         self.documentation = documentation
-        self.data = data
         self.lane = lane
+
+        self.data = data
+        if self.data is None:
+            self.data = {}
+
+        self.process_instance_id = process_instance_id
+        self.form_schema = form_schema
+        self.form_ui_schema = form_ui_schema
+
         self.multi_instance_type = (
             multi_instance_type  # Some tasks have a repeat behavior.
         )
@@ -131,7 +143,37 @@ class Task:
             multi_instance_index  # And the index of the currently repeating task.
         )
         self.process_name = process_name
+
         self.properties = properties  # Arbitrary extension properties from BPMN editor.
+        if self.properties is None:
+            self.properties = {}
+
+    @property
+    def serialized(self) -> dict[str, Any]:
+        """Return object data in serializeable format."""
+        multi_instance_type = None
+        if self.multi_instance_type:
+            MultiInstanceType(self.multi_instance_type)
+
+        return {
+            "id": self.id,
+            "name": self.name,
+            "title": self.title,
+            "type": self.type,
+            "state": self.state,
+            "lane": self.lane,
+            "form": self.form,
+            "documentation": self.documentation,
+            "data": self.data,
+            "multi_instance_type": multi_instance_type,
+            "multi_instance_count": self.multi_instance_count,
+            "multi_instance_index": self.multi_instance_index,
+            "process_name": self.process_name,
+            "properties": self.properties,
+            "process_instance_id": self.process_instance_id,
+            "form_schema": self.form_schema,
+            "form_ui_schema": self.form_ui_schema,
+        }
 
     @classmethod
     def valid_property_names(cls) -> list[str]:
@@ -228,6 +270,9 @@ class TaskSchema(Schema):
             "multi_instance_index",
             "process_name",
             "properties",
+            "process_instance_id",
+            "form_schema",
+            "form_ui_schema",
         ]
 
     multi_instance_type = EnumField(MultiInstanceType)

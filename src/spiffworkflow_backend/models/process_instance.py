@@ -99,11 +99,15 @@ class ProcessInstanceModel(SpiffworkflowBaseDBModel):
     created_at_in_seconds: int = db.Column(db.Integer)
     status: str = db.Column(db.String(50))
 
-    data: dict | None = None
+    bpmn_xml_file_contents: bytes | None = None
 
     @property
     def serialized(self) -> dict[str, Any]:
         """Return object data in serializeable format."""
+        local_bpmn_xml_file_contents = ""
+        if self.bpmn_xml_file_contents:
+            local_bpmn_xml_file_contents = self.bpmn_xml_file_contents.decode("utf-8")
+
         return {
             "id": self.id,
             "process_model_identifier": self.process_model_identifier,
@@ -113,7 +117,7 @@ class ProcessInstanceModel(SpiffworkflowBaseDBModel):
             "start_in_seconds": self.start_in_seconds,
             "end_in_seconds": self.end_in_seconds,
             "process_initiator_id": self.process_initiator_id,
-            "data": self.data,
+            "bpmn_xml_file_contents": local_bpmn_xml_file_contents,
         }
 
     @property
@@ -139,8 +143,6 @@ class ProcessInstanceModelSchema(Schema):
             "process_model_identifier",
             "process_group_identifier",
             "process_initiator_id",
-            # "process_initiator",
-            "bpmn_json",
             "start_in_seconds",
             "end_in_seconds",
             "updated_at_in_seconds",
