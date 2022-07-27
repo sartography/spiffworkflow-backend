@@ -37,7 +37,7 @@ ALLOWED_BPMN_EXTENSIONS = {"bpmn", "dmn"}
 def before_first_request() -> None:
     """Before_first_request."""
     # token()
-    ProcessInstanceReportModel.add_fixtures()
+    # ProcessInstanceReportModel.add_fixtures()
 
 
 # @admin_blueprint.route("/token", methods=["GET"])
