@@ -10,7 +10,7 @@ security:
   - jwt: ["secret"]
 
 paths:
-  /login_redirect:
+  /login:
     parameters:
       - name: redirect_url
         in: query
@@ -57,12 +57,12 @@ paths:
       operationId: spiffworkflow_backend.routes.user.logout
       summary: Logout authenticated user
       tags:
-        - User
+        - Authentication
       responses:
         '200':
           description: Logout Authenticated User
 
-  /api-login:
+  /login_swagger:
     parameters:
       - name: uid
         in: query
@@ -87,7 +87,7 @@ paths:
       operationId: spiffworkflow_backend.routes.user.api_login
       summary: Authenticate user for API access
       tags:
-        - User
+        - Authentication
       responses:
         '304':
           description: Redirection to the hosted frontend with an auth_token header.
@@ -107,6 +107,7 @@ paths:
             application/json:
               schema:
                 $ref: "#components/schemas/OkTrue"
+
   /process-groups:
     parameters:
       - name: page
@@ -754,6 +755,7 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Task"
+
   /process-instance/{process_instance_id}/tasks:
     parameters:
       - name: process_instance_id
@@ -780,6 +782,7 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Task"
+
   /tasks/{process_instance_id}/{task_id}:
     parameters:
       - name: task_id

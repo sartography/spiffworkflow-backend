@@ -19,6 +19,11 @@ class UserModel(SpiffworkflowBaseDBModel):
     """UserModel."""
 
     __tablename__ = "user"
+    __table_args__ = (
+        db.UniqueConstraint(
+            "service", "service_id", name="service_key"
+        ),
+    )
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), nullable=False, unique=True)
     uid = db.Column(db.String(50), unique=True)
@@ -93,9 +98,9 @@ class UserModel(SpiffworkflowBaseDBModel):
     @classmethod
     def from_open_id_user_info(cls, user_info):
         instance = cls()
-        instance.service = 'keycloak',
-        instance.service_id = user_info['sub'],
-        instance.name = user_info['preferred_username'],
+        instance.service = 'keycloak'
+        instance.service_id = user_info['sub']
+        instance.name = user_info['preferred_username']
         instance.username = user_info['sub']
 
         return instance
