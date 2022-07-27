@@ -39,6 +39,7 @@ from spiffworkflow_backend.models.principal import PrincipalModel
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 from spiffworkflow_backend.models.process_instance import ProcessInstanceStatus
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
+from spiffworkflow_backend.models.queued_send_message import QueuedSendMessageModel
 from spiffworkflow_backend.models.task_event import TaskAction
 from spiffworkflow_backend.models.task_event import TaskEventModel
 from spiffworkflow_backend.models.user import UserModelSchema
@@ -448,6 +449,16 @@ class ProcessInstanceProcessor:
         try:
             self.bpmn_process_instance.refresh_waiting_tasks()
             self.bpmn_process_instance.do_engine_steps(exit_at=exit_at)
+            # NOTE: MESSAGE - should we check for thrown_events here?
+            if self.bpmn_process_instance.thrown_events:
+                for thrown_event in self.bpmn_process_instance.thrown_events:
+                    queued_message = QueuedSendMessageModel(
+                        process_instance_id=self.process_instance_model.id,
+                        bpmn_element_id=thrown_event.task_name,
+                    )
+                    db.session.add(queued_message)
+                    db.session.commit()
+
         except WorkflowTaskExecException as we:
             raise ApiError.from_workflow_exception("task_error", str(we), we) from we
 
