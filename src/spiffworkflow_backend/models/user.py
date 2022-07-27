@@ -12,6 +12,7 @@ from sqlalchemy.orm import relationship
 
 from spiffworkflow_backend.models.group import GroupModel
 from spiffworkflow_backend.models.user_group_assignment import UserGroupAssignmentModel
+from spiffworkflow_backend.services.authentication_service import AuthenticationServiceProviders
 
 
 class UserModel(SpiffworkflowBaseDBModel):
@@ -21,6 +22,8 @@ class UserModel(SpiffworkflowBaseDBModel):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), nullable=False, unique=True)
     uid = db.Column(db.String(50), unique=True)
+    service = db.Column(db.String(50), nullable=False, unique=False)
+    service_id = db.Column(db.String(), nullable=False, unique=False)
     name = db.Column(db.String(50))
     email = db.Column(db.String(50))
     user_group_assignments = relationship(UserGroupAssignmentModel, cascade="delete")
@@ -30,6 +33,11 @@ class UserModel(SpiffworkflowBaseDBModel):
         secondary="user_group_assignment",
         overlaps="user_group_assignments,users",
     )
+
+    # @validates('service')
+    # def validate_service(self, key, value):
+    #     assert value != ''
+    #     return True
 
     def encode_auth_token(self) -> str:
         """Generate the Auth Token.
@@ -44,7 +52,8 @@ class UserModel(SpiffworkflowBaseDBModel):
         payload = {
             # 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=hours, minutes=0, seconds=0),
             # 'iat': datetime.datetime.utcnow(),
-            "sub": self.uid
+            "sub": f"service:{self.service}::service_id:{self.service_id}",
+            "token_type": "internal"
         }
         return jwt.encode(
             payload,
@@ -80,6 +89,16 @@ class UserModel(SpiffworkflowBaseDBModel):
                 "token_invalid",
                 "The Authentication token you provided is invalid. You need a new token. ",
             ) from exception
+
+    @classmethod
+    def from_open_id_user_info(cls, user_info):
+        instance = cls()
+        instance.service = 'keycloak',
+        instance.service_id = user_info['sub'],
+        instance.name = user_info['preferred_username'],
+        instance.username = user_info['sub']
+
+        return instance
 
 
 class UserModelSchema(Schema):

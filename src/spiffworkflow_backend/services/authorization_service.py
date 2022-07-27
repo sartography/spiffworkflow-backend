@@ -5,6 +5,7 @@ import json
 import enum
 from flask import g
 from flask import current_app
+from flask_bpmn.api.api_error import ApiError
 
 
 class AuthorizationService:
@@ -17,20 +18,24 @@ class AuthorizationService:
         keycloak_client_secret_key = current_app.config["KEYCLOAK_CLIENT_SECRET_KEY"]  # noqa: S105
         return keycloak_server_url, keycloak_client_id, keycloak_realm_name, keycloak_client_secret_key
 
-    def get_user_info_from_public_access_token(self, public_access_token):
+    def get_user_info_from_id_token_object(self, id_token_object):
         """This seems to work with basic tokens too"""
         json_data = None
         keycloak_server_url, keycloak_client_id, keycloak_realm_name, keycloak_client_secret_key = AuthorizationService.get_keycloak_args()
 
-        bearer_token = self.get_bearer_token(public_access_token)
-        auth_bearer_string = f"Bearer {bearer_token['access_token']}"
+        # bearer_token = self.get_bearer_token(public_access_token)
+        # if 'error' in bearer_token:
+        #     raise ApiError(code='invalid_token',
+        #                    message="Invalid token. Please authenticate.")
+        # else:
+        auth_bearer_string = f"Bearer {id_token_object['access_token']}"
         # auth_bearer_string = f"Bearer {public_access_token}"
         headers = {"Content-Type": "application/json",
                    "Authorization": auth_bearer_string}
         data = {'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
                 'client_id': keycloak_client_id,
-                # "subject_token": bearer_token['access_token'],
-                "subject_token": public_access_token,
+                "subject_token": id_token_object['access_token'],
+                # "subject_token": public_access_token,
                 "audience": keycloak_client_id}
 
         request_url = f"{keycloak_server_url}/realms/{keycloak_realm_name}/protocol/openid-connect/userinfo"
@@ -43,16 +48,16 @@ class AuthorizationService:
             json_data = json.loads(request_response.text)
         return json_data
 
-    def refresh_token(self, basic_token):
-        # if isinstance(basic_token, str):
-        #     basic_token = eval(basic_token)
+    def refresh_token(self, token):
+        # if isinstance(token, str):
+        #     token = eval(token)
         keycloak_server_url, keycloak_client_id, keycloak_realm_name, keycloak_client_secret_key = AuthorizationService.get_keycloak_args()
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
         request_url = f"{keycloak_server_url}/realms/{keycloak_realm_name}/protocol/openid-connect/token"
         data = {'grant_type': 'refresh_token',
                 'client_id': 'spiffworkflow-frontend',
-                'subject_token': basic_token,
-                'refresh_token': basic_token}
+                'subject_token': token,
+                'refresh_token': token}
         refresh_response = requests.post(request_url, headers=headers, data=data)
         refresh_token = json.loads(refresh_response.text)
         return refresh_token
@@ -111,7 +116,8 @@ class AuthorizationService:
                 'client_secret': keycloak_client_secret_key,
                 "grant_type": 'urn:ietf:params:oauth:grant-type:uma-ticket',
                 "response_mode": "permissions",
-                "audience": keycloak_client_id
+                "audience": keycloak_client_id,
+                "response_include_resource_name": True
         }
         request_url = f"{keycloak_server_url}/realms/{keycloak_realm_name}/protocol/openid-connect/token"
         permission_response = requests.post(request_url, headers=headers, data=data)
@@ -157,13 +163,49 @@ class AuthorizationService:
                 "grant_type": 'urn:ietf:params:oauth:grant-type:uma-ticket',
                 "response_mode": "permissions",
                 "permission": f"{resource}#{scope}",
-                "audience": keycloak_client_id
+                "audience": keycloak_client_id,
+                "response_include_resource_name": True
         }
         request_url = f"{keycloak_server_url}/realms/{keycloak_realm_name}/protocol/openid-connect/token"
         permission_response = requests.post(request_url, headers=headers, data=data)
         permission = json.loads(permission_response.text)
         return permission
 
+    def get_resource_set(self, public_access_token, uri):
+        keycloak_server_url, keycloak_client_id, keycloak_realm_name, keycloak_client_secret_key = AuthorizationService.get_keycloak_args()
+        bearer_token = AuthorizationService().get_bearer_token(public_access_token)
+        auth_bearer_string = f"Bearer {bearer_token['access_token']}"
+        headers = {"Content-Type": "application/json",
+                   "Authorization": auth_bearer_string}
+        data = {'matchingUri': 'true',
+                'deep': 'true',
+                'max': '-1',
+                'exactName': 'false',
+                'uri': uri}
+
+        # f"matchingUri=true&deep=true&max=-1&exactName=false&uri={URI_TO_TEST_AGAINST}"
+        request_url = f"{keycloak_server_url}/realms/{keycloak_realm_name}/authz/protection/resource_set"
+        response = requests.get(request_url, headers=headers, data=data)
+
+        print("get_resource_set")
+
+    def get_permission_by_token(self, public_access_token) -> dict:
+        keycloak_server_url, keycloak_client_id, keycloak_realm_name, keycloak_client_secret_key = AuthorizationService.get_keycloak_args()
+        bearer_token = AuthorizationService().get_bearer_token(public_access_token)
+        auth_bearer_string = f"Bearer {bearer_token['access_token']}"
+        headers = {"Content-Type": "application/x-www-form-urlencoded",
+                   "Authorization": auth_bearer_string}
+        data = {"grant_type": 'urn:ietf:params:oauth:grant-type:uma-ticket',
+                "audience": keycloak_client_id}
+        request_url = f"{keycloak_server_url}/realms/{keycloak_realm_name}/protocol/openid-connect/token"
+        permission_response = requests.post(request_url, headers=headers, data=data)
+        permission = json.loads(permission_response.text)
+
+        return permission
+
 
 class KeycloakAuthorization:
     """Interface with Keycloak server."""
+
+
+# class KeycloakClient:

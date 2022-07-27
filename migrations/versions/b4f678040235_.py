@@ -35,11 +35,14 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('username', sa.String(length=50), nullable=False),
     sa.Column('uid', sa.String(length=50), nullable=True),
+    sa.Column('service', sa.String(length=50), nullable=False),
+    sa.Column('service_id', sa.String(length=100), nullable=False),
     sa.Column('name', sa.String(length=50), nullable=True),
     sa.Column('email', sa.String(length=50), nullable=True),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('uid'),
-    sa.UniqueConstraint('username')
+    sa.UniqueConstraint('username'),
+    sa.UniqueConstraint('service', 'service_id')
     )
     op.create_table('principal',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -126,9 +129,11 @@ def upgrade():
     sa.Column('updated_at_in_seconds', sa.Integer(), nullable=True),
     sa.Column('created_at_in_seconds', sa.Integer(), nullable=True),
     sa.Column('user_uid', sa.String(length=50), nullable=True),
+    sa.Column('user_id', sa.Integer(), nullable=True),
     sa.Column('archived', sa.Boolean(), nullable=True),
     sa.ForeignKeyConstraint(['process_instance_id'], ['process_instance.id'], ),
     sa.ForeignKeyConstraint(['user_uid'], ['user.uid'], ),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('task_event',
