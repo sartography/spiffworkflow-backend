@@ -47,16 +47,16 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[str]]:
     # maybe need to refresh the token?
 
     if token:
-        if is_internal_token(token):
-            try:
-                PublicAuthenticationService.get_bearer_token_from_internal_token(token)
-            except Exception as e:
-                current_app.logger.error(f"Exception raised decoding token: {e}")
-                raise ApiError(code="fail_decode_auth_token",
-                               message="Cannot decode the auth token")
+        # if is_internal_token(token):
+        # try:
+        #     AuthorizationService().get_bearer_token_from_internal_token(token)
+        # except Exception as e:
+        #     current_app.logger.error(f"Exception raised decoding token: {e}")
+        #     raise ApiError(code="fail_decode_auth_token",
+        #                    message="Cannot decode the auth token")
 
         try:
-            user_info = AuthorizationService().get_user_info_from_public_access_token(token)
+            user_info = AuthorizationService().get_user_info_from_id_token_object(token)
         except ApiError as ae:
             raise ae
         except Exception as e:
@@ -64,7 +64,7 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[str]]:
             raise ApiError(code="fail_get_user_info",
                            message="Cannot get user info from token")
 
-        if user_info:  # not sure what to test yet
+        if user_info and 'error' not in user_info:  # not sure what to test yet
             user_model = UserModel.query.filter(UserModel.service == 'keycloak').filter(UserModel.service_id==user_info['sub']).first()
             if user_model is None:
                 user_model = UserModel(service='keycloak',
@@ -86,6 +86,7 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[str]]:
                 g.token = token
                 # What should we return? Dict?
                 # return user_info
+                # TODO: Need to return dictionary containing 'scope'
                 return validate_scope(token, user_info, user_model)
             else:
                 raise ApiError(code="no_user_id",
@@ -122,7 +123,7 @@ def validate_scope(token, user_info, user_model):
     # bearer_token = AuthorizationService().get_bearer_token(token)
     # permission = AuthorizationService().get_permission_by_basic_token(token)
     # permissions = AuthorizationService().get_permissions_by_token_for_resource_and_scope(token)
-    introspection = AuthorizationService().introspect_token(basic_token)
+    # introspection = AuthorizationService().introspect_token(basic_token)
     return True
 
 
@@ -147,20 +148,26 @@ def encode_auth_token(uid):
         algorithm='HS256',
     )
 
-def login_redirect(redirect_url='/'):
-    state = PublicAuthenticationService.generate_state()
+def login(redirect_url='/'):
+    state = PublicAuthenticationService.generate_state(redirect_url)
     login_redirect_url = PublicAuthenticationService().get_login_redirect_url(state)
     return redirect(login_redirect_url)
 
 def login_return(code, state, session_state):
     """"""
+    # TODO: Why does state look like this?
+    #  'b\'eydyZWRpcmVjdF91cmwnOiAnaHR0cDovL2xvY2FsaG9zdDo3MDAxLyd9\''
+    #  It has an extra 'b at the beginning and an extra ' at the end,
+    #  so we use state[2:-1]
+    state_dict = eval(base64.b64decode(state[2:-1]).decode('utf-8'))
+    state_redirect_url = state_dict['redirect_url']
 
     id_token_object = PublicAuthenticationService().get_id_token_object(code)
     id_token = id_token_object['id_token']
 
     if PublicAuthenticationService.validate_id_token(id_token):
-        user_info = AuthorizationService().get_user_info_from_id_token_object(id_token_object)
-        if user_info:
+        user_info = AuthorizationService().get_user_info_from_id_token_object(id_token_object['access_token'])
+        if user_info and 'error' not in user_info:
             user_model = UserModel.query.filter(UserModel.service == 'keycloak').filter(UserModel.service_id==user_info['sub']).first()
             if user_model is None:
                 user_model = UserModel.from_open_id_user_info(user_info)
@@ -174,7 +181,10 @@ def login_return(code, state, session_state):
             if user_model:
                 g.user = user_model.id
 
-            return redirect(f"http://localhost:7001/?access_token={id_token_object['access_token']}&id_token={id_token}")
+            redirect_url = f"{state_redirect_url}?" + \
+                           f"access_token={id_token_object['access_token']}&" + \
+                           f"id_token={id_token}"
+            return redirect(redirect_url)
 
             # return f"{code} {state} {id_token}"
 
@@ -186,5 +196,5 @@ def logout_return():
 
 def is_internal_token(token) -> bool:
     decoded_token = UserModel.decode_auth_token(token)
-    print("is_internal_token")
-    return True
+    if 'token_type' in decoded_token and 'sub' in decoded_token:
+        return True

@@ -12,6 +12,7 @@ from flask import g
 from flask import current_app
 from flask import redirect
 from flask_bpmn.api.api_error import ApiError
+from flask_bpmn.models.db import db
 
 from keycloak import KeycloakOpenID  # type: ignore
 from keycloak.uma_permissions import AuthStatus  # type: ignore
@@ -51,10 +52,8 @@ class PublicAuthenticationService:
         return redirect(request_url)
 
     @staticmethod
-    def generate_state():
-        rando = random.randbytes(24)
-        state = base64.b64encode(bytes(rando))
-        print("generate_state")
+    def generate_state(redirect_url):
+        state = base64.b64encode(bytes(str({'redirect_url': redirect_url}), 'UTF-8'))
         return state
 
     def get_login_redirect_url(self, state):
@@ -89,6 +88,9 @@ class PublicAuthenticationService:
 
     @staticmethod
     def validate_id_token(id_token):
+        """
+        https://openid.net/specs/openid-connect-core-1_0.html#IDTokenValidation
+        """
         now = time.time()
         keycloak_server_url, keycloak_client_id, keycloak_realm_name, keycloak_client_secret_key = get_keycloak_args()
         try:
@@ -108,9 +110,6 @@ class PublicAuthenticationService:
             current_app.logger.error(f"Exception validating id_token: {e}")
             return False
         return True
-
-    def get_bearer_token_from_internal_token(self, internal_token):
-        print(f"get_user_by_internal_token: {internal_token}")
 
     def get_public_access_token(self, username, password) -> dict:
         keycloak_server_url, keycloak_client_id, keycloak_realm_name, keycloak_client_secret_key = AuthorizationService.get_keycloak_args()

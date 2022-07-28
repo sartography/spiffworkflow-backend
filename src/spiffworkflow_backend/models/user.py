@@ -12,7 +12,6 @@ from sqlalchemy.orm import relationship
 
 from spiffworkflow_backend.models.group import GroupModel
 from spiffworkflow_backend.models.user_group_assignment import UserGroupAssignmentModel
-from spiffworkflow_backend.services.authentication_service import AuthenticationServiceProviders
 
 
 class UserModel(SpiffworkflowBaseDBModel):
@@ -69,31 +68,6 @@ class UserModel(SpiffworkflowBaseDBModel):
     def is_admin(self) -> bool:
         """Is_admin."""
         return True
-
-    @staticmethod
-    def decode_auth_token(auth_token: str) -> dict[str, Union[str, None]]:
-        """Decode the auth token.
-
-        :param auth_token:
-        :return: integer|string
-        """
-        secret_key = current_app.config.get("SECRET_KEY")
-        if secret_key is None:
-            raise KeyError("we need current_app.config to have a SECRET_KEY")
-
-        try:
-            payload = jwt.decode(auth_token, secret_key, algorithms=["HS256"])
-            return payload
-        except jwt.ExpiredSignatureError as exception:
-            raise ApiError(
-                "token_expired",
-                "The Authentication token you provided expired and must be renewed.",
-            ) from exception
-        except jwt.InvalidTokenError as exception:
-            raise ApiError(
-                "token_invalid",
-                "The Authentication token you provided is invalid. You need a new token. ",
-            ) from exception
 
     @classmethod
     def from_open_id_user_info(cls, user_info):

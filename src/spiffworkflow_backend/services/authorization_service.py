@@ -2,10 +2,14 @@
 import requests
 import base64
 import json
+import jwt
 import enum
 from flask import g
 from flask import current_app
 from flask_bpmn.api.api_error import ApiError
+from typing import Union
+
+from spiffworkflow_backend.models.user import UserModel
 
 
 class AuthorizationService:
@@ -23,26 +27,35 @@ class AuthorizationService:
         json_data = None
         keycloak_server_url, keycloak_client_id, keycloak_realm_name, keycloak_client_secret_key = AuthorizationService.get_keycloak_args()
 
+        BACKEND_BASIC_AUTH_STRING = f"{keycloak_client_id}:{keycloak_client_secret_key}"
+        BACKEND_BASIC_AUTH_BYTES = bytes(BACKEND_BASIC_AUTH_STRING, encoding='ascii')
+        BACKEND_BASIC_AUTH = base64.b64encode(BACKEND_BASIC_AUTH_BYTES)
+
+        # headers = {"Content-Type": "application/x-www-form-urlencoded",
+        #            "Authorization": f"Bearer {BACKEND_BASIC_AUTH.decode('utf-8')}"}
+        # data = {'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
+        #         'client_id': keycloak_client_id,
+        #         "subject_token": basic_token,
+        #         "audience": keycloak_client_id}
         # bearer_token = self.get_bearer_token(public_access_token)
         # if 'error' in bearer_token:
         #     raise ApiError(code='invalid_token',
         #                    message="Invalid token. Please authenticate.")
         # else:
-        auth_bearer_string = f"Bearer {id_token_object['access_token']}"
-        # auth_bearer_string = f"Bearer {public_access_token}"
-        headers = {"Content-Type": "application/json",
-                   "Authorization": auth_bearer_string}
+        # auth_bearer_string = f"Bearer {id_token_object['access_token']}"
+        # auth_bearer_string = f"Basic {keycloak_client_secret_key}"
+        headers = {"Authorization": f"Bearer {id_token_object}"}
         data = {'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
                 'client_id': keycloak_client_id,
-                "subject_token": id_token_object['access_token'],
-                # "subject_token": public_access_token,
+                # "subject_token": id_token_object['access_token'],
+                "subject_token": id_token_object,
                 "audience": keycloak_client_id}
 
         request_url = f"{keycloak_server_url}/realms/{keycloak_realm_name}/protocol/openid-connect/userinfo"
         try:
-            request_response = requests.post(request_url, headers=headers, data=data)
+            request_response = requests.get(request_url, headers=headers)
         except Exception as e:
-            print(f"get_user_from_token: Exeption: {e}")
+            print(f"get_user_from_token: Exception: {e}")
         else:
             print("else")
             json_data = json.loads(request_response.text)
@@ -82,6 +95,35 @@ class AuthorizationService:
         # bearer_token = json_data['access_token']
         bearer_token = json.loads(backend_response.text)
         return bearer_token
+
+    @staticmethod
+    def decode_auth_token(auth_token: str) -> dict[str, Union[str, None]]:
+        """Decode the auth token.
+
+        :param auth_token:
+        :return: integer|string
+        """
+        secret_key = current_app.config.get("SECRET_KEY")
+        if secret_key is None:
+            raise KeyError("we need current_app.config to have a SECRET_KEY")
+
+        try:
+            payload = jwt.decode(auth_token, options={"verify_signature": False})
+            return payload
+        except jwt.ExpiredSignatureError as exception:
+            raise ApiError(
+                "token_expired",
+                "The Authentication token you provided expired and must be renewed.",
+            ) from exception
+        except jwt.InvalidTokenError as exception:
+            raise ApiError(
+                "token_invalid",
+                "The Authentication token you provided is invalid. You need a new token. ",
+            ) from exception
+
+    def get_bearer_token_from_internal_token(self, internal_token):
+        decoded_token = self.decode_auth_token(internal_token)
+        print(f"get_user_by_internal_token: {internal_token}")
 
     def introspect_token(self, basic_token):
         keycloak_server_url, keycloak_client_id, keycloak_realm_name, keycloak_client_secret_key = AuthorizationService.get_keycloak_args()

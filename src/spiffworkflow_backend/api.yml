@@ -20,7 +20,7 @@ paths:
     get:
       security: []
       summary: redirect to open id authentication server
-      operationId: spiffworkflow_backend.routes.user.login_redirect
+      operationId: spiffworkflow_backend.routes.user.login
       tags:
         - Authentication
       responses:
@@ -496,6 +496,8 @@ paths:
         schema:
           type: integer
     get:
+      tags:
+        - Process Instances
       operationId: spiffworkflow_backend.routes.process_api_blueprint.process_instance_show
       summary: Show information about a process instance
       responses:
@@ -764,7 +766,9 @@ paths:
         schema:
           type: integer
     get:
-      security: []
+      tags:
+        - Tasks
+#      security: []
       operationId: spiffworkflow_backend.routes.process_api_blueprint.task_list_my_tasks
       summary: returns the list of ready or waiting tasks for a user
       responses:
@@ -792,6 +796,8 @@ paths:
         schema:
           type: boolean
     get:
+      tags:
+        - Process Instances
       operationId: spiffworkflow_backend.routes.process_api_blueprint.process_instance_task_list
       summary: returns the list of all user tasks associated with process instance
       responses:
@@ -825,6 +831,8 @@ paths:
         schema:
           type: boolean
     get:
+      tags:
+        - Tasks
       operationId: spiffworkflow_backend.routes.process_api_blueprint.task_show
       summary: Gets one task that a user wants to complete
       responses:
@@ -835,6 +843,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Task"
     put:
+      tags:
+        - Tasks
       operationId: spiffworkflow_backend.routes.process_api_blueprint.task_submit
       summary: Update the form data for a tasks
       requestBody:
