@@ -52,9 +52,30 @@ paths:
         '200':
           description: Test Return Response
   /logout:
+    parameters:
+      - name: id_token
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: redirect_url
+        in: query
+        required: false
+        schema:
+          type: string
     get:
       security: []
       operationId: spiffworkflow_backend.routes.user.logout
+      summary: Logout authenticated user
+      tags:
+        - Authentication
+      responses:
+        '200':
+          description: Logout Authenticated User
+  /logout_return:
+    get:
+      security: []
+      operationId: spiffworkflow_backend.routes.user.logout_return
       summary: Logout authenticated user
       tags:
         - Authentication

@@ -77,7 +77,7 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[str]]:
                 except Exception as e:
                     current_app.logger.error(f"Exception raised while adding user in get_token: {e}")
                     raise ApiError(code="fail_add_user_model",
-                                   message="Cannot add user in verify_token")
+                                   message="Cannot add user in verify_token") from e
             if user_model:
                 g.user = user_model.id
 
@@ -174,12 +174,15 @@ def login_return(code, state, session_state):
             if user_model:
                 g.user = user_model.id
 
-            return redirect(f"http://localhost:7001/?token={id_token_object['access_token']}")
+            return redirect(f"http://localhost:7001/?access_token={id_token_object['access_token']}&id_token={id_token}")
 
             # return f"{code} {state} {id_token}"
 
-def logout():
-    return PublicAuthenticationService().logout()
+def logout(id_token: str, redirect_url: str | None):
+    return PublicAuthenticationService().logout(id_token=id_token, redirect_url=redirect_url)
+
+def logout_return():
+    return redirect(f"http://localhost:7001/")
 
 def is_internal_token(token) -> bool:
     decoded_token = UserModel.decode_auth_token(token)

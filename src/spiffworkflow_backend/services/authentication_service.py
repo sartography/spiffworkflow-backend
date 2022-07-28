@@ -38,9 +38,15 @@ class PublicAuthenticationService:
     It uses a separate public keycloak client: spiffworkflow-frontend
     Used during development to make testing easy.
     """
-    def logout(self):
+    def logout(self, redirect_url: str='/', id_token: str | None=None):
+        if id_token is None:
+            raise ApiError(code='missing_id_token',
+                           message="id_token is missing",
+                           status_code=400)
+
+        return_redirect_url = 'http://localhost:7000/v1.0/logout_return'
         keycloak_server_url, keycloak_client_id, keycloak_realm_name, keycloak_client_secret_key = get_keycloak_args()
-        request_url = f"{keycloak_server_url}/realms/{keycloak_realm_name}/protocol/openid-connect/logout"
+        request_url = f"{keycloak_server_url}/realms/{keycloak_realm_name}/protocol/openid-connect/logout?post_logout_redirect_uri={return_redirect_url}&id_token_hint={id_token}"
 
         return redirect(request_url)
 

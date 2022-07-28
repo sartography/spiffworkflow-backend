@@ -15,6 +15,6 @@ CORS_ALLOW_ORIGINS = re.split(
 
 # Keycloak server
 KEYCLOAK_SERVER_URL = environ.get("KEYCLOAK_SERVER_URL", default="http://localhost:7002")
-KEYCLOAK_CLIENT_ID = environ.get("KEYCLOAK_CLIENT_ID", default="spiffworkflow_backend")
+KEYCLOAK_CLIENT_ID = environ.get("KEYCLOAK_CLIENT_ID", default="spiffworkflow-backend")
 KEYCLOAK_REALM_NAME = environ.get("KEYCLOAK_REALM_NAME", default="spiffworkflow")
-KEYCLOAK_CLIENT_SECRET_KEY = environ.get("KEYCLOAK_CLIENT_SECRET_KEY", default="seciKpRanUReL0ksZaFm5nfjhMUKHVAO")  # noqa: S105
+KEYCLOAK_CLIENT_SECRET_KEY = environ.get("KEYCLOAK_CLIENT_SECRET_KEY", default="JXeQExm0JhQPLumgHtIIqf52bDalHz0q")  # noqa: S105
