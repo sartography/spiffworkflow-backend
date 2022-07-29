@@ -24,7 +24,7 @@ paths:
       tags:
         - Authentication
       responses:
-        '200':
+        "200":
           description: Redirects to authentication server
   /login_return:
     parameters:
@@ -49,7 +49,7 @@ paths:
       tags:
         - Authentication
       responses:
-        '200':
+        "200":
           description: Test Return Response
   /logout:
     parameters:
@@ -70,7 +70,7 @@ paths:
       tags:
         - Authentication
       responses:
-        '200':
+        "200":
           description: Logout Authenticated User
   /logout_return:
     get:
@@ -80,7 +80,7 @@ paths:
       tags:
         - Authentication
       responses:
-        '200':
+        "200":
           description: Logout Authenticated User
 
   /login_swagger:
@@ -110,12 +110,12 @@ paths:
       tags:
         - Authentication
       responses:
-        '304':
+        "304":
           description: Redirection to the hosted frontend with an auth_token header.
 
   /status:
     get:
-#      security: []
+      #      security: []
       operationId: spiffworkflow_backend.routes.process_api_blueprint.status
       summary: Returns 200 if the server is Responding
       tags:
@@ -768,7 +768,7 @@ paths:
     get:
       tags:
         - Tasks
-#      security: []
+      #      security: []
       operationId: spiffworkflow_backend.routes.process_api_blueprint.task_list_my_tasks
       summary: returns the list of ready or waiting tasks for a user
       responses:

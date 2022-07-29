@@ -5,7 +5,6 @@ from typing import Final
 
 import flask.wrappers
 from flask import Blueprint
-from flask import current_app
 from flask import request
 from flask import Response
 from flask_bpmn.api.api_error import ApiError
@@ -13,7 +12,6 @@ from flask_bpmn.models.db import db
 from sqlalchemy.exc import IntegrityError
 
 from spiffworkflow_backend.models.group import GroupModel
-from spiffworkflow_backend.models.principal import PrincipalModel
 from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.models.user_group_assignment import UserGroupAssignmentModel
 

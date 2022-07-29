@@ -15,15 +15,18 @@ class UserService:
     """Provides common tools for working with users."""
 
     def create_user(self, service, service_id, name=None, username=None, email=None):
-        user = UserModel.query.filter(UserModel.service == service)\
-            .filter(UserModel.service_id == service_id)\
+        """Create_user."""
+        user = (
+            UserModel.query.filter(UserModel.service == service)
+            .filter(UserModel.service_id == service_id)
             .first()
+        )
         if name is None:
-            name = ''
+            name = ""
         if username is None:
-            username = ''
+            username = ""
         if email is None:
-            email = ''
+            email = ""
 
         if user is not None:
             raise (
@@ -34,24 +37,29 @@ class UserService:
                 )
             )
 
-        user = UserModel(username=username,
-                         service=service,
-                         service_id=service_id,
-                         name=name,
-                         email=email)
+        user = UserModel(
+            username=username,
+            service=service,
+            service_id=service_id,
+            name=name,
+            email=email,
+        )
         try:
             db.session.add(user)
         except IntegrityError as exception:
             raise (
-                ApiError(code="integrity_error", message=repr(exception), status_code=500)
+                ApiError(
+                    code="integrity_error", message=repr(exception), status_code=500
+                )
             ) from exception
 
         try:
             db.session.commit()
         except Exception as e:
             db.session.rollback()
-            raise ApiError(code='add_user_error',
-                           message=f'Could not add user {username}') from e
+            raise ApiError(
+                code="add_user_error", message=f"Could not add user {username}"
+            ) from e
         try:
             self.create_principal(user.id)
         except ApiError as ae:
@@ -234,6 +242,7 @@ class UserService:
         )
 
     def create_principal(self, user_id):
+        """Create_principal."""
         principal = PrincipalModel.query.filter_by(user_id=user_id).first()
         if principal is None:
             principal = PrincipalModel(user_id=user_id)
@@ -243,6 +252,8 @@ class UserService:
             except Exception as e:
                 db.session.rollback()
                 current_app.logger.error(f"Exception in create_principal: {e}")
-                raise ApiError(code="add_principal_error",
-                               message=f"Could not create principal {user_id}") from e
+                raise ApiError(
+                    code="add_principal_error",
+                    message=f"Could not create principal {user_id}",
+                ) from e
         return principal
