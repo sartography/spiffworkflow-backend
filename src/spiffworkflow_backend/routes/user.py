@@ -188,14 +188,20 @@ def login_return(code, state, session_state):
         if user_info and 'error' not in user_info:
             user_model = UserModel.query.filter(UserModel.service == 'keycloak').filter(UserModel.service_id==user_info['sub']).first()
             if user_model is None:
-                user_model = UserModel.from_open_id_user_info(user_info)
-                db.session.add(user_model)
-                try:
-                    db.session.commit()
-                except Exception as e:
-                    current_app.logger.error(f"Exception raised while adding user in get_token: {e}")
-                    raise ApiError(code="fail_add_user_model",
-                                   message="Cannot add user in verify_token")
+                user_model = UserService().create_user(service='keycloak',
+                                                     service_id=user_info['sub'],
+                                                     name=user_info['name'],
+                                                     username=user_info['preferred_username'],
+                                                     email=user_info['email'])
+
+                # user_model = UserModel.from_open_id_user_info(user_info)
+                # db.session.add(user_model)
+                # try:
+                #     db.session.commit()
+                # except Exception as e:
+                #     current_app.logger.error(f"Exception raised while adding user in get_token: {e}")
+                #     raise ApiError(code="fail_add_user_model",
+                #                    message="Cannot add user in verify_token")
             if user_model:
                 g.user = user_model.id
 
