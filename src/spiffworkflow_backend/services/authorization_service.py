@@ -22,7 +22,7 @@ class AuthorizationService:
         keycloak_client_secret_key = current_app.config["KEYCLOAK_CLIENT_SECRET_KEY"]  # noqa: S105
         return keycloak_server_url, keycloak_client_id, keycloak_realm_name, keycloak_client_secret_key
 
-    def get_user_info_from_id_token_object(self, id_token_object):
+    def get_user_info_from_id_token(self, token):
         """This seems to work with basic tokens too"""
         json_data = None
         keycloak_server_url, keycloak_client_id, keycloak_realm_name, keycloak_client_secret_key = AuthorizationService.get_keycloak_args()
@@ -44,11 +44,12 @@ class AuthorizationService:
         # else:
         # auth_bearer_string = f"Bearer {id_token_object['access_token']}"
         # auth_bearer_string = f"Basic {keycloak_client_secret_key}"
-        headers = {"Authorization": f"Bearer {id_token_object}"}
+
+        headers = {"Authorization": f"Bearer {token}"}
         data = {'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
                 'client_id': keycloak_client_id,
                 # "subject_token": id_token_object['access_token'],
-                "subject_token": id_token_object,
+                "subject_token": token,
                 "audience": keycloak_client_id}
 
         request_url = f"{keycloak_server_url}/realms/{keycloak_realm_name}/protocol/openid-connect/userinfo"
@@ -56,9 +57,12 @@ class AuthorizationService:
             request_response = requests.get(request_url, headers=headers)
         except Exception as e:
             print(f"get_user_from_token: Exception: {e}")
-        else:
-            print("else")
+        if request_response.status_code == 200:
             json_data = json.loads(request_response.text)
+        elif request_response.status_code == 401:
+            raise ApiError(code="invalid_token",
+                           message="Please login",
+                           status_code=401)
         return json_data
 
     def refresh_token(self, token):
@@ -190,7 +194,7 @@ class AuthorizationService:
         auth_status = json.loads(auth_response.text)
         return auth_status
 
-    def get_permissions_by_token_for_resource_and_scope(self, basic_token, resource, scope):
+    def get_permissions_by_token_for_resource_and_scope(self, basic_token, resource=None, scope=None):
         keycloak_server_url, keycloak_client_id, keycloak_realm_name, keycloak_client_secret_key = AuthorizationService.get_keycloak_args()
 
         # basic_token = AuthorizationService().refresh_token(basic_token)
@@ -200,11 +204,16 @@ class AuthorizationService:
 
         headers = {"Content-Type": "application/x-www-form-urlencoded",
                    "Authorization": auth_bearer_string}
+        permision = ''
+        if resource:
+            permision += resource
+        if scope:
+            permision += '#' + resource
         data = {'client_id': keycloak_client_id,
                 'client_secret': keycloak_client_secret_key,
                 "grant_type": 'urn:ietf:params:oauth:grant-type:uma-ticket',
                 "response_mode": "permissions",
-                "permission": f"{resource}#{scope}",
+                "permission": permision,
                 "audience": keycloak_client_id,
                 "response_include_resource_name": True
         }

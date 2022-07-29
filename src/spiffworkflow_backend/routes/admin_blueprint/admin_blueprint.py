@@ -207,14 +207,14 @@ def process_model_run(process_model_id: str) -> Union[str, Response]:
     )
 
 
-def _find_or_create_user(username: str = "test_user1") -> Any:
-    """Find_or_create_user."""
-    user = UserModel.query.filter_by(username=username).first()
-    if user is None:
-        user = UserModel(username=username)
-        db.session.add(user)
-        db.session.commit()
-    return user
+# def _find_or_create_user(username: str = "test_user1") -> Any:
+#     """Find_or_create_user."""
+#     user = UserModel.query.filter_by(username=username).first()
+#     if user is None:
+#         user = UserModel(username=username)
+#         db.session.add(user)
+#         db.session.commit()
+#     return user
 
 
 def _allowed_file(filename: str) -> bool:

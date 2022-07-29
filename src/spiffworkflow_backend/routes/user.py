@@ -20,6 +20,7 @@ from flask_bpmn.models.db import db
 from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.services.authentication_service import PublicAuthenticationService, get_keycloak_args
 from spiffworkflow_backend.services.authorization_service import AuthorizationService
+from spiffworkflow_backend.services.user_service import UserService
 
 """
 .. module:: crc.api.user
@@ -55,31 +56,45 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[str]]:
         #     raise ApiError(code="fail_decode_auth_token",
         #                    message="Cannot decode the auth token")
 
-        try:
-            user_info = AuthorizationService().get_user_info_from_id_token_object(token)
-        except ApiError as ae:
-            raise ae
-        except Exception as e:
-            current_app.logger.error(f"Exception raised in get_token: {e}")
-            raise ApiError(code="fail_get_user_info",
-                           message="Cannot get user info from token")
+        user_info = None
+        token_type = get_token_type(token)
+        if token_type == 'id_token' :
+            try:
+                user_info = AuthorizationService().get_user_info_from_id_token(token)
+            except ApiError as ae:
+                raise ae
+            except Exception as e:
+                current_app.logger.error(f"Exception raised in get_token: {e}")
+                raise ApiError(code="fail_get_user_info",
+                               message="Cannot get user info from token")
 
         if user_info and 'error' not in user_info:  # not sure what to test yet
-            user_model = UserModel.query.filter(UserModel.service == 'keycloak').filter(UserModel.service_id==user_info['sub']).first()
+            user_model = UserModel.query\
+                .filter(UserModel.service == 'keycloak')\
+                .filter(UserModel.service_id==user_info['sub'])\
+                .first()
             if user_model is None:
-                user_model = UserModel(service='keycloak',
-                                       service_id=user_info['sub'],
-                                       name=user_info['preferred_username'],
-                                       username=user_info['sub'])
-                db.session.add(user_model)
-                try:
-                    db.session.commit()
-                except Exception as e:
-                    current_app.logger.error(f"Exception raised while adding user in get_token: {e}")
-                    raise ApiError(code="fail_add_user_model",
-                                   message="Cannot add user in verify_token") from e
+                user_model = UserService().create_user(service='keycloak',
+                                                     service_id=user_info['sub'],
+                                                     name=user_info['name'],
+                                                     username=user_info['preferred_username'],
+                                                     email=user_info['email'])
+                # user_model = UserModel.query\
+                #     .filter(UserModel.id == user['id'])\
+                #     .first()
+                # user_model = UserModel(service='keycloak',
+                #                        service_id=user_info['sub'],
+                #                        name=user_info['preferred_username'],
+                #                        username=user_info['sub'])
+                # db.session.add(user_model)
+                # try:
+                #     db.session.commit()
+                # except Exception as e:
+                #     current_app.logger.error(f"Exception raised while adding user in get_token: {e}")
+                #     raise ApiError(code="fail_add_user_model",
+                #                    message="Cannot add user in verify_token") from e
             if user_model:
-                g.user = user_model.id
+                g.user = user_model
 
             # If the user is valid, store the token for this session
             if g.user:
@@ -87,7 +102,11 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[str]]:
                 # What should we return? Dict?
                 # return user_info
                 # TODO: Need to return dictionary containing 'scope'
-                return validate_scope(token, user_info, user_model)
+                scope = get_scope(token)
+                return {'uid': g.user.id,
+                        'sub': g.user.id,
+                        'scope': scope}
+                # return validate_scope(token, user_info, user_model)
             else:
                 raise ApiError(code="no_user_id",
                                message="Cannot get a user id")
@@ -116,7 +135,7 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[str]]:
                            message="No authorization token was available.",
                            status_code=401)
 
-def validate_scope(token, user_info, user_model):
+def validate_scope(token) -> bool:
     print("validate_scope")
     # token = AuthorizationService().refresh_token(token)
     # user_info = AuthorizationService().get_user_info_from_public_access_token(token)
@@ -125,7 +144,6 @@ def validate_scope(token, user_info, user_model):
     # permissions = AuthorizationService().get_permissions_by_token_for_resource_and_scope(token)
     # introspection = AuthorizationService().introspect_token(basic_token)
     return True
-
 
 def api_login(uid, password, redirect_url=None):
 
@@ -166,7 +184,7 @@ def login_return(code, state, session_state):
     id_token = id_token_object['id_token']
 
     if PublicAuthenticationService.validate_id_token(id_token):
-        user_info = AuthorizationService().get_user_info_from_id_token_object(id_token_object['access_token'])
+        user_info = AuthorizationService().get_user_info_from_id_token(id_token_object['access_token'])
         if user_info and 'error' not in user_info:
             user_model = UserModel.query.filter(UserModel.service == 'keycloak').filter(UserModel.service_id==user_info['sub']).first()
             if user_model is None:
@@ -194,7 +212,30 @@ def logout(id_token: str, redirect_url: str | None):
 def logout_return():
     return redirect(f"http://localhost:7001/")
 
-def is_internal_token(token) -> bool:
-    decoded_token = UserModel.decode_auth_token(token)
-    if 'token_type' in decoded_token and 'sub' in decoded_token:
-        return True
+def get_token_type(token) -> bool:
+    token_type = None
+    try:
+        PublicAuthenticationService.validate_id_token(token)
+    except ApiError as ae:
+        if ae.status_code == 401:
+            raise ae
+        print(f"ApiError in get_token_type: {ae}")
+    except Exception as e:
+        print(f"Exception in get_token_type: {e}")
+    else:
+        token_type = 'id_token'
+    # try:
+    #     # see if we have an open_id token
+    #     decoded_token = AuthorizationService.decode_auth_token(token)
+    # else:
+    #     if 'sub' in decoded_token and 'iss' in decoded_token and 'aud' in decoded_token:
+    #         token_type = 'id_token'
+
+        # if 'token_type' in decoded_token and 'sub' in decoded_token:
+        #     return True
+    return token_type
+
+def get_scope(token):
+    decoded_token = jwt.decode(token, options={"verify_signature": False})
+    scope = decoded_token['scope']
+    return scope

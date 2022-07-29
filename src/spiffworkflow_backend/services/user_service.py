@@ -14,6 +14,44 @@ from spiffworkflow_backend.models.user import UserModel
 class UserService:
     """Provides common tools for working with users."""
 
+    def create_user(self, service, service_id, name=None, username=None, email=None):
+        user = UserModel.query.filter(UserModel.service == service)\
+            .filter(UserModel.service_id == service_id)\
+            .first()
+        if user is not None:
+            raise (
+                ApiError(
+                    code="user_already_exists",
+                    message=f"User already exists: {username}",
+                    status_code=409,
+                )
+            )
+
+        user = UserModel(username=username,
+                         service=service,
+                         service_id=service_id,
+                         name=name,
+                         email=email)
+        try:
+            db.session.add(user)
+        except IntegrityError as exception:
+            raise (
+                ApiError(code="integrity_error", message=repr(exception), status_code=500)
+            ) from exception
+
+        try:
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            raise ApiError(code='add_user_error',
+                           message=f'Could not add user {username}') from e
+        try:
+            self.create_principal(user.id)
+        except ApiError as ae:
+            # TODO: What is the right way to do this
+            raise ae
+        return user
+
     # Returns true if the current user is logged in.
     @staticmethod
     def has_user() -> bool:
@@ -187,3 +225,17 @@ class UserService:
             code="no_principal_found",
             message=f"No principal was found for user_id: {user_id}",
         )
+
+    def create_principal(self, user_id):
+        principal = PrincipalModel.query.filter_by(user_id=user_id).first()
+        if principal is None:
+            principal = PrincipalModel(user_id=user_id)
+            db.session.add(principal)
+            try:
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                current_app.logger.error(f"Exception in create_principal: {e}")
+                raise ApiError(code="add_principal_error",
+                               message=f"Could not create principal {user_id}") from e
+        return principal

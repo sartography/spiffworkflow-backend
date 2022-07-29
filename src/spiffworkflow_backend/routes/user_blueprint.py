@@ -5,6 +5,7 @@ from typing import Final
 
 import flask.wrappers
 from flask import Blueprint
+from flask import current_app
 from flask import request
 from flask import Response
 from flask_bpmn.api.api_error import ApiError
@@ -12,6 +13,7 @@ from flask_bpmn.models.db import db
 from sqlalchemy.exc import IntegrityError
 
 from spiffworkflow_backend.models.group import GroupModel
+from spiffworkflow_backend.models.principal import PrincipalModel
 from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.models.user_group_assignment import UserGroupAssignmentModel
 
@@ -20,31 +22,47 @@ APPLICATION_JSON: Final = "application/json"
 user_blueprint = Blueprint("main", __name__)
 
 
-@user_blueprint.route("/user/<username>", methods=["GET"])
-def create_user(username: str) -> flask.wrappers.Response:
-    """Create_user."""
-    user = UserModel.query.filter_by(username=username).first()
-    if user is not None:
-        raise (
-            ApiError(
-                code="user_already_exists",
-                message=f"User already exists: {username}",
-                status_code=409,
-            )
-        )
+# @user_blueprint.route("/user/<username>", methods=["GET"])
+# def create_user(username: str) -> flask.wrappers.Response:
+#     """Create_user."""
+#     user = UserService.create_user('internal', username)
+#     return Response(json.dumps({"id": user.id}), status=201, mimetype=APPLICATION_JSON)
 
-    user = UserModel(username=username)
-    try:
-        db.session.add(user)
-    except IntegrityError as exception:
-        raise (
-            ApiError(code="integrity_error", message=repr(exception), status_code=500)
-        ) from exception
-
-    db.session.commit()
-    return Response(json.dumps({"id": user.id}), status=201, mimetype=APPLICATION_JSON)
-
-
+# def _create_user(username):
+#     user = UserModel.query.filter_by(username=username).first()
+#     if user is not None:
+#         raise (
+#             ApiError(
+#                 code="user_already_exists",
+#                 message=f"User already exists: {username}",
+#                 status_code=409,
+#             )
+#         )
+#
+#     user = UserModel(username=username,
+#                      service='internal',
+#                      service_id=username,
+#                      name=username)
+#     try:
+#         db.session.add(user)
+#     except IntegrityError as exception:
+#         raise (
+#             ApiError(code="integrity_error", message=repr(exception), status_code=500)
+#         ) from exception
+#
+#     try:
+#         db.session.commit()
+#     except Exception as e:
+#         db.session.rollback()
+#         raise ApiError(code='add_user_error',
+#                        message=f'Could not add user {username}') from e
+#     try:
+#         create_principal(user.id)
+#     except ApiError as ae:
+#         # TODO: What is the right way to do this
+#         raise ae
+#     return user
+#
 @user_blueprint.route("/user/<username>", methods=["DELETE"])
 def delete_user(username: str) -> flask.wrappers.Response:
     """Delete_user."""

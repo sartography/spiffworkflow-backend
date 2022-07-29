@@ -101,14 +101,22 @@ class PublicAuthenticationService:
                            status_code=401)
         try:
             assert decoded_token['iss'] == f"{keycloak_server_url}/realms/{keycloak_realm_name}"
-            assert decoded_token['aud'] == keycloak_client_id
+            assert keycloak_client_id in decoded_token['aud'] or 'account' in decoded_token['aud']
             if 'azp' in decoded_token:
-                assert decoded_token['azp'] == keycloak_client_id
+                # TODO: not sure why this isn't keycloak_client_id
+                assert decoded_token['azp'] in keycloak_client_id, 'account'
             assert now > decoded_token['iat']
-            assert now < decoded_token['exp']
         except Exception as e:
             current_app.logger.error(f"Exception validating id_token: {e}")
             return False
+
+        try:
+            assert now < decoded_token['exp']
+        except:
+            raise ApiError(code='invalid_token',
+                            message="Your token is expired. Please Login",
+                            status_code=401)
+
         return True
 
     def get_public_access_token(self, username, password) -> dict:
