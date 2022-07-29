@@ -43,20 +43,9 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[str]]:
         If on production and user is not authenticated, returns a 'no_user' 403 error.
     """
 
-    # bearer_token = AuthorizationService().get_bearer_token(token)
-    # token = AuthorizationService().refresh_token(token)
-    # maybe need to refresh the token?
-
     if token:
-        # if is_internal_token(token):
-        # try:
-        #     AuthorizationService().get_bearer_token_from_internal_token(token)
-        # except Exception as e:
-        #     current_app.logger.error(f"Exception raised decoding token: {e}")
-        #     raise ApiError(code="fail_decode_auth_token",
-        #                    message="Cannot decode the auth token")
-
         user_info = None
+
         token_type = get_token_type(token)
         if token_type == 'id_token' :
             try:
@@ -74,34 +63,19 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[str]]:
                 .filter(UserModel.service_id==user_info['sub'])\
                 .first()
             if user_model is None:
+                # Do we ever get here any more, now that we have login_return method?
+                current_app.logger.debug("create_user in verify_token")
                 user_model = UserService().create_user(service='keycloak',
                                                      service_id=user_info['sub'],
                                                      name=user_info['name'],
                                                      username=user_info['preferred_username'],
                                                      email=user_info['email'])
-                # user_model = UserModel.query\
-                #     .filter(UserModel.id == user['id'])\
-                #     .first()
-                # user_model = UserModel(service='keycloak',
-                #                        service_id=user_info['sub'],
-                #                        name=user_info['preferred_username'],
-                #                        username=user_info['sub'])
-                # db.session.add(user_model)
-                # try:
-                #     db.session.commit()
-                # except Exception as e:
-                #     current_app.logger.error(f"Exception raised while adding user in get_token: {e}")
-                #     raise ApiError(code="fail_add_user_model",
-                #                    message="Cannot add user in verify_token") from e
             if user_model:
                 g.user = user_model
 
             # If the user is valid, store the token for this session
             if g.user:
                 g.token = token
-                # What should we return? Dict?
-                # return user_info
-                # TODO: Need to return dictionary containing 'scope'
                 scope = get_scope(token)
                 return {'uid': g.user.id,
                         'sub': g.user.id,
@@ -188,20 +162,20 @@ def login_return(code, state, session_state):
         if user_info and 'error' not in user_info:
             user_model = UserModel.query.filter(UserModel.service == 'keycloak').filter(UserModel.service_id==user_info['sub']).first()
             if user_model is None:
+                current_app.logger.debug("create_user in login_return")
+                name = username = email = ''
+                if 'name' in user_info:
+                    name = user_info['name']
+                if 'username' in user_info:
+                    username = user_info['username']
+                if 'email' in user_info:
+                    email = user_info['email']
                 user_model = UserService().create_user(service='keycloak',
                                                      service_id=user_info['sub'],
-                                                     name=user_info['name'],
-                                                     username=user_info['preferred_username'],
-                                                     email=user_info['email'])
+                                                     name=name,
+                                                     username=username,
+                                                     email=email)
 
-                # user_model = UserModel.from_open_id_user_info(user_info)
-                # db.session.add(user_model)
-                # try:
-                #     db.session.commit()
-                # except Exception as e:
-                #     current_app.logger.error(f"Exception raised while adding user in get_token: {e}")
-                #     raise ApiError(code="fail_add_user_model",
-                #                    message="Cannot add user in verify_token")
             if user_model:
                 g.user = user_model.id
 

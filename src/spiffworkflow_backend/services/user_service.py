@@ -18,6 +18,13 @@ class UserService:
         user = UserModel.query.filter(UserModel.service == service)\
             .filter(UserModel.service_id == service_id)\
             .first()
+        if name is None:
+            name = ''
+        if username is None:
+            username = ''
+        if email is None:
+            email = ''
+
         if user is not None:
             raise (
                 ApiError(
