@@ -1,25 +1,17 @@
 """Test_authentication."""
-import json
-import requests
 import base64
-import urllib.parse
-from typing import Any
+import json
 
+import requests
 from flask.app import Flask
-from flask.testing import FlaskClient
-
 from keycloak.authorization import Authorization  # type: ignore
 from keycloak.keycloak_openid import KeycloakOpenID  # type: ignore
 from keycloak.uma_permissions import AuthStatus  # type: ignore
-
 from tests.spiffworkflow_backend.integration.base_test import BaseTest
-from spiffworkflow_backend.services.authentication_service import PublicAuthenticationService, KeycloakAuthenticationService
-from spiffworkflow_backend.services.authorization_service import AuthorizationService
-
-from urllib.parse import urlencode
 
 
 class TestAuthentication(BaseTest):
+    """TestAuthentication."""
 
     # def test_get_basic_token(self, app: Flask) -> None:
     #     for user_id in ('user_1', 'user_2', 'admin_1', 'admin_2'):
@@ -35,34 +27,45 @@ class TestAuthentication(BaseTest):
     #         assert isinstance(basic_token['scope'], str)
 
     def test_get_token_script(self, app: Flask) -> None:
+        """Test_get_token_script."""
         print("Test Get Token Script")
 
-        keycloak_server_url, keycloak_client_id, keycloak_realm_name, keycloak_client_secret_key = self.get_keycloak_constants(app)
-        keycloak_user = 'ciuser1'
-        keycloak_pass = 'ciuser1'
+        (
+            keycloak_server_url,
+            keycloak_client_id,
+            keycloak_realm_name,
+            keycloak_client_secret_key,
+        ) = self.get_keycloak_constants(app)
+        keycloak_user = "ciuser1"
+        keycloak_pass = "ciuser1"
 
         print(f"Test Get Token Script: keycloak_server_url: {keycloak_server_url}")
         print(f"Test Get Token Script: keycloak_client_id: {keycloak_client_id}")
         print(f"Test Get Token Script: keycloak_realm_name: {keycloak_realm_name}")
-        print(f"Test Get Token Script: keycloak_client_secret_key: {keycloak_client_secret_key}")
+        print(
+            f"Test Get Token Script: keycloak_client_secret_key: {keycloak_client_secret_key}"
+        )
 
-        frontend_client_id = 'spiffworkflow-frontend'
+        frontend_client_id = "spiffworkflow-frontend"
 
         print(f"Test Get Token Script: frontend_client_id: {frontend_client_id}")
 
         # Get frontend token
         request_url = f"{keycloak_server_url}/realms/{keycloak_realm_name}/protocol/openid-connect/token"
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
-        post_data = {'grant_type': 'password',
-                     'username': keycloak_user,
-                     'password': keycloak_pass,
-                     'client_id': frontend_client_id
-                     }
+        post_data = {
+            "grant_type": "password",
+            "username": keycloak_user,
+            "password": keycloak_pass,
+            "client_id": frontend_client_id,
+        }
         print(f"Test Get Token Script: request_url: {request_url}")
         print(f"Test Get Token Script: headers: {headers}")
         print(f"Test Get Token Script: post_data: {post_data}")
 
-        frontend_response = requests.post(request_url, headers=headers, json=post_data, data=post_data)
+        frontend_response = requests.post(
+            request_url, headers=headers, json=post_data, data=post_data
+        )
         frontend_token = json.loads(frontend_response.text)
 
         print(f"Test Get Token Script: frontend_response: {frontend_response}")
@@ -77,37 +80,44 @@ class TestAuthentication(BaseTest):
 
         # Get backend token
         BACKEND_BASIC_AUTH_STRING = f"{keycloak_client_id}:{keycloak_client_secret_key}"
-        BACKEND_BASIC_AUTH_BYTES = bytes(BACKEND_BASIC_AUTH_STRING, encoding='ascii')
+        BACKEND_BASIC_AUTH_BYTES = bytes(BACKEND_BASIC_AUTH_STRING, encoding="ascii")
         BACKEND_BASIC_AUTH = base64.b64encode(BACKEND_BASIC_AUTH_BYTES)
 
         request_url = f"{keycloak_server_url}/realms/{keycloak_realm_name}/protocol/openid-connect/token"
-        headers = {"Content-Type": "application/x-www-form-urlencoded",
-                   "Authorization": f"Basic {BACKEND_BASIC_AUTH.decode('utf-8')}"}
-        data = {'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
-                'client_id': keycloak_client_id,
-                "subject_token": frontend_token['access_token'],
-                "audience": keycloak_client_id}
+        headers = {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Authorization": f"Basic {BACKEND_BASIC_AUTH.decode('utf-8')}",
+        }
+        data = {
+            "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
+            "client_id": keycloak_client_id,
+            "subject_token": frontend_token["access_token"],
+            "audience": keycloak_client_id,
+        }
         print(f"Test Get Token Script: request_url: {request_url}")
         print(f"Test Get Token Script: headers: {headers}")
         print(f"Test Get Token Script: data: {data}")
 
         backend_response = requests.post(request_url, headers=headers, data=data)
         json_data = json.loads(backend_response.text)
-        backend_token = json_data['access_token']
+        backend_token = json_data["access_token"]
         print(f"Test Get Token Script: backend_response: {backend_response}")
         print(f"Test Get Token Script: backend_token: {backend_token}")
 
         if backend_token:
             # Getting resource set
             auth_bearer_string = f"Bearer {backend_token}"
-            headers = {"Content-Type": "application/json",
-                       "Authorization": auth_bearer_string}
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": auth_bearer_string,
+            }
 
             # URI_TO_TEST_AGAINST = "%2Fprocess-models"
             URI_TO_TEST_AGAINST = "/status"
-            request_url = \
-                f"{keycloak_server_url}/realms/{keycloak_realm_name}/authz/protection/resource_set?" + \
-                f"matchingUri=true&deep=true&max=-1&exactName=false&uri={URI_TO_TEST_AGAINST}"
+            request_url = (
+                f"{keycloak_server_url}/realms/{keycloak_realm_name}/authz/protection/resource_set?"
+                + f"matchingUri=true&deep=true&max=-1&exactName=false&uri={URI_TO_TEST_AGAINST}"
+            )
             # f"uri={URI_TO_TEST_AGAINST}"
             print(f"Test Get Token Script: request_url: {request_url}")
             print(f"Test Get Token Script: headers: {headers}")
@@ -118,35 +128,43 @@ class TestAuthentication(BaseTest):
             json_data = json.loads(resource_result.text)
             resource_id_name_pairs = []
             for result in json_data:
-                if '_id' in result and result['_id']:
-                    pair_key = result['_id']
-                    if 'name' in result and result['name']:
-                        pair_value = result['name']
+                if "_id" in result and result["_id"]:
+                    pair_key = result["_id"]
+                    if "name" in result and result["name"]:
+                        pair_value = result["name"]
                         # pair = {{result['_id']}: {}}
                     else:
-                        pair_value = 'no_name'
+                        pair_value = "no_name"
                         # pair = {{result['_id']}: }
                     pair = [pair_key, pair_value]
                     resource_id_name_pairs.append(pair)
-            print(f"Test Get Token Script: resource_id_name_pairs: {resource_id_name_pairs}")
+            print(
+                f"Test Get Token Script: resource_id_name_pairs: {resource_id_name_pairs}"
+            )
 
             # Getting Permissions
             for resource_id_name_pair in resource_id_name_pairs:
                 resource_id = resource_id_name_pair[0]
-                resource_name = resource_id_name_pair[1]
+                resource_id_name_pair[1]
 
-                headers = {"Content-Type": "application/x-www-form-urlencoded",
-                           "Authorization": f"Basic {BACKEND_BASIC_AUTH.decode('utf-8')}"}
+                headers = {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "Authorization": f"Basic {BACKEND_BASIC_AUTH.decode('utf-8')}",
+                }
 
-                post_data = {"audience": keycloak_client_id,
-                             "permission": resource_id,
-                             "subject_token": backend_token,
-                             "grant_type": "urn:ietf:params:oauth:grant-type:uma-ticket"}
+                post_data = {
+                    "audience": keycloak_client_id,
+                    "permission": resource_id,
+                    "subject_token": backend_token,
+                    "grant_type": "urn:ietf:params:oauth:grant-type:uma-ticket",
+                }
                 print(f"Test Get Token Script: headers: {headers}")
                 print(f"Test Get Token Script: post_data: {post_data}")
                 print(f"Test Get Token Script: request_url: {request_url}")
 
-                permission_result = requests.post(request_url, headers=headers, data=post_data)
+                permission_result = requests.post(
+                    request_url, headers=headers, data=post_data
+                )
                 print(f"Test Get Token Script: permission_result: {permission_result}")
 
         print("test_get_token_script")
@@ -154,6 +172,7 @@ class TestAuthentication(BaseTest):
     # def test_auth_endpoint(self, app: Flask) -> None:
     #     keycloak_server_url, keycloak_client_id, keycloak_realm_name, keycloak_client_secret_key = self.get_keycloak_constants(app)
     #     request_url = f"{keycloak_server_url}/realms/{keycloak_realm_name}/protocol/openid-connect/auth"
+
 
 # class TestOtherStuff(BaseTest):
 #
@@ -286,33 +305,33 @@ class TestAuthentication(BaseTest):
 #                     assert len(permission["scopes"]) == 1
 #                     assert permission["scopes"][0] == "account:view"
 #
-    # def test_get_uma_permissions_by_token_for_resource_and_scope(self, app: Flask) -> None:
-    #     """Test_get_uma_permissions_by_token_for_resource_and_scope."""
-    #     keycloak_server_url, keycloak_client_id, keycloak_realm_name, keycloak_client_secret_key = self.get_keycloak_constants(app)
-    #     keycloak_openid = KeycloakAuthenticationService.get_keycloak_openid(
-    #         keycloak_server_url, keycloak_client_id, keycloak_realm_name, keycloak_client_secret_key
-    #     )
-    #     token = keycloak_openid.token('admin_1', 'admin_1')
-    #     resource = "Process Groups"
-    #     scope = "read"
-    #
-    #     permissions = (
-    #         KeycloakAuthenticationService.get_uma_permissions_by_token_for_resource_and_scope(
-    #             keycloak_openid, token, resource, scope
-    #         )
-    #     )
-    #     assert isinstance(permissions, list)
-    #     # assert len(permissions) == 1
-    #     assert isinstance(permissions[0], dict)
-    #     permission = permissions[0]
-    #     assert "rsname" in permission
-    #     assert permission["rsname"] == resource
-    #     assert "scopes" in permission
-    #     assert isinstance(permission["scopes"], list)
-    #     assert len(permission["scopes"]) == 1
-    #     assert permission["scopes"][0] == scope
-    #
-    #     print("test_get_uma_permissions_by_token_for_resource_and_scope")
+# def test_get_uma_permissions_by_token_for_resource_and_scope(self, app: Flask) -> None:
+#     """Test_get_uma_permissions_by_token_for_resource_and_scope."""
+#     keycloak_server_url, keycloak_client_id, keycloak_realm_name, keycloak_client_secret_key = self.get_keycloak_constants(app)
+#     keycloak_openid = KeycloakAuthenticationService.get_keycloak_openid(
+#         keycloak_server_url, keycloak_client_id, keycloak_realm_name, keycloak_client_secret_key
+#     )
+#     token = keycloak_openid.token('admin_1', 'admin_1')
+#     resource = "Process Groups"
+#     scope = "read"
+#
+#     permissions = (
+#         KeycloakAuthenticationService.get_uma_permissions_by_token_for_resource_and_scope(
+#             keycloak_openid, token, resource, scope
+#         )
+#     )
+#     assert isinstance(permissions, list)
+#     # assert len(permissions) == 1
+#     assert isinstance(permissions[0], dict)
+#     permission = permissions[0]
+#     assert "rsname" in permission
+#     assert permission["rsname"] == resource
+#     assert "scopes" in permission
+#     assert isinstance(permission["scopes"], list)
+#     assert len(permission["scopes"]) == 1
+#     assert permission["scopes"][0] == scope
+#
+#     print("test_get_uma_permissions_by_token_for_resource_and_scope")
 #
 #     def test_get_auth_status_for_resource_and_scope_by_token(self, app: Flask) -> None:
 #         """Test_get_auth_status_for_resource_and_scope_by_token."""
