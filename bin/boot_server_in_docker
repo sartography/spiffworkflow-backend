@@ -31,7 +31,14 @@ if [[ "${APPLICATION_ROOT:-}" != "/" ]]; then
   additional_args="${additional_args} -e SCRIPT_NAME=${APPLICATION_ROOT}"
 fi
 
+# HACK: if loading fixtures for acceptance tests when we do not need multiple workers
+# it causes issues with attempting to add duplicate data to the db
+workers=3
+if [[ "${SPIFFWORKFLOW_BACKEND_LOAD_FIXTURE_DATA:-}" == "true" ]]; then
+  workers=1
+fi
+
 export IS_GUNICORN="true"
 
 # THIS MUST BE THE LAST COMMAND!
-exec poetry run gunicorn ${additional_args} --bind "0.0.0.0:$port" --workers=3 --timeout 90 --capture-output --access-logfile '-' --log-level debug wsgi:app
+exec poetry run gunicorn ${additional_args} --bind "0.0.0.0:$port" --workers="$workers" --timeout 90 --capture-output --access-logfile '-' --log-level debug wsgi:app
