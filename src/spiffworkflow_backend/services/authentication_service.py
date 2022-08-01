@@ -11,12 +11,13 @@ from flask import current_app
 from flask import redirect
 from flask_bpmn.api.api_error import ApiError
 from keycloak import KeycloakOpenID  # type: ignore
-from keycloak.uma_permissions import AuthStatus  # noqa: F401
+# from keycloak.uma_permissions import AuthStatus  # noqa: F401
 
 from spiffworkflow_backend.services.authorization_service import AuthorizationService
+from werkzeug.wrappers.response import Response
 
 
-def get_keycloak_args():
+def get_keycloak_args() -> tuple:
     """Get_keycloak_args."""
     keycloak_server_url = current_app.config["KEYCLOAK_SERVER_URL"]
     keycloak_client_id = current_app.config["KEYCLOAK_CLIENT_ID"]
@@ -47,13 +48,10 @@ class PublicAuthenticationService:
     Used during development to make testing easy.
     """
 
-    def logout(self, redirect_url: str = "/", id_token: str | None = None):
+    def logout(self, id_token: str , redirect_url: str | None = None) -> Response:
         """Logout."""
-        if id_token is None:
-            raise ApiError(
-                code="missing_id_token", message="id_token is missing", status_code=400
-            )
-
+        if redirect_url is None:
+            redirect_url = '/'
         return_redirect_url = "http://localhost:7000/v1.0/logout_return"
         (
             keycloak_server_url,
@@ -70,12 +68,12 @@ class PublicAuthenticationService:
         return redirect(request_url)
 
     @staticmethod
-    def generate_state(redirect_url):
+    def generate_state(redirect_url: str) -> bytes:
         """Generate_state."""
         state = base64.b64encode(bytes(str({"redirect_url": redirect_url}), "UTF-8"))
         return state
 
-    def get_login_redirect_url(self, state):
+    def get_login_redirect_url(self, state: bytes) -> str:
         """Get_login_redirect_url."""
         (
             keycloak_server_url,
@@ -86,7 +84,7 @@ class PublicAuthenticationService:
         return_redirect_url = "http://localhost:7000/v1.0/login_return"
         login_redirect_url = (
             f"{keycloak_server_url}/realms/{keycloak_realm_name}/protocol/openid-connect/auth?"
-            + f"state={state}&"
+            + f"state={state!r}&"
             + "response_type=code&"
             + f"client_id={keycloak_client_id}&"
             + "scope=openid&"
@@ -94,7 +92,7 @@ class PublicAuthenticationService:
         )
         return login_redirect_url
 
-    def get_id_token_object(self, code):
+    def get_id_token_object(self, code: str) -> dict:
         """Get_id_token_object."""
         (
             keycloak_server_url,
@@ -120,11 +118,11 @@ class PublicAuthenticationService:
         request_url = f"{keycloak_server_url}/realms/{keycloak_realm_name}/protocol/openid-connect/token"
 
         response = requests.post(request_url, data=data, headers=headers)
-        id_token_object = json.loads(response.text)
+        id_token_object: dict = json.loads(response.text)
         return id_token_object
 
     @staticmethod
-    def validate_id_token(id_token):
+    def validate_id_token(id_token: str) -> bool:
         """Https://openid.net/specs/openid-connect-core-1_0.html#IDTokenValidation."""
         valid = True
         now = time.time()
@@ -171,7 +169,7 @@ class PublicAuthenticationService:
 
         return True
 
-    def get_public_access_token(self, username, password) -> dict:
+    def get_public_access_token(self, username: str, password: str) -> dict:
         """Get_public_access_token."""
         (
             keycloak_server_url,
@@ -192,7 +190,8 @@ class PublicAuthenticationService:
         if public_response.status_code == 200:
             public_token = json.loads(public_response.text)
             if "access_token" in public_token:
-                return public_token["access_token"]
+                access_token: dict = public_token['access_token']
+                return access_token
         raise ApiError(
             code="no_public_access_token",
             message=f"We could not get a public access token: {username}",

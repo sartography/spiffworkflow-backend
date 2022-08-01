@@ -27,7 +27,7 @@ class BaseTest:
         )
 
     @staticmethod
-    def get_public_access_token(username, password) -> dict:
+    def get_public_access_token(username: str, password: str) -> dict:
         """Get_public_access_token."""
         public_access_token = PublicAuthenticationService().get_public_access_token(
             username, password

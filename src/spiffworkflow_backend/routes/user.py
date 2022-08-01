@@ -1,7 +1,7 @@
 """User."""
 import ast
 import base64
-from typing import Dict
+from typing import Any, Dict
 from typing import Optional
 
 import jwt
@@ -16,6 +16,8 @@ from spiffworkflow_backend.services.authentication_service import (
 )
 from spiffworkflow_backend.services.authorization_service import AuthorizationService
 from spiffworkflow_backend.services.user_service import UserService
+
+from werkzeug.wrappers.response import Response
 
 """
 .. module:: crc.api.user
@@ -42,56 +44,58 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[str]]:
         user_model = None
         decoded_token = get_decoded_token(token)
 
-        if "token_type" in decoded_token:
-            token_type = decoded_token["token_type"]
-            if token_type == "internal":  # noqa: S105
+        if decoded_token is not None:
+
+            if "token_type" in decoded_token:
+                token_type = decoded_token["token_type"]
+                if token_type == "internal":  # noqa: S105
+                    try:
+                        user_model = get_user_from_decoded_internal_token(decoded_token)
+                    except Exception as e:
+                        current_app.logger.error(
+                            f"Exception in verify_token getting user from decoded internal token. {e}"
+                        )
+
+            elif "iss" in decoded_token.keys():
                 try:
-                    user_model = get_user_from_decoded_internal_token(decoded_token)
+                    user_info = AuthorizationService().get_user_info_from_id_token(token)
+                except ApiError as ae:
+                    raise ae
                 except Exception as e:
-                    current_app.logger.error(
-                        f"Exception in verify_token getting user from decoded internal token. {e}"
-                    )
+                    current_app.logger.error(f"Exception raised in get_token: {e}")
+                    raise ApiError(
+                        code="fail_get_user_info", message="Cannot get user info from token"
+                    ) from e
 
-        elif "iss" in decoded_token:
-            try:
-                user_info = AuthorizationService().get_user_info_from_id_token(token)
-            except ApiError as ae:
-                raise ae
-            except Exception as e:
-                current_app.logger.error(f"Exception raised in get_token: {e}")
-                raise ApiError(
-                    code="fail_get_user_info", message="Cannot get user info from token"
-                ) from e
-
-            if (
-                user_info is not None and "error" not in user_info
-            ):  # not sure what to test yet
-                user_model = (
-                    UserModel.query.filter(UserModel.service == "keycloak")
-                    .filter(UserModel.service_id == user_info["sub"])
-                    .first()
-                )
-                if user_model is None:
-                    # Do we ever get here any more, now that we have login_return method?
-                    current_app.logger.debug("create_user in verify_token")
-                    user_model = UserService().create_user(
-                        service="keycloak",
-                        service_id=user_info["sub"],
-                        name=user_info["name"],
-                        username=user_info["preferred_username"],
-                        email=user_info["email"],
+                if (
+                    user_info is not None and "error" not in user_info
+                ):  # not sure what to test yet
+                    user_model = (
+                        UserModel.query.filter(UserModel.service == "keycloak")
+                        .filter(UserModel.service_id == user_info["sub"])
+                        .first()
                     )
-            # no user_info
+                    if user_model is None:
+                        # Do we ever get here any more, now that we have login_return method?
+                        current_app.logger.debug("create_user in verify_token")
+                        user_model = UserService().create_user(
+                            service="keycloak",
+                            service_id=user_info["sub"],
+                            name=user_info["name"],
+                            username=user_info["preferred_username"],
+                            email=user_info["email"],
+                        )
+                # no user_info
+                else:
+                    raise ApiError(code="no_user_info", message="Cannot retrieve user info")
+
             else:
-                raise ApiError(code="no_user_info", message="Cannot retrieve user info")
-
-        else:
-            current_app.logger.debug("token_type not in decode_token in verify_token")
-            raise ApiError(
-                code="invalid_token",
-                message="Invalid token. Please log in.",
-                status_code=401,
-            )
+                current_app.logger.debug("token_type not in decode_token in verify_token")
+                raise ApiError(
+                    code="invalid_token",
+                    message="Invalid token. Please log in.",
+                    status_code=401,
+                )
 
         if user_model:
             g.user = user_model
@@ -105,29 +109,34 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[str]]:
         else:
             raise ApiError(code="no_user_id", message="Cannot get a user id")
 
+    raise ApiError(code="invalid_token",
+                   message="Cannot validate token.",
+                   status_code=401
+                   )
     # no token -- do we ever get here?
-    else:
-        if current_app.config.get("DEVELOPMENT"):
-            # Fall back to a default user if this is not production.
-            g.user = UserModel.query.first()
-            if not g.user:
-                raise ApiError(
-                    "no_user",
-                    "You are in development mode, but there are no users in the database.  Add one, and it will use it.",
-                )
-            token_from_user = g.user.encode_auth_token()
-            token_info = UserModel.decode_auth_token(token_from_user)
-            return token_info
+    # else:
+    #     ...
+        # if current_app.config.get("DEVELOPMENT"):
+        #     # Fall back to a default user if this is not production.
+        #     g.user = UserModel.query.first()
+        #     if not g.user:
+        #         raise ApiError(
+        #             "no_user",
+        #             "You are in development mode, but there are no users in the database.  Add one, and it will use it.",
+        #         )
+        #     token_from_user = g.user.encode_auth_token()
+        #     token_info = UserModel.decode_auth_token(token_from_user)
+        #     return token_info
+        #
+        # else:
+        #     raise ApiError(
+        #         code="no_auth_token",
+        #         message="No authorization token was available.",
+        #         status_code=401,
+        #     )
 
-        else:
-            raise ApiError(
-                code="no_auth_token",
-                message="No authorization token was available.",
-                status_code=401,
-            )
 
-
-def validate_scope(token) -> bool:
+def validate_scope(token: Any) -> bool:
     """Validate_scope."""
     print("validate_scope")
     # token = AuthorizationService().refresh_token(token)
@@ -139,35 +148,42 @@ def validate_scope(token) -> bool:
     return True
 
 
-def api_login(uid, password, redirect_url=None):
+def api_login(uid: str, password: str, redirect_url: str | None=None) -> dict:
     """Api_login."""
+    # TODO: Fix this! mac 20220801
     token = PublicAuthenticationService().get_public_access_token(uid, password)
     g.token = token
 
     return token
 
 
-def encode_auth_token(uid):
+def encode_auth_token(uid: str) -> str:
     """Generates the Auth Token.
 
     :return: string
     """
     payload = {"sub": uid}
+    if "SECRET_KEY" in current_app.config:
+        secret_key = current_app.config.get("SECRET_KEY")
+    else:
+        current_app.logger.error("Missing SECRET_KEY in encode_auth_token")
+        raise ApiError(code="encode_error",
+                       message="Missing SECRET_KEY in encode_auth_token")
     return jwt.encode(
         payload,
-        current_app.config.get("SECRET_KEY"),
+        str(secret_key),
         algorithm="HS256",
     )
 
 
-def login(redirect_url="/"):
+def login(redirect_url: str="/") -> Response:
     """Login."""
     state = PublicAuthenticationService.generate_state(redirect_url)
     login_redirect_url = PublicAuthenticationService().get_login_redirect_url(state)
     return redirect(login_redirect_url)
 
 
-def login_return(code, state, session_state):
+def login_return(code: str, state: str, session_state: str) -> Response | None:
     """Login_return."""
     state_dict = ast.literal_eval(
         base64.b64decode(ast.literal_eval(state)).decode("utf-8")
@@ -213,18 +229,20 @@ def login_return(code, state, session_state):
                 + f"id_token={id_token}"
             )
             return redirect(redirect_url)
+    raise ApiError(code="invalid_login",
+                   message="Login failed. Please try again",
+                   status_code=401)
 
-            # return f"{code} {state} {id_token}"
-
-
-def logout(id_token: str, redirect_url: str | None):
+def logout(id_token: str, redirect_url: str | None) -> Response:
     """Logout."""
+    if redirect_url is None:
+        redirect_url = ''
     return PublicAuthenticationService().logout(
-        id_token=id_token, redirect_url=redirect_url
+        redirect_url=redirect_url, id_token=id_token
     )
 
 
-def logout_return():
+def logout_return() -> Response:
     """Logout_return."""
     return redirect("http://localhost:7001/")
 
@@ -257,7 +275,7 @@ def get_decoded_token(token: str) -> Dict | None:
     #     return True
 
 
-def get_scope(token):
+def get_scope(token: str) -> str:
     """Get_scope."""
     scope = ""
     decoded_token = jwt.decode(token, options={"verify_signature": False})
@@ -266,13 +284,13 @@ def get_scope(token):
     return scope
 
 
-def get_user_from_decoded_internal_token(decoded_token):
+def get_user_from_decoded_internal_token(decoded_token: dict) -> UserModel | None:
     """Get_user_from_decoded_internal_token."""
     sub = decoded_token["sub"]
     parts = sub.split("::")
     service = parts[0].split(":")[1]
     service_id = parts[1].split(":")[1]
-    user = (
+    user: UserModel = (
         UserModel.query.filter(UserModel.service == service)
         .filter(UserModel.service_id == service_id)
         .first()

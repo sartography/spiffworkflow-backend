@@ -10,6 +10,7 @@ from sqlalchemy.orm import relationship
 from spiffworkflow_backend.models.group import GroupModel
 from spiffworkflow_backend.models.user_group_assignment import UserGroupAssignmentModel
 
+from typing import Any
 
 class UserModel(SpiffworkflowBaseDBModel):
     """UserModel."""
@@ -62,16 +63,16 @@ class UserModel(SpiffworkflowBaseDBModel):
         """Is_admin."""
         return True
 
-    @classmethod
-    def from_open_id_user_info(cls, user_info):
-        """From_open_id_user_info."""
-        instance = cls()
-        instance.service = "keycloak"
-        instance.service_id = user_info["sub"]
-        instance.name = user_info["preferred_username"]
-        instance.username = user_info["sub"]
-
-        return instance
+    # @classmethod
+    # def from_open_id_user_info(cls, user_info: dict) -> Any:
+    #     """From_open_id_user_info."""
+    #     instance = cls()
+    #     instance.service = "keycloak"
+    #     instance.service_id = user_info["sub"]
+    #     instance.name = user_info["preferred_username"]
+    #     instance.username = user_info["sub"]
+    #
+    #     return instance
 
 
 class UserModelSchema(Schema):

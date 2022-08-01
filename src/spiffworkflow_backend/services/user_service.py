@@ -16,21 +16,44 @@ from spiffworkflow_backend.models.user import UserModel
 class UserService:
     """Provides common tools for working with users."""
 
-    def create_user(self, service, service_id, name=None, username=None, email=None):
+    def create_user(self, service: str, service_id: str, name: str|None=None, username: str|None=None, email: str|None=None) -> UserModel:
         """Create_user."""
-        user = (
+        user_model: UserModel|None = (
             UserModel.query.filter(UserModel.service == service)
             .filter(UserModel.service_id == service_id)
             .first()
         )
-        if name is None:
-            name = ""
-        if username is None:
-            username = ""
-        if email is None:
-            email = ""
+        if user_model is None:
+            if name is None:
+                name = ""
+            if username is None:
+                username = ""
+            if email is None:
+                email = ""
 
-        if user is not None:
+            user_model = UserModel(
+                username=username,
+                service=service,
+                service_id=service_id,
+                name=name,
+                email=email,
+            )
+            db.session.add(user_model)
+
+            try:
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                raise ApiError(
+                    code="add_user_error", message=f"Could not add user {username}"
+                ) from e
+            self.create_principal(user_model.id)
+            return user_model
+
+        else:
+            # TODO: username may be ''.
+            #  not sure what to send in error message.
+            #  Don't really want to send service_id.
             raise (
                 ApiError(
                     code="user_already_exists",
@@ -38,36 +61,6 @@ class UserService:
                     status_code=409,
                 )
             )
-
-        user = UserModel(
-            username=username,
-            service=service,
-            service_id=service_id,
-            name=name,
-            email=email,
-        )
-        try:
-            db.session.add(user)
-        except IntegrityError as exception:
-            raise (
-                ApiError(
-                    code="integrity_error", message=repr(exception), status_code=500
-                )
-            ) from exception
-
-        try:
-            db.session.commit()
-        except Exception as e:
-            db.session.rollback()
-            raise ApiError(
-                code="add_user_error", message=f"Could not add user {username}"
-            ) from e
-        try:
-            self.create_principal(user.id)
-        except ApiError as ae:
-            # TODO: What is the right way to do this
-            raise ae
-        return user
 
     # Returns true if the current user is logged in.
     @staticmethod
@@ -243,9 +236,9 @@ class UserService:
             message=f"No principal was found for user_id: {user_id}",
         )
 
-    def create_principal(self, user_id):
+    def create_principal(self, user_id: int) -> PrincipalModel:
         """Create_principal."""
-        principal = PrincipalModel.query.filter_by(user_id=user_id).first()
+        principal: PrincipalModel | None = PrincipalModel.query.filter_by(user_id=user_id).first()
         if principal is None:
             principal = PrincipalModel(user_id=user_id)
             db.session.add(principal)
