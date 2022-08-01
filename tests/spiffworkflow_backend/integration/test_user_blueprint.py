@@ -1,3 +1,4 @@
+"""test_user_blueprint."""
 # TODO: fix these tests for new authing system
 # """Test User Blueprint."""
 # import json
