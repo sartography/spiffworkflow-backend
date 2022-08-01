@@ -132,11 +132,11 @@ jobs:
 
       # TODO: remove keycloak server when calls to keycloak are being mocked
       - name: start_keycloak
-        working-directory: ./spiffworkflow-backend
         run: ./bin/start_keycloak
+        if: matrix.session == 'tests'
       - name: wait_for_keycloak
-        working-directory: ./spiffworkflow-backend
         run: ./bin/wait_for_keycloak 5
+        if: matrix.session == 'tests'
 
       - name: Setup Mysql
         uses: mirromutth/mysql-action@v1.1
