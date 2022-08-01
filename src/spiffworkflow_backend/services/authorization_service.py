@@ -38,12 +38,12 @@ class AuthorizationService:
             keycloak_client_secret_key,
         ) = AuthorizationService.get_keycloak_args()
 
-        BACKEND_BASIC_AUTH_STRING = f"{keycloak_client_id}:{keycloak_client_secret_key}"
-        BACKEND_BASIC_AUTH_BYTES = bytes(BACKEND_BASIC_AUTH_STRING, encoding="ascii")
-        base64.b64encode(BACKEND_BASIC_AUTH_BYTES)
+        backend_basic_auth_string = f"{keycloak_client_id}:{keycloak_client_secret_key}"
+        backend_basic_auth_bytes = bytes(backend_basic_auth_string, encoding="ascii")
+        base64.b64encode(backend_basic_auth_bytes)
 
         # headers = {"Content-Type": "application/x-www-form-urlencoded",
-        #            "Authorization": f"Bearer {BACKEND_BASIC_AUTH.decode('utf-8')}"}
+        #            "Authorization": f"Bearer {backend_basic_auth.decode('utf-8')}"}
         # data = {'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
         #         'client_id': keycloak_client_id,
         #         "subject_token": basic_token,
@@ -57,13 +57,13 @@ class AuthorizationService:
         # auth_bearer_string = f"Basic {keycloak_client_secret_key}"
 
         headers = {"Authorization": f"Bearer {token}"}
-        data = {
-            "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
-            "client_id": keycloak_client_id,
-            # "subject_token": id_token_object['access_token'],
-            "subject_token": token,
-            "audience": keycloak_client_id,
-        }
+        # data = {
+        #     "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
+        #     "client_id": keycloak_client_id,
+        #     # "subject_token": id_token_object['access_token'],
+        #     "subject_token": token,
+        #     "audience": keycloak_client_id,
+        # }
 
         request_url = f"{keycloak_server_url}/realms/{keycloak_realm_name}/protocol/openid-connect/userinfo"
         try:
@@ -109,13 +109,13 @@ class AuthorizationService:
             keycloak_client_secret_key,
         ) = AuthorizationService.get_keycloak_args()
 
-        BACKEND_BASIC_AUTH_STRING = f"{keycloak_client_id}:{keycloak_client_secret_key}"
-        BACKEND_BASIC_AUTH_BYTES = bytes(BACKEND_BASIC_AUTH_STRING, encoding="ascii")
-        BACKEND_BASIC_AUTH = base64.b64encode(BACKEND_BASIC_AUTH_BYTES)
+        backend_basic_auth_string = f"{keycloak_client_id}:{keycloak_client_secret_key}"
+        backend_basic_auth_bytes = bytes(backend_basic_auth_string, encoding="ascii")
+        backend_basic_auth = base64.b64encode(backend_basic_auth_bytes)
 
         headers = {
             "Content-Type": "application/x-www-form-urlencoded",
-            "Authorization": f"Basic {BACKEND_BASIC_AUTH.decode('utf-8')}",
+            "Authorization": f"Basic {backend_basic_auth.decode('utf-8')}",
         }
         data = {
             "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
@@ -294,33 +294,33 @@ class AuthorizationService:
         permission = json.loads(permission_response.text)
         return permission
 
-    def get_resource_set(self, public_access_token, uri):
-        """Get_resource_set."""
-        (
-            keycloak_server_url,
-            keycloak_client_id,
-            keycloak_realm_name,
-            keycloak_client_secret_key,
-        ) = AuthorizationService.get_keycloak_args()
-        bearer_token = AuthorizationService().get_bearer_token(public_access_token)
-        auth_bearer_string = f"Bearer {bearer_token['access_token']}"
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": auth_bearer_string,
-        }
-        data = {
-            "matchingUri": "true",
-            "deep": "true",
-            "max": "-1",
-            "exactName": "false",
-            "uri": uri,
-        }
-
-        # f"matchingUri=true&deep=true&max=-1&exactName=false&uri={URI_TO_TEST_AGAINST}"
-        request_url = f"{keycloak_server_url}/realms/{keycloak_realm_name}/authz/protection/resource_set"
-        response = requests.get(request_url, headers=headers, data=data)
-
-        print("get_resource_set")
+    # def get_resource_set(self, public_access_token, uri):
+    #     """Get_resource_set."""
+    #     (
+    #         keycloak_server_url,
+    #         keycloak_client_id,
+    #         keycloak_realm_name,
+    #         keycloak_client_secret_key,
+    #     ) = AuthorizationService.get_keycloak_args()
+    #     bearer_token = AuthorizationService().get_bearer_token(public_access_token)
+    #     auth_bearer_string = f"Bearer {bearer_token['access_token']}"
+    #     headers = {
+    #         "Content-Type": "application/json",
+    #         "Authorization": auth_bearer_string,
+    #     }
+    #     data = {
+    #         "matchingUri": "true",
+    #         "deep": "true",
+    #         "max": "-1",
+    #         "exactName": "false",
+    #         "uri": uri,
+    #     }
+    #
+    #     # f"matchingUri=true&deep=true&max=-1&exactName=false&uri={URI_TO_TEST_AGAINST}"
+    #     request_url = f"{keycloak_server_url}/realms/{keycloak_realm_name}/authz/protection/resource_set"
+    #     response = requests.get(request_url, headers=headers, data=data)
+    #
+    #     print("get_resource_set")
 
     def get_permission_by_token(self, public_access_token) -> dict:
         """Get_permission_by_token."""

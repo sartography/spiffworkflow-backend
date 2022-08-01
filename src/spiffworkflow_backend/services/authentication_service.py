@@ -11,7 +11,7 @@ from flask import current_app
 from flask import redirect
 from flask_bpmn.api.api_error import ApiError
 from keycloak import KeycloakOpenID  # type: ignore
-from keycloak.uma_permissions import AuthStatus  # type: ignore
+from keycloak.uma_permissions import AuthStatus  # noqa: F401
 
 from spiffworkflow_backend.services.authorization_service import AuthorizationService
 
@@ -40,6 +40,8 @@ class AuthenticationServiceProviders(enum.Enum):
 
 
 class PublicAuthenticationService:
+    """PublicAuthenticationService."""
+
     """Not sure where/if this ultimately lives.
     It uses a separate public keycloak client: spiffworkflow-frontend
     Used during development to make testing easy.
@@ -59,7 +61,11 @@ class PublicAuthenticationService:
             keycloak_realm_name,
             keycloak_client_secret_key,
         ) = get_keycloak_args()
-        request_url = f"{keycloak_server_url}/realms/{keycloak_realm_name}/protocol/openid-connect/logout?post_logout_redirect_uri={return_redirect_url}&id_token_hint={id_token}"
+        request_url = (
+            f"{keycloak_server_url}/realms/{keycloak_realm_name}/protocol/openid-connect/logout?"
+            + f"post_logout_redirect_uri={return_redirect_url}&"
+            + f"id_token_hint={id_token}"
+        )
 
         return redirect(request_url)
 
@@ -97,12 +103,12 @@ class PublicAuthenticationService:
             keycloak_client_secret_key,
         ) = get_keycloak_args()
 
-        BACKEND_BASIC_AUTH_STRING = f"{keycloak_client_id}:{keycloak_client_secret_key}"
-        BACKEND_BASIC_AUTH_BYTES = bytes(BACKEND_BASIC_AUTH_STRING, encoding="ascii")
-        BACKEND_BASIC_AUTH = base64.b64encode(BACKEND_BASIC_AUTH_BYTES)
+        backend_basic_auth_string = f"{keycloak_client_id}:{keycloak_client_secret_key}"
+        backend_basic_auth_bytes = bytes(backend_basic_auth_string, encoding="ascii")
+        backend_basic_auth = base64.b64encode(backend_basic_auth_bytes)
         headers = {
             "Content-Type": "application/x-www-form-urlencoded",
-            "Authorization": f"Basic {BACKEND_BASIC_AUTH.decode('utf-8')}",
+            "Authorization": f"Basic {backend_basic_auth.decode('utf-8')}",
         }
 
         data = {
@@ -119,9 +125,8 @@ class PublicAuthenticationService:
 
     @staticmethod
     def validate_id_token(id_token):
-        """
-        https://openid.net/specs/openid-connect-core-1_0.html#IDTokenValidation
-        """
+        """Https://openid.net/specs/openid-connect-core-1_0.html#IDTokenValidation."""
+        valid = True
         now = time.time()
         (
             keycloak_server_url,
@@ -131,30 +136,33 @@ class PublicAuthenticationService:
         ) = get_keycloak_args()
         try:
             decoded_token = jwt.decode(id_token, options={"verify_signature": False})
-        except Exception:
+        except Exception as e:
             raise ApiError(
                 code="bad_id_token", message="Cannot decode id_token", status_code=401
-            )
-        try:
-            assert (
-                decoded_token["iss"]
-                == f"{keycloak_server_url}/realms/{keycloak_realm_name}"
-            )
-            assert (
-                keycloak_client_id in decoded_token["aud"]
-                or "account" in decoded_token["aud"]
-            )
-            if "azp" in decoded_token:
-                # TODO: not sure why this isn't keycloak_client_id
-                assert decoded_token["azp"] in keycloak_client_id, "account"
-            assert now > decoded_token["iat"]
-        except Exception as e:
-            current_app.logger.error(f"Exception validating id_token: {e}")
+            ) from e
+        if (
+            decoded_token["iss"]
+            != f"{keycloak_server_url}/realms/{keycloak_realm_name}"
+        ):
+            valid = False
+        elif (
+            keycloak_client_id not in decoded_token["aud"]
+            and "account" not in decoded_token["aud"]
+        ):
+            valid = False
+        elif "azp" in decoded_token and decoded_token["azp"] not in (
+            keycloak_client_id,
+            "account",
+        ):
+            valid = False
+        elif now < decoded_token["iat"]:
+            valid = False
+
+        if not valid:
+            current_app.logger.error(f"Invalid token in validate_id_token: {id_token}")
             return False
 
-        try:
-            assert now < decoded_token["exp"]
-        except:
+        if now > decoded_token["exp"]:
             raise ApiError(
                 code="invalid_token",
                 message="Your token is expired. Please Login",

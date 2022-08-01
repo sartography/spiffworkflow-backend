@@ -1,4 +1,5 @@
 """User."""
+import ast
 import base64
 from typing import Dict
 from typing import Optional
@@ -41,15 +42,17 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[str]]:
         user_model = None
         decoded_token = get_decoded_token(token)
 
-        if 'token_type' in decoded_token:
-            token_type = decoded_token['token_type']
-            if token_type == 'internal':
+        if "token_type" in decoded_token:
+            token_type = decoded_token["token_type"]
+            if token_type == "internal":  # noqa: S105
                 try:
                     user_model = get_user_from_decoded_internal_token(decoded_token)
                 except Exception as e:
-                    current_app.logger.error(f"Exception in verify_token getting user from decoded internal token. {e}")
+                    current_app.logger.error(
+                        f"Exception in verify_token getting user from decoded internal token. {e}"
+                    )
 
-        elif 'iss' in decoded_token:
+        elif "iss" in decoded_token:
             try:
                 user_info = AuthorizationService().get_user_info_from_id_token(token)
             except ApiError as ae:
@@ -58,9 +61,11 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[str]]:
                 current_app.logger.error(f"Exception raised in get_token: {e}")
                 raise ApiError(
                     code="fail_get_user_info", message="Cannot get user info from token"
-                )
+                ) from e
 
-            if user_info is not None and "error" not in user_info:  # not sure what to test yet
+            if (
+                user_info is not None and "error" not in user_info
+            ):  # not sure what to test yet
                 user_model = (
                     UserModel.query.filter(UserModel.service == "keycloak")
                     .filter(UserModel.service_id == user_info["sub"])
@@ -82,9 +87,11 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[str]]:
 
         else:
             current_app.logger.debug("token_type not in decode_token in verify_token")
-            raise ApiError(code="invalid_token",
-                           message="Invalid token. Please log in.",
-                           status_code=401)
+            raise ApiError(
+                code="invalid_token",
+                message="Invalid token. Please log in.",
+                status_code=401,
+            )
 
         if user_model:
             g.user = user_model
@@ -98,10 +105,9 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[str]]:
         else:
             raise ApiError(code="no_user_id", message="Cannot get a user id")
 
-
     # no token -- do we ever get here?
     else:
-        if app.config.get("DEVELOPMENT"):
+        if current_app.config.get("DEVELOPMENT"):
             # Fall back to a default user if this is not production.
             g.user = UserModel.query.first()
             if not g.user:
@@ -142,14 +148,14 @@ def api_login(uid, password, redirect_url=None):
 
 
 def encode_auth_token(uid):
-    """
-    Generates the Auth Token
+    """Generates the Auth Token.
+
     :return: string
     """
     payload = {"sub": uid}
     return jwt.encode(
         payload,
-        app.config.get("SECRET_KEY"),
+        current_app.config.get("SECRET_KEY"),
         algorithm="HS256",
     )
 
@@ -162,12 +168,10 @@ def login(redirect_url="/"):
 
 
 def login_return(code, state, session_state):
-    """"""
-    # TODO: Why does state look like this?
-    #  'b\'eydyZWRpcmVjdF91cmwnOiAnaHR0cDovL2xvY2FsaG9zdDo3MDAxLyd9\''
-    #  It has an extra 'b at the beginning and an extra ' at the end,
-    #  so we use state[2:-1]
-    state_dict = eval(base64.b64decode(state[2:-1]).decode("utf-8"))
+    """Login_return."""
+    state_dict = ast.literal_eval(
+        base64.b64decode(ast.literal_eval(state)).decode("utf-8")
+    )
     state_redirect_url = state_dict["redirect_url"]
 
     id_token_object = PublicAuthenticationService().get_id_token_object(code)
@@ -222,7 +226,7 @@ def logout(id_token: str, redirect_url: str | None):
 
 def logout_return():
     """Logout_return."""
-    return redirect(f"http://localhost:7001/")
+    return redirect("http://localhost:7001/")
 
 
 def get_decoded_token(token: str) -> Dict | None:
@@ -231,15 +235,17 @@ def get_decoded_token(token: str) -> Dict | None:
         decoded_token = jwt.decode(token, options={"verify_signature": False})
     except Exception as e:
         print(f"Exception in get_token_type: {e}")
-        raise ApiError(code="invalid_token",
-                       message=f"Cannot decode token.")
+        raise ApiError(code="invalid_token", message="Cannot decode token.") from e
     else:
-        if 'token_type' in decoded_token or 'iss' in decoded_token:
+        if "token_type" in decoded_token or "iss" in decoded_token:
             return decoded_token
         else:
-            current_app.logger.error(f"Unknown token type in get_decoded_token: token: {token}")
-            raise ApiError(code='unknown_token',
-                           message="Unknown token type in get_decoded_token")
+            current_app.logger.error(
+                f"Unknown token type in get_decoded_token: token: {token}"
+            )
+            raise ApiError(
+                code="unknown_token", message="Unknown token type in get_decoded_token"
+            )
     # try:
     #     # see if we have an open_id token
     #     decoded_token = AuthorizationService.decode_auth_token(token)
@@ -255,17 +261,20 @@ def get_scope(token):
     """Get_scope."""
     scope = ""
     decoded_token = jwt.decode(token, options={"verify_signature": False})
-    if 'scope' in decoded_token:
+    if "scope" in decoded_token:
         scope = decoded_token["scope"]
     return scope
 
+
 def get_user_from_decoded_internal_token(decoded_token):
-    sub = decoded_token['sub']
-    parts = sub.split('::')
-    service = parts[0].split(':')[1]
-    service_id = parts[1].split(':')[1]
-    user = UserModel.query \
-        .filter(UserModel.service == service) \
-        .filter(UserModel.service_id == service_id) \
+    """Get_user_from_decoded_internal_token."""
+    sub = decoded_token["sub"]
+    parts = sub.split("::")
+    service = parts[0].split(":")[1]
+    service_id = parts[1].split(":")[1]
+    user = (
+        UserModel.query.filter(UserModel.service == service)
+        .filter(UserModel.service_id == service_id)
         .first()
+    )
     return user

@@ -17,6 +17,7 @@ from spiffworkflow_backend.services.process_instance_service import (
 )
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 from spiffworkflow_backend.services.spec_file_service import SpecFileService
+from spiffworkflow_backend.services.user_service import UserService
 
 admin_blueprint = Blueprint(
     "admin", __name__, template_folder="templates", static_folder="static"
@@ -173,7 +174,9 @@ def process_model_save(process_model_id: str, file_name: str) -> Union[str, Resp
 @admin_blueprint.route("/process-models/<process_model_id>/run", methods=["GET"])
 def process_model_run(process_model_id: str) -> Union[str, Response]:
     """Process_model_run."""
-    user = _find_or_create_user("Mr. Test")  # Fixme - sheesh!
+    user = UserService().create_user(
+        "internal", "Mr. Test", username="Mr. Test"
+    )
     process_instance = ProcessInstanceService.create_process_instance(
         process_model_id, user
     )

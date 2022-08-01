@@ -353,7 +353,7 @@ class ProcessInstanceProcessor:
                 ready_or_waiting_task.task_spec
             ):
 
-                user_id = ready_or_waiting_task.data['current_user']['id']
+                user_id = ready_or_waiting_task.data["current_user"]["id"]
                 principal = PrincipalModel.query.filter_by(user_id=user_id).first()
                 if principal is None:
                     raise (
