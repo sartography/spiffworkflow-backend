@@ -38,10 +38,18 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[str]]:
         If on production and user is not authenticated, returns a 'no_user' 403 error.
     """
     if token:
-        user_info = None
+        user_model = None
+        decoded_token = get_decoded_token(token)
 
-        token_type = get_token_type(token)
-        if token_type == "id_token":
+        if 'token_type' in decoded_token:
+            token_type = decoded_token['token_type']
+            if token_type == 'internal':
+                try:
+                    user_model = get_user_from_decoded_internal_token(decoded_token)
+                except Exception as e:
+                    current_app.logger.error(f"Exception in verify_token getting user from decoded internal token. {e}")
+
+        elif 'iss' in decoded_token:
             try:
                 user_info = AuthorizationService().get_user_info_from_id_token(token)
             except ApiError as ae:
@@ -52,37 +60,44 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[str]]:
                     code="fail_get_user_info", message="Cannot get user info from token"
                 )
 
-        if user_info and "error" not in user_info:  # not sure what to test yet
-            user_model = (
-                UserModel.query.filter(UserModel.service == "keycloak")
-                .filter(UserModel.service_id == user_info["sub"])
-                .first()
-            )
-            if user_model is None:
-                # Do we ever get here any more, now that we have login_return method?
-                current_app.logger.debug("create_user in verify_token")
-                user_model = UserService().create_user(
-                    service="keycloak",
-                    service_id=user_info["sub"],
-                    name=user_info["name"],
-                    username=user_info["preferred_username"],
-                    email=user_info["email"],
+            if user_info is not None and "error" not in user_info:  # not sure what to test yet
+                user_model = (
+                    UserModel.query.filter(UserModel.service == "keycloak")
+                    .filter(UserModel.service_id == user_info["sub"])
+                    .first()
                 )
-            if user_model:
-                g.user = user_model
-
-            # If the user is valid, store the token for this session
-            if g.user:
-                g.token = token
-                scope = get_scope(token)
-                return {"uid": g.user.id, "sub": g.user.id, "scope": scope}
-                # return validate_scope(token, user_info, user_model)
+                if user_model is None:
+                    # Do we ever get here any more, now that we have login_return method?
+                    current_app.logger.debug("create_user in verify_token")
+                    user_model = UserService().create_user(
+                        service="keycloak",
+                        service_id=user_info["sub"],
+                        name=user_info["name"],
+                        username=user_info["preferred_username"],
+                        email=user_info["email"],
+                    )
+            # no user_info
             else:
-                raise ApiError(code="no_user_id", message="Cannot get a user id")
+                raise ApiError(code="no_user_info", message="Cannot retrieve user info")
 
-        # no user_info
         else:
-            raise ApiError(code="no_user_info", message="Cannot retrieve user info")
+            current_app.logger.debug("token_type not in decode_token in verify_token")
+            raise ApiError(code="invalid_token",
+                           message="Invalid token. Please log in.",
+                           status_code=401)
+
+        if user_model:
+            g.user = user_model
+
+        # If the user is valid, store the token for this session
+        if g.user:
+            g.token = token
+            scope = get_scope(token)
+            return {"uid": g.user.id, "sub": g.user.id, "scope": scope}
+            # return validate_scope(token, user_info, user_model)
+        else:
+            raise ApiError(code="no_user_id", message="Cannot get a user id")
+
 
     # no token -- do we ever get here?
     else:
@@ -210,19 +225,21 @@ def logout_return():
     return redirect(f"http://localhost:7001/")
 
 
-def get_token_type(token) -> bool:
+def get_decoded_token(token: str) -> Dict | None:
     """Get_token_type."""
-    token_type = None
     try:
-        PublicAuthenticationService.validate_id_token(token)
-    except ApiError as ae:
-        if ae.status_code == 401:
-            raise ae
-        print(f"ApiError in get_token_type: {ae}")
+        decoded_token = jwt.decode(token, options={"verify_signature": False})
     except Exception as e:
         print(f"Exception in get_token_type: {e}")
+        raise ApiError(code="invalid_token",
+                       message=f"Cannot decode token.")
     else:
-        token_type = "id_token"
+        if 'token_type' in decoded_token or 'iss' in decoded_token:
+            return decoded_token
+        else:
+            current_app.logger.error(f"Unknown token type in get_decoded_token: token: {token}")
+            raise ApiError(code='unknown_token',
+                           message="Unknown token type in get_decoded_token")
     # try:
     #     # see if we have an open_id token
     #     decoded_token = AuthorizationService.decode_auth_token(token)
@@ -232,11 +249,23 @@ def get_token_type(token) -> bool:
 
     # if 'token_type' in decoded_token and 'sub' in decoded_token:
     #     return True
-    return token_type
 
 
 def get_scope(token):
     """Get_scope."""
+    scope = ""
     decoded_token = jwt.decode(token, options={"verify_signature": False})
-    scope = decoded_token["scope"]
+    if 'scope' in decoded_token:
+        scope = decoded_token["scope"]
     return scope
+
+def get_user_from_decoded_internal_token(decoded_token):
+    sub = decoded_token['sub']
+    parts = sub.split('::')
+    service = parts[0].split(':')[1]
+    service_id = parts[1].split(':')[1]
+    user = UserModel.query \
+        .filter(UserModel.service == service) \
+        .filter(UserModel.service_id == service_id) \
+        .first()
+    return user
