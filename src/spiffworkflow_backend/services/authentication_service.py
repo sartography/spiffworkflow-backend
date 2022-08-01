@@ -11,10 +11,10 @@ from flask import current_app
 from flask import redirect
 from flask_bpmn.api.api_error import ApiError
 from keycloak import KeycloakOpenID  # type: ignore
-# from keycloak.uma_permissions import AuthStatus  # noqa: F401
+from werkzeug.wrappers.response import Response
 
 from spiffworkflow_backend.services.authorization_service import AuthorizationService
-from werkzeug.wrappers.response import Response
+# from keycloak.uma_permissions import AuthStatus  # noqa: F401
 
 
 def get_keycloak_args() -> tuple:
@@ -48,10 +48,10 @@ class PublicAuthenticationService:
     Used during development to make testing easy.
     """
 
-    def logout(self, id_token: str , redirect_url: str | None = None) -> Response:
+    def logout(self, id_token: str, redirect_url: str | None = None) -> Response:
         """Logout."""
         if redirect_url is None:
-            redirect_url = '/'
+            redirect_url = "/"
         return_redirect_url = "http://localhost:7000/v1.0/logout_return"
         (
             keycloak_server_url,
@@ -190,7 +190,7 @@ class PublicAuthenticationService:
         if public_response.status_code == 200:
             public_token = json.loads(public_response.text)
             if "access_token" in public_token:
-                access_token: dict = public_token['access_token']
+                access_token: dict = public_token["access_token"]
                 return access_token
         raise ApiError(
             code="no_public_access_token",

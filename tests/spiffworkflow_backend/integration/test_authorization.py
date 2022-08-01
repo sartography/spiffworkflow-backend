@@ -1,8 +1,5 @@
 """Test_authorization."""
-from flask.app import Flask
 from tests.spiffworkflow_backend.integration.base_test import BaseTest
-
-from spiffworkflow_backend.services.authorization_service import AuthorizationService
 
 
 class TestAuthorization(BaseTest):

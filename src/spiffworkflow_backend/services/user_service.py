@@ -6,7 +6,6 @@ from flask import current_app
 from flask import g
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
-from sqlalchemy.exc import IntegrityError
 
 from spiffworkflow_backend.models.principal import PrincipalModel
 from spiffworkflow_backend.models.user import AdminSessionModel
@@ -16,9 +15,16 @@ from spiffworkflow_backend.models.user import UserModel
 class UserService:
     """Provides common tools for working with users."""
 
-    def create_user(self, service: str, service_id: str, name: str|None=None, username: str|None=None, email: str|None=None) -> UserModel:
+    def create_user(
+        self,
+        service: str,
+        service_id: str,
+        name: str | None = None,
+        username: str | None = None,
+        email: str | None = None,
+    ) -> UserModel:
         """Create_user."""
-        user_model: UserModel|None = (
+        user_model: UserModel | None = (
             UserModel.query.filter(UserModel.service == service)
             .filter(UserModel.service_id == service_id)
             .first()
@@ -238,7 +244,9 @@ class UserService:
 
     def create_principal(self, user_id: int) -> PrincipalModel:
         """Create_principal."""
-        principal: PrincipalModel | None = PrincipalModel.query.filter_by(user_id=user_id).first()
+        principal: PrincipalModel | None = PrincipalModel.query.filter_by(
+            user_id=user_id
+        ).first()
         if principal is None:
             principal = PrincipalModel(user_id=user_id)
             db.session.add(principal)

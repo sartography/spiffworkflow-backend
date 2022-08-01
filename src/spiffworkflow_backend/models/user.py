@@ -10,7 +10,6 @@ from sqlalchemy.orm import relationship
 from spiffworkflow_backend.models.group import GroupModel
 from spiffworkflow_backend.models.user_group_assignment import UserGroupAssignmentModel
 
-from typing import Any
 
 class UserModel(SpiffworkflowBaseDBModel):
     """UserModel."""

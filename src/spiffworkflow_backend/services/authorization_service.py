@@ -48,9 +48,11 @@ class AuthorizationService:
             request_response = requests.get(request_url, headers=headers)
         except Exception as e:
             current_app.logger.error(f"Exception in get_user_info_from_id_token: {e}")
-            raise ApiError(code='token_error',
-                           message=f"Exception in get_user_info_from_id_token: {e}",
-                           status_code=401)
+            raise ApiError(
+                code="token_error",
+                message=f"Exception in get_user_info_from_id_token: {e}",
+                status_code=401,
+            )
 
         if request_response.status_code == 401:
             raise ApiError(
@@ -60,9 +62,11 @@ class AuthorizationService:
             user_info: dict = json.loads(request_response.text)
             return user_info
 
-        raise ApiError(code='user_info_error',
-                       message=f"Cannot get user info in get_user_info_from_id_token",
-                       status_code=401)
+        raise ApiError(
+            code="user_info_error",
+            message=f"Cannot get user info in get_user_info_from_id_token",
+            status_code=401,
+        )
 
     # def refresh_token(self, token: str) -> str:
     #     """Refresh_token."""

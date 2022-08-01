@@ -1,7 +1,8 @@
 """User."""
 import ast
 import base64
-from typing import Any, Dict
+from typing import Any
+from typing import Dict
 from typing import Optional
 
 import jwt
@@ -9,6 +10,7 @@ from flask import current_app
 from flask import g
 from flask import redirect
 from flask_bpmn.api.api_error import ApiError
+from werkzeug.wrappers.response import Response
 
 from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.services.authentication_service import (
@@ -16,8 +18,6 @@ from spiffworkflow_backend.services.authentication_service import (
 )
 from spiffworkflow_backend.services.authorization_service import AuthorizationService
 from spiffworkflow_backend.services.user_service import UserService
-
-from werkzeug.wrappers.response import Response
 
 """
 .. module:: crc.api.user
@@ -58,13 +58,16 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[str]]:
 
             elif "iss" in decoded_token.keys():
                 try:
-                    user_info = AuthorizationService().get_user_info_from_id_token(token)
+                    user_info = AuthorizationService().get_user_info_from_id_token(
+                        token
+                    )
                 except ApiError as ae:
                     raise ae
                 except Exception as e:
                     current_app.logger.error(f"Exception raised in get_token: {e}")
                     raise ApiError(
-                        code="fail_get_user_info", message="Cannot get user info from token"
+                        code="fail_get_user_info",
+                        message="Cannot get user info from token",
                     ) from e
 
                 if (
@@ -87,10 +90,14 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[str]]:
                         )
                 # no user_info
                 else:
-                    raise ApiError(code="no_user_info", message="Cannot retrieve user info")
+                    raise ApiError(
+                        code="no_user_info", message="Cannot retrieve user info"
+                    )
 
             else:
-                current_app.logger.debug("token_type not in decode_token in verify_token")
+                current_app.logger.debug(
+                    "token_type not in decode_token in verify_token"
+                )
                 raise ApiError(
                     code="invalid_token",
                     message="Invalid token. Please log in.",
@@ -109,31 +116,30 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[str]]:
         else:
             raise ApiError(code="no_user_id", message="Cannot get a user id")
 
-    raise ApiError(code="invalid_token",
-                   message="Cannot validate token.",
-                   status_code=401
-                   )
+    raise ApiError(
+        code="invalid_token", message="Cannot validate token.", status_code=401
+    )
     # no token -- do we ever get here?
     # else:
     #     ...
-        # if current_app.config.get("DEVELOPMENT"):
-        #     # Fall back to a default user if this is not production.
-        #     g.user = UserModel.query.first()
-        #     if not g.user:
-        #         raise ApiError(
-        #             "no_user",
-        #             "You are in development mode, but there are no users in the database.  Add one, and it will use it.",
-        #         )
-        #     token_from_user = g.user.encode_auth_token()
-        #     token_info = UserModel.decode_auth_token(token_from_user)
-        #     return token_info
-        #
-        # else:
-        #     raise ApiError(
-        #         code="no_auth_token",
-        #         message="No authorization token was available.",
-        #         status_code=401,
-        #     )
+    # if current_app.config.get("DEVELOPMENT"):
+    #     # Fall back to a default user if this is not production.
+    #     g.user = UserModel.query.first()
+    #     if not g.user:
+    #         raise ApiError(
+    #             "no_user",
+    #             "You are in development mode, but there are no users in the database.  Add one, and it will use it.",
+    #         )
+    #     token_from_user = g.user.encode_auth_token()
+    #     token_info = UserModel.decode_auth_token(token_from_user)
+    #     return token_info
+    #
+    # else:
+    #     raise ApiError(
+    #         code="no_auth_token",
+    #         message="No authorization token was available.",
+    #         status_code=401,
+    #     )
 
 
 def validate_scope(token: Any) -> bool:
@@ -148,7 +154,7 @@ def validate_scope(token: Any) -> bool:
     return True
 
 
-def api_login(uid: str, password: str, redirect_url: str | None=None) -> dict:
+def api_login(uid: str, password: str, redirect_url: str | None = None) -> dict:
     """Api_login."""
     # TODO: Fix this! mac 20220801
     token = PublicAuthenticationService().get_public_access_token(uid, password)
@@ -167,8 +173,9 @@ def encode_auth_token(uid: str) -> str:
         secret_key = current_app.config.get("SECRET_KEY")
     else:
         current_app.logger.error("Missing SECRET_KEY in encode_auth_token")
-        raise ApiError(code="encode_error",
-                       message="Missing SECRET_KEY in encode_auth_token")
+        raise ApiError(
+            code="encode_error", message="Missing SECRET_KEY in encode_auth_token"
+        )
     return jwt.encode(
         payload,
         str(secret_key),
@@ -176,7 +183,7 @@ def encode_auth_token(uid: str) -> str:
     )
 
 
-def login(redirect_url: str="/") -> Response:
+def login(redirect_url: str = "/") -> Response:
     """Login."""
     state = PublicAuthenticationService.generate_state(redirect_url)
     login_redirect_url = PublicAuthenticationService().get_login_redirect_url(state)
@@ -229,14 +236,15 @@ def login_return(code: str, state: str, session_state: str) -> Response | None:
                 + f"id_token={id_token}"
             )
             return redirect(redirect_url)
-    raise ApiError(code="invalid_login",
-                   message="Login failed. Please try again",
-                   status_code=401)
+    raise ApiError(
+        code="invalid_login", message="Login failed. Please try again", status_code=401
+    )
+
 
 def logout(id_token: str, redirect_url: str | None) -> Response:
     """Logout."""
     if redirect_url is None:
-        redirect_url = ''
+        redirect_url = ""
     return PublicAuthenticationService().logout(
         redirect_url=redirect_url, id_token=id_token
     )
