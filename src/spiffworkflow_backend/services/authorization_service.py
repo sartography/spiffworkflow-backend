@@ -52,7 +52,7 @@ class AuthorizationService:
                 code="token_error",
                 message=f"Exception in get_user_info_from_id_token: {e}",
                 status_code=401,
-            )
+            ) from e
 
         if request_response.status_code == 401:
             raise ApiError(
@@ -64,7 +64,7 @@ class AuthorizationService:
 
         raise ApiError(
             code="user_info_error",
-            message=f"Cannot get user info in get_user_info_from_id_token",
+            message="Cannot get user info in get_user_info_from_id_token",
             status_code=401,
         )
 

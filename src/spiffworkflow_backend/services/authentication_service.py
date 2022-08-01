@@ -14,6 +14,7 @@ from keycloak import KeycloakOpenID  # type: ignore
 from werkzeug.wrappers.response import Response
 
 from spiffworkflow_backend.services.authorization_service import AuthorizationService
+
 # from keycloak.uma_permissions import AuthStatus  # noqa: F401
 
 
