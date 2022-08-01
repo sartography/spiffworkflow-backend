@@ -7,3 +7,7 @@ CORS_DEFAULT = "*"
 CORS_ALLOW_ORIGINS = re.split(
     r",\s*", environ.get("CORS_ALLOW_ORIGINS", default=CORS_DEFAULT)
 )
+
+PROCESS_WAITING_MESSAGES = (
+    environ.get("PROCESS_WAITING_MESSAGES", default="false") == "true"
+)

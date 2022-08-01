@@ -35,13 +35,12 @@ from SpiffWorkflow.util.deep_merge import DeepMerge  # type: ignore
 from spiffworkflow_backend.models.active_task import ActiveTaskModel
 from spiffworkflow_backend.models.file import File
 from spiffworkflow_backend.models.file import FileType
+from spiffworkflow_backend.models.message_instance import MessageInstanceModel
+from spiffworkflow_backend.models.message_instance import MessageModel
 from spiffworkflow_backend.models.principal import PrincipalModel
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 from spiffworkflow_backend.models.process_instance import ProcessInstanceStatus
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
-from spiffworkflow_backend.models.queued_receive_message import (
-    QueuedReceiveMessageModel,
-)
 from spiffworkflow_backend.models.task_event import TaskAction
 from spiffworkflow_backend.models.task_event import TaskEventModel
 from spiffworkflow_backend.models.user import UserModelSchema
@@ -450,34 +449,48 @@ class ProcessInstanceProcessor:
         """Process_bpmn_events."""
         if self.bpmn_process_instance.bpmn_events:
             for bpmn_event in self.bpmn_process_instance.bpmn_events:
-                # FIXME: pseudocode - not sure how to determine message types yet
-                if bpmn_event.event == "ReceivedEvent":
-                    queued_message = QueuedReceiveMessageModel(
-                        process_instance_id=self.process_instance_model.id,
-                        bpmn_element_id=bpmn_event.task_name,
+                message_type = None
+
+                # TODO: message: who knows the of the message model?
+                # will it be in the bpmn_event?
+                message_model = MessageModel.query.filter_by(
+                    name=bpmn_event.message_name
+                )
+
+                if message_model is None:
+                    raise ApiError(
+                        "invalid_message_name",
+                        f"Invalid message name: {bpmn_event.message_name}.",
                     )
-                    db.session.add(queued_message)
-                    db.session.commit()
+
+                # TODO: message - not sure how to determine message types yet
+                if bpmn_event.event == "WaitEvent":  # and waiting for message:
+                    message_type = "receive"
                 elif bpmn_event.event == "SendEvent":
-                    queued_receive_message = (
-                        QueuedReceiveMessageModel.query.filter_by().first()
+                    message_type = "send"
+
+                if message_type is None:
+                    raise ApiError(
+                        "invalid_event_type",
+                        f"Invalid event type for a message: {bpmn_event.event}.",
                     )
-                    if queued_receive_message:
-                        process_instance = ProcessInstanceModel.query.filter_by(
-                            process_instance_id=queued_receive_message.process_instance_id
-                        ).first()
-                        if process_instance is None:
-                            raise ApiError(
-                                "process_instance_not_found",
-                                f"The process instance - {queued_receive_message.process_instance_id} - for receiving event - {queued_receive_message.id} - cannot be found",
-                            )
+
+                queued_message = MessageInstanceModel(
+                    process_instance_id=self.process_instance_model.id,
+                    bpmn_element_id=bpmn_event.task_name,
+                    message_type=message_type,
+                    message_model_id=message_model.id,
+                )
+                db.session.add(queued_message)
+                db.session.commit()
 
     def do_engine_steps(self, exit_at: None = None) -> None:
         """Do_engine_steps."""
         try:
             self.bpmn_process_instance.refresh_waiting_tasks()
             self.bpmn_process_instance.do_engine_steps(exit_at=exit_at)
-            self.process_bpmn_events()
+            # TODO: run this
+            # self.process_bpmn_events()
 
         except WorkflowTaskExecException as we:
             raise ApiError.from_workflow_exception("task_error", str(we), we) from we

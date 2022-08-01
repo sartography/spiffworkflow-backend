@@ -5,6 +5,7 @@ from typing import Any
 import connexion  # type: ignore
 import flask.app
 import flask.json
+from apscheduler.schedulers.background import BackgroundScheduler
 from flask_bpmn.api.api_error import api_error_blueprint
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import migrate
@@ -16,6 +17,7 @@ from spiffworkflow_backend.config import setup_config
 from spiffworkflow_backend.routes.admin_blueprint.admin_blueprint import admin_blueprint
 from spiffworkflow_backend.routes.process_api_blueprint import process_api_blueprint
 from spiffworkflow_backend.routes.user_blueprint import user_blueprint
+from spiffworkflow_backend.services.message_service import MessageServiceWithAppContext
 
 
 class MyJSONEncoder(flask.json.JSONEncoder):
@@ -26,6 +28,12 @@ class MyJSONEncoder(flask.json.JSONEncoder):
         if hasattr(obj, "serialized"):
             return obj.serialized
         return super().default(obj)
+
+
+# def process_queued_messages(app: flask.app.Flask):
+#     """Process_queued_messages."""
+#     with app.app_context():
+#         MessageService().process_queued_messages()
 
 
 def create_app() -> flask.app.Flask:
@@ -70,5 +78,14 @@ def create_app() -> flask.app.Flask:
     app.config["MAIL_APP"] = mail
 
     app.json_encoder = MyJSONEncoder
+
+    if app.config["PROCESS_WAITING_MESSAGES"]:
+        scheduler = BackgroundScheduler()
+        scheduler.add_job(
+            MessageServiceWithAppContext(app).process_queued_messages_with_app_context,
+            "interval",
+            minutes=1,
+        )
+        scheduler.start()
 
     return app  # type: ignore

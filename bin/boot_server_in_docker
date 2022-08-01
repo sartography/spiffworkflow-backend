@@ -32,6 +32,7 @@ if [[ "${APPLICATION_ROOT:-}" != "/" ]]; then
 fi
 
 export IS_GUNICORN="true"
+export PROCESS_WAITING_MESSAGES="true"
 
 # THIS MUST BE THE LAST COMMAND!
 exec poetry run gunicorn ${additional_args} --bind "0.0.0.0:$port" --workers=3 --timeout 90 --capture-output --access-logfile '-' --log-level debug wsgi:app
