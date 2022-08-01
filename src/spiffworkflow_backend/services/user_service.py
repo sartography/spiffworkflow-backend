@@ -19,12 +19,12 @@ class UserService:
         self,
         service: str,
         service_id: str,
-        name: str | None = None,
-        username: str | None = None,
-        email: str | None = None,
+        name: Optional[str] = None,
+        username: Optional[str] = None,
+        email: Optional[str] = None,
     ) -> UserModel:
         """Create_user."""
-        user_model: UserModel | None = (
+        user_model: Optional[UserModel] = (
             UserModel.query.filter(UserModel.service == service)
             .filter(UserModel.service_id == service_id)
             .first()
@@ -244,7 +244,7 @@ class UserService:
 
     def create_principal(self, user_id: int) -> PrincipalModel:
         """Create_principal."""
-        principal: PrincipalModel | None = PrincipalModel.query.filter_by(
+        principal: Optional[PrincipalModel] = PrincipalModel.query.filter_by(
             user_id=user_id
         ).first()
         if principal is None:

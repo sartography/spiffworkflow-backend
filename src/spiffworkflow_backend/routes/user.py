@@ -154,7 +154,7 @@ def validate_scope(token: Any) -> bool:
     return True
 
 
-def api_login(uid: str, password: str, redirect_url: str | None = None) -> dict:
+def api_login(uid: str, password: str, redirect_url: Optional[str] = None) -> dict:
     """Api_login."""
     # TODO: Fix this! mac 20220801
     token = PublicAuthenticationService().get_public_access_token(uid, password)
@@ -190,7 +190,7 @@ def login(redirect_url: str = "/") -> Response:
     return redirect(login_redirect_url)
 
 
-def login_return(code: str, state: str, session_state: str) -> Response | None:
+def login_return(code: str, state: str, session_state: str) -> Optional[Response]:
     """Login_return."""
     state_dict = ast.literal_eval(
         base64.b64decode(ast.literal_eval(state)).decode("utf-8")
@@ -241,7 +241,7 @@ def login_return(code: str, state: str, session_state: str) -> Response | None:
     )
 
 
-def logout(id_token: str, redirect_url: str | None) -> Response:
+def logout(id_token: str, redirect_url: Optional[str]) -> Response:
     """Logout."""
     if redirect_url is None:
         redirect_url = ""
@@ -255,7 +255,7 @@ def logout_return() -> Response:
     return redirect("http://localhost:7001/")
 
 
-def get_decoded_token(token: str) -> Dict | None:
+def get_decoded_token(token: str) -> Optional[Dict]:
     """Get_token_type."""
     try:
         decoded_token = jwt.decode(token, options={"verify_signature": False})
@@ -292,7 +292,7 @@ def get_scope(token: str) -> str:
     return scope
 
 
-def get_user_from_decoded_internal_token(decoded_token: dict) -> UserModel | None:
+def get_user_from_decoded_internal_token(decoded_token: dict) -> Optional[UserModel]:
     """Get_user_from_decoded_internal_token."""
     sub = decoded_token["sub"]
     parts = sub.split("::")
