@@ -197,7 +197,7 @@ def login(redirect_url: str = "/") -> Response:
 def login_return(code: str, state: str, session_state: str) -> Optional[Response]:
     """Login_return."""
     state_dict = ast.literal_eval(
-        base64.b64decode(ast.literal_eval(state)).decode("utf-8")
+        base64.b64decode(state).decode("utf-8")
     )
     state_redirect_url = state_dict["redirect_url"]
 
