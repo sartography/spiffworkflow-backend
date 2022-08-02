@@ -1,18 +1,13 @@
 """User."""
-import json
-from time import time
 from typing import Dict
 from typing import Optional
 
-from flask_bpmn.models.db import db
 from tests.spiffworkflow_backend.helpers.example_data import ExampleDataLoader
 
 from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
     ProcessEntityNotFoundError,
 )
-from spiffworkflow_backend.helpers.fixture_data import find_or_create_user
 from spiffworkflow_backend.models.process_group import ProcessGroup
-from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
@@ -71,27 +66,6 @@ def load_test_spec(
             library=library,
         )
         return spec
-
-
-def create_process_instance_from_process_model(
-    process_model: ProcessModelInfo, status: str
-):
-    """Create_process_instance_from_process_model."""
-    user = find_or_create_user()
-    current_time = round(time.time())
-    process_instance = ProcessInstanceModel(
-        status=status,
-        process_initiator=user,
-        process_model_identifier=process_model.id,
-        process_group_identifier=process_model.process_group_id,
-        updated_at_in_seconds=round(time.time()),
-        start_in_seconds=current_time - (3600 * 1),
-        end_in_seconds=current_time - (3600 * 1 - 20),
-        bpmn_json=json.dumps({"ikey": "ivalue"}),
-    )
-    db.session.add(process_instance)
-    db.session.commit()
-    return process_instance
 
 
 # def user_info_to_query_string(user_info, redirect_url):

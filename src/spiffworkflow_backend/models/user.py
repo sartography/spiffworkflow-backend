@@ -20,7 +20,7 @@ class UserModel(SpiffworkflowBaseDBModel):
     username = db.Column(db.String(50), nullable=False, unique=True)
     uid = db.Column(db.String(50), unique=True)
     service = db.Column(db.String(50), nullable=False, unique=False)
-    service_id = db.Column(db.String(), nullable=False, unique=False)
+    service_id = db.Column(db.String(50), nullable=False, unique=False)
     name = db.Column(db.String(50))
     email = db.Column(db.String(50))
     user_group_assignments = relationship(UserGroupAssignmentModel, cascade="delete")

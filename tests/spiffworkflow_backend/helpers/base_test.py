@@ -1,7 +1,13 @@
 """Base_test."""
+import json
+import time
+
 from flask.app import Flask
 from flask_bpmn.api.api_error import ApiError
+from flask_bpmn.models.db import db
 
+from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
+from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.services.user_service import UserService
 
@@ -49,3 +55,23 @@ class BaseTest:
     #         username, password
     #     )
     #     return public_access_token
+
+    def create_process_instance_from_process_model(
+        self, process_model: ProcessModelInfo, status: str
+    ) -> ProcessInstanceModel:
+        """Create_process_instance_from_process_model."""
+        user = self.find_or_create_user()
+        current_time = round(time.time())
+        process_instance = ProcessInstanceModel(
+            status=status,
+            process_initiator=user,
+            process_model_identifier=process_model.id,
+            process_group_identifier=process_model.process_group_id,
+            updated_at_in_seconds=round(time.time()),
+            start_in_seconds=current_time - (3600 * 1),
+            end_in_seconds=current_time - (3600 * 1 - 20),
+            bpmn_json=json.dumps({"ikey": "ivalue"}),
+        )
+        db.session.add(process_instance)
+        db.session.commit()
+        return process_instance

@@ -1,5 +1,4 @@
 """Message_model."""
-
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 

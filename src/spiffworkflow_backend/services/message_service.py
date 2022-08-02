@@ -1,8 +1,7 @@
 """Message_service."""
-
 import flask
-from spiffworkflow_backend.models.user import UserModel
 
+from spiffworkflow_backend.models.message_instance import MessageInstanceModel
 
 class MessageServiceWithAppContext:
     """Wrapper for Message Service.
@@ -15,7 +14,7 @@ class MessageServiceWithAppContext:
         """__init__."""
         self.app = app
 
-    def process_queued_messages_with_app_context(self):
+    def process_queued_messages_with_app_context(self) -> None:
         """Since this runs in a scheduler, we need to specify the app context as well."""
         with self.app.app_context():
             MessageService().process_queued_messages()
@@ -24,9 +23,8 @@ class MessageServiceWithAppContext:
 class MessageService:
     """MessageService."""
 
-    def process_queued_messages(self):
+    def process_queued_messages(self) -> None:
         """Process_queued_messages."""
-        user = UserModel.query.first()
-        print(f"user: {user}")
-        # MessageInstanceModel.query
-        # if
+        queued_messages = MessageInstanceModel.query
+        for queued_message in queued_messages:
+            print(f"queued_message: {queued_message.id}")

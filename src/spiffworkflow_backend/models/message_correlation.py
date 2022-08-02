@@ -14,12 +14,12 @@ class MessageCorrelationModel(SpiffworkflowBaseDBModel):
 
     __tablename__ = "message_correlation"
     __table_args__ = (
-        db.UniqueConstraint(
-            "message_id", "name", name="message_id_name_unique"
-        ),
+        db.UniqueConstraint("message_id", "name", name="message_id_name_unique"),
     )
 
     id = db.Column(db.Integer, primary_key=True)
-    message_id = db.Column(ForeignKey(MessageInstanceModel.id), nullable=False, index=True)
+    message_id = db.Column(
+        ForeignKey(MessageInstanceModel.id), nullable=False, index=True
+    )
     name = db.Column(db.String(50), nullable=False, index=True)
     value = db.Column(db.String(50), nullable=False, index=True)

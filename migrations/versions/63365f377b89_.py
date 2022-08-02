@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: c7735c07773c
+Revision ID: 63365f377b89
 Revises: 
-Create Date: 2022-08-01 14:22:21.009841
+Create Date: 2022-08-02 16:20:32.076152
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'c7735c07773c'
+revision = '63365f377b89'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -42,13 +42,13 @@ def upgrade():
     sa.Column('username', sa.String(length=50), nullable=False),
     sa.Column('uid', sa.String(length=50), nullable=True),
     sa.Column('service', sa.String(length=50), nullable=False),
-    sa.Column('service_id', sa.String(length=100), nullable=False),
+    sa.Column('service_id', sa.String(length=50), nullable=False),
     sa.Column('name', sa.String(length=50), nullable=True),
     sa.Column('email', sa.String(length=50), nullable=True),
     sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('service', 'service_id', name='service_key'),
     sa.UniqueConstraint('uid'),
-    sa.UniqueConstraint('username'),
-    sa.UniqueConstraint('service', 'service_id')
+    sa.UniqueConstraint('username')
     )
     op.create_table('principal',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -135,20 +135,18 @@ def upgrade():
     sa.Column('updated_at_in_seconds', sa.Integer(), nullable=True),
     sa.Column('created_at_in_seconds', sa.Integer(), nullable=True),
     sa.Column('user_uid', sa.String(length=50), nullable=True),
-    sa.Column('user_id', sa.Integer(), nullable=True),
     sa.Column('archived', sa.Boolean(), nullable=True),
     sa.ForeignKeyConstraint(['process_instance_id'], ['process_instance.id'], ),
     sa.ForeignKeyConstraint(['user_uid'], ['user.uid'], ),
-    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('queued_send_message',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('process_instance_id', sa.Integer(), nullable=False),
     sa.Column('bpmn_element_id', sa.String(length=50), nullable=False),
-    sa.Column('messsage_type', sa.Enum('send', 'receive', name='messagetypes'), nullable=False),
-    sa.Column('message_model', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['message_model'], ['message_model.id'], ),
+    sa.Column('message_type', sa.Enum('send', 'receive', name='messagetypes'), nullable=False),
+    sa.Column('message_model_id', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['message_model_id'], ['message_model.id'], ),
     sa.ForeignKeyConstraint(['process_instance_id'], ['process_instance.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
