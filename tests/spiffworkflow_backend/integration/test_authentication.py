@@ -1,113 +1,174 @@
 """Test_authentication."""
-# """Test_authentication."""
-# from keycloak.authorization import Authorization  # type: ignore
-# from keycloak.keycloak_openid import KeycloakOpenID  # type: ignore
-# from keycloak.uma_permissions import AuthStatus  # type: ignore
-#
-# from spiffworkflow_backend.services.authentication_service import AuthenticationService
-#
-# server_url = "http://localhost:8080/"
-# client_id = "bank-api"
-# realm_name = "stackoverflow-demo"
-# client_secret_key = "seciKpRanUReL0ksZaFm5nfjhMUKHVAO"  # noqa: S105
-#
-# user = "bob"
-# password = "LetMeIn"  # noqa: S105
-#
-# resource = "View Account Resource"
-# scope = "account:view"
-#
-#
-# def test_get_keycloak_openid_client() -> None:
-#     """Test_get_keycloak_openid_client."""
-#     keycloak_openid_client = AuthenticationService.get_keycloak_openid(
-#         server_url, client_id, realm_name, client_secret_key
-#     )
-#     assert isinstance(keycloak_openid_client, KeycloakOpenID)
-#     assert isinstance(keycloak_openid_client.authorization, Authorization)
-#
-#
-# def test_get_keycloak_token() -> None:
-#     """Test_get_keycloak_token."""
-#     keycloak_openid = AuthenticationService.get_keycloak_openid(
-#         server_url, client_id, realm_name, client_secret_key
-#     )
-#     token = keycloak_openid.token(user, password)
-#     assert isinstance(token, dict)
-#     assert isinstance(token["access_token"], str)
-#     assert isinstance(token["refresh_token"], str)
-#     assert token["expires_in"] == 300
-#     assert token["refresh_expires_in"] == 1800
-#     assert token["token_type"] == "Bearer"
-#
-#
-# def test_get_permission_by_token() -> None:
-#     """Test_get_permission_by_token."""
-#     keycloak_openid = AuthenticationService.get_keycloak_openid(
-#         server_url, client_id, realm_name, client_secret_key
-#     )
-#     keycloak_openid.load_authorization_config(
-#         "tests/spiffworkflow_backend/integration/bank-api-authz-config.json"
-#     )
-#     token = keycloak_openid.token(user, password)
-#
-#     permissions = AuthenticationService.get_permission_by_token(keycloak_openid, token)
-#     # TODO: permissions comes back as None. Is this right?
-#     print(f"test_get_permission_by_token: {permissions}")
-#
-#
-# def test_get_uma_permissions_by_token() -> None:
-#     """Test_get_uma_permissions_by_token."""
-#     keycloak_openid = AuthenticationService.get_keycloak_openid(
-#         server_url, client_id, realm_name, client_secret_key
-#     )
-#     token = keycloak_openid.token(user, password)
-#     uma_permissions = AuthenticationService.get_uma_permissions_by_token(
-#         keycloak_openid, token
-#     )
-#     assert isinstance(uma_permissions, list)
-#     assert len(uma_permissions) == 2
-#     for permission in uma_permissions:
-#         assert "rsname" in permission
-#         if permission["rsname"] == "View Account Resource":
-#             assert "scopes" in permission
-#             assert isinstance(permission["scopes"], list)
-#             assert len(permission["scopes"]) == 1
-#             assert permission["scopes"][0] == "account:view"
-#
-#
-# def test_get_uma_permissions_by_token_for_resource_and_scope() -> None:
-#     """Test_get_uma_permissions_by_token_for_resource_and_scope."""
-#     keycloak_openid = AuthenticationService.get_keycloak_openid(
-#         server_url, client_id, realm_name, client_secret_key
-#     )
-#     token = keycloak_openid.token(user, password)
-#     permissions = (
-#         AuthenticationService.get_uma_permissions_by_token_for_resource_and_scope(
-#             keycloak_openid, token, resource, scope
-#         )
-#     )
-#     assert isinstance(permissions, list)
-#     assert len(permissions) == 1
-#     assert isinstance(permissions[0], dict)
-#     permission = permissions[0]
-#     assert "rsname" in permission
-#     assert permission["rsname"] == resource
-#     assert "scopes" in permission
-#     assert isinstance(permission["scopes"], list)
-#     assert len(permission["scopes"]) == 1
-#     assert permission["scopes"][0] == scope
-#
-#
-# def test_get_auth_status_for_resource_and_scope_by_token() -> None:
-#     """Test_get_auth_status_for_resource_and_scope_by_token."""
-#     keycloak_openid = AuthenticationService.get_keycloak_openid(
-#         server_url, client_id, realm_name, client_secret_key
-#     )
-#     token = keycloak_openid.token(user, password)
-#     auth_status = AuthenticationService.get_auth_status_for_resource_and_scope_by_token(
-#         keycloak_openid, token, resource, scope
-#     )
-#     assert isinstance(auth_status, AuthStatus)
-#     assert auth_status.is_logged_in is True
-#     assert auth_status.is_authorized is True
+import ast
+import base64
+
+from tests.spiffworkflow_backend.helpers.base_test import BaseTest
+
+from spiffworkflow_backend.services.authentication_service import (
+    PublicAuthenticationService,
+)
+
+
+class TestAuthentication(BaseTest):
+    """TestAuthentication."""
+
+    def test_get_login_state(self) -> None:
+        """Test_get_login_state."""
+        redirect_url = "http://example.com/"
+        state = PublicAuthenticationService.generate_state(redirect_url)
+        state_dict = ast.literal_eval(base64.b64decode(state).decode("utf-8"))
+
+        assert isinstance(state_dict, dict)
+        assert "redirect_url" in state_dict.keys()
+        assert state_dict["redirect_url"] == redirect_url
+
+    # def test_get_login_redirect_url(self):
+    #     redirect_url = "http://example.com/"
+    #     state = PublicAuthenticationService.generate_state(redirect_url)
+    #     with current_app.app_context():
+    #         login_redirect_url = PublicAuthenticationService().get_login_redirect_url(state.decode("UTF-8"))
+    #         print("test_get_login_redirect_url")
+    #     print("test_get_login_redirect_url")
+
+    # def test_get_token_script(self, app: Flask) -> None:
+    #     """Test_get_token_script."""
+    #     print("Test Get Token Script")
+    #
+    #     (
+    #         keycloak_server_url,
+    #         keycloak_client_id,
+    #         keycloak_realm_name,
+    #         keycloak_client_secret_key,
+    #     ) = self.get_keycloak_constants(app)
+    #     keycloak_user = "ciuser1"
+    #     keycloak_pass = "ciuser1"  # noqa: S105
+    #
+    #     print(f"Test Get Token Script: keycloak_server_url: {keycloak_server_url}")
+    #     print(f"Test Get Token Script: keycloak_client_id: {keycloak_client_id}")
+    #     print(f"Test Get Token Script: keycloak_realm_name: {keycloak_realm_name}")
+    #     print(
+    #         f"Test Get Token Script: keycloak_client_secret_key: {keycloak_client_secret_key}"
+    #     )
+    #
+    #     frontend_client_id = "spiffworkflow-frontend"
+    #
+    #     print(f"Test Get Token Script: frontend_client_id: {frontend_client_id}")
+    #
+    #     # Get frontend token
+    #     request_url = f"{keycloak_server_url}/realms/{keycloak_realm_name}/protocol/openid-connect/token"
+    #     headers = {"Content-Type": "application/x-www-form-urlencoded"}
+    #     post_data = {
+    #         "grant_type": "password",
+    #         "username": keycloak_user,
+    #         "password": keycloak_pass,
+    #         "client_id": frontend_client_id,
+    #     }
+    #     print(f"Test Get Token Script: request_url: {request_url}")
+    #     print(f"Test Get Token Script: headers: {headers}")
+    #     print(f"Test Get Token Script: post_data: {post_data}")
+    #
+    #     frontend_response = requests.post(
+    #         request_url, headers=headers, json=post_data, data=post_data
+    #     )
+    #     frontend_token = json.loads(frontend_response.text)
+    #
+    #     print(f"Test Get Token Script: frontend_response: {frontend_response}")
+    #     print(f"Test Get Token Script: frontend_token: {frontend_token}")
+    #
+    #     # assert isinstance(frontend_token, dict)
+    #     # assert isinstance(frontend_token["access_token"], str)
+    #     # assert isinstance(frontend_token["refresh_token"], str)
+    #     # assert frontend_token["expires_in"] == 300
+    #     # assert frontend_token["refresh_expires_in"] == 1800
+    #     # assert frontend_token["token_type"] == "Bearer"
+    #
+    #     # Get backend token
+    #     backend_basic_auth_string = f"{keycloak_client_id}:{keycloak_client_secret_key}"
+    #     backend_basic_auth_bytes = bytes(backend_basic_auth_string, encoding="ascii")
+    #     backend_basic_auth = base64.b64encode(backend_basic_auth_bytes)
+    #
+    #     request_url = f"{keycloak_server_url}/realms/{keycloak_realm_name}/protocol/openid-connect/token"
+    #     headers = {
+    #         "Content-Type": "application/x-www-form-urlencoded",
+    #         "Authorization": f"Basic {backend_basic_auth.decode('utf-8')}",
+    #     }
+    #     data = {
+    #         "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
+    #         "client_id": keycloak_client_id,
+    #         "subject_token": frontend_token["access_token"],
+    #         "audience": keycloak_client_id,
+    #     }
+    #     print(f"Test Get Token Script: request_url: {request_url}")
+    #     print(f"Test Get Token Script: headers: {headers}")
+    #     print(f"Test Get Token Script: data: {data}")
+    #
+    #     backend_response = requests.post(request_url, headers=headers, data=data)
+    #     json_data = json.loads(backend_response.text)
+    #     backend_token = json_data["access_token"]
+    #     print(f"Test Get Token Script: backend_response: {backend_response}")
+    #     print(f"Test Get Token Script: backend_token: {backend_token}")
+    #
+    #     if backend_token:
+    #         # Getting resource set
+    #         auth_bearer_string = f"Bearer {backend_token}"
+    #         headers = {
+    #             "Content-Type": "application/json",
+    #             "Authorization": auth_bearer_string,
+    #         }
+    #
+    #         # uri_to_test_against = "%2Fprocess-models"
+    #         uri_to_test_against = "/status"
+    #         request_url = (
+    #             f"{keycloak_server_url}/realms/{keycloak_realm_name}/authz/protection/resource_set?"
+    #             + f"matchingUri=true&deep=true&max=-1&exactName=false&uri={uri_to_test_against}"
+    #         )
+    #         # f"uri={uri_to_test_against}"
+    #         print(f"Test Get Token Script: request_url: {request_url}")
+    #         print(f"Test Get Token Script: headers: {headers}")
+    #
+    #         resource_result = requests.get(request_url, headers=headers)
+    #         print(f"Test Get Token Script: resource_result: {resource_result}")
+    #
+    #         json_data = json.loads(resource_result.text)
+    #         resource_id_name_pairs = []
+    #         for result in json_data:
+    #             if "_id" in result and result["_id"]:
+    #                 pair_key = result["_id"]
+    #                 if "name" in result and result["name"]:
+    #                     pair_value = result["name"]
+    #                     # pair = {{result['_id']}: {}}
+    #                 else:
+    #                     pair_value = "no_name"
+    #                     # pair = {{result['_id']}: }
+    #                 pair = [pair_key, pair_value]
+    #                 resource_id_name_pairs.append(pair)
+    #         print(
+    #             f"Test Get Token Script: resource_id_name_pairs: {resource_id_name_pairs}"
+    #         )
+    #
+    #         # Getting Permissions
+    #         for resource_id_name_pair in resource_id_name_pairs:
+    #             resource_id = resource_id_name_pair[0]
+    #             resource_id_name_pair[1]
+    #
+    #             headers = {
+    #                 "Content-Type": "application/x-www-form-urlencoded",
+    #                 "Authorization": f"Basic {backend_basic_auth.decode('utf-8')}",
+    #             }
+    #
+    #             post_data = {
+    #                 "audience": keycloak_client_id,
+    #                 "permission": resource_id,
+    #                 "subject_token": backend_token,
+    #                 "grant_type": "urn:ietf:params:oauth:grant-type:uma-ticket",
+    #             }
+    #             print(f"Test Get Token Script: headers: {headers}")
+    #             print(f"Test Get Token Script: post_data: {post_data}")
+    #             print(f"Test Get Token Script: request_url: {request_url}")
+    #
+    #             permission_result = requests.post(
+    #                 request_url, headers=headers, data=post_data
+    #             )
+    #             print(f"Test Get Token Script: permission_result: {permission_result}")
+    #
+    #     print("test_get_token_script")

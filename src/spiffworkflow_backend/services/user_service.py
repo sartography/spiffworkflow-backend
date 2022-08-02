@@ -2,6 +2,7 @@
 from typing import Any
 from typing import Optional
 
+from flask import current_app
 from flask import g
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
@@ -13,6 +14,59 @@ from spiffworkflow_backend.models.user import UserModel
 
 class UserService:
     """Provides common tools for working with users."""
+
+    def create_user(
+        self,
+        service: str,
+        service_id: str,
+        name: Optional[str] = None,
+        username: Optional[str] = None,
+        email: Optional[str] = None,
+    ) -> UserModel:
+        """Create_user."""
+        user_model: Optional[UserModel] = (
+            UserModel.query.filter(UserModel.service == service)
+            .filter(UserModel.service_id == service_id)
+            .first()
+        )
+        if user_model is None:
+            if name is None:
+                name = ""
+            if username is None:
+                username = ""
+            if email is None:
+                email = ""
+
+            user_model = UserModel(
+                username=username,
+                service=service,
+                service_id=service_id,
+                name=name,
+                email=email,
+            )
+            db.session.add(user_model)
+
+            try:
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                raise ApiError(
+                    code="add_user_error", message=f"Could not add user {username}"
+                ) from e
+            self.create_principal(user_model.id)
+            return user_model
+
+        else:
+            # TODO: username may be ''.
+            #  not sure what to send in error message.
+            #  Don't really want to send service_id.
+            raise (
+                ApiError(
+                    code="user_already_exists",
+                    message=f"User already exists: {username}",
+                    status_code=409,
+                )
+            )
 
     # Returns true if the current user is logged in.
     @staticmethod
@@ -187,3 +241,22 @@ class UserService:
             code="no_principal_found",
             message=f"No principal was found for user_id: {user_id}",
         )
+
+    def create_principal(self, user_id: int) -> PrincipalModel:
+        """Create_principal."""
+        principal: Optional[PrincipalModel] = PrincipalModel.query.filter_by(
+            user_id=user_id
+        ).first()
+        if principal is None:
+            principal = PrincipalModel(user_id=user_id)
+            db.session.add(principal)
+            try:
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                current_app.logger.error(f"Exception in create_principal: {e}")
+                raise ApiError(
+                    code="add_principal_error",
+                    message=f"Could not create principal {user_id}",
+                ) from e
+        return principal

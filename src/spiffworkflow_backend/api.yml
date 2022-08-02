@@ -10,6 +10,109 @@ security:
   - jwt: ["secret"]
 
 paths:
+  /login:
+    parameters:
+      - name: redirect_url
+        in: query
+        required: false
+        schema:
+          type: string
+    get:
+      security: []
+      summary: redirect to open id authentication server
+      operationId: spiffworkflow_backend.routes.user.login
+      tags:
+        - Authentication
+      responses:
+        "200":
+          description: Redirects to authentication server
+  /login_return:
+    parameters:
+      - name: code
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: state
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: session_state
+        in: query
+        required: false
+        schema:
+          type: string
+    get:
+      security: []
+      operationId: spiffworkflow_backend.routes.user.login_return
+      tags:
+        - Authentication
+      responses:
+        "200":
+          description: Test Return Response
+  /logout:
+    parameters:
+      - name: id_token
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: redirect_url
+        in: query
+        required: false
+        schema:
+          type: string
+    get:
+      security: []
+      operationId: spiffworkflow_backend.routes.user.logout
+      summary: Logout authenticated user
+      tags:
+        - Authentication
+      responses:
+        "200":
+          description: Logout Authenticated User
+  /logout_return:
+    get:
+      security: []
+      operationId: spiffworkflow_backend.routes.user.logout_return
+      summary: Logout authenticated user
+      tags:
+        - Authentication
+      responses:
+        "200":
+          description: Logout Authenticated User
+
+  /login_swagger:
+    parameters:
+      - name: uid
+        in: query
+        required: true
+        description: The user we are authenticating
+        schema:
+          type: string
+      - name: password
+        in: query
+        required: true
+        description: The password for the user
+        schema:
+          type: string
+          format: password
+      - name: redirect_url
+        in: query
+        required: false
+        schema:
+          type: string
+    get:
+      security: []
+      operationId: spiffworkflow_backend.routes.user.api_login
+      summary: Authenticate user for API access
+      tags:
+        - Authentication
+      responses:
+        "304":
+          description: Redirection to the hosted frontend with an auth_token header.
+
   /status:
     get:
       security: []
@@ -25,6 +128,7 @@ paths:
             application/json:
               schema:
                 $ref: "#components/schemas/OkTrue"
+
   /process-groups:
     parameters:
       - name: page
@@ -392,6 +496,8 @@ paths:
         schema:
           type: integer
     get:
+      tags:
+        - Process Instances
       operationId: spiffworkflow_backend.routes.process_api_blueprint.process_instance_show
       summary: Show information about a process instance
       responses:
@@ -660,6 +766,9 @@ paths:
         schema:
           type: integer
     get:
+      tags:
+        - Tasks
+      #      security: []
       operationId: spiffworkflow_backend.routes.process_api_blueprint.task_list_my_tasks
       summary: returns the list of ready or waiting tasks for a user
       responses:
@@ -671,6 +780,7 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Task"
+
   /process-instance/{process_instance_id}/tasks:
     parameters:
       - name: process_instance_id
@@ -686,6 +796,8 @@ paths:
         schema:
           type: boolean
     get:
+      tags:
+        - Process Instances
       operationId: spiffworkflow_backend.routes.process_api_blueprint.process_instance_task_list
       summary: returns the list of all user tasks associated with process instance
       responses:
@@ -697,6 +809,7 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Task"
+
   /tasks/{process_instance_id}/{task_id}:
     parameters:
       - name: task_id
@@ -718,6 +831,8 @@ paths:
         schema:
           type: boolean
     get:
+      tags:
+        - Tasks
       operationId: spiffworkflow_backend.routes.process_api_blueprint.task_show
       summary: Gets one task that a user wants to complete
       responses:
@@ -728,6 +843,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Task"
     put:
+      tags:
+        - Tasks
       operationId: spiffworkflow_backend.routes.process_api_blueprint.task_submit
       summary: Update the form data for a tasks
       requestBody:
@@ -747,7 +864,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#components/schemas/OkTrue"
+                $ref: "#/components/schemas/OkTrue"
 
 components:
   securitySchemes:
@@ -756,6 +873,7 @@ components:
       scheme: bearer
       bearerFormat: JWT
       x-bearerInfoFunc: spiffworkflow_backend.routes.user.verify_token
+      x-scopeValidateFunc: spiffworkflow_backend.routes.user.validate_scope
   schemas:
     OkTrue:
       properties:

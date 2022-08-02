@@ -14,7 +14,7 @@ fi
 
 echo "waiting for backend to come up..."
 attempts=0
-while [[ "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:7000/admin/token)" != "200" ]]; do
+while [[ "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:7000/v1.0/status)" != "200" ]]; do
   if [[ "$attempts" -gt "$max_attempts" ]]; then
     >&2 echo "ERROR: Server not up after $max_attempts attempts. There is probably a problem"
     exit 1

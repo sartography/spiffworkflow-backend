@@ -1,22 +1,14 @@
 """APIs for dealing with process groups, process models, and process instances."""
-from typing import Any
 from typing import Union
 
 from flask import Blueprint
-from flask import current_app
 from flask import flash
 from flask import redirect
 from flask import render_template
 from flask import request
 from flask import url_for
-from flask_bpmn.models.db import db
 from werkzeug.wrappers.response import Response
 
-from spiffworkflow_backend.models.principal import PrincipalModel
-from spiffworkflow_backend.models.process_instance_report import (
-    ProcessInstanceReportModel,
-)
-from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.services.process_instance_processor import (
     ProcessInstanceProcessor,
 )
@@ -25,6 +17,7 @@ from spiffworkflow_backend.services.process_instance_service import (
 )
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 from spiffworkflow_backend.services.spec_file_service import SpecFileService
+from spiffworkflow_backend.services.user_service import UserService
 
 admin_blueprint = Blueprint(
     "admin", __name__, template_folder="templates", static_folder="static"
@@ -36,30 +29,33 @@ ALLOWED_BPMN_EXTENSIONS = {"bpmn", "dmn"}
 @admin_blueprint.before_app_first_request
 def before_first_request() -> None:
     """Before_first_request."""
-    token()
-    ProcessInstanceReportModel.add_fixtures()
+    # token()
+    # ProcessInstanceReportModel.add_fixtures()
 
 
-@admin_blueprint.route("/token", methods=["GET"])
-def token() -> str:
-    """Token."""
-    if current_app.env == "production":
-        return "Not authorized"
-
-    user = UserModel.query.first()
-    if user is None:
-        user = UserModel(username="test_user1")
-        db.session.add(user)
-        db.session.commit()
-
-    principal = PrincipalModel.query.filter_by(user_id=user.id).first()
-    if principal is None:
-        principal = PrincipalModel(user_id=user.id)
-        db.session.add(principal)
-        db.session.commit()
-
-    auth_token = user.encode_auth_token()
-    return f"auth_token: {auth_token}"
+# @admin_blueprint.route("/token", methods=["GET"])
+# def token() -> str:
+#     """Token."""
+#     if current_app.env == "production":
+#         return "Not authorized"
+#
+#     user = UserModel.query.first()
+#     if user is None:
+#         user = UserModel(service='keycloak',
+#                          service_id="test_user1",
+#                          name='Test Name',
+#                          username='test_username')
+#         db.session.add(user)
+#         db.session.commit()
+#
+#     principal = PrincipalModel.query.filter_by(user_id=user.id).first()
+#     if principal is None:
+#         principal = PrincipalModel(user_id=user.id)
+#         db.session.add(principal)
+#         db.session.commit()
+#
+#     auth_token = user.encode_auth_token()
+#     return f"auth_token: {auth_token}"
 
 
 @admin_blueprint.route("/process-groups", methods=["GET"])
@@ -178,7 +174,7 @@ def process_model_save(process_model_id: str, file_name: str) -> Union[str, Resp
 @admin_blueprint.route("/process-models/<process_model_id>/run", methods=["GET"])
 def process_model_run(process_model_id: str) -> Union[str, Response]:
     """Process_model_run."""
-    user = _find_or_create_user("Mr. Test")  # Fixme - sheesh!
+    user = UserService().create_user("internal", "Mr. Test", username="Mr. Test")
     process_instance = ProcessInstanceService.create_process_instance(
         process_model_id, user
     )
@@ -204,14 +200,14 @@ def process_model_run(process_model_id: str) -> Union[str, Response]:
     )
 
 
-def _find_or_create_user(username: str = "test_user1") -> Any:
-    """Find_or_create_user."""
-    user = UserModel.query.filter_by(username=username).first()
-    if user is None:
-        user = UserModel(username=username)
-        db.session.add(user)
-        db.session.commit()
-    return user
+# def _find_or_create_user(username: str = "test_user1") -> Any:
+#     """Find_or_create_user."""
+#     user = UserModel.query.filter_by(username=username).first()
+#     if user is None:
+#         user = UserModel(username=username)
+#         db.session.add(user)
+#         db.session.commit()
+#     return user
 
 
 def _allowed_file(filename: str) -> bool:

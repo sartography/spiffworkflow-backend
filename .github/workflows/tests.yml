@@ -129,7 +129,6 @@ jobs:
           key: ${{ steps.pre-commit-cache.outputs.result }}-${{ hashFiles('.pre-commit-config.yaml') }}
           restore-keys: |
             ${{ steps.pre-commit-cache.outputs.result }}-
-
       - name: Setup Mysql
         uses: mirromutth/mysql-action@v1.1
         with:
