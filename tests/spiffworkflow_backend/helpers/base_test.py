@@ -1,11 +1,14 @@
 """Base_test."""
 from flask.app import Flask
+from flask_bpmn.api.api_error import ApiError
 
 from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.services.authentication_service import (
     PublicAuthenticationService,
 )
 from spiffworkflow_backend.services.user_service import UserService
+
+from typing import Optional
 
 
 class BaseTest:
@@ -18,13 +21,15 @@ class BaseTest:
         if isinstance(user, UserModel):
             return user
 
-        else:
-            user: UserModel = UserService().create_user(
-                "local", username, username=username
-            )
+        user = UserService().create_user(
+            "local", username, username=username
+        )
+        if isinstance(user, UserModel):
             UserService().create_principal(user_id=user.id)
-
             return user
+
+        raise ApiError(code="create_user_error",
+                       message=f"Cannot find or create user: {username}")
 
     @staticmethod
     def get_keycloak_constants(app: Flask) -> tuple:

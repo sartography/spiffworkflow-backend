@@ -3,7 +3,6 @@ from typing import Optional
 
 from flask.app import Flask
 
-from spiffworkflow_backend.helpers.fixture_data import find_or_create_user
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 from spiffworkflow_backend.models.process_instance_report import (
     ProcessInstanceReportModel,
@@ -12,6 +11,7 @@ from spiffworkflow_backend.models.process_instance_report import (
 # from tests.spiffworkflow_backend.helpers.test_data import find_or_create_process_group
 # from spiffworkflow_backend.models.permission_assignment import PermissionAssignmentModel
 # from spiffworkflow_backend.models.permission_target import PermissionTargetModel
+from tests.spiffworkflow_backend.helpers.base_test import BaseTest
 
 
 def test_generate_report_with_filter_by(
@@ -131,7 +131,7 @@ def do_report_with_metadata_and_instances(
         process_group_identifier=process_instances[0].process_group_identifier,
         process_model_identifier=process_instances[0].process_model_identifier,
         report_metadata=report_metadata,
-        user=find_or_create_user(),
+        user=BaseTest.find_or_create_user(),
     )
 
     return process_instance_report.generate_report(

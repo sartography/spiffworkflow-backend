@@ -1,7 +1,7 @@
 """Test Permissions."""
 from flask.app import Flask
 
-from spiffworkflow_backend.helpers.fixture_data import find_or_create_user
+from tests.spiffworkflow_backend.helpers.base_test import BaseTest
 
 # from tests.spiffworkflow_backend.helpers.test_data import find_or_create_process_group
 # from spiffworkflow_backend.models.permission_assignment import PermissionAssignmentModel
@@ -10,7 +10,7 @@ from spiffworkflow_backend.helpers.fixture_data import find_or_create_user
 
 def test_user_can_be_given_permission_to_administer_process_group(app: Flask) -> None:
     """Test_user_can_be_given_permission_to_administer_process_group."""
-    find_or_create_user()
+    BaseTest.find_or_create_user()
 
     # process_group = find_or_create_process_group()
     # permission_target = PermissionTargetModel(process_group_id=process_group.id)

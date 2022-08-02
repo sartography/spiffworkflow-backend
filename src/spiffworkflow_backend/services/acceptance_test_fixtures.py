@@ -4,16 +4,15 @@ import time
 
 from flask_bpmn.models.db import db
 
-from spiffworkflow_backend.helpers.fixture_data import find_or_create_user
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 from spiffworkflow_backend.models.process_instance import ProcessInstanceStatus
-
+from tests.spiffworkflow_backend.helpers.base_test import BaseTest
 
 def load_fixtures() -> list[ProcessInstanceModel]:
     """Load_fixtures."""
     test_process_group_id = "acceptance-tests-group-one"
     test_process_model_id = "acceptance-tests-model-1"
-    user = find_or_create_user()
+    user = BaseTest.find_or_create_user()
     statuses = ProcessInstanceStatus.list()
     current_time = round(time.time())
 
