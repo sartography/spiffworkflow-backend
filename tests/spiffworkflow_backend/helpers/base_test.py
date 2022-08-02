@@ -16,7 +16,7 @@ class BaseTest:
         if isinstance(user, UserModel):
             return user
 
-        user = UserService().create_user("local", username, username=username)
+        user = UserService().create_user("internal", username, username=username)
         if isinstance(user, UserModel):
             UserService().create_principal(user_id=user.id)
             return user
@@ -26,20 +26,20 @@ class BaseTest:
         )
 
     @staticmethod
-    def get_keycloak_constants(app: Flask) -> tuple:
-        """Get_keycloak_constants."""
-        keycloak_server_url = app.config["KEYCLOAK_SERVER_URL"]
-        keycloak_client_id = app.config["KEYCLOAK_CLIENT_ID"]
-        keycloak_realm_name = app.config["KEYCLOAK_REALM_NAME"]
-        keycloak_client_secret_key = app.config[
-            "KEYCLOAK_CLIENT_SECRET_KEY"
+    def get_open_id_constants(app: Flask) -> tuple:
+        """Get_open_id_constants."""
+        open_id_server_url = app.config["OPEN_ID_SERVER_URL"]
+        open_id_client_id = app.config["OPEN_ID_CLIENT_ID"]
+        open_id_realm_name = app.config["OPEN_ID_REALM_NAME"]
+        open_id_client_secret_key = app.config[
+            "OPEN_ID_CLIENT_SECRET_KEY"
         ]  # noqa: S105
 
         return (
-            keycloak_server_url,
-            keycloak_client_id,
-            keycloak_realm_name,
-            keycloak_client_secret_key,
+            open_id_server_url,
+            open_id_client_id,
+            open_id_realm_name,
+            open_id_client_secret_key,
         )
 
     # @staticmethod

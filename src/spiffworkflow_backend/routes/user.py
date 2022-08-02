@@ -75,7 +75,7 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[Union[str, i
                     user_info is not None and "error" not in user_info
                 ):  # not sure what to test yet
                     user_model = (
-                        UserModel.query.filter(UserModel.service == "keycloak")
+                        UserModel.query.filter(UserModel.service == "open_id")
                         .filter(UserModel.service_id == user_info["sub"])
                         .first()
                     )
@@ -83,7 +83,7 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[Union[str, i
                         # Do we ever get here any more, now that we have login_return method?
                         current_app.logger.debug("create_user in verify_token")
                         user_model = UserService().create_user(
-                            service="keycloak",
+                            service="open_id",
                             service_id=user_info["sub"],
                             name=user_info["name"],
                             username=user_info["preferred_username"],
@@ -197,7 +197,7 @@ def login(redirect_url: str = "/") -> Response:
 def login_return(code: str, state: str, session_state: str) -> Optional[Response]:
     """Login_return."""
     state_dict = ast.literal_eval(
-        base64.b64decode(ast.literal_eval(state)).decode("utf-8")
+        base64.b64decode(state).decode("utf-8")
     )
     state_redirect_url = state_dict["redirect_url"]
 
@@ -210,7 +210,7 @@ def login_return(code: str, state: str, session_state: str) -> Optional[Response
         )
         if user_info and "error" not in user_info:
             user_model = (
-                UserModel.query.filter(UserModel.service == "keycloak")
+                UserModel.query.filter(UserModel.service == "open_id")
                 .filter(UserModel.service_id == user_info["sub"])
                 .first()
             )
@@ -224,7 +224,7 @@ def login_return(code: str, state: str, session_state: str) -> Optional[Response
                 if "email" in user_info:
                     email = user_info["email"]
                 user_model = UserService().create_user(
-                    service="keycloak",
+                    service="open_id",
                     service_id=user_info["sub"],
                     name=name,
                     username=username,

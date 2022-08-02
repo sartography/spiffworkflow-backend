@@ -6,9 +6,11 @@ from flask_bpmn.models.db import db
 from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from marshmallow import Schema
 from sqlalchemy.orm import relationship
+from sqlalchemy.orm import validates
 
 from spiffworkflow_backend.models.group import GroupModel
 from spiffworkflow_backend.models.user_group_assignment import UserGroupAssignmentModel
+from spiffworkflow_backend.services.authentication_service import AuthenticationProviderTypes
 
 
 class UserModel(SpiffworkflowBaseDBModel):
@@ -31,10 +33,10 @@ class UserModel(SpiffworkflowBaseDBModel):
         overlaps="user_group_assignments,users",
     )
 
-    # @validates('service')
-    # def validate_service(self, key, value):
-    #     assert value != ''
-    #     return True
+    @validates('service')
+    def validate_service(self, key, value):
+        assert value in AuthenticationProviderTypes._member_names_
+        return value
 
     def encode_auth_token(self) -> str:
         """Generate the Auth Token.
