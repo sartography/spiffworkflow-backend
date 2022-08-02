@@ -13,37 +13,37 @@ class AuthorizationService:
     """Determine whether a user has permission to perform their request."""
 
     @staticmethod
-    def get_keycloak_args() -> tuple:
-        """Get_keycloak_args."""
-        keycloak_server_url = current_app.config["KEYCLOAK_SERVER_URL"]
-        keycloak_client_id = current_app.config["KEYCLOAK_CLIENT_ID"]
-        keycloak_realm_name = current_app.config["KEYCLOAK_REALM_NAME"]
-        keycloak_client_secret_key = current_app.config[
-            "KEYCLOAK_CLIENT_SECRET_KEY"
+    def get_open_id_args() -> tuple:
+        """Get_open_id_args."""
+        open_id_server_url = current_app.config["OPEN_ID_SERVER_URL"]
+        open_id_client_id = current_app.config["OPEN_ID_CLIENT_ID"]
+        open_id_realm_name = current_app.config["OPEN_ID_REALM_NAME"]
+        open_id_client_secret_key = current_app.config[
+            "OPEN_ID_CLIENT_SECRET_KEY"
         ]  # noqa: S105
         return (
-            keycloak_server_url,
-            keycloak_client_id,
-            keycloak_realm_name,
-            keycloak_client_secret_key,
+            open_id_server_url,
+            open_id_client_id,
+            open_id_realm_name,
+            open_id_client_secret_key,
         )
 
     def get_user_info_from_id_token(self, token: str) -> dict:
         """This seems to work with basic tokens too."""
         (
-            keycloak_server_url,
-            keycloak_client_id,
-            keycloak_realm_name,
-            keycloak_client_secret_key,
-        ) = AuthorizationService.get_keycloak_args()
+            open_id_server_url,
+            open_id_client_id,
+            open_id_realm_name,
+            open_id_client_secret_key,
+        ) = AuthorizationService.get_open_id_args()
 
-        # backend_basic_auth_string = f"{keycloak_client_id}:{keycloak_client_secret_key}"
+        # backend_basic_auth_string = f"{open_id_client_id}:{open_id_client_secret_key}"
         # backend_basic_auth_bytes = bytes(backend_basic_auth_string, encoding="ascii")
         # backend_basic_auth = base64.b64encode(backend_basic_auth_bytes)
 
         headers = {"Authorization": f"Bearer {token}"}
 
-        request_url = f"{keycloak_server_url}/realms/{keycloak_realm_name}/protocol/openid-connect/userinfo"
+        request_url = f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/userinfo"
         try:
             request_response = requests.get(request_url, headers=headers)
         except Exception as e:
@@ -73,13 +73,13 @@ class AuthorizationService:
     #     # if isinstance(token, str):
     #     #     token = eval(token)
     #     (
-    #         keycloak_server_url,
-    #         keycloak_client_id,
-    #         keycloak_realm_name,
-    #         keycloak_client_secret_key,
-    #     ) = AuthorizationService.get_keycloak_args()
+    #         open_id_server_url,
+    #         open_id_client_id,
+    #         open_id_realm_name,
+    #         open_id_client_secret_key,
+    #     ) = AuthorizationService.get_open_id_args()
     #     headers = {"Content-Type": "application/x-www-form-urlencoded"}
-    #     request_url = f"{keycloak_server_url}/realms/{keycloak_realm_name}/protocol/openid-connect/token"
+    #     request_url = f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/token"
     #     data = {
     #         "grant_type": "refresh_token",
     #         "client_id": "spiffworkflow-frontend",
@@ -93,13 +93,13 @@ class AuthorizationService:
     def get_bearer_token(self, basic_token: str) -> dict:
         """Get_bearer_token."""
         (
-            keycloak_server_url,
-            keycloak_client_id,
-            keycloak_realm_name,
-            keycloak_client_secret_key,
-        ) = AuthorizationService.get_keycloak_args()
+            open_id_server_url,
+            open_id_client_id,
+            open_id_realm_name,
+            open_id_client_secret_key,
+        ) = AuthorizationService.get_open_id_args()
 
-        backend_basic_auth_string = f"{keycloak_client_id}:{keycloak_client_secret_key}"
+        backend_basic_auth_string = f"{open_id_client_id}:{open_id_client_secret_key}"
         backend_basic_auth_bytes = bytes(backend_basic_auth_string, encoding="ascii")
         backend_basic_auth = base64.b64encode(backend_basic_auth_bytes)
 
@@ -109,11 +109,11 @@ class AuthorizationService:
         }
         data = {
             "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
-            "client_id": keycloak_client_id,
+            "client_id": open_id_client_id,
             "subject_token": basic_token,
-            "audience": keycloak_client_id,
+            "audience": open_id_client_id,
         }
-        request_url = f"{keycloak_server_url}/realms/{keycloak_realm_name}/protocol/openid-connect/token"
+        request_url = f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/token"
 
         backend_response = requests.post(request_url, headers=headers, data=data)
         # json_data = json.loads(backend_response.text)
@@ -154,11 +154,11 @@ class AuthorizationService:
     # def introspect_token(self, basic_token: str) -> dict:
     #     """Introspect_token."""
     #     (
-    #         keycloak_server_url,
-    #         keycloak_client_id,
-    #         keycloak_realm_name,
-    #         keycloak_client_secret_key,
-    #     ) = AuthorizationService.get_keycloak_args()
+    #         open_id_server_url,
+    #         open_id_client_id,
+    #         open_id_realm_name,
+    #         open_id_client_secret_key,
+    #     ) = AuthorizationService.get_open_id_args()
     #
     #     bearer_token = AuthorizationService().get_bearer_token(basic_token)
     #     auth_bearer_string = f"Bearer {bearer_token['access_token']}"
@@ -168,11 +168,11 @@ class AuthorizationService:
     #         "Authorization": auth_bearer_string,
     #     }
     #     data = {
-    #         "client_id": keycloak_client_id,
-    #         "client_secret": keycloak_client_secret_key,
+    #         "client_id": open_id_client_id,
+    #         "client_secret": open_id_client_secret_key,
     #         "token": basic_token,
     #     }
-    #     request_url = f"{keycloak_server_url}/realms/{keycloak_realm_name}/protocol/openid-connect/token/introspect"
+    #     request_url = f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/token/introspect"
     #
     #     introspect_response = requests.post(request_url, headers=headers, data=data)
     #     introspection = json.loads(introspect_response.text)
@@ -182,11 +182,11 @@ class AuthorizationService:
     # def get_permission_by_basic_token(self, basic_token: dict) -> list:
     #     """Get_permission_by_basic_token."""
     #     (
-    #         keycloak_server_url,
-    #         keycloak_client_id,
-    #         keycloak_realm_name,
-    #         keycloak_client_secret_key,
-    #     ) = AuthorizationService.get_keycloak_args()
+    #         open_id_server_url,
+    #         open_id_client_id,
+    #         open_id_realm_name,
+    #         open_id_client_secret_key,
+    #     ) = AuthorizationService.get_open_id_args()
     #
     #     # basic_token = AuthorizationService().refresh_token(basic_token)
     #     # bearer_token = AuthorizationService().get_bearer_token(basic_token['access_token'])
@@ -199,14 +199,14 @@ class AuthorizationService:
     #         "Authorization": auth_bearer_string,
     #     }
     #     data = {
-    #         "client_id": keycloak_client_id,
-    #         "client_secret": keycloak_client_secret_key,
+    #         "client_id": open_id_client_id,
+    #         "client_secret": open_id_client_secret_key,
     #         "grant_type": "urn:ietf:params:oauth:grant-type:uma-ticket",
     #         "response_mode": "permissions",
-    #         "audience": keycloak_client_id,
+    #         "audience": open_id_client_id,
     #         "response_include_resource_name": True,
     #     }
-    #     request_url = f"{keycloak_server_url}/realms/{keycloak_realm_name}/protocol/openid-connect/token"
+    #     request_url = f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/token"
     #     permission_response = requests.post(request_url, headers=headers, data=data)
     #     permission = json.loads(permission_response.text)
     #     return permission
@@ -216,11 +216,11 @@ class AuthorizationService:
     # ) -> str:
     #     """Get_auth_status_for_resource_and_scope_by_token."""
     #     (
-    #         keycloak_server_url,
-    #         keycloak_client_id,
-    #         keycloak_realm_name,
-    #         keycloak_client_secret_key,
-    #     ) = AuthorizationService.get_keycloak_args()
+    #         open_id_server_url,
+    #         open_id_client_id,
+    #         open_id_realm_name,
+    #         open_id_client_secret_key,
+    #     ) = AuthorizationService.get_open_id_args()
     #
     #     # basic_token = AuthorizationService().refresh_token(basic_token)
     #     bearer_token = AuthorizationService().get_bearer_token(basic_token)
@@ -231,14 +231,14 @@ class AuthorizationService:
     #         "Authorization": auth_bearer_string,
     #     }
     #     data = {
-    #         "client_id": keycloak_client_id,
-    #         "client_secret": keycloak_client_secret_key,
+    #         "client_id": open_id_client_id,
+    #         "client_secret": open_id_client_secret_key,
     #         "grant_type": "urn:ietf:params:oauth:grant-type:uma-ticket",
     #         "permission": f"{resource}#{scope}",
     #         "response_mode": "permissions",
-    #         "audience": keycloak_client_id,
+    #         "audience": open_id_client_id,
     #     }
-    #     request_url = f"{keycloak_server_url}/realms/{keycloak_realm_name}/protocol/openid-connect/token"
+    #     request_url = f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/token"
     #     auth_response = requests.post(request_url, headers=headers, data=data)
     #
     #     print("get_auth_status_for_resource_and_scope_by_token")
@@ -250,11 +250,11 @@ class AuthorizationService:
     # ) -> str:
     #     """Get_permissions_by_token_for_resource_and_scope."""
     #     (
-    #         keycloak_server_url,
-    #         keycloak_client_id,
-    #         keycloak_realm_name,
-    #         keycloak_client_secret_key,
-    #     ) = AuthorizationService.get_keycloak_args()
+    #         open_id_server_url,
+    #         open_id_client_id,
+    #         open_id_realm_name,
+    #         open_id_client_secret_key,
+    #     ) = AuthorizationService.get_open_id_args()
     #
     #     # basic_token = AuthorizationService().refresh_token(basic_token)
     #     # bearer_token = AuthorizationService().get_bearer_token(basic_token['access_token'])
@@ -271,15 +271,15 @@ class AuthorizationService:
     #     if scope is not None and scope != '':
     #         permision += "#" + scope
     #     data = {
-    #         "client_id": keycloak_client_id,
-    #         "client_secret": keycloak_client_secret_key,
+    #         "client_id": open_id_client_id,
+    #         "client_secret": open_id_client_secret_key,
     #         "grant_type": "urn:ietf:params:oauth:grant-type:uma-ticket",
     #         "response_mode": "permissions",
     #         "permission": permision,
-    #         "audience": keycloak_client_id,
+    #         "audience": open_id_client_id,
     #         "response_include_resource_name": True,
     #     }
-    #     request_url = f"{keycloak_server_url}/realms/{keycloak_realm_name}/protocol/openid-connect/token"
+    #     request_url = f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/token"
     #     permission_response = requests.post(request_url, headers=headers, data=data)
     #     permission: str = json.loads(permission_response.text)
     #     return permission
@@ -287,11 +287,11 @@ class AuthorizationService:
     # def get_resource_set(self, public_access_token, uri):
     #     """Get_resource_set."""
     #     (
-    #         keycloak_server_url,
-    #         keycloak_client_id,
-    #         keycloak_realm_name,
-    #         keycloak_client_secret_key,
-    #     ) = AuthorizationService.get_keycloak_args()
+    #         open_id_server_url,
+    #         open_id_client_id,
+    #         open_id_realm_name,
+    #         open_id_client_secret_key,
+    #     ) = AuthorizationService.get_open_id_args()
     #     bearer_token = AuthorizationService().get_bearer_token(public_access_token)
     #     auth_bearer_string = f"Bearer {bearer_token['access_token']}"
     #     headers = {
@@ -307,7 +307,7 @@ class AuthorizationService:
     #     }
     #
     #     # f"matchingUri=true&deep=true&max=-1&exactName=false&uri={URI_TO_TEST_AGAINST}"
-    #     request_url = f"{keycloak_server_url}/realms/{keycloak_realm_name}/authz/protection/resource_set"
+    #     request_url = f"{open_id_server_url}/realms/{open_id_realm_name}/authz/protection/resource_set"
     #     response = requests.get(request_url, headers=headers, data=data)
     #
     #     print("get_resource_set")
@@ -316,11 +316,11 @@ class AuthorizationService:
         """Get_permission_by_token."""
         # TODO: Write a test for this
         (
-            keycloak_server_url,
-            keycloak_client_id,
-            keycloak_realm_name,
-            keycloak_client_secret_key,
-        ) = AuthorizationService.get_keycloak_args()
+            open_id_server_url,
+            open_id_client_id,
+            open_id_realm_name,
+            open_id_client_secret_key,
+        ) = AuthorizationService.get_open_id_args()
         bearer_token = AuthorizationService().get_bearer_token(public_access_token)
         auth_bearer_string = f"Bearer {bearer_token['access_token']}"
         headers = {
@@ -329,9 +329,9 @@ class AuthorizationService:
         }
         data = {
             "grant_type": "urn:ietf:params:oauth:grant-type:uma-ticket",
-            "audience": keycloak_client_id,
+            "audience": open_id_client_id,
         }
-        request_url = f"{keycloak_server_url}/realms/{keycloak_realm_name}/protocol/openid-connect/token"
+        request_url = f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/token"
         permission_response = requests.post(request_url, headers=headers, data=data)
         permission: dict = json.loads(permission_response.text)
 

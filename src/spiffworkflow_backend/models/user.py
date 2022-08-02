@@ -1,14 +1,21 @@
 """User."""
+from typing import Any
+
 import jwt
 import marshmallow
 from flask import current_app
+from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from marshmallow import Schema
 from sqlalchemy.orm import relationship
+from sqlalchemy.orm import validates
 
 from spiffworkflow_backend.models.group import GroupModel
 from spiffworkflow_backend.models.user_group_assignment import UserGroupAssignmentModel
+from spiffworkflow_backend.services.authentication_service import (
+    AuthenticationProviderTypes,
+)
 
 
 class UserModel(SpiffworkflowBaseDBModel):
@@ -31,10 +38,20 @@ class UserModel(SpiffworkflowBaseDBModel):
         overlaps="user_group_assignments,users",
     )
 
-    # @validates('service')
-    # def validate_service(self, key, value):
-    #     assert value != ''
-    #     return True
+    @validates("service")
+    def validate_service(self, key: str, value: Any) -> str:
+        """Validate_service."""
+        try:
+            ap_type = getattr(AuthenticationProviderTypes, value, None)
+        except Exception as e:
+            raise ValueError(f"invalid service type: {value}") from e
+        if ap_type is not None:
+            ap_value: str = ap_type.value
+            return ap_value
+        raise ApiError(
+            code="invalid_service",
+            message=f"Could not validate service with value: {value}",
+        )
 
     def encode_auth_token(self) -> str:
         """Generate the Auth Token.

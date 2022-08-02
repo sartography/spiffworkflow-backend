@@ -17,12 +17,10 @@ PROCESS_WAITING_MESSAGES = (
     environ.get("PROCESS_WAITING_MESSAGES", default="false") == "true"
 )
 
-# Keycloak server
-KEYCLOAK_SERVER_URL = environ.get(
-    "KEYCLOAK_SERVER_URL", default="http://localhost:7002"
-)
-KEYCLOAK_CLIENT_ID = environ.get("KEYCLOAK_CLIENT_ID", default="spiffworkflow-backend")
-KEYCLOAK_REALM_NAME = environ.get("KEYCLOAK_REALM_NAME", default="spiffworkflow")
-KEYCLOAK_CLIENT_SECRET_KEY = environ.get(
-    "KEYCLOAK_CLIENT_SECRET_KEY", default="JXeQExm0JhQPLumgHtIIqf52bDalHz0q"
+# Open ID server
+OPEN_ID_SERVER_URL = environ.get("OPEN_ID_SERVER_URL", default="http://localhost:7002")
+OPEN_ID_CLIENT_ID = environ.get("OPEN_ID_CLIENT_ID", default="spiffworkflow-backend")
+OPEN_ID_REALM_NAME = environ.get("OPEN_ID_REALM_NAME", default="spiffworkflow")
+OPEN_ID_CLIENT_SECRET_KEY = environ.get(
+    "OPEN_ID_CLIENT_SECRET_KEY", default="JXeQExm0JhQPLumgHtIIqf52bDalHz0q"
 )  # noqa: S105
