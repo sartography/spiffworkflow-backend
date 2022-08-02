@@ -1,28 +1,30 @@
 """Test_authentication."""
-from flask.app import Flask
+import ast
+import base64
+
+from spiffworkflow_backend.services.authentication_service import PublicAuthenticationService
 from tests.spiffworkflow_backend.helpers.base_test import BaseTest
 
 
 class TestAuthentication(BaseTest):
     """TestAuthentication."""
 
-    def test_login(self, app: Flask) -> None:
-        """Test_login."""
-        # user =
-        ...
+    def test_get_login_state(self):
+        redirect_url = "http://example.com/"
+        state = PublicAuthenticationService.generate_state(redirect_url)
+        state_dict = ast.literal_eval(base64.b64decode(state).decode("utf-8"))
 
-    # def test_get_basic_token(self, app: Flask) -> None:
-    #     for user_id in ('user_1', 'user_2', 'admin_1', 'admin_2'):
-    #         basic_token = self.get_public_access_token(user_id, user_id)
-    #         assert isinstance(basic_token, dict)
-    #         assert 'access_token' in basic_token
-    #         assert isinstance(basic_token['access_token'], str)
-    #         assert 'refresh_token' in basic_token
-    #         assert isinstance(basic_token['refresh_token'], str)
-    #         assert 'token_type' in basic_token
-    #         assert basic_token['token_type'] == 'Bearer'
-    #         assert 'scope' in basic_token
-    #         assert isinstance(basic_token['scope'], str)
+        assert isinstance(state_dict, dict)
+        assert 'redirect_url' in state_dict.keys()
+        assert state_dict['redirect_url'] == redirect_url
+
+    # def test_get_login_redirect_url(self):
+    #     redirect_url = "http://example.com/"
+    #     state = PublicAuthenticationService.generate_state(redirect_url)
+    #     with current_app.app_context():
+    #         login_redirect_url = PublicAuthenticationService().get_login_redirect_url(state.decode("UTF-8"))
+    #         print("test_get_login_redirect_url")
+    #     print("test_get_login_redirect_url")
 
     # def test_get_token_script(self, app: Flask) -> None:
     #     """Test_get_token_script."""
