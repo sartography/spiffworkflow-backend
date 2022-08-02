@@ -3,9 +3,6 @@ from flask.app import Flask
 from flask_bpmn.api.api_error import ApiError
 
 from spiffworkflow_backend.models.user import UserModel
-from spiffworkflow_backend.services.authentication_service import (
-    PublicAuthenticationService,
-)
 from spiffworkflow_backend.services.user_service import UserService
 
 
