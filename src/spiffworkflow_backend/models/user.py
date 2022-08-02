@@ -10,7 +10,9 @@ from sqlalchemy.orm import validates
 
 from spiffworkflow_backend.models.group import GroupModel
 from spiffworkflow_backend.models.user_group_assignment import UserGroupAssignmentModel
-from spiffworkflow_backend.services.authentication_service import AuthenticationProviderTypes
+from spiffworkflow_backend.services.authentication_service import (
+    AuthenticationProviderTypes,
+)
 
 
 class UserModel(SpiffworkflowBaseDBModel):
@@ -33,9 +35,10 @@ class UserModel(SpiffworkflowBaseDBModel):
         overlaps="user_group_assignments,users",
     )
 
-    @validates('service')
+    @validates("service")
     def validate_service(self, key, value):
-        assert value in AuthenticationProviderTypes._member_names_
+        """Validate_service."""
+        assert value in AuthenticationProviderTypes._member_names_  # noqa: S101
         return value
 
     def encode_auth_token(self) -> str:

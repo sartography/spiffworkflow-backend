@@ -196,9 +196,7 @@ def login(redirect_url: str = "/") -> Response:
 
 def login_return(code: str, state: str, session_state: str) -> Optional[Response]:
     """Login_return."""
-    state_dict = ast.literal_eval(
-        base64.b64decode(state).decode("utf-8")
-    )
+    state_dict = ast.literal_eval(base64.b64decode(state).decode("utf-8"))
     state_redirect_url = state_dict["redirect_url"]
 
     id_token_object = PublicAuthenticationService().get_id_token_object(code)

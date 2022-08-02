@@ -134,10 +134,7 @@ class PublicAuthenticationService:
             raise ApiError(
                 code="bad_id_token", message="Cannot decode id_token", status_code=401
             ) from e
-        if (
-            decoded_token["iss"]
-            != f"{open_id_server_url}/realms/{open_id_realm_name}"
-        ):
+        if decoded_token["iss"] != f"{open_id_server_url}/realms/{open_id_realm_name}":
             valid = False
         elif (
             open_id_client_id not in decoded_token["aud"]
