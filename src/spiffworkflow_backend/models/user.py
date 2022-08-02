@@ -1,4 +1,6 @@
 """User."""
+from typing import Any
+
 import jwt
 import marshmallow
 from flask import current_app
@@ -14,8 +16,6 @@ from spiffworkflow_backend.models.user_group_assignment import UserGroupAssignme
 from spiffworkflow_backend.services.authentication_service import (
     AuthenticationProviderTypes,
 )
-
-from typing import Any
 
 
 class UserModel(SpiffworkflowBaseDBModel):
@@ -43,13 +43,15 @@ class UserModel(SpiffworkflowBaseDBModel):
         """Validate_service."""
         try:
             ap_type = getattr(AuthenticationProviderTypes, value, None)
-        except:
-            raise ValueError(f"invalid service type: {value}")
+        except Exception as e:
+            raise ValueError(f"invalid service type: {value}") from e
         if ap_type is not None:
             ap_value: str = ap_type.value
             return ap_value
-        raise ApiError(code='invalid_service',
-                       message=f"Could not validate service with value: {value}")
+        raise ApiError(
+            code="invalid_service",
+            message=f"Could not validate service with value: {value}",
+        )
 
     def encode_auth_token(self) -> str:
         """Generate the Auth Token.
