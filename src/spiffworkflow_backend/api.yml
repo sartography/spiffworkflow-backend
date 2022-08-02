@@ -115,7 +115,7 @@ paths:
 
   /status:
     get:
-      #      security: []
+      security: []
       operationId: spiffworkflow_backend.routes.process_api_blueprint.status
       summary: Returns 200 if the server is Responding
       tags:

@@ -49,7 +49,7 @@ class PublicAuthenticationService:
     Used during development to make testing easy.
     """
 
-    def logout(self, id_token: str, redirect_url: str | None = None) -> Response:
+    def logout(self, id_token: str, redirect_url: Optional[str] = None) -> Response:
         """Logout."""
         if redirect_url is None:
             redirect_url = "/"
