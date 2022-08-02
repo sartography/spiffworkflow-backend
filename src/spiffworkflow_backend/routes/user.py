@@ -187,7 +187,9 @@ def encode_auth_token(uid: str) -> str:
 def login(redirect_url: str = "/") -> Response:
     """Login."""
     state = PublicAuthenticationService.generate_state(redirect_url)
-    login_redirect_url = PublicAuthenticationService().get_login_redirect_url(state.decode("UTF-8"))
+    login_redirect_url = PublicAuthenticationService().get_login_redirect_url(
+        state.decode("UTF-8")
+    )
     return redirect(login_redirect_url)
 
 

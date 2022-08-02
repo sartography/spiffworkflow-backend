@@ -10,10 +10,7 @@ import requests
 from flask import current_app
 from flask import redirect
 from flask_bpmn.api.api_error import ApiError
-from keycloak import KeycloakOpenID  # type: ignore
 from werkzeug.wrappers.response import Response
-
-from spiffworkflow_backend.services.authorization_service import AuthorizationService
 
 
 def get_keycloak_args() -> tuple:

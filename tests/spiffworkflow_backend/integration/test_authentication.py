@@ -2,21 +2,25 @@
 import ast
 import base64
 
-from spiffworkflow_backend.services.authentication_service import PublicAuthenticationService
 from tests.spiffworkflow_backend.helpers.base_test import BaseTest
+
+from spiffworkflow_backend.services.authentication_service import (
+    PublicAuthenticationService,
+)
 
 
 class TestAuthentication(BaseTest):
     """TestAuthentication."""
 
     def test_get_login_state(self):
+        """Test_get_login_state."""
         redirect_url = "http://example.com/"
         state = PublicAuthenticationService.generate_state(redirect_url)
         state_dict = ast.literal_eval(base64.b64decode(state).decode("utf-8"))
 
         assert isinstance(state_dict, dict)
-        assert 'redirect_url' in state_dict.keys()
-        assert state_dict['redirect_url'] == redirect_url
+        assert "redirect_url" in state_dict.keys()
+        assert state_dict["redirect_url"] == redirect_url
 
     # def test_get_login_redirect_url(self):
     #     redirect_url = "http://example.com/"
