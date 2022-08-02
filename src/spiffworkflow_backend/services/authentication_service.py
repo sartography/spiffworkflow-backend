@@ -74,7 +74,7 @@ class PublicAuthenticationService:
         state = base64.b64encode(bytes(str({"redirect_url": redirect_url}), "UTF-8"))
         return state
 
-    def get_login_redirect_url(self, state: bytes) -> str:
+    def get_login_redirect_url(self, state: str) -> str:
         """Get_login_redirect_url."""
         (
             keycloak_server_url,
@@ -85,7 +85,7 @@ class PublicAuthenticationService:
         return_redirect_url = "http://localhost:7000/v1.0/login_return"
         login_redirect_url = (
             f"{keycloak_server_url}/realms/{keycloak_realm_name}/protocol/openid-connect/auth?"
-            + f"state={state!r}&"
+            + f"state={state}&"
             + "response_type=code&"
             + f"client_id={keycloak_client_id}&"
             + "scope=openid&"
