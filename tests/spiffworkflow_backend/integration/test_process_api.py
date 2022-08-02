@@ -10,6 +10,7 @@ import pytest
 from flask.app import Flask
 from flask.testing import FlaskClient
 from flask_bpmn.models.db import db
+from tests.spiffworkflow_backend.helpers.base_test import BaseTest
 from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
 from tests.spiffworkflow_backend.helpers.test_data import logged_in_headers
 from werkzeug.test import TestResponse
@@ -17,7 +18,6 @@ from werkzeug.test import TestResponse
 from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
     ProcessEntityNotFoundError,
 )
-from tests.spiffworkflow_backend.helpers.base_test import BaseTest
 from spiffworkflow_backend.models.process_group import ProcessGroup
 from spiffworkflow_backend.models.process_group import ProcessGroupSchema
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
@@ -34,9 +34,10 @@ from spiffworkflow_backend.services.process_model_service import ProcessModelSer
 
 
 class TestProcessApi(BaseTest):
-    # phase 1: req_id: 7.1 Deploy process
-    def test_process_model_add(self,
-        app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    """TestProcessAPi."""
+
+    def test_process_model_add(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_add_new_process_model."""
         # group_id = None,
@@ -57,8 +58,8 @@ class TestProcessApi(BaseTest):
 
         self.create_spec_file(client)
 
-    def test_process_model_delete(self,
-        app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    def test_process_model_delete(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_process_model_delete."""
         self.create_process_model(client)
@@ -82,8 +83,8 @@ class TestProcessApi(BaseTest):
         with pytest.raises(ProcessEntityNotFoundError):
             ProcessModelService().get_process_model("make_cookies")
 
-    def test_process_model_delete_with_instances(self,
-        app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    def test_process_model_delete_with_instances(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_process_model_delete_with_instances."""
         test_process_group_id = "runs_without_input"
@@ -114,9 +115,8 @@ class TestProcessApi(BaseTest):
             == "We cannot delete the model `sample`, there are existing instances that depend on it."
         )
 
-
-    def test_process_model_update(self,
-        app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    def test_process_model_update(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_process_model_update."""
         self.create_process_model(client)
@@ -137,8 +137,8 @@ class TestProcessApi(BaseTest):
         assert response.json is not None
         assert response.json["display_name"] == "Updated Display Name"
 
-    def test_process_model_list(self,
-        app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    def test_process_model_list(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_process_model_list."""
         # create a group
@@ -215,12 +215,15 @@ class TestProcessApi(BaseTest):
         assert response.json["pagination"]["total"] == 5
         assert response.json["pagination"]["pages"] == 2
 
-    def test_process_group_add(self,
-        app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    def test_process_group_add(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_add_process_group."""
         process_group = ProcessGroup(
-            id="test", display_name="Another Test Category", display_order=0, admin=False
+            id="test",
+            display_name="Another Test Category",
+            display_order=0,
+            admin=False,
         )
         user = self.find_or_create_user()
         response = client.post(
@@ -242,8 +245,8 @@ class TestProcessApi(BaseTest):
         assert persisted.display_name == "Another Test Category"
         assert persisted.id == "test"
 
-    def test_process_group_delete(self,
-        app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    def test_process_group_delete(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_process_group_delete."""
         process_group_id = "test"
@@ -264,16 +267,17 @@ class TestProcessApi(BaseTest):
         with pytest.raises(ProcessEntityNotFoundError):
             ProcessModelService().get_process_group(process_group_id)
 
-
-    def test_process_group_update(self,
-        app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    def test_process_group_update(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test Process Group Update."""
         group_id = "test_process_group"
         group_display_name = "Test Group"
 
         user = self.find_or_create_user()
-        self.create_process_group(client, user, group_id, display_name=group_display_name)
+        self.create_process_group(
+            client, user, group_id, display_name=group_display_name
+        )
         process_group = ProcessModelService().get_process_group(group_id)
 
         assert process_group.display_name == group_display_name
@@ -291,9 +295,8 @@ class TestProcessApi(BaseTest):
         process_group = ProcessModelService().get_process_group(group_id)
         assert process_group.display_name == "Modified Display Name"
 
-
-    def test_process_group_list(self,
-        app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    def test_process_group_list(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_process_group_list."""
         # add 5 groups
@@ -301,7 +304,9 @@ class TestProcessApi(BaseTest):
         for i in range(5):
             group_id = f"test_process_group_{i}"
             group_display_name = f"Test Group {i}"
-            self.create_process_group(client, user, group_id, display_name=group_display_name)
+            self.create_process_group(
+                client, user, group_id, display_name=group_display_name
+            )
 
         # get all groups
         response = client.get(
@@ -366,9 +371,8 @@ class TestProcessApi(BaseTest):
         assert response.json["pagination"]["total"] == 5
         assert response.json["pagination"]["pages"] == 2
 
-
-    def test_process_model_file_update_fails_if_no_file_given(self,
-        app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    def test_process_model_file_update_fails_if_no_file_given(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_process_model_file_update."""
         self.create_spec_file(client)
@@ -388,9 +392,8 @@ class TestProcessApi(BaseTest):
         assert response.json is not None
         assert response.json["code"] == "no_file_given"
 
-
-    def test_process_model_file_update_fails_if_contents_is_empty(self,
-        app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    def test_process_model_file_update_fails_if_contents_is_empty(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_process_model_file_update."""
         self.create_spec_file(client)
@@ -410,9 +413,8 @@ class TestProcessApi(BaseTest):
         assert response.json is not None
         assert response.json["code"] == "file_contents_empty"
 
-
-    def test_process_model_file_update(self,
-        app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    def test_process_model_file_update(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_process_model_file_update."""
         original_file = self.create_spec_file(client)
@@ -442,9 +444,8 @@ class TestProcessApi(BaseTest):
         assert original_file != updated_file
         assert updated_file["file_contents"] == new_file_contents.decode()
 
-
-    def test_get_file(self,
-        app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    def test_get_file(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_get_file."""
         user = self.find_or_create_user()
@@ -461,9 +462,8 @@ class TestProcessApi(BaseTest):
         assert response.json["process_group_id"] == "group_id1"
         assert response.json["process_model_id"] == "hello_world"
 
-
-    def test_get_workflow_from_workflow_spec(self,
-        app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    def test_get_workflow_from_workflow_spec(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_get_workflow_from_workflow_spec."""
         user = self.find_or_create_user()
@@ -477,9 +477,8 @@ class TestProcessApi(BaseTest):
         assert "hello_world" == response.json["process_model_identifier"]
         # assert('Task_GetName' == response.json['next_task']['name'])
 
-
-    def test_get_process_groups_when_none(self,
-        app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    def test_get_process_groups_when_none(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_get_process_groups_when_none."""
         user = self.find_or_create_user()
@@ -488,9 +487,8 @@ class TestProcessApi(BaseTest):
         assert response.json is not None
         assert response.json["results"] == []
 
-
-    def test_get_process_groups_when_there_are_some(self,
-        app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    def test_get_process_groups_when_there_are_some(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_get_process_groups_when_there_are_some."""
         user = self.find_or_create_user()
@@ -503,9 +501,8 @@ class TestProcessApi(BaseTest):
         assert response.json["pagination"]["total"] == 1
         assert response.json["pagination"]["pages"] == 1
 
-
-    def test_get_process_group_when_found(self,
-        app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    def test_get_process_group_when_found(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_get_process_group_when_found."""
         user = self.find_or_create_user()
@@ -513,16 +510,16 @@ class TestProcessApi(BaseTest):
         process_model_dir_name = "hello_world"
         load_test_spec(process_model_dir_name, process_group_id=test_process_group_id)
         response = client.get(
-            f"/v1.0/process-groups/{test_process_group_id}", headers=logged_in_headers(user)
+            f"/v1.0/process-groups/{test_process_group_id}",
+            headers=logged_in_headers(user),
         )
         assert response.status_code == 200
         assert response.json is not None
         assert response.json["id"] == test_process_group_id
         assert response.json["process_models"][0]["id"] == process_model_dir_name
 
-
-    def test_get_process_model_when_found(self,
-        app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    def test_get_process_model_when_found(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_get_process_model_when_found."""
         user = self.find_or_create_user()
@@ -539,9 +536,8 @@ class TestProcessApi(BaseTest):
         assert len(response.json["files"]) == 1
         assert response.json["files"][0]["name"] == "hello_world.bpmn"
 
-
-    def test_get_process_model_when_not_found(self,
-        app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    def test_get_process_model_when_not_found(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_get_process_model_when_not_found."""
         user = self.find_or_create_user()
@@ -555,9 +551,8 @@ class TestProcessApi(BaseTest):
         assert response.json is not None
         assert response.json["code"] == "process_model_cannot_be_found"
 
-
-    def test_process_instance_create(self,
-        app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    def test_process_instance_create(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_process_instance_create."""
         test_process_group_id = "runs_without_input"
@@ -572,9 +567,8 @@ class TestProcessApi(BaseTest):
         assert response.json["status"] == "not_started"
         assert response.json["process_model_identifier"] == test_process_model_id
 
-
-    def test_process_instance_run(self,
-        app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    def test_process_instance_run(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_process_instance_run."""
         process_group_id = "runs_without_input"
@@ -600,9 +594,8 @@ class TestProcessApi(BaseTest):
         assert response.json["data"]["Mike"] == "Awesome"
         assert response.json["data"]["person"] == "Kevin"
 
-
-    def test_process_instance_delete(self,
-        app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    def test_process_instance_delete(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_process_instance_delete."""
         process_group_id = "my_process_group"
@@ -637,9 +630,8 @@ class TestProcessApi(BaseTest):
         )
         assert delete_response.status_code == 200
 
-
-    def test_process_instance_run_user_task_creates_task_event(self,
-        app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    def test_process_instance_run_user_task_creates_task_event(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_process_instance_run_user_task."""
         process_group_id = "my_process_group"
@@ -669,9 +661,8 @@ class TestProcessApi(BaseTest):
         assert task_event.user_id == user.id
         # TODO: When user tasks work, we need to add some more assertions for action, task_state, etc.
 
-
-    def test_process_instance_list_with_default_list(self,
-        app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    def test_process_instance_list_with_default_list(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_process_instance_list_with_default_list."""
         test_process_group_id = "runs_without_input"
@@ -695,16 +686,19 @@ class TestProcessApi(BaseTest):
 
         process_instance_dict = response.json["results"][0]
         assert type(process_instance_dict["id"]) is int
-        assert process_instance_dict["process_model_identifier"] == process_model_dir_name
-        assert process_instance_dict["process_group_identifier"] == test_process_group_id
+        assert (
+            process_instance_dict["process_model_identifier"] == process_model_dir_name
+        )
+        assert (
+            process_instance_dict["process_group_identifier"] == test_process_group_id
+        )
         assert type(process_instance_dict["start_in_seconds"]) is int
         assert process_instance_dict["start_in_seconds"] > 0
         assert process_instance_dict["end_in_seconds"] is None
         assert process_instance_dict["status"] == "not_started"
 
-
-    def test_process_instance_list_with_paginated_items(self,
-        app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    def test_process_instance_list_with_paginated_items(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_process_instance_list_with_paginated_items."""
         test_process_group_id = "runs_without_input"
@@ -749,9 +743,8 @@ class TestProcessApi(BaseTest):
         assert response.json["pagination"]["pages"] == 3
         assert response.json["pagination"]["total"] == 5
 
-
-    def test_process_instance_list_filter(self,
-        app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    def test_process_instance_list_filter(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_process_instance_list_filter."""
         test_process_group_id = "runs_without_input"
@@ -841,16 +834,17 @@ class TestProcessApi(BaseTest):
         for i in range(3):
             assert json.loads(results[i]["bpmn_json"])["i"] in (1, 2, 3)
 
-
-    def test_process_instance_report_list(self,
-        app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    def test_process_instance_report_list(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_process_instance_report_list."""
         process_group_identifier = "runs_without_input"
         process_model_identifier = "sample"
         user = self.find_or_create_user()
         logged_in_headers(user)
-        load_test_spec(process_model_identifier, process_group_id=process_group_identifier)
+        load_test_spec(
+            process_model_identifier, process_group_id=process_group_identifier
+        )
         report_identifier = "testreport"
         report_metadata = {"order_by": ["month"]}
         ProcessInstanceReportModel.create_with_attributes(
@@ -870,8 +864,8 @@ class TestProcessApi(BaseTest):
         assert response.json[0]["identifier"] == report_identifier
         assert response.json[0]["report_metadata"]["order_by"] == ["month"]
 
-
-    def test_process_instance_report_show_with_default_list(self,
+    def test_process_instance_report_show_with_default_list(
+        self,
         app: Flask,
         client: FlaskClient,
         with_db_and_bpmn_file_cleanup: None,
@@ -922,14 +916,18 @@ class TestProcessApi(BaseTest):
 
         process_instance_dict = response.json["results"][0]
         assert type(process_instance_dict["id"]) is int
-        assert process_instance_dict["process_model_identifier"] == process_model_dir_name
-        assert process_instance_dict["process_group_identifier"] == test_process_group_id
+        assert (
+            process_instance_dict["process_model_identifier"] == process_model_dir_name
+        )
+        assert (
+            process_instance_dict["process_group_identifier"] == test_process_group_id
+        )
         assert type(process_instance_dict["start_in_seconds"]) is int
         assert process_instance_dict["start_in_seconds"] > 0
         assert process_instance_dict["status"] == "waiting"
 
-
-    def test_process_instance_report_show_with_dynamic_filter_and_query_param(self,
+    def test_process_instance_report_show_with_dynamic_filter_and_query_param(
+        self,
         app: Flask,
         client: FlaskClient,
         with_db_and_bpmn_file_cleanup: None,
@@ -966,8 +964,8 @@ class TestProcessApi(BaseTest):
         assert response.json is not None
         assert len(response.json["results"]) == 1
 
-
-    def test_process_instance_report_show_with_bad_identifier(self,
+    def test_process_instance_report_show_with_bad_identifier(
+        self,
         app: Flask,
         client: FlaskClient,
         with_db_and_bpmn_file_cleanup: None,
@@ -986,9 +984,12 @@ class TestProcessApi(BaseTest):
         data = json.loads(response.get_data(as_text=True))
         assert data["code"] == "unknown_process_instance_report"
 
-
-    def setup_testing_instance(self,
-        client: FlaskClient, process_group_id: str, process_model_id: str, user: UserModel
+    def setup_testing_instance(
+        self,
+        client: FlaskClient,
+        process_group_id: str,
+        process_model_id: str,
+        user: UserModel,
     ) -> Any:
         """Setup_testing_instance."""
         headers = logged_in_headers(user)
@@ -1000,9 +1001,8 @@ class TestProcessApi(BaseTest):
         process_instance_id = process_instance["id"]
         return process_instance_id
 
-
-    def test_error_handler(self,
-        app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    def test_error_handler(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_error_handler."""
         process_group_id = "data"
@@ -1033,7 +1033,9 @@ class TestProcessApi(BaseTest):
             'Original error: ApiError: Activity_CauseError: TypeError:can only concatenate str (not "int") to str.'
             in api_error["message"]
         )
-        assert "Error in task 'Cause Error' (Activity_CauseError)." in api_error["message"]
+        assert (
+            "Error in task 'Cause Error' (Activity_CauseError)." in api_error["message"]
+        )
         assert "Error is on line 1. In file error.bpmn." in api_error["message"]
 
         process = (
@@ -1043,9 +1045,8 @@ class TestProcessApi(BaseTest):
         )
         assert process.status == "faulted"
 
-
-    def test_error_handler_suspend(self,
-        app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    def test_error_handler_suspend(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_error_handler_suspend."""
         process_group_id = "data"
@@ -1081,9 +1082,8 @@ class TestProcessApi(BaseTest):
         )
         assert process.status == "suspended"
 
-
-    def test_error_handler_with_email(self,
-        app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    def test_error_handler_with_email(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_error_handler."""
         process_group_id = "data"
@@ -1126,9 +1126,8 @@ class TestProcessApi(BaseTest):
         )
         assert process.status == "faulted"
 
-
-    def test_process_model_file_create(self,
-        app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    def test_process_model_file_create(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_process_model_file_create."""
         process_group_id = "hello_world"
@@ -1148,8 +1147,8 @@ class TestProcessApi(BaseTest):
         assert result["name"] == file_name
         assert bytes(str(result["file_contents"]), "utf-8") == file_data
 
-
-    def create_process_instance(self,
+    def create_process_instance(
+        self,
         client: FlaskClient,
         test_process_group_id: str,
         test_process_model_id: str,
@@ -1164,8 +1163,8 @@ class TestProcessApi(BaseTest):
         assert response.status_code == 201
         return response
 
-
-    def create_process_model(self,
+    def create_process_model(
+        self,
         client: FlaskClient,
         process_group_id: Optional[str] = None,
         process_model_id: Optional[str] = None,
@@ -1182,7 +1181,10 @@ class TestProcessApi(BaseTest):
         # make sure we have a group
         if process_group_id is None:
             process_group_tmp = ProcessGroup(
-                id="test_cat", display_name="Test Category", display_order=0, admin=False
+                id="test_cat",
+                display_name="Test Category",
+                display_order=0,
+                admin=False,
             )
             process_group = process_model_service.add_process_group(process_group_tmp)
         else:
@@ -1227,7 +1229,8 @@ class TestProcessApi(BaseTest):
         assert response.status_code == 201
         return response
 
-    def create_spec_file(self,
+    def create_spec_file(
+        self,
         client: FlaskClient,
         process_group_id: str = "",
         process_model_id: str = "",
@@ -1268,9 +1271,12 @@ class TestProcessApi(BaseTest):
         assert file["file_contents"] == file2["file_contents"]
         return file
 
-
-    def create_process_group(self,
-        client: FlaskClient, user: Any, process_group_id: str, display_name: str = ""
+    def create_process_group(
+        self,
+        client: FlaskClient,
+        user: Any,
+        process_group_id: str,
+        display_name: str = "",
     ) -> str:
         """Create_process_group."""
         process_group = ProcessGroup(
@@ -1286,7 +1292,6 @@ class TestProcessApi(BaseTest):
         assert response.json is not None
         assert response.json["id"] == process_group_id
         return process_group_id
-
 
     # def test_get_process_model(self):
     #

@@ -2,8 +2,10 @@
 from flask.app import Flask
 
 from spiffworkflow_backend.models.user import UserModel
+from spiffworkflow_backend.services.authentication_service import (
+    PublicAuthenticationService,
+)
 from spiffworkflow_backend.services.user_service import UserService
-from spiffworkflow_backend.services.authentication_service import PublicAuthenticationService
 
 
 class BaseTest:
@@ -17,7 +19,9 @@ class BaseTest:
             return user
 
         else:
-            user: UserModel = UserService().create_user("local", username, username=username)
+            user: UserModel = UserService().create_user(
+                "local", username, username=username
+            )
             UserService().create_principal(user_id=user.id)
 
             return user
