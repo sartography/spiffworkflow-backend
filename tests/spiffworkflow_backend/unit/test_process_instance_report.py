@@ -2,6 +2,7 @@
 from typing import Optional
 
 from flask.app import Flask
+from tests.spiffworkflow_backend.helpers.base_test import BaseTest
 
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 from spiffworkflow_backend.models.process_instance_report import (
@@ -11,7 +12,6 @@ from spiffworkflow_backend.models.process_instance_report import (
 # from tests.spiffworkflow_backend.helpers.test_data import find_or_create_process_group
 # from spiffworkflow_backend.models.permission_assignment import PermissionAssignmentModel
 # from spiffworkflow_backend.models.permission_target import PermissionTargetModel
-from tests.spiffworkflow_backend.helpers.base_test import BaseTest
 
 
 def test_generate_report_with_filter_by(

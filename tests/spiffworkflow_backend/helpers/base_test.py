@@ -8,8 +8,6 @@ from spiffworkflow_backend.services.authentication_service import (
 )
 from spiffworkflow_backend.services.user_service import UserService
 
-from typing import Optional
-
 
 class BaseTest:
     """BaseTest."""
@@ -21,15 +19,14 @@ class BaseTest:
         if isinstance(user, UserModel):
             return user
 
-        user = UserService().create_user(
-            "local", username, username=username
-        )
+        user = UserService().create_user("local", username, username=username)
         if isinstance(user, UserModel):
             UserService().create_principal(user_id=user.id)
             return user
 
-        raise ApiError(code="create_user_error",
-                       message=f"Cannot find or create user: {username}")
+        raise ApiError(
+            code="create_user_error", message=f"Cannot find or create user: {username}"
+        )
 
     @staticmethod
     def get_keycloak_constants(app: Flask) -> tuple:
