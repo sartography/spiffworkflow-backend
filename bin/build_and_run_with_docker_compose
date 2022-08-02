@@ -12,13 +12,17 @@ if [[ -z "${BPMN_SPEC_ABSOLUTE_DIR:-}" ]]; then
   export BPMN_SPEC_ABSOLUTE_DIR="$script_dir/../../sample-process-models"
 fi
 
+if [[ -z "${SPIFFWORKFLOW_BACKEND_DOCKER_COMPOSE_PROFILE:-}" ]]; then
+  export SPIFFWORKFLOW_BACKEND_DOCKER_COMPOSE_PROFILE=run
+fi
+
 additional_args=""
 if [[ "${RUN_WITH_DAEMON:-}" != "false" ]]; then
   additional_args="${additional_args} -d"
 fi
 
-docker compose build
-docker compose stop
+docker compose --profile "$SPIFFWORKFLOW_BACKEND_DOCKER_COMPOSE_PROFILE" build
+docker compose --profile "$SPIFFWORKFLOW_BACKEND_DOCKER_COMPOSE_PROFILE" stop
 
 # i observed a case locally where the db had a stale sqlalchemy revision which
 # caused the backend to exit and when docker compose up was running with
@@ -29,4 +33,4 @@ docker compose stop
 # bin/wait_for_server_to_be_up script.
 docker volume rm spiffworkflow-backend_spiffworkflow_backend || echo 'docker volume not found'
 
-docker compose up --wait $additional_args
+docker compose --profile "$SPIFFWORKFLOW_BACKEND_DOCKER_COMPOSE_PROFILE" up --wait $additional_args

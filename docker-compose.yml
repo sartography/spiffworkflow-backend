@@ -1,3 +1,21 @@
+# Why we are running with network_mode: host
+# Wow this has been awful. We run three things in docker: mysql, keycloak, and the backend server.
+# The backend-server needs to talk to the other two.
+#
+# In order to talk to keycloak, it needs to go through localhost so that it can communicate with
+# keycloak using the same url as the frontend so that tokens can be properly validated.
+# If the domains are different, keycloak invalidates the token. There may be a way to change
+# this but I didn't find it.
+#
+# In order for the backend server to talk to the mysql server, they need to be on the same network.
+# I tried splitting it out where the mysql runs on a custom network and the backend runs on both
+# the custom network AND with localhost. Nothing I tried worked and googling didn't help. They
+# only ever mentioned one thing or using host.docker.internal which would cause the domains to
+# be different.
+#
+# So instead we are running with both the mysql server and the backend server in host netowrk mode.
+# There may be a better way to do this but if it works, then it works.
+
 version: "3.8"
 services:
   db:
@@ -10,8 +28,10 @@ services:
     environment:
       - MYSQL_DATABASE=${SPIFFWORKFLOW_BACKEND_DATABASE_NAME:-spiffworkflow_backend_development}
       - MYSQL_ROOT_PASSWORD=${SPIFFWORKFLOW_BACKEND_MYSQL_ROOT_DATABASE:-my-secret-pw}
+      - MYSQL_TCP_PORT=7003
+    network_mode: host
     ports:
-      - "3306"
+      - "7003"
     volumes:
       - spiffworkflow_backend:/var/lib/mysql
     healthcheck:
@@ -20,13 +40,13 @@ services:
       timeout: 5s
       retries: 10
 
-  spiffworkflow-backend:
+  spiffworkflow-backend: &spiffworkflow-backend
     container_name: spiffworkflow-backend
-    # command: tail -f /etc/hostname
+    profiles:
+      - run
     depends_on:
       db:
         condition: service_healthy
-    # image: sartography/cr-connect-workflow:dev
     build:
       context: .
     environment:
@@ -36,16 +56,37 @@ services:
       - FLASK_SESSION_SECRET_KEY=${FLASK_SESSION_SECRET_KEY:-super_secret_key}
       - SPIFFWORKFLOW_BACKEND_PORT=7000
       - SPIFFWORKFLOW_BACKEND_UPGRADE_DB=true
-      - SPIFFWORKFLOW_BACKEND_DATABASE_URI=mysql+mysqlconnector://root:${SPIFFWORKFLOW_BACKEND_MYSQL_ROOT_DATABASE:-my-secret-pw}@db/${SPIFFWORKFLOW_BACKEND_DATABASE_NAME:-spiffworkflow_backend_development}
+      - SPIFFWORKFLOW_BACKEND_DATABASE_URI=mysql+mysqlconnector://root:${SPIFFWORKFLOW_BACKEND_MYSQL_ROOT_DATABASE:-my-secret-pw}@localhost:7003/${SPIFFWORKFLOW_BACKEND_DATABASE_NAME:-spiffworkflow_backend_development}
       - BPMN_SPEC_ABSOLUTE_DIR=/app/process_models
       - SPIFFWORKFLOW_BACKEND_LOAD_FIXTURE_DATA=${SPIFFWORKFLOW_BACKEND_LOAD_FIXTURE_DATA:-false}
     ports:
       - "7000:7000"
+    network_mode: host
     volumes:
       - ${BPMN_SPEC_ABSOLUTE_DIR:-./../sample-process-models}:/app/process_models
       - ./log:/app/log
     healthcheck:
       test: curl localhost:7000/v1.0/status --fail
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  spiffworkflow-backend-local-debug:
+    <<: *spiffworkflow-backend
+    container_name: spiffworkflow-backend-local-debug
+    profiles:
+      - debug
+    volumes:
+      - ${BPMN_SPEC_ABSOLUTE_DIR:-./../sample-process-models}:/app/process_models
+      - ./:/app
+    command: /app/bin/boot_in_docker_debug_mode
+
+    # the docs say we can disable healthchecks with disable: true
+    # but it returns a bad exit code so setup one that doesn't matter
+    # since there is nothing to healthcheck in this case
+    # https://docs.docker.com/compose/compose-file/compose-file-v3/#healthcheck
+    healthcheck:
+      test: cat /etc/hosts
       interval: 10s
       timeout: 5s
       retries: 20
