@@ -4,6 +4,7 @@ import base64
 from typing import Any
 from typing import Dict
 from typing import Optional
+from typing import Union
 
 import jwt
 from flask import current_app
@@ -25,7 +26,7 @@ from spiffworkflow_backend.services.user_service import UserService
 """
 
 
-def verify_token(token: Optional[str] = None) -> Dict[str, Optional[str]]:
+def verify_token(token: Optional[str] = None) -> Dict[str, Optional[Union[str, int]]]:
     """Verify the token for the user (if provided).
 
     If in production environment and token is not provided, gets user from the SSO headers and returns their token.
