@@ -12,7 +12,7 @@ from spiffworkflow_backend.services.authentication_service import (
 class TestAuthentication(BaseTest):
     """TestAuthentication."""
 
-    def test_get_login_state(self):
+    def test_get_login_state(self) -> None:
         """Test_get_login_state."""
         redirect_url = "http://example.com/"
         state = PublicAuthenticationService.generate_state(redirect_url)

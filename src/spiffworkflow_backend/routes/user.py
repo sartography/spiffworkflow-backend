@@ -158,10 +158,11 @@ def validate_scope(token: Any) -> bool:
 def api_login(uid: str, password: str, redirect_url: Optional[str] = None) -> dict:
     """Api_login."""
     # TODO: Fix this! mac 20220801
-    token = PublicAuthenticationService().get_public_access_token(uid, password)
-    g.token = token
-
-    return token
+    # token:dict = PublicAuthenticationService().get_public_access_token(uid, password)
+    # g.token = token
+    #
+    # return token
+    return {}
 
 
 def encode_auth_token(uid: str) -> str:
