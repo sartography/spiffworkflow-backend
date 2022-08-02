@@ -1,5 +1,5 @@
 """Test_authorization."""
-from tests.spiffworkflow_backend.integration.base_test import BaseTest
+from tests.spiffworkflow_backend.helpers.base_test import BaseTest
 
 
 class TestAuthorization(BaseTest):

@@ -7,8 +7,8 @@ from flask.app import Flask
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
+from tests.spiffworkflow_backend.helpers.base_test import BaseTest
 
-from spiffworkflow_backend.helpers.fixture_data import find_or_create_user
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 from spiffworkflow_backend.services.process_instance_processor import (
     ProcessInstanceProcessor,
@@ -65,7 +65,7 @@ def with_db_and_bpmn_file_cleanup() -> None:
 @pytest.fixture()
 def setup_process_instances_for_reports() -> list[ProcessInstanceModel]:
     """Setup_process_instances_for_reports."""
-    user = find_or_create_user()
+    user = BaseTest.find_or_create_user()
     process_group_id = "runs_without_input"
     process_model_id = "sample"
     load_test_spec(process_group_id=process_group_id, process_model_id=process_model_id)
