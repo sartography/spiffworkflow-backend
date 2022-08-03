@@ -1,4 +1,6 @@
 """Message_service."""
+from typing import Optional
+
 import flask
 from flask_bpmn.models.db import db
 from sqlalchemy import and_
@@ -31,38 +33,70 @@ class MessageService:
 
     def process_queued_messages(self) -> None:
         """Process_queued_messages."""
-        queued_messages_send = MessageInstanceModel.query.filter_by(message_type="send")
+        queued_messages_send = MessageInstanceModel.query.filter_by(
+            message_type="send"
+        ).all()
         queued_messages_receive = MessageInstanceModel.query.filter_by(
             message_type="receive"
-        )
+        ).all()
         for queued_message_send in queued_messages_send:
-            print(f"queued_message_send.id: {queued_message_send.id}")
-            message_correlations_send = MessageCorrelationModel.query.filter_by(
-                message_instance_id=queued_message_send.id
+            queued_message_receive = self.get_related_queued_message(
+                queued_message_send, queued_messages_receive
             )
-            message_correlation_filter = []
-            for m in message_correlations_send:
-                message_correlation_filter.append(
-                    and_(
-                        MessageCorrelationModel.name == m.name,
-                        MessageCorrelationModel.value == m.value,
-                    )
+            if queued_message_receive:
+                self.process_related_message(
+                    queued_message_send, queued_message_receive
                 )
 
-            for queued_message_receive in queued_messages_receive:
+    def process_related_message(
+        self,
+        queued_message: MessageInstanceModel,
+        related_queued_message: MessageInstanceModel,
+    ) -> None:
+        """Process_related_message."""
+        print(f"queued_message: {queued_message}")
+        print(f"related_queued_message: {related_queued_message}")
 
-                # sqlalchemy supports select / where statements like active record apparantly
-                # https://docs.sqlalchemy.org/en/14/core/tutorial.html#conjunctions
-                message_correlation_select = select(MessageCorrelationModel).where(  # type: ignore
+    def get_related_queued_message(
+        self,
+        queued_message: MessageInstanceModel,
+        related_queued_messages: list[MessageInstanceModel],
+    ) -> Optional[MessageInstanceModel]:
+        """Get_related_queued_message."""
+        message_correlations = MessageCorrelationModel.query.filter_by(
+            message_instance_id=queued_message.id
+        ).all()
+        message_correlation_filter = []
+        for message_correlation in message_correlations:
+            message_correlation_filter.append(
+                and_(
+                    MessageCorrelationModel.name == message_correlation.name,
+                    MessageCorrelationModel.value == message_correlation.value,
+                )
+            )
+
+        for queued_message_related in related_queued_messages:
+
+            # sqlalchemy supports select / where statements like active record apparantly
+            # https://docs.sqlalchemy.org/en/14/core/tutorial.html#conjunctions
+            message_correlation_select = (
+                select([db.func.count()])
+                .select_from(MessageCorrelationModel)  # type: ignore
+                .where(
                     and_(
                         MessageCorrelationModel.message_instance_id
-                        == queued_message_receive.id,
+                        == queued_message_related.id,
                         or_(*message_correlation_filter),
                     )
                 )
-                print(f"queued_message_receive.id: {queued_message_receive.id}")
-                message_correlations = db.session.execute(message_correlation_select)
-                for mc in message_correlations:
-                    print(
-                        f"message_correlations: {mc.MessageCorrelationModel.message_instance_id}"
-                    )
+            )
+            message_correlations_related = db.session.execute(
+                message_correlation_select
+            )
+
+            # since the query matches on name, value, and queued_message_related.id, if the counts
+            # message correlations found are the same, then this should be the relevant message
+            if message_correlations_related.scalar() == len(message_correlations):
+                return queued_message_related
+
+        return None
