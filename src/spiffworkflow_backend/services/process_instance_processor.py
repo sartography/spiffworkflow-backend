@@ -35,6 +35,7 @@ from SpiffWorkflow.util.deep_merge import DeepMerge  # type: ignore
 from spiffworkflow_backend.models.active_task import ActiveTaskModel
 from spiffworkflow_backend.models.file import File
 from spiffworkflow_backend.models.file import FileType
+from spiffworkflow_backend.models.message_correlation import MessageCorrelationModel
 from spiffworkflow_backend.models.message_instance import MessageInstanceModel
 from spiffworkflow_backend.models.message_instance import MessageModel
 from spiffworkflow_backend.models.principal import PrincipalModel
@@ -462,7 +463,7 @@ class ProcessInstanceProcessor:
             for bpmn_event in self.bpmn_process_instance.bpmn_events:
                 message_type = None
 
-                # TODO: message: who knows the of the message model?
+                # TODO: message: who knows the name of the message model?
                 # will it be in the bpmn_event?
                 message_model = MessageModel.query.filter_by(
                     name=bpmn_event.message_name
@@ -486,13 +487,29 @@ class ProcessInstanceProcessor:
                         f"Invalid event type for a message: {bpmn_event.event}.",
                     )
 
-                queued_message = MessageInstanceModel(
+                if not bpmn_event.message_correlations:
+                    raise ApiError(
+                        "message_correlations_missing",
+                        f"Could not find any message correlations bpmn_event: {bpmn_event}",
+                    )
+
+                message_instance = MessageInstanceModel(
                     process_instance_id=self.process_instance_model.id,
                     bpmn_element_id=bpmn_event.task_name,
                     message_type=message_type,
                     message_model_id=message_model.id,
                 )
-                db.session.add(queued_message)
+                db.session.add(message_instance)
+                db.session.commit()
+
+                # TODO: find out what spiff will call the correlations
+                for message_correlation in bpmn_event.message_correlations:
+                    message_correlation = MessageCorrelationModel(
+                        message_instance_id=message_instance.id,
+                        name=message_correlation.name,
+                        value=message_correlation.value,
+                    )
+                    db.session.add(message_correlation)
                 db.session.commit()
 
     def do_engine_steps(self, exit_at: None = None) -> None:
@@ -661,6 +678,11 @@ class ProcessInstanceProcessor:
         """Get_all_ready_or_waiting_tasks."""
         all_tasks = self.bpmn_process_instance.get_tasks(TaskState.ANY_MASK)
         return [t for t in all_tasks if t.state in [TaskState.WAITING, TaskState.READY]]
+
+    def get_task_by_id(self, task_id: str) -> SpiffTask:
+        """Get_task_by_id."""
+        all_tasks = self.bpmn_process_instance.get_tasks(TaskState.ANY_MASK)
+        return [t for t in all_tasks if t.id == task_id]
 
     def get_nav_item(self, task: SpiffTask) -> Any:
         """Get_nav_item."""
