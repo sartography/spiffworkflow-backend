@@ -5,7 +5,7 @@ from typing import Any
 import connexion  # type: ignore
 import flask.app
 import flask.json
-from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.schedulers.background import BackgroundScheduler  # type: ignore
 from flask_bpmn.api.api_error import api_error_blueprint
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import migrate

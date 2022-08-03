@@ -53,7 +53,7 @@ class MessageService:
 
                 # sqlalchemy supports select / where statements like active record apparantly
                 # https://docs.sqlalchemy.org/en/14/core/tutorial.html#conjunctions
-                message_correlation_select = select(MessageCorrelationModel).where(
+                message_correlation_select = select(MessageCorrelationModel).where(  # type: ignore
                     and_(
                         MessageCorrelationModel.message_instance_id
                         == queued_message_receive.id,
