@@ -30,10 +30,15 @@ class MyJSONEncoder(flask.json.JSONEncoder):
         return super().default(obj)
 
 
-# def process_queued_messages(app: flask.app.Flask):
-#     """Process_queued_messages."""
-#     with app.app_context():
-#         MessageService().process_queued_messages()
+def start_scheduler(app: flask.app.Flask) -> None:
+    """Start_scheduler."""
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(
+        MessageServiceWithAppContext(app).process_queued_messages_with_app_context,
+        "interval",
+        minutes=1,
+    )
+    scheduler.start()
 
 
 def create_app() -> flask.app.Flask:
@@ -80,12 +85,6 @@ def create_app() -> flask.app.Flask:
     app.json_encoder = MyJSONEncoder
 
     if app.config["PROCESS_WAITING_MESSAGES"]:
-        scheduler = BackgroundScheduler()
-        scheduler.add_job(
-            MessageServiceWithAppContext(app).process_queued_messages_with_app_context,
-            "interval",
-            minutes=1,
-        )
-        scheduler.start()
+        start_scheduler(app)
 
     return app  # type: ignore

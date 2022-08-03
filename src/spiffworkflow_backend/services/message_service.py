@@ -63,4 +63,6 @@ class MessageService:
                 print(f"queued_message_receive.id: {queued_message_receive.id}")
                 message_correlations = db.session.execute(message_correlation_select)
                 for mc in message_correlations:
-                    print(f"message_correlations: {mc.MessageCorrelationModel.message_instance_id}")
+                    print(
+                        f"message_correlations: {mc.MessageCorrelationModel.message_instance_id}"
+                    )
