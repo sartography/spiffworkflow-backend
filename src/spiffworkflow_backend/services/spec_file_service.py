@@ -4,9 +4,9 @@ import shutil
 from datetime import datetime
 from typing import List
 from typing import Optional
-from typing import Union
 
 from flask_bpmn.api.api_error import ApiError
+from flask_bpmn.models.db import db
 from lxml import etree  # type: ignore
 from lxml.etree import _Element  # type: ignore
 from lxml.etree import Element as EtreeElement
@@ -14,6 +14,7 @@ from SpiffWorkflow.bpmn.parser.ValidationException import ValidationException  #
 
 from spiffworkflow_backend.models.file import File
 from spiffworkflow_backend.models.file import FileType
+from spiffworkflow_backend.models.message_model import MessageModel
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.services.file_system_service import FileSystemService
 
@@ -72,6 +73,7 @@ class SpecFileService(FileSystemService):
         ):
             # If no primary process exists, make this pirmary process.
             SpecFileService.set_primary_bpmn(workflow_spec, file_name, binary_data)
+
         return file
 
     @staticmethod
@@ -133,7 +135,7 @@ class SpecFileService(FileSystemService):
     def set_primary_bpmn(
         workflow_spec: ProcessModelInfo,
         file_name: str,
-        binary_data: Union[bytes, None] = None,
+        binary_data: Optional[bytes] = None,
     ) -> None:
         """Set_primary_bpmn."""
         # If this is a BPMN, extract the process id, and determine if it is contains swim lanes.
@@ -147,6 +149,7 @@ class SpecFileService(FileSystemService):
                 workflow_spec.primary_process_id = SpecFileService.get_process_id(bpmn)
                 workflow_spec.primary_file_name = file_name
                 workflow_spec.is_review = SpecFileService.has_swimlane(bpmn)
+                SpecFileService.check_for_message_models(bpmn)
 
             except etree.XMLSyntaxError as xse:
                 raise ApiError(
@@ -214,3 +217,18 @@ class SpecFileService(FileSystemService):
             )
 
         return str(process_elements[0].attrib["id"])
+
+    @staticmethod
+    def check_for_message_models(et_root: _Element) -> None:
+        """Check_for_message_models."""
+        for child in et_root:
+            if child.tag == "message":
+                message_name = child.attrib.get("name")
+                if message_name is None:
+                    raise ValidationException("Message name is missing from bpmn xml")
+
+                message_model = MessageModel.query.filter_by(name=message_name)
+                if message_model is None:
+                    message_model = MessageModel(name=message_name)
+                    db.session.add(message_model)
+                    db.session.commit()
