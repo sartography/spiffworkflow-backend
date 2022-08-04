@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: e156e4216918
+Revision ID: e3508bb72df6
 Revises: 
-Create Date: 2022-08-03 17:30:11.770763
+Create Date: 2022-08-04 14:09:44.340778
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'e156e4216918'
+revision = 'e3508bb72df6'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -33,10 +33,10 @@ def upgrade():
     )
     op.create_table('message_model',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('name', sa.String(length=50), nullable=True),
+    sa.Column('identifier', sa.String(length=50), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index(op.f('ix_message_model_name'), 'message_model', ['name'], unique=True)
+    op.create_index(op.f('ix_message_model_identifier'), 'message_model', ['identifier'], unique=True)
     op.create_table('user',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('username', sa.String(length=50), nullable=False),
@@ -50,6 +50,15 @@ def upgrade():
     sa.UniqueConstraint('uid'),
     sa.UniqueConstraint('username')
     )
+    op.create_table('message_correlation_property',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('message_model_id', sa.Integer(), nullable=False),
+    sa.Column('identifier', sa.String(length=50), nullable=True),
+    sa.ForeignKeyConstraint(['message_model_id'], ['message_model.id'], ),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('message_model_id', 'identifier', name='message_model_id_identifier_unique')
+    )
+    op.create_index(op.f('ix_message_correlation_property_identifier'), 'message_correlation_property', ['identifier'], unique=True)
     op.create_table('principal',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=True),
@@ -143,9 +152,11 @@ def upgrade():
     op.create_table('queued_send_message',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('process_instance_id', sa.Integer(), nullable=False),
+    sa.Column('message_model_id', sa.Integer(), nullable=False),
     sa.Column('bpmn_element_id', sa.String(length=50), nullable=False),
     sa.Column('message_type', sa.String(length=20), nullable=False),
-    sa.Column('message_model_id', sa.Integer(), nullable=False),
+    sa.Column('status', sa.String(length=20), nullable=False),
+    sa.Column('failure_cause', sa.String(length=255), nullable=True),
     sa.ForeignKeyConstraint(['message_model_id'], ['message_model.id'], ),
     sa.ForeignKeyConstraint(['process_instance_id'], ['process_instance.id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -220,8 +231,10 @@ def downgrade():
     op.drop_index(op.f('ix_process_instance_process_group_identifier'), table_name='process_instance')
     op.drop_table('process_instance')
     op.drop_table('principal')
+    op.drop_index(op.f('ix_message_correlation_property_identifier'), table_name='message_correlation_property')
+    op.drop_table('message_correlation_property')
     op.drop_table('user')
-    op.drop_index(op.f('ix_message_model_name'), table_name='message_model')
+    op.drop_index(op.f('ix_message_model_identifier'), table_name='message_model')
     op.drop_table('message_model')
     op.drop_table('group')
     op.drop_table('admin_session')

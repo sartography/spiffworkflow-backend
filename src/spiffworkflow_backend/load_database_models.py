@@ -10,6 +10,9 @@ from spiffworkflow_backend.models.file import FileModel  # noqa: F401
 from spiffworkflow_backend.models.message_correlation import (
     MessageCorrelationModel,
 )  # noqa: F401
+from spiffworkflow_backend.models.message_correlation_property import (
+    MessageCorrelationPropertyModel,
+)  # noqa: F401
 from spiffworkflow_backend.models.message_instance import (
     MessageInstanceModel,
 )  # noqa: F401

@@ -9,4 +9,7 @@ class MessageModel(SpiffworkflowBaseDBModel):
     __tablename__ = "message_model"
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), unique=True, index=True)
+    identifier = db.Column(db.String(50), unique=True, index=True)
+
+    # identifier should be good enough for us
+    # name = db.Column(db.String(50), unique=True, index=True)

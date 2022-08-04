@@ -14,6 +14,9 @@ from SpiffWorkflow.bpmn.parser.ValidationException import ValidationException  #
 
 from spiffworkflow_backend.models.file import File
 from spiffworkflow_backend.models.file import FileType
+from spiffworkflow_backend.models.message_correlation_property import (
+    MessageCorrelationPropertyModel,
+)
 from spiffworkflow_backend.models.message_model import MessageModel
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.services.file_system_service import FileSystemService
@@ -223,12 +226,60 @@ class SpecFileService(FileSystemService):
         """Check_for_message_models."""
         for child in et_root:
             if child.tag == "message":
-                message_name = child.attrib.get("name")
-                if message_name is None:
-                    raise ValidationException("Message name is missing from bpmn xml")
+                message_identifier = child.attrib.get("id")
+                if message_identifier is None:
+                    raise ValidationException(
+                        "Message identifier is missing from bpmn xml"
+                    )
 
-                message_model = MessageModel.query.filter_by(name=message_name)
+                message_model = MessageModel.query.filter_by(
+                    name=message_identifier
+                ).first()
                 if message_model is None:
-                    message_model = MessageModel(name=message_name)
+                    message_model = MessageModel(identifier=message_identifier)
                     db.session.add(message_model)
                     db.session.commit()
+            if child.tag == "correlationProperty":
+                correlation_identifier = child.attrib.get("id")
+                if correlation_identifier is None:
+                    raise ValidationException(
+                        "Correlation identifier is missing from bpmn xml"
+                    )
+
+                correlation_property_retrieval_expressions = child.xpath(
+                    "/correlationPropertyRetrievalExpression",
+                    namespaces={"bpmn": "http://www.omg.org/spec/BPMN/20100524/MODEL"},
+                )
+                if not correlation_property_retrieval_expressions:
+                    raise ValidationException(
+                        "Correlation is missing correlation property retrieval expressions: {correlation_identifier}"
+                    )
+
+                for cpre in correlation_property_retrieval_expressions:
+                    message_identifier = cpre.attrib.get("messageRef")
+                    if message_identifier is None:
+                        raise ValidationException(
+                            f"Message identifier is missing from correlation property: {correlation_identifier}"
+                        )
+                    message_model = MessageModel.query.filter_by(
+                        name=message_identifier
+                    ).first()
+                    if message_model is None:
+                        raise ValidationException(
+                            f"Could not find message model with identifier '{message_identifier}'"
+                            f"specified by correlation: {correlation_identifier}"
+                        )
+
+                    message_correlation_property = (
+                        MessageCorrelationPropertyModel.query.filter_by(
+                            identifier=correlation_identifier,
+                            message_model_id=message_model.id,
+                        ).first()
+                    )
+                    if message_correlation_property is None:
+                        message_correlation_property = MessageCorrelationPropertyModel(
+                            identifier=correlation_identifier,
+                            message_model_id=message_model.id,
+                        )
+                        db.session.add(message_correlation_property)
+                        db.session.commit()

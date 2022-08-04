@@ -36,6 +36,9 @@ from spiffworkflow_backend.models.active_task import ActiveTaskModel
 from spiffworkflow_backend.models.file import File
 from spiffworkflow_backend.models.file import FileType
 from spiffworkflow_backend.models.message_correlation import MessageCorrelationModel
+from spiffworkflow_backend.models.message_correlation_property import (
+    MessageCorrelationPropertyModel,
+)
 from spiffworkflow_backend.models.message_instance import MessageInstanceModel
 from spiffworkflow_backend.models.message_instance import MessageModel
 from spiffworkflow_backend.models.principal import PrincipalModel
@@ -467,7 +470,7 @@ class ProcessInstanceProcessor:
                 # will it be in the bpmn_event?
                 message_model = MessageModel.query.filter_by(
                     name=bpmn_event.message_name
-                )
+                ).first()
 
                 if message_model is None:
                     raise ApiError(
@@ -492,6 +495,19 @@ class ProcessInstanceProcessor:
                         "message_correlations_missing",
                         f"Could not find any message correlations bpmn_event: {bpmn_event}",
                     )
+
+                for message_correlation in bpmn_event.message_correlations:
+                    message_correlation_property = (
+                        MessageCorrelationPropertyModel.query.filter_by(
+                            message_model_id=message_model.id,
+                            identifier=message_correlation.identifier,
+                        ).first()
+                    )
+                    if message_correlation_property is None:
+                        raise ApiError(
+                            "message_correlations_missing_from_process",
+                            f"Could not find a known message correlation with identifier: {message_correlation.identifier}",
+                        )
 
                 message_instance = MessageInstanceModel(
                     process_instance_id=self.process_instance_model.id,
