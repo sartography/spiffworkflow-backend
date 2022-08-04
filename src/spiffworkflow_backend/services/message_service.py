@@ -43,19 +43,47 @@ class MessageService:
     def process_queued_messages(self) -> None:
         """Process_queued_messages."""
         queued_messages_send = MessageInstanceModel.query.filter_by(
-            message_type="send"
+            message_type="send", status="ready"
         ).all()
         queued_messages_receive = MessageInstanceModel.query.filter_by(
             message_type="receive"
         ).all()
         for queued_message_send in queued_messages_send:
-            queued_message_receive = self.get_queued_message_receive(
-                queued_message_send, queued_messages_receive
-            )
-            if queued_message_receive:
-                self.process_message_receive(
-                    queued_message_send, queued_message_receive
+            # check again in case another background process picked up the message
+            # while the previous one was running
+            if queued_message_send.status != "receive":
+                continue
+
+            queued_message_send.status = "running"
+            db.session.add(queued_message_send)
+            db.session.commit()
+
+            queued_message_receive = None
+            try:
+                queued_message_receive = self.get_queued_message_receive(
+                    queued_message_send, queued_messages_receive
                 )
+                if queued_message_receive:
+                    self.process_message_receive(
+                        queued_message_send, queued_message_receive
+                    )
+                    queued_message_receive.status = "completed"
+                    db.session.add(queued_message_receive)
+
+                queued_message_send.status = "completed"
+                db.session.add(queued_message_send)
+                db.session.commit()
+            except Exception as exception:
+                queued_message_send.status = "failed"
+                queued_message_send.failure_cause = str(exception)
+                db.session.add(queued_message_send)
+
+                if queued_message_receive:
+                    queued_message_receive.status = "failed"
+                    queued_message_receive.failure_cause = str(exception)
+                    db.session.add(queued_message_receive)
+
+                db.session.commit()
 
     def process_message_receive(
         self,
