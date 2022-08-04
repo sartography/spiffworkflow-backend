@@ -35,7 +35,9 @@ class TestMessageInstance(BaseTest):
         assert queued_message.status == "ready"
         assert queued_message.failure_cause is None
 
-        queued_message_from_query = MessageInstanceModel.query.filter_by(id=queued_message.id).first()
+        queued_message_from_query = MessageInstanceModel.query.filter_by(
+            id=queued_message.id
+        ).first()
         assert queued_message_from_query is not None
 
     def test_cannot_set_invalid_status(
@@ -57,7 +59,9 @@ class TestMessageInstance(BaseTest):
                 message_model_id=message_model.id,
                 status="BAD_STATUS",
             )
-        assert str(exception.value) == 'MessageInstanceModel: invalid status: BAD_STATUS'
+        assert (
+            str(exception.value) == "MessageInstanceModel: invalid status: BAD_STATUS"
+        )
 
         queued_message = MessageInstanceModel(
             process_instance_id=process_instance.id,
@@ -70,7 +74,9 @@ class TestMessageInstance(BaseTest):
 
         with pytest.raises(ValueError) as exception:
             queued_message.status = "BAD_STATUS"
-        assert str(exception.value) == 'MessageInstanceModel: invalid status: BAD_STATUS'
+        assert (
+            str(exception.value) == "MessageInstanceModel: invalid status: BAD_STATUS"
+        )
 
     def test_cannot_set_invalid_message_type(
         self, app: Flask, with_db_and_bpmn_file_cleanup: None
@@ -90,7 +96,10 @@ class TestMessageInstance(BaseTest):
                 message_type="BAD_MESSAGE_TYPE",
                 message_model_id=message_model.id,
             )
-        assert str(exception.value) == 'MessageInstanceModel: invalid message_type: BAD_MESSAGE_TYPE'
+        assert (
+            str(exception.value)
+            == "MessageInstanceModel: invalid message_type: BAD_MESSAGE_TYPE"
+        )
 
         queued_message = MessageInstanceModel(
             process_instance_id=process_instance.id,
@@ -103,7 +112,10 @@ class TestMessageInstance(BaseTest):
 
         with pytest.raises(ValueError) as exception:
             queued_message.message_type = "BAD_MESSAGE_TYPE"
-        assert str(exception.value) == 'MessageInstanceModel: invalid message_type: BAD_MESSAGE_TYPE'
+        assert (
+            str(exception.value)
+            == "MessageInstanceModel: invalid message_type: BAD_MESSAGE_TYPE"
+        )
 
     def test_force_failure_cause_if_status_is_failure(
         self, app: Flask, with_db_and_bpmn_file_cleanup: None
@@ -126,7 +138,10 @@ class TestMessageInstance(BaseTest):
         db.session.add(queued_message)
         with pytest.raises(ValueError) as exception:
             db.session.commit()
-        assert str(exception.value) == 'MessageInstanceModel: failure_cause must be set if status is failed'
+        assert (
+            str(exception.value)
+            == "MessageInstanceModel: failure_cause must be set if status is failed"
+        )
         assert queued_message.id is None
         db.session.remove()
 

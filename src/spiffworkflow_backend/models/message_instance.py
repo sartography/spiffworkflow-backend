@@ -53,10 +53,12 @@ class MessageInstanceModel(SpiffworkflowBaseDBModel):
         try:
             m_type = getattr(enum_variable, value, None)
         except Exception as e:
-            raise ValueError(f"{__class__.__name__}: invalid {key}: {value}") from e
+            raise ValueError(
+                f"{self.__class__.__name__}: invalid {key}: {value}"
+            ) from e
 
         if m_type is None:
-            raise ValueError(f"{__class__.__name__}: invalid {key}: {value}")
+            raise ValueError(f"{self.__class__.__name__}: invalid {key}: {value}")
 
         return m_type.value
 
@@ -76,7 +78,7 @@ class MessageInstanceModel(SpiffworkflowBaseDBModel):
 #
 # https://stackoverflow.com/questions/32555829/flask-validates-decorator-multiple-fields-simultaneously/33025472#33025472
 # https://docs.sqlalchemy.org/en/14/orm/session_events.html#before-flush
-@event.listens_for(Session, "before_flush")
+@event.listens_for(Session, "before_flush")  # type: ignore
 def validate_and_modify_relationships(
     session: Any, _flush_context: Optional[Any], _instances: Optional[Any]
 ) -> None:
