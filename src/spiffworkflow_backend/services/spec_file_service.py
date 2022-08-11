@@ -2,6 +2,7 @@
 import os
 import shutil
 from datetime import datetime
+from SpiffWorkflow.bpmn.parser.ValidationException import ValidationException  # type: ignore
 from typing import List
 from typing import Optional
 
@@ -10,7 +11,6 @@ from flask_bpmn.models.db import db
 from lxml import etree  # type: ignore
 from lxml.etree import _Element  # type: ignore
 from lxml.etree import Element as EtreeElement
-from SpiffWorkflow.bpmn.parser.ValidationException import ValidationException  # type: ignore
 
 from spiffworkflow_backend.models.file import File
 from spiffworkflow_backend.models.file import FileType
@@ -225,7 +225,7 @@ class SpecFileService(FileSystemService):
     def check_for_message_models(et_root: _Element) -> None:
         """Check_for_message_models."""
         for child in et_root:
-            if child.tag == "message":
+            if child.tag.endswith("message"):
                 message_identifier = child.attrib.get("id")
                 if message_identifier is None:
                     raise ValidationException(
@@ -233,21 +233,22 @@ class SpecFileService(FileSystemService):
                     )
 
                 message_model = MessageModel.query.filter_by(
-                    name=message_identifier
+                    identifier=message_identifier
                 ).first()
                 if message_model is None:
                     message_model = MessageModel(identifier=message_identifier)
                     db.session.add(message_model)
                     db.session.commit()
-            if child.tag == "correlationProperty":
+
+        for child in et_root:
+            if child.tag.endswith("correlationProperty"):
                 correlation_identifier = child.attrib.get("id")
                 if correlation_identifier is None:
                     raise ValidationException(
                         "Correlation identifier is missing from bpmn xml"
                     )
-
                 correlation_property_retrieval_expressions = child.xpath(
-                    "/correlationPropertyRetrievalExpression",
+                    "//bpmn:correlationPropertyRetrievalExpression",
                     namespaces={"bpmn": "http://www.omg.org/spec/BPMN/20100524/MODEL"},
                 )
                 if not correlation_property_retrieval_expressions:
@@ -262,7 +263,7 @@ class SpecFileService(FileSystemService):
                             f"Message identifier is missing from correlation property: {correlation_identifier}"
                         )
                     message_model = MessageModel.query.filter_by(
-                        name=message_identifier
+                        identifier=message_identifier
                     ).first()
                     if message_model is None:
                         raise ValidationException(

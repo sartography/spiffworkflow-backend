@@ -1,8 +1,8 @@
 """Test Permissions."""
+from tests.spiffworkflow_backend.helpers.base_test import BaseTest
 from typing import Optional
 
 from flask.app import Flask
-from tests.spiffworkflow_backend.helpers.base_test import BaseTest
 
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 from spiffworkflow_backend.models.process_instance_report import (

@@ -1,16 +1,6 @@
 """Process_instance_processor."""
 import json
 import time
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Union
-
-from flask import current_app
-from flask_bpmn.api.api_error import ApiError
-from flask_bpmn.models.db import db
-from lxml import etree  # type: ignore
 from SpiffWorkflow import Task as SpiffTask  # type: ignore
 from SpiffWorkflow import TaskState
 from SpiffWorkflow import WorkflowException
@@ -29,8 +19,30 @@ from SpiffWorkflow.dmn.serializer import BusinessRuleTaskConverter  # type: igno
 from SpiffWorkflow.serializer.exceptions import MissingSpecError  # type: ignore
 from SpiffWorkflow.specs import WorkflowSpec  # type: ignore
 from SpiffWorkflow.spiff.parser.process import SpiffBpmnParser  # type: ignore
-from SpiffWorkflow.spiff.serializer import UserTaskConverter  # type: ignore
+from SpiffWorkflow.spiff.serializer import BoundaryEventConverter
+from SpiffWorkflow.spiff.serializer import CallActivityTaskConverter
+from SpiffWorkflow.spiff.serializer import EndEventConverter
+from SpiffWorkflow.spiff.serializer import IntermediateCatchEventConverter
+from SpiffWorkflow.spiff.serializer import IntermediateThrowEventConverter
+from SpiffWorkflow.spiff.serializer import ManualTaskConverter
+from SpiffWorkflow.spiff.serializer import NoneTaskConverter
+from SpiffWorkflow.spiff.serializer import ReceiveTaskConverter
+from SpiffWorkflow.spiff.serializer import SendTaskConverter
+from SpiffWorkflow.spiff.serializer import StartEventConverter
+from SpiffWorkflow.spiff.serializer import SubWorkflowTaskConverter
+from SpiffWorkflow.spiff.serializer import TransactionSubprocessConverter
+from SpiffWorkflow.spiff.serializer import UserTaskConverter
 from SpiffWorkflow.util.deep_merge import DeepMerge  # type: ignore
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Union
+
+from flask import current_app
+from flask_bpmn.api.api_error import ApiError
+from flask_bpmn.models.db import db
+from lxml import etree  # type: ignore
 
 from spiffworkflow_backend.models.active_task import ActiveTaskModel
 from spiffworkflow_backend.models.file import File
@@ -108,7 +120,22 @@ class ProcessInstanceProcessor:
     _script_engine = CustomBpmnScriptEngine()
     SERIALIZER_VERSION = "1.0-CRC"
     wf_spec_converter = BpmnWorkflowSerializer.configure_workflow_spec_converter(
-        [UserTaskConverter, BusinessRuleTaskConverter]
+        [
+            BoundaryEventConverter,
+            BusinessRuleTaskConverter,
+            CallActivityTaskConverter,
+            EndEventConverter,
+            IntermediateCatchEventConverter,
+            IntermediateThrowEventConverter,
+            ManualTaskConverter,
+            NoneTaskConverter,
+            ReceiveTaskConverter,
+            SendTaskConverter,
+            StartEventConverter,
+            SubWorkflowTaskConverter,
+            TransactionSubprocessConverter,
+            UserTaskConverter,
+        ]
     )
     _serializer = BpmnWorkflowSerializer(wf_spec_converter, version=SERIALIZER_VERSION)
     _old_serializer = BpmnSerializer()

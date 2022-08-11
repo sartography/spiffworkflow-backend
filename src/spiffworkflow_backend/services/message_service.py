@@ -1,9 +1,9 @@
 """Message_service."""
+from SpiffWorkflow.bpmn.specs.events.event_definitions import MessageEventDefinition  # type: ignore
 from typing import Optional
 
 import flask
 from flask_bpmn.models.db import db
-from SpiffWorkflow.bpmn.specs.events.event_definitions import MessageEventDefinition  # type: ignore
 from sqlalchemy import and_
 from sqlalchemy import or_
 from sqlalchemy import select

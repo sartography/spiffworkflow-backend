@@ -1,6 +1,8 @@
 """APIs for dealing with process groups, process models, and process instances."""
 import json
 import uuid
+from SpiffWorkflow import Task as SpiffTask  # type: ignore
+from SpiffWorkflow import TaskState
 from typing import Any
 from typing import Dict
 from typing import Optional
@@ -16,8 +18,6 @@ from flask import request
 from flask.wrappers import Response
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
-from SpiffWorkflow import Task as SpiffTask  # type: ignore
-from SpiffWorkflow import TaskState
 from sqlalchemy import desc
 
 from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
