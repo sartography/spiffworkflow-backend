@@ -70,7 +70,6 @@ class BaseTest:
             updated_at_in_seconds=round(time.time()),
             start_in_seconds=current_time - (3600 * 1),
             end_in_seconds=current_time - (3600 * 1 - 20),
-            bpmn_json=json.dumps({"ikey": "ivalue"}),
         )
         db.session.add(process_instance)
         db.session.commit()

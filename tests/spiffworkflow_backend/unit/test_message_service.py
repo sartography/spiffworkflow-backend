@@ -1,4 +1,5 @@
 """Test_message_service."""
+from spiffworkflow_backend.services.message_service import MessageService
 from tests.spiffworkflow_backend.helpers.base_test import BaseTest
 from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
 
@@ -77,4 +78,6 @@ class TestMessageService(BaseTest):
         db.session.add(message_correlation_two_receive)
         db.session.commit()
 
-        # MessageService().process_queued_messages()
+        MessageService().process_queued_messages()
+        print(queued_message_send.failure_cause)
+        print(queued_message_send.status)

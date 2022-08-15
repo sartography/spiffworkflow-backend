@@ -51,7 +51,7 @@ class MessageService:
         for queued_message_send in queued_messages_send:
             # check again in case another background process picked up the message
             # while the previous one was running
-            if queued_message_send.status != "receive":
+            if queued_message_send.status != "ready":
                 continue
 
             queued_message_send.status = "running"
@@ -84,6 +84,7 @@ class MessageService:
                     db.session.add(queued_message_receive)
 
                 db.session.commit()
+                raise exception
 
     def process_message_receive(
         self,
@@ -101,17 +102,18 @@ class MessageService:
             )
 
         processor_send = ProcessInstanceProcessor(process_instance_send)
-        spiff_task_send = processor_send.bpmn_process_instance.get_task_by_id(
+        spiff_task_send = processor_send.get_task_by_id(
             queued_message_send.bpmn_element_id
         )
+        print(f"queued_message_send.bpmn_element_id: {queued_message_send.bpmn_element_id}")
         if spiff_task_send is None:
             raise MessageServiceError(
                 "Processor failed to obtain task.",
             )
 
-        message_event_send = MessageEventDefinition(
-            spiff_task_send.id, payload=spiff_task_send.payload
-        )
+        # message_event_send = MessageEventDefinition(
+        #     spiff_task_send.id, payload=spiff_task_send.payload
+        # )
 
         process_instance_receive = ProcessInstanceModel.query.filter_by(
             id=queued_message_receive.process_instance_id
@@ -125,7 +127,8 @@ class MessageService:
             )
 
         processor_receive = ProcessInstanceProcessor(process_instance_receive)
-        processor_receive.bpmn_process_instance.catch(message_event_send)
+        import pdb; pdb.set_trace()
+        processor_receive.bpmn_process_instance.catch_bpmn_message(spiff_task_send.id, spiff_task_send.payload)
 
     def get_queued_message_receive(
         self,

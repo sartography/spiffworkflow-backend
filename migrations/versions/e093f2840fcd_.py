@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 6ea93d3b0d76
+Revision ID: e093f2840fcd
 Revises: 
-Create Date: 2022-08-10 13:12:22.289229
+Create Date: 2022-08-11 15:42:44.848283
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '6ea93d3b0d76'
+revision = 'e093f2840fcd'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -149,7 +149,7 @@ def upgrade():
     sa.ForeignKeyConstraint(['user_uid'], ['user.uid'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_table('queued_send_message',
+    op.create_table('message_instance',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('process_instance_id', sa.Integer(), nullable=False),
     sa.Column('message_model_id', sa.Integer(), nullable=False),
@@ -201,7 +201,7 @@ def upgrade():
     sa.Column('message_instance_id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=50), nullable=False),
     sa.Column('value', sa.String(length=50), nullable=False),
-    sa.ForeignKeyConstraint(['message_instance_id'], ['queued_send_message.id'], ),
+    sa.ForeignKeyConstraint(['message_instance_id'], ['message_instance.id'], ),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('message_instance_id', 'name', name='message_instance_id_name_unique')
     )
@@ -219,7 +219,7 @@ def downgrade():
     op.drop_table('message_correlation')
     op.drop_table('data_store')
     op.drop_table('task_event')
-    op.drop_table('queued_send_message')
+    op.drop_table('message_instance')
     op.drop_table('file')
     op.drop_table('active_task')
     op.drop_table('user_group_assignment')

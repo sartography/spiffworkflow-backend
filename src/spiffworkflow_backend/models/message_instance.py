@@ -35,7 +35,7 @@ class MessageStatuses(enum.Enum):
 class MessageInstanceModel(SpiffworkflowBaseDBModel):
     """Messages from a process instance that are ready to send to a receiving task."""
 
-    __tablename__ = "queued_send_message"
+    __tablename__ = "message_instance"
 
     id = db.Column(db.Integer, primary_key=True)
     process_instance_id = db.Column(ForeignKey(ProcessInstanceModel.id), nullable=False)  # type: ignore

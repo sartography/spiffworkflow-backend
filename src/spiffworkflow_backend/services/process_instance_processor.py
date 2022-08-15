@@ -78,22 +78,22 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
         """Evaluate."""
         return self._evaluate(expression, task.data, task)
 
-    def _evaluate(
-        self,
-        expression: str,
-        context: Dict[str, Union[Box, str]],
-        task: Optional[SpiffTask] = None,
-        _external_methods: None = None,
-    ) -> Any:
-        """Evaluate the given expression, within the context of the given task and return the result."""
-        try:
-            return super()._evaluate(expression, context, task, {})
-        except Exception as exception:
-            raise WorkflowTaskExecException(
-                task,
-                "Error evaluating expression "
-                "'%s', %s" % (expression, str(exception)),
-            ) from exception
+    # def _evaluate(
+    #     self,
+    #     expression: str,
+    #     context: Dict[str, Union[Box, str]],
+    #     task: Optional[SpiffTask] = None,
+    #     _external_methods: None = None,
+    # ) -> Any:
+    #     """Evaluate the given expression, within the context of the given task and return the result."""
+    #     try:
+    #         return super()._evaluate(expression, context, task, {})
+    #     except Exception as exception:
+    #         raise WorkflowTaskExecException(
+    #             task,
+    #             "Error evaluating expression "
+    #             "'%s', %s" % (expression, str(exception)),
+    #         ) from exception
 
     def execute(
         self, task: SpiffTask, script: str, data: Dict[str, Dict[str, str]]
@@ -487,73 +487,73 @@ class ProcessInstanceProcessor:
         """Get_status."""
         return self.status_of(self.bpmn_process_instance)
 
-    def process_bpmn_events(self) -> None:
-        """Process_bpmn_events."""
-        if self.bpmn_process_instance.bpmn_events:
-            for bpmn_event in self.bpmn_process_instance.bpmn_events:
-                message_type = None
+    def process_bpmn_messages(self) -> None:
+        """Process_bpmn_messages."""
+        for bpmn_message in self.bpmn_process_instance.get_bpmn_messages():
+            print("WE PROCESS")
+            message_type = None
 
-                # TODO: message: who knows the name of the message model?
-                # will it be in the bpmn_event?
-                message_model = MessageModel.query.filter_by(
-                    name=bpmn_event.message_name
-                ).first()
+            # TODO: message: who knows the name of the message model?
+            # will it be in the bpmn_message?
+            message_model = MessageModel.query.filter_by(
+                name=bpmn_message.message_name
+            ).first()
 
-                if message_model is None:
-                    raise ApiError(
-                        "invalid_message_name",
-                        f"Invalid message name: {bpmn_event.message_name}.",
-                    )
-
-                # TODO: message - not sure how to determine message types yet
-                if bpmn_event.event == "WaitEvent":  # and waiting for message:
-                    message_type = "receive"
-                elif bpmn_event.event == "SendEvent":
-                    message_type = "send"
-
-                if message_type is None:
-                    raise ApiError(
-                        "invalid_event_type",
-                        f"Invalid event type for a message: {bpmn_event.event}.",
-                    )
-
-                if not bpmn_event.message_correlations:
-                    raise ApiError(
-                        "message_correlations_missing",
-                        f"Could not find any message correlations bpmn_event: {bpmn_event}",
-                    )
-
-                for message_correlation in bpmn_event.message_correlations:
-                    message_correlation_property = (
-                        MessageCorrelationPropertyModel.query.filter_by(
-                            message_model_id=message_model.id,
-                            identifier=message_correlation.identifier,
-                        ).first()
-                    )
-                    if message_correlation_property is None:
-                        raise ApiError(
-                            "message_correlations_missing_from_process",
-                            f"Could not find a known message correlation with identifier: {message_correlation.identifier}",
-                        )
-
-                message_instance = MessageInstanceModel(
-                    process_instance_id=self.process_instance_model.id,
-                    bpmn_element_id=bpmn_event.task_name,
-                    message_type=message_type,
-                    message_model_id=message_model.id,
+            if message_model is None:
+                raise ApiError(
+                    "invalid_message_name",
+                    f"Invalid message name: {bpmn_message.message_name}.",
                 )
-                db.session.add(message_instance)
-                db.session.commit()
 
-                # TODO: find out what spiff will call the correlations
-                for message_correlation in bpmn_event.message_correlations:
-                    message_correlation = MessageCorrelationModel(
-                        message_instance_id=message_instance.id,
-                        name=message_correlation.name,
-                        value=message_correlation.value,
+            # TODO: message - not sure how to determine message types yet
+            if bpmn_message.event == "WaitEvent":  # and waiting for message:
+                message_type = "receive"
+            elif bpmn_message.event == "SendEvent":
+                message_type = "send"
+
+            if message_type is None:
+                raise ApiError(
+                    "invalid_event_type",
+                    f"Invalid event type for a message: {bpmn_message.event}.",
+                )
+
+            if not bpmn_message.message_correlations:
+                raise ApiError(
+                    "message_correlations_missing",
+                    f"Could not find any message correlations bpmn_message: {bpmn_message}",
+                )
+
+            for message_correlation in bpmn_message.message_correlations:
+                message_correlation_property = (
+                    MessageCorrelationPropertyModel.query.filter_by(
+                        message_model_id=message_model.id,
+                        identifier=message_correlation.identifier,
+                    ).first()
+                )
+                if message_correlation_property is None:
+                    raise ApiError(
+                        "message_correlations_missing_from_process",
+                        f"Could not find a known message correlation with identifier: {message_correlation.identifier}",
                     )
-                    db.session.add(message_correlation)
-                db.session.commit()
+
+            message_instance = MessageInstanceModel(
+                process_instance_id=self.process_instance_model.id,
+                bpmn_element_id=bpmn_message.task_name,
+                message_type=message_type,
+                message_model_id=message_model.id,
+            )
+            db.session.add(message_instance)
+            db.session.commit()
+
+            # TODO: find out what spiff will call the correlations
+            for message_correlation in bpmn_message.message_correlations:
+                message_correlation = MessageCorrelationModel(
+                    message_instance_id=message_instance.id,
+                    name=message_correlation.name,
+                    value=message_correlation.value,
+                )
+                db.session.add(message_correlation)
+            db.session.commit()
 
     def do_engine_steps(self, exit_at: None = None) -> None:
         """Do_engine_steps."""
@@ -561,7 +561,7 @@ class ProcessInstanceProcessor:
             self.bpmn_process_instance.refresh_waiting_tasks()
             self.bpmn_process_instance.do_engine_steps(exit_at=exit_at)
             # TODO: run this
-            # self.process_bpmn_events()
+            self.process_bpmn_messages()
 
         except WorkflowTaskExecException as we:
             raise ApiError.from_workflow_exception("task_error", str(we), we) from we
@@ -725,7 +725,10 @@ class ProcessInstanceProcessor:
     def get_task_by_id(self, task_id: str) -> SpiffTask:
         """Get_task_by_id."""
         all_tasks = self.bpmn_process_instance.get_tasks(TaskState.ANY_MASK)
-        return [t for t in all_tasks if t.id == task_id]
+        for task in all_tasks:
+            if task.id == task_id:
+                return task
+        return None
 
     def get_nav_item(self, task: SpiffTask) -> Any:
         """Get_nav_item."""
