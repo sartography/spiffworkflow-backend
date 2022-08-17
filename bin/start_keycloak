@@ -31,7 +31,14 @@ sleep 10
 docker exec keycloak /opt/keycloak/bin/kc.sh import --file /tmp/finance-realm.json || echo ''
 docker exec keycloak /opt/keycloak/bin/kc.sh import --file /tmp/spiffworkflow-realm.json || echo ''
 docker exec keycloak /opt/keycloak/bin/kc.sh import --file /tmp/quarkus-realm.json || echo ''
-echo 'ran import finance realm'
+
+echo 'imported realms'
+
+if [ "${TURN_OFF_SSL:-}" == "true" ]; then
+  docker exec -it keycloak /opt/keycloak/bin/kcadm.sh config credentials --server http://localhost:8080 --realm master --user admin
+  docker exec -it keycloak /opt/keycloak/bin/kcadm.sh update realms/master -s sslRequired=NONE
+  echo 'turned off SSL requirement'
+fi
 
 docker stop keycloak
 docker start keycloak
