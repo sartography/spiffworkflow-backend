@@ -944,7 +944,10 @@
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "secret": "JXeQExm0JhQPLumgHtIIqf52bDalHz0q",
-      "redirectUris": ["http://localhost:7000/*"],
+      "redirectUris": [
+        "http://localhost:7000/*",
+        "http://167.172.242.138:7000/*"
+      ],
       "webOrigins": [],
       "notBefore": 0,
       "bearerOnly": false,
@@ -1210,7 +1213,10 @@
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
-      "redirectUris": ["http://localhost:7001/*"],
+      "redirectUris": [
+        "http://localhost:7001/*",
+        "http://167.172.242.138:7001/*"
+      ],
       "webOrigins": ["*"],
       "notBefore": 0,
       "bearerOnly": false,
@@ -1275,7 +1281,10 @@
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "secret": "6o8kIKQznQtejHOdRhWeKorBJclMGcgA",
-      "redirectUris": ["http://localhost:7001/*"],
+      "redirectUris": [
+        "http://localhost:7001/*",
+        "http://167.172.242.138:7001/*"
+      ],
       "webOrigins": [],
       "notBefore": 0,
       "bearerOnly": false,

@@ -44,11 +44,15 @@ class PublicAuthenticationService:
     Used during development to make testing easy.
     """
 
+    def get_backend_url(self) -> str:
+        """Get_backend_url."""
+        return str(current_app.config["SPIFFWORKFLOW_BACKEND_URL"])
+
     def logout(self, id_token: str, redirect_url: Optional[str] = None) -> Response:
         """Logout."""
         if redirect_url is None:
             redirect_url = "/"
-        return_redirect_url = "http://localhost:7000/v1.0/logout_return"
+        return_redirect_url = f"{self.get_backend_url()}/v1.0/logout_return"
         (
             open_id_server_url,
             open_id_client_id,
@@ -77,7 +81,7 @@ class PublicAuthenticationService:
             open_id_realm_name,
             open_id_client_secret_key,
         ) = get_open_id_args()
-        return_redirect_url = "http://localhost:7000/v1.0/login_return"
+        return_redirect_url = f"{self.get_backend_url()}/v1.0/login_return"
         login_redirect_url = (
             f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/auth?"
             + f"state={state}&"
@@ -104,11 +108,10 @@ class PublicAuthenticationService:
             "Content-Type": "application/x-www-form-urlencoded",
             "Authorization": f"Basic {backend_basic_auth.decode('utf-8')}",
         }
-
         data = {
             "grant_type": "authorization_code",
             "code": code,
-            "redirect_uri": "http://localhost:7000/v1.0/login_return",
+            "redirect_uri": f"{self.get_backend_url()}/v1.0/login_return",
         }
 
         request_url = f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/token"
