@@ -7,7 +7,7 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
-if ! grep -qE '\<spiffworkflow\>' <<<"$(docker network ls)" ; then
+if ! docker network inspect spiffworkflow > /dev/null 2>&1; then
   docker network create spiffworkflow
 fi
 docker rm keycloak 2>/dev/null || echo 'no keycloak container found'
