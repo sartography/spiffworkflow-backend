@@ -54,6 +54,7 @@ services:
       - FLASK_ENV=${FLASK_ENV:-development}
       - FLASK_DEBUG=0
       - FLASK_SESSION_SECRET_KEY=${FLASK_SESSION_SECRET_KEY:-super_secret_key}
+      - OPEN_ID_SERVER_URL=${OPEN_ID_SERVER_URL:-http://localhost:7002}
       - SPIFFWORKFLOW_BACKEND_PORT=7000
       - SPIFFWORKFLOW_BACKEND_UPGRADE_DB=true
       - SPIFFWORKFLOW_BACKEND_DATABASE_URI=mysql+mysqlconnector://root:${SPIFFWORKFLOW_BACKEND_MYSQL_ROOT_DATABASE:-my-secret-pw}@localhost:7003/${SPIFFWORKFLOW_BACKEND_DATABASE_NAME:-spiffworkflow_backend_development}
