@@ -487,43 +487,39 @@ class ProcessInstanceProcessor:
         """Get_status."""
         return self.status_of(self.bpmn_process_instance)
 
+    # messages have one correlation key (possibly wrong)
+    # correlation keys may have many correlation properties
     def process_bpmn_messages(self) -> None:
         """Process_bpmn_messages."""
-        for bpmn_message in self.bpmn_process_instance.get_bpmn_messages():
-            print("WE PROCESS")
+        bpmn_messages = self.bpmn_process_instance.get_bpmn_messages()
+        for bpmn_message in bpmn_messages:
             message_type = None
 
-            # TODO: message: who knows the name of the message model?
-            # will it be in the bpmn_message?
             message_model = MessageModel.query.filter_by(
-                name=bpmn_message.message_name
+                name=bpmn_message.name
             ).first()
 
             if message_model is None:
                 raise ApiError(
                     "invalid_message_name",
-                    f"Invalid message name: {bpmn_message.message_name}.",
+                    f"Invalid message name: {bpmn_message.name}.",
                 )
 
             # TODO: message - not sure how to determine message types yet
-            if bpmn_message.event == "WaitEvent":  # and waiting for message:
-                message_type = "receive"
-            elif bpmn_message.event == "SendEvent":
+            if bpmn_message.payload:
                 message_type = "send"
+            else:
+                message_type = "receive"
 
-            if message_type is None:
-                raise ApiError(
-                    "invalid_event_type",
-                    f"Invalid event type for a message: {bpmn_message.event}.",
-                )
-
-            if not bpmn_message.message_correlations:
+            if not bpmn_message.correlations:
                 raise ApiError(
                     "message_correlations_missing",
                     f"Could not find any message correlations bpmn_message: {bpmn_message}",
                 )
 
-            for message_correlation in bpmn_message.message_correlations:
+            # import pdb; pdb.set_trace()
+            for message_correlation in bpmn_message.correlations:
+                print(f"message_correlation: {message_correlation}")
                 message_correlation_property = (
                     MessageCorrelationPropertyModel.query.filter_by(
                         message_model_id=message_model.id,
@@ -545,8 +541,7 @@ class ProcessInstanceProcessor:
             db.session.add(message_instance)
             db.session.commit()
 
-            # TODO: find out what spiff will call the correlations
-            for message_correlation in bpmn_message.message_correlations:
+            for message_correlation in bpmn_message.correlations:
                 message_correlation = MessageCorrelationModel(
                     message_instance_id=message_instance.id,
                     name=message_correlation.name,
@@ -560,7 +555,6 @@ class ProcessInstanceProcessor:
         try:
             self.bpmn_process_instance.refresh_waiting_tasks()
             self.bpmn_process_instance.do_engine_steps(exit_at=exit_at)
-            # TODO: run this
             self.process_bpmn_messages()
 
         except WorkflowTaskExecException as we:

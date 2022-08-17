@@ -227,6 +227,7 @@ class SpecFileService(FileSystemService):
         for child in et_root:
             if child.tag.endswith("message"):
                 message_identifier = child.attrib.get("id")
+                message_name = child.attrib.get("name")
                 if message_identifier is None:
                     raise ValidationException(
                         "Message identifier is missing from bpmn xml"
@@ -236,7 +237,7 @@ class SpecFileService(FileSystemService):
                     identifier=message_identifier
                 ).first()
                 if message_model is None:
-                    message_model = MessageModel(identifier=message_identifier)
+                    message_model = MessageModel(identifier=message_identifier, name=message_name)
                     db.session.add(message_model)
                     db.session.commit()
 
