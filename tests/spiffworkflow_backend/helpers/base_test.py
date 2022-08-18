@@ -1,5 +1,4 @@
 """Base_test."""
-import json
 import time
 
 from flask.app import Flask

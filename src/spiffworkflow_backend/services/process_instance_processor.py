@@ -1,6 +1,15 @@
 """Process_instance_processor."""
 import json
 import time
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Union
+
+from flask import current_app
+from flask_bpmn.api.api_error import ApiError
+from flask_bpmn.models.db import db
+from lxml import etree  # type: ignore
 from SpiffWorkflow import Task as SpiffTask  # type: ignore
 from SpiffWorkflow import TaskState
 from SpiffWorkflow import WorkflowException
@@ -33,16 +42,6 @@ from SpiffWorkflow.spiff.serializer import SubWorkflowTaskConverter
 from SpiffWorkflow.spiff.serializer import TransactionSubprocessConverter
 from SpiffWorkflow.spiff.serializer import UserTaskConverter
 from SpiffWorkflow.util.deep_merge import DeepMerge  # type: ignore
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Union
-
-from flask import current_app
-from flask_bpmn.api.api_error import ApiError
-from flask_bpmn.models.db import db
-from lxml import etree  # type: ignore
 
 from spiffworkflow_backend.models.active_task import ActiveTaskModel
 from spiffworkflow_backend.models.file import File
@@ -492,12 +491,10 @@ class ProcessInstanceProcessor:
     def process_bpmn_messages(self) -> None:
         """Process_bpmn_messages."""
         bpmn_messages = self.bpmn_process_instance.get_bpmn_messages()
+        print(f"bpmn_messages: {bpmn_messages}")
         for bpmn_message in bpmn_messages:
             message_type = None
-
-            message_model = MessageModel.query.filter_by(
-                name=bpmn_message.name
-            ).first()
+            message_model = MessageModel.query.filter_by(name=bpmn_message.name).first()
 
             if message_model is None:
                 raise ApiError(
@@ -517,35 +514,50 @@ class ProcessInstanceProcessor:
                     f"Could not find any message correlations bpmn_message: {bpmn_message}",
                 )
 
-            # import pdb; pdb.set_trace()
-            for message_correlation in bpmn_message.correlations:
-                print(f"message_correlation: {message_correlation}")
-                message_correlation_property = (
-                    MessageCorrelationPropertyModel.query.filter_by(
-                        message_model_id=message_model.id,
-                        identifier=message_correlation.identifier,
-                    ).first()
-                )
-                if message_correlation_property is None:
-                    raise ApiError(
-                        "message_correlations_missing_from_process",
-                        f"Could not find a known message correlation with identifier: {message_correlation.identifier}",
+            message_correlations = []
+            for (
+                message_correlation_key,
+                message_correlation_properties,
+            ) in bpmn_message.correlations.items():
+                for (
+                    message_correlation_property_identifier,
+                    message_correlation_property_value,
+                ) in message_correlation_properties.items():
+                    message_correlation_property = (
+                        MessageCorrelationPropertyModel.query.filter_by(
+                            message_model_id=message_model.id,
+                            identifier=message_correlation_property_identifier,
+                        ).first()
+                    )
+                    if message_correlation_property is None:
+                        raise ApiError(
+                            "message_correlations_missing_from_process",
+                            f"Could not find a known message correlation with identifier: {message_correlation_property_identifier}",
+                        )
+                    message_correlations.append(
+                        {
+                            "message_correlation_property": message_correlation_property,
+                            "name": message_correlation_key,
+                            "value": message_correlation_property_value,
+                        }
                     )
 
             message_instance = MessageInstanceModel(
                 process_instance_id=self.process_instance_model.id,
-                bpmn_element_id=bpmn_message.task_name,
                 message_type=message_type,
                 message_model_id=message_model.id,
             )
             db.session.add(message_instance)
             db.session.commit()
 
-            for message_correlation in bpmn_message.correlations:
+            for message_correlation in message_correlations:
                 message_correlation = MessageCorrelationModel(
                     message_instance_id=message_instance.id,
-                    name=message_correlation.name,
-                    value=message_correlation.value,
+                    message_correlation_property_id=message_correlation[
+                        "message_correlation_property"
+                    ].id,
+                    name=message_correlation["name"],
+                    value=message_correlation["value"],
                 )
                 db.session.add(message_correlation)
             db.session.commit()
@@ -555,7 +567,9 @@ class ProcessInstanceProcessor:
         try:
             self.bpmn_process_instance.refresh_waiting_tasks()
             self.bpmn_process_instance.do_engine_steps(exit_at=exit_at)
-            self.process_bpmn_messages()
+            # self.process_bpmn_messages()
+            # import pdb; pdb.set_trace()
+            # self.check_if_waiting_message()
 
         except WorkflowTaskExecException as we:
             raise ApiError.from_workflow_exception("task_error", str(we), we) from we

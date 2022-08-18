@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 514c59f1c7b9
+Revision ID: 97b4f1538357
 Revises: 
-Create Date: 2022-08-15 14:40:55.231613
+Create Date: 2022-08-18 16:28:43.714319
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '514c59f1c7b9'
+revision = '97b4f1538357'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -56,11 +56,26 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('message_model_id', sa.Integer(), nullable=False),
     sa.Column('identifier', sa.String(length=50), nullable=True),
+    sa.Column('updated_at_in_seconds', sa.Integer(), nullable=True),
+    sa.Column('created_at_in_seconds', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['message_model_id'], ['message_model.id'], ),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('message_model_id', 'identifier', name='message_model_id_identifier_unique')
     )
     op.create_index(op.f('ix_message_correlation_property_identifier'), 'message_correlation_property', ['identifier'], unique=False)
+    op.create_table('message_triggerable_process_model',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('message_model_id', sa.Integer(), nullable=False),
+    sa.Column('process_model_identifier', sa.String(length=50), nullable=False),
+    sa.Column('process_group_identifier', sa.String(length=50), nullable=False),
+    sa.Column('updated_at_in_seconds', sa.Integer(), nullable=True),
+    sa.Column('created_at_in_seconds', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['message_model_id'], ['message_model.id'], ),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('message_model_id')
+    )
+    op.create_index(op.f('ix_message_triggerable_process_model_process_group_identifier'), 'message_triggerable_process_model', ['process_group_identifier'], unique=False)
+    op.create_index(op.f('ix_message_triggerable_process_model_process_model_identifier'), 'message_triggerable_process_model', ['process_model_identifier'], unique=False)
     op.create_table('principal',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=True),
@@ -155,10 +170,11 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('process_instance_id', sa.Integer(), nullable=False),
     sa.Column('message_model_id', sa.Integer(), nullable=False),
-    sa.Column('bpmn_element_id', sa.String(length=50), nullable=False),
     sa.Column('message_type', sa.String(length=20), nullable=False),
     sa.Column('status', sa.String(length=20), nullable=False),
     sa.Column('failure_cause', sa.String(length=255), nullable=True),
+    sa.Column('updated_at_in_seconds', sa.Integer(), nullable=True),
+    sa.Column('created_at_in_seconds', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['message_model_id'], ['message_model.id'], ),
     sa.ForeignKeyConstraint(['process_instance_id'], ['process_instance.id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -201,12 +217,17 @@ def upgrade():
     op.create_table('message_correlation',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('message_instance_id', sa.Integer(), nullable=False),
+    sa.Column('message_correlation_property_id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=50), nullable=False),
     sa.Column('value', sa.String(length=50), nullable=False),
+    sa.Column('updated_at_in_seconds', sa.Integer(), nullable=True),
+    sa.Column('created_at_in_seconds', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['message_correlation_property_id'], ['message_correlation_property.id'], ),
     sa.ForeignKeyConstraint(['message_instance_id'], ['message_instance.id'], ),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('message_instance_id', 'name', name='message_instance_id_name_unique')
+    sa.UniqueConstraint('message_instance_id', 'message_correlation_property_id', 'name', name='message_instance_id_name_unique')
     )
+    op.create_index(op.f('ix_message_correlation_message_correlation_property_id'), 'message_correlation', ['message_correlation_property_id'], unique=False)
     op.create_index(op.f('ix_message_correlation_message_instance_id'), 'message_correlation', ['message_instance_id'], unique=False)
     op.create_index(op.f('ix_message_correlation_name'), 'message_correlation', ['name'], unique=False)
     op.create_index(op.f('ix_message_correlation_value'), 'message_correlation', ['value'], unique=False)
@@ -218,6 +239,7 @@ def downgrade():
     op.drop_index(op.f('ix_message_correlation_value'), table_name='message_correlation')
     op.drop_index(op.f('ix_message_correlation_name'), table_name='message_correlation')
     op.drop_index(op.f('ix_message_correlation_message_instance_id'), table_name='message_correlation')
+    op.drop_index(op.f('ix_message_correlation_message_correlation_property_id'), table_name='message_correlation')
     op.drop_table('message_correlation')
     op.drop_table('data_store')
     op.drop_table('task_event')
@@ -233,6 +255,9 @@ def downgrade():
     op.drop_index(op.f('ix_process_instance_process_group_identifier'), table_name='process_instance')
     op.drop_table('process_instance')
     op.drop_table('principal')
+    op.drop_index(op.f('ix_message_triggerable_process_model_process_model_identifier'), table_name='message_triggerable_process_model')
+    op.drop_index(op.f('ix_message_triggerable_process_model_process_group_identifier'), table_name='message_triggerable_process_model')
+    op.drop_table('message_triggerable_process_model')
     op.drop_index(op.f('ix_message_correlation_property_identifier'), table_name='message_correlation_property')
     op.drop_table('message_correlation_property')
     op.drop_table('user')

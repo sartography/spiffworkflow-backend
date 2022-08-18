@@ -19,3 +19,5 @@ class MessageCorrelationPropertyModel(SpiffworkflowBaseDBModel):
     id = db.Column(db.Integer, primary_key=True)
     message_model_id = db.Column(ForeignKey(MessageModel.id), nullable=False)
     identifier = db.Column(db.String(50), index=True)
+    updated_at_in_seconds: int = db.Column(db.Integer)
+    created_at_in_seconds: int = db.Column(db.Integer)

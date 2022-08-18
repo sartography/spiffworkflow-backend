@@ -1,10 +1,9 @@
 """Test_message_instance."""
-from tests.spiffworkflow_backend.helpers.base_test import BaseTest
-from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
-
 import pytest
 from flask import Flask
 from flask_bpmn.models.db import db
+from tests.spiffworkflow_backend.helpers.base_test import BaseTest
+from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
 
 from spiffworkflow_backend.models.message_instance import MessageInstanceModel
 from spiffworkflow_backend.models.message_model import MessageModel
@@ -26,7 +25,7 @@ class TestMessageInstance(BaseTest):
 
         queued_message = MessageInstanceModel(
             process_instance_id=process_instance.id,
-            bpmn_element_id="something",
+            bpmn_element_identifier="something",
             message_type="send",
             message_model_id=message_model.id,
         )
@@ -55,7 +54,7 @@ class TestMessageInstance(BaseTest):
         with pytest.raises(ValueError) as exception:
             MessageInstanceModel(
                 process_instance_id=process_instance.id,
-                bpmn_element_id="something",
+                bpmn_element_identifier="something",
                 message_type="send",
                 message_model_id=message_model.id,
                 status="BAD_STATUS",
@@ -66,7 +65,7 @@ class TestMessageInstance(BaseTest):
 
         queued_message = MessageInstanceModel(
             process_instance_id=process_instance.id,
-            bpmn_element_id="something",
+            bpmn_element_identifier="something",
             message_type="send",
             message_model_id=message_model.id,
         )
@@ -93,7 +92,7 @@ class TestMessageInstance(BaseTest):
         with pytest.raises(ValueError) as exception:
             MessageInstanceModel(
                 process_instance_id=process_instance.id,
-                bpmn_element_id="something",
+                bpmn_element_identifier="something",
                 message_type="BAD_MESSAGE_TYPE",
                 message_model_id=message_model.id,
             )
@@ -104,7 +103,7 @@ class TestMessageInstance(BaseTest):
 
         queued_message = MessageInstanceModel(
             process_instance_id=process_instance.id,
-            bpmn_element_id="something",
+            bpmn_element_identifier="something",
             message_type="send",
             message_model_id=message_model.id,
         )
@@ -131,7 +130,7 @@ class TestMessageInstance(BaseTest):
 
         queued_message = MessageInstanceModel(
             process_instance_id=process_instance.id,
-            bpmn_element_id="something",
+            bpmn_element_identifier="something",
             message_type="send",
             message_model_id=message_model.id,
             status="failed",
@@ -148,7 +147,7 @@ class TestMessageInstance(BaseTest):
 
         queued_message = MessageInstanceModel(
             process_instance_id=process_instance.id,
-            bpmn_element_id="something",
+            bpmn_element_identifier="something",
             message_type="send",
             message_model_id=message_model.id,
         )

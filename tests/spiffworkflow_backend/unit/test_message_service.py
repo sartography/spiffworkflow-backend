@@ -1,14 +1,13 @@
 """Test_message_service."""
-from spiffworkflow_backend.services.message_service import MessageService
-from tests.spiffworkflow_backend.helpers.base_test import BaseTest
-from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
-
 from flask import Flask
 from flask_bpmn.models.db import db
+from tests.spiffworkflow_backend.helpers.base_test import BaseTest
+from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
 
 from spiffworkflow_backend.models.message_correlation import MessageCorrelationModel
 from spiffworkflow_backend.models.message_instance import MessageInstanceModel
 from spiffworkflow_backend.models.message_model import MessageModel
+from spiffworkflow_backend.services.message_service import MessageService
 
 
 class TestMessageService(BaseTest):
@@ -33,14 +32,14 @@ class TestMessageService(BaseTest):
 
         queued_message_send = MessageInstanceModel(
             process_instance_id=process_instance_send.id,
-            bpmn_element_id="something",
+            bpmn_element_identifier="something",
             message_type="send",
             message_model_id=message_model.id,
         )
 
         queued_message_receive = MessageInstanceModel(
             process_instance_id=process_instance_receive.id,
-            bpmn_element_id="something",
+            bpmn_element_identifier="something",
             message_type="receive",
             message_model_id=message_model.id,
         )

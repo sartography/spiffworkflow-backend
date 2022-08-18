@@ -34,7 +34,7 @@ def start_scheduler(app: flask.app.Flask) -> None:
     """Start_scheduler."""
     scheduler = BackgroundScheduler()
     scheduler.add_job(
-        MessageServiceWithAppContext(app).process_queued_messages_with_app_context,
+        MessageServiceWithAppContext(app).process_message_instances_with_app_context,
         "interval",
         minutes=1,
     )

@@ -41,10 +41,11 @@ class MessageInstanceModel(SpiffworkflowBaseDBModel):
     process_instance_id = db.Column(ForeignKey(ProcessInstanceModel.id), nullable=False)  # type: ignore
     message_model_id = db.Column(ForeignKey(MessageModel.id), nullable=False)
 
-    bpmn_element_id = db.Column(db.String(50), nullable=False)
     message_type = db.Column(db.String(20), nullable=False)
     status = db.Column(db.String(20), nullable=False, default="ready")
     failure_cause = db.Column(db.String(255))
+    updated_at_in_seconds: int = db.Column(db.Integer)
+    created_at_in_seconds: int = db.Column(db.Integer)
 
     def validate_enum_field(
         self, key: str, value: Any, enum_variable: enum.EnumMeta
