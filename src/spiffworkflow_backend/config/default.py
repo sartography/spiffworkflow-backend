@@ -13,6 +13,14 @@ CORS_ALLOW_ORIGINS = re.split(
     r",\s*", environ.get("CORS_ALLOW_ORIGINS", default=CORS_DEFAULT)
 )
 
+SPIFFWORKFLOW_FRONTEND_URL = environ.get(
+    "SPIFFWORKFLOW_FRONTEND_URL", default="http://localhost:7001"
+)
+
+SPIFFWORKFLOW_BACKEND_URL = environ.get(
+    "SPIFFWORKFLOW_BACKEND_URL", default="http://localhost:7000"
+)
+
 # Open ID server
 OPEN_ID_SERVER_URL = environ.get("OPEN_ID_SERVER_URL", default="http://localhost:7002")
 OPEN_ID_CLIENT_ID = environ.get("OPEN_ID_CLIENT_ID", default="spiffworkflow-backend")

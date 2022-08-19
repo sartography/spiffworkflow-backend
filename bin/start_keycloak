@@ -7,7 +7,7 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
-if ! grep -qE '\<spiffworkflow\>' <<<"$(docker network ls)" ; then
+if ! docker network inspect spiffworkflow > /dev/null 2>&1; then
   docker network create spiffworkflow
 fi
 docker rm keycloak 2>/dev/null || echo 'no keycloak container found'
@@ -31,7 +31,15 @@ sleep 10
 docker exec keycloak /opt/keycloak/bin/kc.sh import --file /tmp/finance-realm.json || echo ''
 docker exec keycloak /opt/keycloak/bin/kc.sh import --file /tmp/spiffworkflow-realm.json || echo ''
 docker exec keycloak /opt/keycloak/bin/kc.sh import --file /tmp/quarkus-realm.json || echo ''
-echo 'ran import finance realm'
+
+echo 'imported realms'
+
+if [ "${TURN_OFF_SSL:-}" == "true" ]; then
+  docker exec -it keycloak /opt/keycloak/bin/kcadm.sh config credentials --server http://localhost:8080 --realm master --user admin
+  docker exec -it keycloak /opt/keycloak/bin/kcadm.sh update realms/master -s sslRequired=NONE
+  docker exec -it keycloak /opt/keycloak/bin/kcadm.sh update realms/spiffworkflow -s sslRequired=NONE
+  echo 'turned off SSL requirement'
+fi
 
 docker stop keycloak
 docker start keycloak
