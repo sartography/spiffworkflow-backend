@@ -542,10 +542,23 @@ def task_list_my_tasks(page: int = 1, per_page: int = 100) -> flask.wrappers.Res
     active_tasks = (
         ActiveTaskModel.query.filter_by(assigned_principal_id=principal.id)
         .order_by(desc(ActiveTaskModel.id))  # type: ignore
+        .join(ProcessInstanceModel)
+        # just need this add_columns to add the process_model_identifier. Then add everything back that was removed.
+        .add_columns(
+            ProcessInstanceModel.process_model_identifier,
+            ActiveTaskModel.task_data,
+            ActiveTaskModel.task_name,
+            ActiveTaskModel.task_title,
+            ActiveTaskModel.task_type,
+            ActiveTaskModel.task_status,
+            ActiveTaskModel.task_id,
+            ActiveTaskModel.id,
+            ActiveTaskModel.process_instance_id,
+        )
         .paginate(page, per_page, False)
     )
 
-    tasks = [active_task.to_task() for active_task in active_tasks.items]
+    tasks = [ActiveTaskModel.to_task(active_task) for active_task in active_tasks.items]
 
     response_json = {
         "results": tasks,
@@ -582,7 +595,7 @@ def process_instance_task_list(
 
 
 def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response:
-    """Task_list_my_tasks."""
+    """Task_show."""
     principal = find_principal_or_raise()
 
     process_instance = find_process_instance_by_id_or_raise(process_instance_id)
@@ -603,7 +616,7 @@ def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response
     if active_task_assigned_to_me:
         form_schema_file_name = active_task_assigned_to_me.form_file_name
         form_ui_schema_file_name = active_task_assigned_to_me.ui_form_file_name
-        task = active_task_assigned_to_me.to_task()
+        task = ActiveTaskModel.to_task(active_task_assigned_to_me)
     else:
         spiff_task = get_spiff_task_from_process_instance(task_id, process_instance)
         extensions = spiff_task.task_spec.extensions
@@ -702,7 +715,9 @@ def task_submit(
         assigned_principal_id=principal.id, process_instance_id=process_instance.id
     ).first()
     if next_active_task_assigned_to_me:
-        return make_response(jsonify(next_active_task_assigned_to_me.to_task()), 200)
+        return make_response(
+            jsonify(ActiveTaskModel.to_task(next_active_task_assigned_to_me)), 200
+        )
 
     return Response(json.dumps({"ok": True}), status=202, mimetype="application/json")
 

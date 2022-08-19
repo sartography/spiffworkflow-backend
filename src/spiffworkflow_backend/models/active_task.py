@@ -47,16 +47,18 @@ class ActiveTaskModel(SpiffworkflowBaseDBModel):
     task_status = db.Column(db.String(50))
     task_data: str = db.Column(db.Text)
 
-    def to_task(self) -> Task:
+    @classmethod
+    def to_task(cls, task: ActiveTaskModel) -> Task:
         """To_task."""
-        task_data = json.loads(self.task_data)
+        task_data = json.loads(task.task_data)
 
         return Task(
-            self.task_id,
-            self.task_name,
-            self.task_title,
-            self.task_type,
-            self.task_status,
+            task.task_id,
+            task.task_name,
+            task.task_title,
+            task.task_type,
+            task.task_status,
             data=task_data,
-            process_instance_id=self.process_instance_id,
+            process_name=task.process_model_identifier,
+            process_instance_id=task.process_instance_id,
         )
