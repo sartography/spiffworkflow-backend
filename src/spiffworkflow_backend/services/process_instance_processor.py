@@ -506,7 +506,8 @@ class ProcessInstanceProcessor:
                     and task.workflow == self.bpmn_process_instance
                 ):
                     endtasks.append(task)
-            return endtasks[-1]
+            if len(endtasks) > 0:
+                return endtasks[-1]
 
         # If there are ready tasks to complete, return the next ready task, but return the one
         # in the active parallel path if possible.  In some cases the active parallel path may itself be
