@@ -7,7 +7,7 @@ from typing import Optional
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from sqlalchemy import ForeignKey
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, relationship
 from sqlalchemy.orm import validates
 from sqlalchemy.orm.events import event
 
@@ -40,10 +40,13 @@ class MessageInstanceModel(SpiffworkflowBaseDBModel):
     id = db.Column(db.Integer, primary_key=True)
     process_instance_id = db.Column(ForeignKey(ProcessInstanceModel.id), nullable=False)  # type: ignore
     message_model_id = db.Column(ForeignKey(MessageModel.id), nullable=False)
+    message_model = relationship("MessageModel")
 
     message_type = db.Column(db.String(20), nullable=False)
+    payload = db.Column(db.JSON)
+    # message_variable_name = db.Column(db.String(50))
     status = db.Column(db.String(20), nullable=False, default="ready")
-    failure_cause = db.Column(db.String(255))
+    failure_cause = db.Column(db.Text())
     updated_at_in_seconds: int = db.Column(db.Integer)
     created_at_in_seconds: int = db.Column(db.Integer)
 

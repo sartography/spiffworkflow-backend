@@ -68,6 +68,32 @@ class UserService:
                 )
             )
 
+    def find_or_create_user(
+        self,
+        service: str,
+        service_id: str,
+        name: Optional[str] = None,
+        username: Optional[str] = None,
+        email: Optional[str] = None,
+    ) -> UserModel:
+        """Find_or_create_user."""
+        user_model: UserModel
+        try:
+            user_model = self.create_user(
+                service=service,
+                service_id=service_id,
+                name=name,
+                username=username,
+                email=email,
+            )
+        except ApiError:
+            user_model = (
+                UserModel.query.filter(UserModel.service == service)
+                .filter(UserModel.service_id == service_id)
+                .first()
+            )
+        return user_model
+
     # Returns true if the current user is logged in.
     @staticmethod
     def has_user() -> bool:

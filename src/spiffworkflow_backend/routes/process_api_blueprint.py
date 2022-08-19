@@ -37,6 +37,7 @@ from spiffworkflow_backend.models.process_instance_report import (
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
 from spiffworkflow_backend.services.error_handling_service import ErrorHandlingService
+from spiffworkflow_backend.services.message_service import MessageService
 from spiffworkflow_backend.services.process_instance_processor import (
     ProcessInstanceProcessor,
 )
@@ -317,6 +318,8 @@ def process_instance_run(
             ) from e
         processor.save()
         ProcessInstanceService.update_task_assignments(processor)
+        MessageService().process_message_instances()
+        MessageService().process_message_instances()
 
     process_instance_api = ProcessInstanceService.processor_to_process_instance_api(
         processor

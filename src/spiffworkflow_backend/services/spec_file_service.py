@@ -322,25 +322,14 @@ class SpecFileService(FileSystemService):
                         raise ValidationException(
                             f"Message identifier is missing from correlation property: {correlation_identifier}"
                         )
-                    message_model = MessageModel.query.filter_by(
-                        identifier=message_identifier
-                    ).first()
-                    if message_model is None:
-                        raise ValidationException(
-                            f"Could not find message model with identifier '{message_identifier}'"
-                            f"specified by correlation: {correlation_identifier}"
-                        )
-
                     message_correlation_property = (
                         MessageCorrelationPropertyModel.query.filter_by(
                             identifier=correlation_identifier,
-                            message_model_id=message_model.id,
                         ).first()
                     )
                     if message_correlation_property is None:
                         message_correlation_property = MessageCorrelationPropertyModel(
                             identifier=correlation_identifier,
-                            message_model_id=message_model.id,
                         )
                         db.session.add(message_correlation_property)
                         db.session.commit()

@@ -84,7 +84,7 @@ def create_app() -> flask.app.Flask:
 
     app.json_encoder = MyJSONEncoder
 
-    if app.config["PROCESS_WAITING_MESSAGES"]:
-        start_scheduler(app)
+    # if app.config["PROCESS_WAITING_MESSAGES"]:
+    #     start_scheduler(app)
 
     return app  # type: ignore

@@ -491,22 +491,16 @@ class ProcessInstanceProcessor:
     def process_bpmn_messages(self) -> None:
         """Process_bpmn_messages."""
         bpmn_messages = self.bpmn_process_instance.get_bpmn_messages()
-        print(f"bpmn_messages: {bpmn_messages}")
         for bpmn_message in bpmn_messages:
-            message_type = None
+            # only message sends are in get_bpmn_messages
+            message_type = "send"
             message_model = MessageModel.query.filter_by(name=bpmn_message.name).first()
-
             if message_model is None:
                 raise ApiError(
                     "invalid_message_name",
                     f"Invalid message name: {bpmn_message.name}.",
                 )
 
-            # TODO: message - not sure how to determine message types yet
-            if bpmn_message.payload:
-                message_type = "send"
-            else:
-                message_type = "receive"
 
             if not bpmn_message.correlations:
                 raise ApiError(
@@ -525,7 +519,6 @@ class ProcessInstanceProcessor:
                 ) in message_correlation_properties.items():
                     message_correlation_property = (
                         MessageCorrelationPropertyModel.query.filter_by(
-                            message_model_id=message_model.id,
                             identifier=message_correlation_property_identifier,
                         ).first()
                     )
@@ -546,6 +539,7 @@ class ProcessInstanceProcessor:
                 process_instance_id=self.process_instance_model.id,
                 message_type=message_type,
                 message_model_id=message_model.id,
+                payload=bpmn_message.payload
             )
             db.session.add(message_instance)
             db.session.commit()
@@ -562,14 +556,32 @@ class ProcessInstanceProcessor:
                 db.session.add(message_correlation)
             db.session.commit()
 
+    def queue_waiting_receive_messages(self) -> None:
+        waiting_tasks = self.get_all_waiting_tasks()
+        for waiting_task in waiting_tasks:
+            if waiting_task.task_spec.__class__.__name__ in ['IntermediateCatchEvent', 'ReceiveTask']:
+                message_model = MessageModel.query.filter_by(name=waiting_task.task_spec.event_definition.name).first()
+                if message_model is None:
+                    raise ApiError(
+                        "invalid_message_name",
+                        f"Invalid message name: {waiting_task.task_spec.event_definition.name}.",
+                    )
+
+                message_instance = MessageInstanceModel(
+                    process_instance_id=self.process_instance_model.id,
+                    message_type="receive",
+                    message_model_id=message_model.id,
+                )
+                db.session.add(message_instance)
+                db.session.commit()
+
     def do_engine_steps(self, exit_at: None = None) -> None:
         """Do_engine_steps."""
         try:
             self.bpmn_process_instance.refresh_waiting_tasks()
             self.bpmn_process_instance.do_engine_steps(exit_at=exit_at)
-            # self.process_bpmn_messages()
-            # import pdb; pdb.set_trace()
-            # self.check_if_waiting_message()
+            self.process_bpmn_messages()
+            self.queue_waiting_receive_messages()
 
         except WorkflowTaskExecException as we:
             raise ApiError.from_workflow_exception("task_error", str(we), we) from we
@@ -724,6 +736,11 @@ class ProcessInstanceProcessor:
             if not self.bpmn_process_instance._is_engine_task(t.task_spec)
             and t.state in [TaskState.COMPLETED, TaskState.CANCELLED]
         ]
+
+    def get_all_waiting_tasks(self) -> list[SpiffTask]:
+        """Get_all_ready_or_waiting_tasks."""
+        all_tasks = self.bpmn_process_instance.get_tasks(TaskState.ANY_MASK)
+        return [t for t in all_tasks if t.state in [TaskState.WAITING]]
 
     def get_all_ready_or_waiting_tasks(self) -> list[SpiffTask]:
         """Get_all_ready_or_waiting_tasks."""

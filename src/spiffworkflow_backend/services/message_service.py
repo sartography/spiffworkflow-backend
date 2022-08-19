@@ -2,7 +2,6 @@
 from typing import Optional
 
 import flask
-from flask import g
 from flask_bpmn.models.db import db
 from SpiffWorkflow.bpmn.specs.events.event_definitions import MessageEventDefinition  # type: ignore
 from sqlalchemy import and_
@@ -18,7 +17,10 @@ from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 from spiffworkflow_backend.services.process_instance_processor import (
     ProcessInstanceProcessor,
 )
-from spiffworkflow_backend.services.process_instance_service import ProcessInstanceService
+from spiffworkflow_backend.services.process_instance_service import (
+    ProcessInstanceService,
+)
+from spiffworkflow_backend.services.user_service import UserService
 
 
 class MessageServiceWithAppContext:
@@ -69,37 +71,47 @@ class MessageService:
                     message_instance_send, message_instances_receive
                 )
                 if message_instance_receive is None:
-
                     message_triggerable_process_model = (
                         MessageTriggerableProcessModel.query.filter_by(
                             message_model_id=message_instance_send.message_model_id
-                        )
+                        ).first()
                     )
                     if message_triggerable_process_model:
-                        process_instance = (
-                            ProcessInstanceService.create_process_instance(
-                                message_triggerable_process_model.process_model_identifier,
-                                g.user,
-                                process_group_identifier=message_triggerable_process_model.process_group_identifier,
-                            )
+                        system_user = UserService().find_or_create_user(
+                            service="internal", service_id="system_user"
                         )
-                        processor = ProcessInstanceProcessor(process_instance)
-                        processor.do_engine_steps()
+                        process_instance_receive = ProcessInstanceService.create_process_instance(
+                            message_triggerable_process_model.process_model_identifier,
+                            system_user,
+                            process_group_identifier=message_triggerable_process_model.process_group_identifier,
+                        )
+                        processor_receive = ProcessInstanceProcessor(
+                            process_instance_receive
+                        )
+                        processor_receive.do_engine_steps()
+                        processor_receive.bpmn_process_instance.catch_bpmn_message(
+                            message_instance_send.message_model.name, message_instance_send.payload, correlations={}
+                        )
+                        processor_receive.save()
+                        processor_receive.do_engine_steps()
+                        processor_receive.save()
+                        message_instance_send.status = "completed"
 
-                if message_instance_receive:
+                else:
                     self.process_message_receive(
                         message_instance_send, message_instance_receive
                     )
                     message_instance_receive.status = "completed"
                     db.session.add(message_instance_receive)
                     message_instance_send.status = "completed"
-                else:
-                    # if we can't get a queued message then put it back in the queue
-                    message_instance_send.status = "ready"
+                # else:
+                #     # if we can't get a queued message then put it back in the queue
+                #     message_instance_send.status = "ready"
 
                 db.session.add(message_instance_send)
                 db.session.commit()
             except Exception as exception:
+                db.session.rollback()
                 message_instance_send.status = "failed"
                 message_instance_send.failure_cause = str(exception)
                 db.session.add(message_instance_send)

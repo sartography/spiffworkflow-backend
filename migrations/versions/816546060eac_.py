@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 97b4f1538357
+Revision ID: 816546060eac
 Revises: 
-Create Date: 2022-08-18 16:28:43.714319
+Create Date: 2022-08-19 15:59:41.804543
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '97b4f1538357'
+revision = '816546060eac'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -31,6 +31,14 @@ def upgrade():
     sa.Column('new_name_two', sa.String(length=255), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_table('message_correlation_property',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('identifier', sa.String(length=50), nullable=True),
+    sa.Column('updated_at_in_seconds', sa.Integer(), nullable=True),
+    sa.Column('created_at_in_seconds', sa.Integer(), nullable=True),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_message_correlation_property_identifier'), 'message_correlation_property', ['identifier'], unique=True)
     op.create_table('message_model',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('identifier', sa.String(length=50), nullable=True),
@@ -52,17 +60,6 @@ def upgrade():
     sa.UniqueConstraint('uid'),
     sa.UniqueConstraint('username')
     )
-    op.create_table('message_correlation_property',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('message_model_id', sa.Integer(), nullable=False),
-    sa.Column('identifier', sa.String(length=50), nullable=True),
-    sa.Column('updated_at_in_seconds', sa.Integer(), nullable=True),
-    sa.Column('created_at_in_seconds', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['message_model_id'], ['message_model.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('message_model_id', 'identifier', name='message_model_id_identifier_unique')
-    )
-    op.create_index(op.f('ix_message_correlation_property_identifier'), 'message_correlation_property', ['identifier'], unique=False)
     op.create_table('message_triggerable_process_model',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('message_model_id', sa.Integer(), nullable=False),
@@ -171,8 +168,9 @@ def upgrade():
     sa.Column('process_instance_id', sa.Integer(), nullable=False),
     sa.Column('message_model_id', sa.Integer(), nullable=False),
     sa.Column('message_type', sa.String(length=20), nullable=False),
+    sa.Column('payload', sa.JSON(), nullable=True),
     sa.Column('status', sa.String(length=20), nullable=False),
-    sa.Column('failure_cause', sa.String(length=255), nullable=True),
+    sa.Column('failure_cause', sa.Text(), nullable=True),
     sa.Column('updated_at_in_seconds', sa.Integer(), nullable=True),
     sa.Column('created_at_in_seconds', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['message_model_id'], ['message_model.id'], ),
@@ -258,12 +256,12 @@ def downgrade():
     op.drop_index(op.f('ix_message_triggerable_process_model_process_model_identifier'), table_name='message_triggerable_process_model')
     op.drop_index(op.f('ix_message_triggerable_process_model_process_group_identifier'), table_name='message_triggerable_process_model')
     op.drop_table('message_triggerable_process_model')
-    op.drop_index(op.f('ix_message_correlation_property_identifier'), table_name='message_correlation_property')
-    op.drop_table('message_correlation_property')
     op.drop_table('user')
     op.drop_index(op.f('ix_message_model_name'), table_name='message_model')
     op.drop_index(op.f('ix_message_model_identifier'), table_name='message_model')
     op.drop_table('message_model')
+    op.drop_index(op.f('ix_message_correlation_property_identifier'), table_name='message_correlation_property')
+    op.drop_table('message_correlation_property')
     op.drop_table('group')
     op.drop_table('admin_session')
     # ### end Alembic commands ###
