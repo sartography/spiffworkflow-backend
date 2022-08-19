@@ -65,3 +65,10 @@ class TestMessageService(BaseTest):
         assert message_instance_receiver.status == 'ready'
 
         MessageService().process_message_instances()
+
+        message_instance_result = MessageInstanceModel.query.all()
+        # assert len(message_instance_result) == 3
+        # for message_instance in message_instance_result:
+        #     assert message_instance.status == 'completed'
+        import pdb; pdb.set_trace()
+        print("HELLO")

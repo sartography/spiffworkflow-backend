@@ -567,6 +567,7 @@ class ProcessInstanceProcessor:
                         f"Invalid message name: {waiting_task.task_spec.event_definition.name}.",
                     )
 
+                import pdb; pdb.set_trace()
                 message_instance = MessageInstanceModel(
                     process_instance_id=self.process_instance_model.id,
                     message_type="receive",

@@ -70,6 +70,7 @@ class MessageService:
                 message_instance_receive = self.get_message_instance_receive(
                     message_instance_send, message_instances_receive
                 )
+                print(f"message_instance_receive: {message_instance_receive}")
                 if message_instance_receive is None:
                     message_triggerable_process_model = (
                         MessageTriggerableProcessModel.query.filter_by(
@@ -96,6 +97,9 @@ class MessageService:
                         processor_receive.do_engine_steps()
                         processor_receive.save()
                         message_instance_send.status = "completed"
+                    else:
+                        # if we can't get a queued message then put it back in the queue
+                        message_instance_send.status = "ready"
 
                 else:
                     self.process_message_receive(
@@ -104,9 +108,6 @@ class MessageService:
                     message_instance_receive.status = "completed"
                     db.session.add(message_instance_receive)
                     message_instance_send.status = "completed"
-                # else:
-                #     # if we can't get a queued message then put it back in the queue
-                #     message_instance_send.status = "ready"
 
                 db.session.add(message_instance_send)
                 db.session.commit()
@@ -204,6 +205,8 @@ class MessageService:
             message_correlations_receive = db.session.execute(
                 message_correlation_select
             )
+            import pdb; pdb.set_trace()
+            print(f"message_correlations_receive: {message_correlations_receive}")
 
             # since the query matches on name, value, and message_instance_receive.id, if the counts
             # message correlations found are the same, then this should be the relevant message
