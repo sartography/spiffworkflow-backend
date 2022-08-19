@@ -52,13 +52,16 @@ class ActiveTaskModel(SpiffworkflowBaseDBModel):
         """To_task."""
         task_data = json.loads(task.task_data)
 
-        return Task(
+        new_task = Task(
             task.task_id,
             task.task_name,
             task.task_title,
             task.task_type,
             task.task_status,
             data=task_data,
-            process_name=task.process_model_identifier,
             process_instance_id=task.process_instance_id,
         )
+        if hasattr(task, "process_model_identifier"):
+            new_task.process_name = task.process_model_identifier
+
+        return new_task

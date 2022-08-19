@@ -616,6 +616,9 @@ def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response
     if active_task_assigned_to_me:
         form_schema_file_name = active_task_assigned_to_me.form_file_name
         form_ui_schema_file_name = active_task_assigned_to_me.ui_form_file_name
+        active_task_assigned_to_me.process_model_identifier = (
+            process_instance.process_model_identifier
+        )
         task = ActiveTaskModel.to_task(active_task_assigned_to_me)
     else:
         spiff_task = get_spiff_task_from_process_instance(task_id, process_instance)
