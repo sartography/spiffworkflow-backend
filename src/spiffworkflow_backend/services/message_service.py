@@ -91,7 +91,9 @@ class MessageService:
                         )
                         processor_receive.do_engine_steps()
                         processor_receive.bpmn_process_instance.catch_bpmn_message(
-                            message_instance_send.message_model.name, message_instance_send.payload, correlations={}
+                            message_instance_send.message_model.name,
+                            message_instance_send.payload,
+                            correlations={},
                         )
                         processor_receive.save()
                         processor_receive.do_engine_steps()
@@ -175,8 +177,9 @@ class MessageService:
         message_instances_receive: list[MessageInstanceModel],
     ) -> Optional[MessageInstanceModel]:
         """Get_message_instance_receive."""
+        return None
         message_correlations_send = MessageCorrelationModel.query.filter_by(
-            message_instance_id=message_instance_send.id
+            process_instance_id=message_instance_send.process_instance_id
         ).all()
         message_correlation_filter = []
         for message_correlation_send in message_correlations_send:
@@ -205,7 +208,9 @@ class MessageService:
             message_correlations_receive = db.session.execute(
                 message_correlation_select
             )
-            import pdb; pdb.set_trace()
+            import pdb
+
+            pdb.set_trace()
             print(f"message_correlations_receive: {message_correlations_receive}")
 
             # since the query matches on name, value, and message_instance_receive.id, if the counts

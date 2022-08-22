@@ -7,7 +7,8 @@ from typing import Optional
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from sqlalchemy import ForeignKey
-from sqlalchemy.orm import Session, relationship
+from sqlalchemy.orm import relationship
+from sqlalchemy.orm import Session
 from sqlalchemy.orm import validates
 from sqlalchemy.orm.events import event
 
