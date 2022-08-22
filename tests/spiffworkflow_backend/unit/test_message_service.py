@@ -1,10 +1,12 @@
 """Test_message_service."""
 from flask import Flask
-from spiffworkflow_backend.models import message_instance
-from spiffworkflow_backend.models.message_correlation import MessageCorrelationMessageInstanceModel, MessageCorrelationModel
 from tests.spiffworkflow_backend.helpers.base_test import BaseTest
 from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
 
+from spiffworkflow_backend.models.message_correlation import MessageCorrelationModel
+from spiffworkflow_backend.models.message_correlation_message_instance import (
+    MessageCorrelationMessageInstanceModel,
+)
 from spiffworkflow_backend.models.message_instance import MessageInstanceModel
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 from spiffworkflow_backend.services.message_service import MessageService
@@ -43,25 +45,45 @@ class TestMessageService(BaseTest):
         assert len(message_instance_result) == 2
         # ensure both message instances are for the same process instance
         # it will be send_message and receive_message_response
-        assert message_instance_result[0].process_instance_id == message_instance_result[1].process_instance_id
+        assert (
+            message_instance_result[0].process_instance_id
+            == message_instance_result[1].process_instance_id
+        )
 
         message_instance_sender = message_instance_result[0]
         assert message_instance_sender.process_instance_id == process_instance_sender.id
         message_correlations = MessageCorrelationModel.query.all()
-        assert len(message_correlations) == 1
+        assert len(message_correlations) == 2
         assert message_correlations[0].process_instance_id == process_instance_sender.id
-        message_correlations_message_instances = MessageCorrelationMessageInstanceModel.query.all()
-        assert len(message_correlations_message_instances) == 2
-        assert message_correlations_message_instances[0].message_instance_id == message_instance_sender.id
-        assert message_correlations_message_instances[1].message_instance_id == message_instance_result[1].id
-        assert message_correlations_message_instances[0].message_correlation_id == message_correlations[0].id
-        assert message_correlations_message_instances[1].message_correlation_id == message_correlations[0].id
+        message_correlations_message_instances = (
+            MessageCorrelationMessageInstanceModel.query.all()
+        )
+        assert len(message_correlations_message_instances) == 4
+        assert (
+            message_correlations_message_instances[0].message_instance_id
+            == message_instance_sender.id
+        )
+        assert (
+            message_correlations_message_instances[1].message_instance_id
+            == message_instance_sender.id
+        )
+        assert (
+            message_correlations_message_instances[2].message_instance_id
+            == message_instance_result[1].id
+        )
+        assert (
+            message_correlations_message_instances[3].message_instance_id
+            == message_instance_result[1].id
+        )
 
         # process first message
         MessageService().process_message_instances()
         assert message_instance_sender.status == "completed"
 
         process_instance_result = ProcessInstanceModel.query.all()
+        import pdb
+
+        pdb.set_trace()
         assert len(process_instance_result) == 2
         process_instance_receiver = process_instance_result[1]
 
@@ -78,7 +100,7 @@ class TestMessageService(BaseTest):
         # process second message
         MessageService().process_message_instances()
 
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         message_instance_result = MessageInstanceModel.query.all()
         # assert len(message_instance_result) == 3
         # for message_instance in message_instance_result:

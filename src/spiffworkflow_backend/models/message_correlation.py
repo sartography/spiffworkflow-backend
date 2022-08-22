@@ -8,7 +8,6 @@ from sqlalchemy import ForeignKey
 from spiffworkflow_backend.models.message_correlation_property import (
     MessageCorrelationPropertyModel,
 )
-from spiffworkflow_backend.models.message_instance import MessageInstanceModel
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 
 # message_correlation
@@ -49,26 +48,3 @@ class MessageCorrelationModel(SpiffworkflowBaseDBModel):
     value = db.Column(db.String(255), nullable=False, index=True)
     updated_at_in_seconds: int = db.Column(db.Integer)
     created_at_in_seconds: int = db.Column(db.Integer)
-
-
-@dataclass
-class MessageCorrelationMessageInstanceModel(SpiffworkflowBaseDBModel):
-    """MessageCorrelationMessageInstanceModel."""
-
-    __tablename__ = "message_correlation_message_instance"
-
-    __table_args__ = (
-        db.UniqueConstraint(
-            "message_instance_id",
-            "message_correlation_id",
-            name="message_correlation_message_instance_unique",
-        ),
-    )
-
-    id = db.Column(db.Integer, primary_key=True)
-    message_instance_id = db.Column(
-        ForeignKey(MessageInstanceModel.id), nullable=False, index=True
-    )
-    message_correlation_id = db.Column(
-        ForeignKey(MessageCorrelationModel.id), nullable=False, index=True
-    )

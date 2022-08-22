@@ -9,6 +9,9 @@ from sqlalchemy import or_
 from sqlalchemy import select
 
 from spiffworkflow_backend.models.message_correlation import MessageCorrelationModel
+from spiffworkflow_backend.models.message_correlation_message_instance import (
+    MessageCorrelationMessageInstanceModel,
+)
 from spiffworkflow_backend.models.message_instance import MessageInstanceModel
 from spiffworkflow_backend.models.message_triggerable_process_model import (
     MessageTriggerableProcessModel,
@@ -70,8 +73,8 @@ class MessageService:
                 message_instance_receive = self.get_message_instance_receive(
                     message_instance_send, message_instances_receive
                 )
-                print(f"message_instance_receive: {message_instance_receive}")
                 if message_instance_receive is None:
+                    print("WE EHRE")
                     message_triggerable_process_model = (
                         MessageTriggerableProcessModel.query.filter_by(
                             message_model_id=message_instance_send.message_model_id
@@ -79,7 +82,9 @@ class MessageService:
                     )
                     if message_triggerable_process_model:
                         system_user = UserService().find_or_create_user(
-                            service="internal", service_id="system_user"
+                            service="internal",
+                            service_id="system_user",
+                            username="system_user",
                         )
                         process_instance_receive = ProcessInstanceService.create_process_instance(
                             message_triggerable_process_model.process_model_identifier,
@@ -133,25 +138,6 @@ class MessageService:
         message_instance_receive: MessageInstanceModel,
     ) -> None:
         """Process_message_receive."""
-        process_instance_send = self.get_process_instance_for_message_instance(
-            message_instance_send
-        )
-        processor_send = ProcessInstanceProcessor(process_instance_send)
-        spiff_task_send = processor_send.get_task_by_id(
-            message_instance_send.bpmn_element_identifier
-        )
-        print(
-            f"message_instance_send.bpmn_element_identifier: {message_instance_send.bpmn_element_identifier}"
-        )
-        if spiff_task_send is None:
-            raise MessageServiceError(
-                "Processor failed to obtain task.",
-            )
-
-        # message_event_send = MessageEventDefinition(
-        #     spiff_task_send.id, payload=spiff_task_send.payload
-        # )
-
         process_instance_receive = ProcessInstanceModel.query.filter_by(
             id=message_instance_receive.process_instance_id
         ).first()
@@ -164,11 +150,10 @@ class MessageService:
             )
 
         processor_receive = ProcessInstanceProcessor(process_instance_receive)
-        import pdb
-
-        pdb.set_trace()
         processor_receive.bpmn_process_instance.catch_bpmn_message(
-            spiff_task_send.id, spiff_task_send.payload
+            message_instance_send.message_model.name,
+            message_instance_send.payload,
+            correlations={},
         )
 
     def get_message_instance_receive(
@@ -178,15 +163,19 @@ class MessageService:
     ) -> Optional[MessageInstanceModel]:
         """Get_message_instance_receive."""
         return None
-        message_correlations_send = MessageCorrelationModel.query.filter_by(
-            process_instance_id=message_instance_send.process_instance_id
-        ).all()
+        message_correlations_send = (
+            MessageCorrelationModel.query.join(MessageCorrelationMessageInstanceModel)
+            .filter_by(message_instance_id=message_instance_send.id)
+            .all()
+        )
         message_correlation_filter = []
         for message_correlation_send in message_correlations_send:
             message_correlation_filter.append(
                 and_(
                     MessageCorrelationModel.name == message_correlation_send.name,
                     MessageCorrelationModel.value == message_correlation_send.value,
+                    MessageCorrelationModel.message_correlation_property_id
+                    == message_correlation_send.message_correlation_property_id,
                 )
             )
 
@@ -199,8 +188,8 @@ class MessageService:
                 .select_from(MessageCorrelationModel)  # type: ignore
                 .where(
                     and_(
-                        MessageCorrelationModel.message_instance_id
-                        == message_instance_receive.id,
+                        MessageCorrelationModel.process_instance_id
+                        == message_instance_receive.process_instance_id,
                         or_(*message_correlation_filter),
                     )
                 )
@@ -208,10 +197,6 @@ class MessageService:
             message_correlations_receive = db.session.execute(
                 message_correlation_select
             )
-            import pdb
-
-            pdb.set_trace()
-            print(f"message_correlations_receive: {message_correlations_receive}")
 
             # since the query matches on name, value, and message_instance_receive.id, if the counts
             # message correlations found are the same, then this should be the relevant message

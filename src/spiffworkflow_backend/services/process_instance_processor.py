@@ -46,7 +46,10 @@ from SpiffWorkflow.util.deep_merge import DeepMerge  # type: ignore
 from spiffworkflow_backend.models.active_task import ActiveTaskModel
 from spiffworkflow_backend.models.file import File
 from spiffworkflow_backend.models.file import FileType
-from spiffworkflow_backend.models.message_correlation import MessageCorrelationMessageInstanceModel, MessageCorrelationModel
+from spiffworkflow_backend.models.message_correlation import MessageCorrelationModel
+from spiffworkflow_backend.models.message_correlation_message_instance import (
+    MessageCorrelationMessageInstanceModel,
+)
 from spiffworkflow_backend.models.message_correlation_property import (
     MessageCorrelationPropertyModel,
 )
@@ -553,9 +556,12 @@ class ProcessInstanceProcessor:
                     value=message_correlation["value"],
                 )
                 db.session.add(message_correlation)
-                message_correlation_message_instance = MessageCorrelationMessageInstanceModel(
-                    message_instance_id=message_instance.id,
-                    message_correlation_id=message_correlation.id
+                db.session.commit()
+                message_correlation_message_instance = (
+                    MessageCorrelationMessageInstanceModel(
+                        message_instance_id=message_instance.id,
+                        message_correlation_id=message_correlation.id,
+                    )
                 )
                 db.session.add(message_correlation_message_instance)
             db.session.commit()
@@ -584,19 +590,28 @@ class ProcessInstanceProcessor:
                 )
                 db.session.add(message_instance)
 
-                for spiff_correlation_property in waiting_task.task_spec.event_definition.correlation_properties:
+                for (
+                    spiff_correlation_property
+                ) in waiting_task.task_spec.event_definition.correlation_properties:
                     # NOTE: we may have to cycle through keys here
                     # not sure yet if it's valid for a property to be associated with multiple keys
-                    correlation_key_name = spiff_correlation_property.correlation_keys[0]
-                    message_correlation = MessageCorrelationModel.query.filter_by(
-                        process_instance_id=self.process_instance_model.id,
-                        name=correlation_key_name,
-                    ).join(MessageCorrelationPropertyModel).filter_by(
-                        identifier=spiff_correlation_property.name
-                    ).first()
-                    message_correlation_message_instance = MessageCorrelationMessageInstanceModel(
-                        message_instance_id=message_instance.id,
-                        message_correlation_id=message_correlation.id
+                    correlation_key_name = spiff_correlation_property.correlation_keys[
+                        0
+                    ]
+                    message_correlation = (
+                        MessageCorrelationModel.query.filter_by(
+                            process_instance_id=self.process_instance_model.id,
+                            name=correlation_key_name,
+                        )
+                        .join(MessageCorrelationPropertyModel)
+                        .filter_by(identifier=spiff_correlation_property.name)
+                        .first()
+                    )
+                    message_correlation_message_instance = (
+                        MessageCorrelationMessageInstanceModel(
+                            message_instance_id=message_instance.id,
+                            message_correlation_id=message_correlation.id,
+                        )
                     )
                     db.session.add(message_correlation_message_instance)
 

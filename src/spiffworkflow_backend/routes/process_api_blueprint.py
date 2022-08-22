@@ -303,6 +303,7 @@ def process_instance_run(
         process_instance_id
     )
     processor = ProcessInstanceProcessor(process_instance)
+    processor.do_engine_steps()
 
     if do_engine_steps:
         try:
