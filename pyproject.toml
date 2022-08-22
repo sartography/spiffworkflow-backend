@@ -86,6 +86,18 @@ sqlalchemy-stubs = "^0.4"
 [tool.poetry.scripts]
 spiffworkflow-backend = "spiffworkflow_backend.__main__:main"
 
+[tool.pytest.ini_options]
+# ignore three deprecation warnings from three different packages
+filterwarnings = [
+    # note the use of single quote below to denote "raw" strings in TOML
+    # kombu/utils/compat.py:82
+    'ignore:SelectableGroups dict interface is deprecated. Use select.',
+    # marshmallow_sqlalchemy/convert.py:17
+    'ignore:distutils Version classes are deprecated. Use packaging.version instead.',
+    # connexion/spec.py:50
+    'ignore:Passing a schema to Validator.iter_errors is deprecated and will be removed in a future release'
+]
+
 [tool.coverage.paths]
 source = ["src", "*/site-packages"]
 tests = ["tests", "*/tests"]

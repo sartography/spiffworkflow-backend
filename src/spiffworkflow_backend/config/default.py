@@ -16,6 +16,12 @@ CORS_ALLOW_ORIGINS = re.split(
 PROCESS_WAITING_MESSAGES = (
     environ.get("PROCESS_WAITING_MESSAGES", default="false") == "true"
 )
+SPIFFWORKFLOW_FRONTEND_URL = environ.get(
+    "SPIFFWORKFLOW_FRONTEND_URL", default="http://localhost:7001"
+)
+SPIFFWORKFLOW_BACKEND_URL = environ.get(
+    "SPIFFWORKFLOW_BACKEND_URL", default="http://localhost:7000"
+)
 
 # Open ID server
 OPEN_ID_SERVER_URL = environ.get("OPEN_ID_SERVER_URL", default="http://localhost:7002")

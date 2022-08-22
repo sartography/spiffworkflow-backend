@@ -254,7 +254,8 @@ def logout(id_token: str, redirect_url: Optional[str]) -> Response:
 
 def logout_return() -> Response:
     """Logout_return."""
-    return redirect("http://localhost:7001/")
+    frontend_url = str(current_app.config["SPIFFWORKFLOW_FRONTEND_URL"])
+    return redirect(f"{frontend_url}/")
 
 
 def get_decoded_token(token: str) -> Optional[Dict]:
