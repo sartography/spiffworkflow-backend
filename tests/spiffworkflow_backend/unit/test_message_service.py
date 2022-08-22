@@ -1,5 +1,6 @@
 """Test_message_service."""
 from flask import Flask
+from spiffworkflow_backend.routes.process_api_blueprint import process_instance_show
 from tests.spiffworkflow_backend.helpers.base_test import BaseTest
 from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
 
@@ -82,24 +83,28 @@ class TestMessageService(BaseTest):
 
         process_instance_result = ProcessInstanceModel.query.all()
 
-        # assert len(process_instance_result) == 2
-        # process_instance_receiver = process_instance_result[1]
-        #
-        # # just make sure it's a different process instance
-        # assert process_instance_receiver.id != process_instance_sender.id
-        # assert process_instance_receiver.status == "complete"
-        #
-        # message_instance_result = MessageInstanceModel.query.all()
-        # assert len(message_instance_result) == 3
-        # message_instance_receiver = message_instance_result[1]
-        # assert message_instance_receiver.id != message_instance_sender.id
-        # assert message_instance_receiver.status == "ready"
-        #
-        # # process second message
-        # MessageService().process_message_instances()
-        #
-        # # import pdb; pdb.set_trace()
-        # message_instance_result = MessageInstanceModel.query.all()
-        # # assert len(message_instance_result) == 3
-        # # for message_instance in message_instance_result:
-        # #     assert message_instance.status == 'completed'
+        assert len(process_instance_result) == 2
+        process_instance_receiver = process_instance_result[1]
+
+        # just make sure it's a different process instance
+        assert process_instance_receiver.id != process_instance_sender.id
+        assert process_instance_receiver.status == "complete"
+
+        message_instance_result = MessageInstanceModel.query.all()
+        assert len(message_instance_result) == 3
+        message_instance_receiver = message_instance_result[1]
+        assert message_instance_receiver.id != message_instance_sender.id
+        assert message_instance_receiver.status == "ready"
+
+        # process second message
+        MessageService().process_message_instances()
+
+        message_instance_result = MessageInstanceModel.query.all()
+        assert len(message_instance_result) == 3
+        for message_instance in message_instance_result:
+            assert message_instance.status == 'completed'
+
+        process_instance_result = ProcessInstanceModel.query.all()
+        assert len(process_instance_result) == 2
+        for process_instance in process_instance_result:
+            assert process_instance.status == 'complete'

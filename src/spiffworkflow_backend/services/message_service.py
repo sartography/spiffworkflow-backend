@@ -12,6 +12,7 @@ from spiffworkflow_backend.models.message_correlation import MessageCorrelationM
 from spiffworkflow_backend.models.message_correlation_message_instance import (
     MessageCorrelationMessageInstanceModel,
 )
+from spiffworkflow_backend.models.message_correlation_property import MessageCorrelationPropertyModel
 from spiffworkflow_backend.models.message_instance import MessageInstanceModel
 from spiffworkflow_backend.models.message_triggerable_process_model import (
     MessageTriggerableProcessModel,
@@ -73,9 +74,7 @@ class MessageService:
                 message_instance_receive = self.get_message_instance_receive(
                     message_instance_send, message_instances_receive
                 )
-                print(f"message_instance_receive: {message_instance_receive}")
                 if message_instance_receive is None:
-                    print("WE EHRE")
                     message_triggerable_process_model = (
                         MessageTriggerableProcessModel.query.filter_by(
                             message_model_id=message_instance_send.message_model_id
@@ -156,6 +155,8 @@ class MessageService:
             message_instance_send.payload,
             correlations={},
         )
+        processor_receive.do_engine_steps()
+        processor_receive.save()
 
     def get_message_instance_receive(
         self,
@@ -168,6 +169,7 @@ class MessageService:
             .filter_by(message_instance_id=message_instance_send.id)
             .all()
         )
+
         message_correlation_filter = []
         for message_correlation_send in message_correlations_send:
             message_correlation_filter.append(
@@ -192,6 +194,8 @@ class MessageService:
                         == message_instance_receive.process_instance_id,
                         or_(*message_correlation_filter),
                     )
+                ).join(MessageCorrelationMessageInstanceModel).filter_by(
+                    message_instance_id=message_instance_receive.id,
                 )
             )
             message_correlations_receive = db.session.execute(
@@ -200,7 +204,7 @@ class MessageService:
 
             # since the query matches on name, value, and message_instance_receive.id, if the counts
             # message correlations found are the same, then this should be the relevant message
-            if message_correlations_receive.scalar() == len(message_correlations_send):
+            if message_correlations_receive.scalar() == len(message_correlations_send) and message_instance_receive.message_model_id == message_instance_send.message_model_id:
                 return message_instance_receive
 
         return None

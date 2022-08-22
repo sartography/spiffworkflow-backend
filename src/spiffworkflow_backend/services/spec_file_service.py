@@ -233,19 +233,19 @@ class SpecFileService(FileSystemService):
         """Check_for_message_models."""
         for child in et_root:
             if child.tag.endswith("message"):
-                message_identifier = child.attrib.get("id")
+                message_model_identifier = child.attrib.get("id")
                 message_name = child.attrib.get("name")
-                if message_identifier is None:
+                if message_model_identifier is None:
                     raise ValidationException(
                         "Message identifier is missing from bpmn xml"
                     )
 
                 message_model = MessageModel.query.filter_by(
-                    identifier=message_identifier
+                    identifier=message_model_identifier
                 ).first()
                 if message_model is None:
                     message_model = MessageModel(
-                        identifier=message_identifier, name=message_name
+                        identifier=message_model_identifier, name=message_name
                     )
                     db.session.add(message_model)
                     db.session.commit()
@@ -317,19 +317,30 @@ class SpecFileService(FileSystemService):
                     )
 
                 for cpre in correlation_property_retrieval_expressions:
-                    message_identifier = cpre.attrib.get("messageRef")
-                    if message_identifier is None:
+                    message_model_identifier = cpre.attrib.get("messageRef")
+                    if message_model_identifier is None:
                         raise ValidationException(
                             f"Message identifier is missing from correlation property: {correlation_identifier}"
                         )
+                    message_model = MessageModel.query.filter_by(
+                        identifier=message_model_identifier
+                    ).first()
+                    if message_model is None:
+                        raise ValidationException(
+                            f"Could not find message model with identifier '{message_model_identifier}'"
+                            f"specified by message event definition: {message_event_definition}"
+                        )
+
                     message_correlation_property = (
                         MessageCorrelationPropertyModel.query.filter_by(
                             identifier=correlation_identifier,
+                            message_model_id=message_model.id
                         ).first()
                     )
                     if message_correlation_property is None:
                         message_correlation_property = MessageCorrelationPropertyModel(
                             identifier=correlation_identifier,
+                            message_model_id=message_model.id
                         )
                         db.session.add(message_correlation_property)
                         db.session.commit()
