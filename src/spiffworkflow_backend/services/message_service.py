@@ -73,6 +73,7 @@ class MessageService:
                 message_instance_receive = self.get_message_instance_receive(
                     message_instance_send, message_instances_receive
                 )
+                print(f"message_instance_receive: {message_instance_receive}")
                 if message_instance_receive is None:
                     print("WE EHRE")
                     message_triggerable_process_model = (
@@ -162,7 +163,6 @@ class MessageService:
         message_instances_receive: list[MessageInstanceModel],
     ) -> Optional[MessageInstanceModel]:
         """Get_message_instance_receive."""
-        return None
         message_correlations_send = (
             MessageCorrelationModel.query.join(MessageCorrelationMessageInstanceModel)
             .filter_by(message_instance_id=message_instance_send.id)
