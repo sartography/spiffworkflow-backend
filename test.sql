@@ -1,5 +1,5 @@
-SELECT count(*) AS count_1 
-FROM message_correlation INNER JOIN message_correlation_property ON message_correlation_property.id = message_correlation.message_correlation_property_id 
+SELECT count(*) AS count_1
+FROM message_correlation INNER JOIN message_correlation_property ON message_correlation_property.id = message_correlation.message_correlation_property_id
 WHERE message_correlation.process_instance_id = %(process_instance_id_1)s AND (message_correlation.name = %(name_1)s AND message_correlation.value = %(value_1)s AND message_correlation.message_correlation_property_id = %(message_correlation_property_id_1)s OR message_correlation.name = %(name_2)s AND message_correlation.value = %(value_2)s AND message_correlation.message_correlation_property_id = %(message_correlation_property_id_2)s) AND message_correlation_property.message_model_id = %(message_model_id_1)s
 
 {'process_instance_id_1': 7, 'name_1': 'message_correlation_key', 'value_1': 'first_conversation_a_1661200359.8331513', 'message_correlation_property_id_1': 13, 'name_2': 'message_correlation_key', 'value_2': 'first_conversation_b_1661200359.8331513', 'message_correlation_property_id_2': 14, 'message_model_id_1': 13}
@@ -34,4 +34,3 @@ WHERE message_correlation.process_instance_id = %(process_instance_id_1)s AND (m
 | id | process_model_identifier | process_group_identifier | status  |
 +----+--------------------------+--------------------------+---------+
 |  7 | message_sender           | test_process_group_id    | waiting |
-

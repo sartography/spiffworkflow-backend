@@ -1,6 +1,5 @@
 """Test_message_service."""
 from flask import Flask
-from spiffworkflow_backend.routes.process_api_blueprint import process_instance_show
 from tests.spiffworkflow_backend.helpers.base_test import BaseTest
 from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
 
@@ -102,9 +101,9 @@ class TestMessageService(BaseTest):
         message_instance_result = MessageInstanceModel.query.all()
         assert len(message_instance_result) == 3
         for message_instance in message_instance_result:
-            assert message_instance.status == 'completed'
+            assert message_instance.status == "completed"
 
         process_instance_result = ProcessInstanceModel.query.all()
         assert len(process_instance_result) == 2
         for process_instance in process_instance_result:
-            assert process_instance.status == 'complete'
+            assert process_instance.status == "complete"

@@ -12,7 +12,6 @@ from spiffworkflow_backend.models.message_correlation import MessageCorrelationM
 from spiffworkflow_backend.models.message_correlation_message_instance import (
     MessageCorrelationMessageInstanceModel,
 )
-from spiffworkflow_backend.models.message_correlation_property import MessageCorrelationPropertyModel
 from spiffworkflow_backend.models.message_instance import MessageInstanceModel
 from spiffworkflow_backend.models.message_triggerable_process_model import (
     MessageTriggerableProcessModel,
@@ -194,7 +193,9 @@ class MessageService:
                         == message_instance_receive.process_instance_id,
                         or_(*message_correlation_filter),
                     )
-                ).join(MessageCorrelationMessageInstanceModel).filter_by(
+                )
+                .join(MessageCorrelationMessageInstanceModel)
+                .filter_by(
                     message_instance_id=message_instance_receive.id,
                 )
             )
@@ -204,7 +205,11 @@ class MessageService:
 
             # since the query matches on name, value, and message_instance_receive.id, if the counts
             # message correlations found are the same, then this should be the relevant message
-            if message_correlations_receive.scalar() == len(message_correlations_send) and message_instance_receive.message_model_id == message_instance_send.message_model_id:
+            if (
+                message_correlations_receive.scalar() == len(message_correlations_send)
+                and message_instance_receive.message_model_id
+                == message_instance_send.message_model_id
+            ):
                 return message_instance_receive
 
         return None

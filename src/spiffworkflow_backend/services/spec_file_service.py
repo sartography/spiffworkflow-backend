@@ -334,13 +334,13 @@ class SpecFileService(FileSystemService):
                     message_correlation_property = (
                         MessageCorrelationPropertyModel.query.filter_by(
                             identifier=correlation_identifier,
-                            message_model_id=message_model.id
+                            message_model_id=message_model.id,
                         ).first()
                     )
                     if message_correlation_property is None:
                         message_correlation_property = MessageCorrelationPropertyModel(
                             identifier=correlation_identifier,
-                            message_model_id=message_model.id
+                            message_model_id=message_model.id,
                         )
                         db.session.add(message_correlation_property)
                         db.session.commit()
