@@ -42,11 +42,9 @@ class MessageInstanceModel(SpiffworkflowBaseDBModel):
     process_instance_id = db.Column(ForeignKey(ProcessInstanceModel.id), nullable=False)  # type: ignore
     message_model_id = db.Column(ForeignKey(MessageModel.id), nullable=False)
     message_model = relationship("MessageModel")
-    # message_correlations = relationship("MessageCorrelations", secondary="MessageCorrelationMessageInstanceModel")
 
     message_type = db.Column(db.String(20), nullable=False)
     payload = db.Column(db.JSON)
-    # message_variable_name = db.Column(db.String(50))
     status = db.Column(db.String(20), nullable=False, default="ready")
     failure_cause = db.Column(db.Text())
     updated_at_in_seconds: int = db.Column(db.Integer)
@@ -85,10 +83,10 @@ class MessageInstanceModel(SpiffworkflowBaseDBModel):
 # https://stackoverflow.com/questions/32555829/flask-validates-decorator-multiple-fields-simultaneously/33025472#33025472
 # https://docs.sqlalchemy.org/en/14/orm/session_events.html#before-flush
 @event.listens_for(Session, "before_flush")  # type: ignore
-def validate_and_modify_relationships(
+def ensure_failure_cause_is_set_if_message_instance_failed(
     session: Any, _flush_context: Optional[Any], _instances: Optional[Any]
 ) -> None:
-    """Validate_and_modify_relationships."""
+    """Ensure_failure_cause_is_set_if_message_instance_failed."""
     for instance in session.new:
         if isinstance(instance, MessageInstanceModel):
             if instance.status == "failed" and instance.failure_cause is None:

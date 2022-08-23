@@ -10,18 +10,6 @@ from spiffworkflow_backend.models.message_correlation_property import (
 )
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 
-# message_correlation
-# process_instance_id: 4
-# correlation_key (and properties): number
-# value: 5
-
-# message_instance_message_correlation:
-# message_instance_id
-# message_correlation_id
-
-# message_instance:
-# correlation_key (and properties): number
-
 
 @dataclass
 class MessageCorrelationModel(SpiffworkflowBaseDBModel):

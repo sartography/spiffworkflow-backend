@@ -24,12 +24,12 @@ class UserModel(SpiffworkflowBaseDBModel):
     __tablename__ = "user"
     __table_args__ = (db.UniqueConstraint("service", "service_id", name="service_key"),)
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), nullable=False, unique=True)
+    username = db.Column(db.String(255), nullable=False, unique=True)
     uid = db.Column(db.String(50), unique=True)
     service = db.Column(db.String(50), nullable=False, unique=False)
-    service_id = db.Column(db.String(50), nullable=False, unique=False)
-    name = db.Column(db.String(50))
-    email = db.Column(db.String(50))
+    service_id = db.Column(db.String(255), nullable=False, unique=False)
+    name = db.Column(db.String(255))
+    email = db.Column(db.String(255))
     user_group_assignments = relationship(UserGroupAssignmentModel, cascade="delete")
     groups = relationship(  # type: ignore
         GroupModel,

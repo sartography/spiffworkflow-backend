@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: e3788fee91f1
+Revision ID: 0c8e71337903
 Revises: 
-Create Date: 2022-08-22 17:29:33.191378
+Create Date: 2022-08-23 12:26:12.767126
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'e3788fee91f1'
+revision = '0c8e71337903'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -41,12 +41,12 @@ def upgrade():
     op.create_index(op.f('ix_message_model_name'), 'message_model', ['name'], unique=True)
     op.create_table('user',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('username', sa.String(length=50), nullable=False),
+    sa.Column('username', sa.String(length=255), nullable=False),
     sa.Column('uid', sa.String(length=50), nullable=True),
     sa.Column('service', sa.String(length=50), nullable=False),
-    sa.Column('service_id', sa.String(length=50), nullable=False),
-    sa.Column('name', sa.String(length=50), nullable=True),
-    sa.Column('email', sa.String(length=50), nullable=True),
+    sa.Column('service_id', sa.String(length=255), nullable=False),
+    sa.Column('name', sa.String(length=255), nullable=True),
+    sa.Column('email', sa.String(length=255), nullable=True),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('service', 'service_id', name='service_key'),
     sa.UniqueConstraint('uid'),
