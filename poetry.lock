@@ -660,7 +660,7 @@ werkzeug = "*"
 type = "git"
 url = "https://github.com/sartography/flask-bpmn"
 reference = "main"
-resolved_reference = "267df3afe9c3384e9f58b28e48b0e6c7bebb807b"
+resolved_reference = "bf533cbea4b5efa8a520718937d8d1f29b7d09d9"
 
 [[package]]
 name = "flask-cors"
@@ -1818,11 +1818,11 @@ test = ["pytest"]
 [[package]]
 name = "SpiffWorkflow"
 version = "1.1.7"
-description = "A workflow framework and BPMN/DMN Processor"
+description = ""
 category = "main"
 optional = false
 python-versions = "*"
-develop = true
+develop = false
 
 [package.dependencies]
 celery = "*"
@@ -1832,8 +1832,10 @@ lxml = "*"
 pytz = "*"
 
 [package.source]
-type = "directory"
-url = "../SpiffWorkflow"
+type = "git"
+url = "https://github.com/sartography/SpiffWorkflow"
+reference = "feature/message-correlations"
+resolved_reference = "d93093386730742fbc38fd2dab923bf0e44e0176"
 
 [[package]]
 name = "sqlalchemy"
@@ -2143,7 +2145,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "940bd4f8097bf422e7464d58b2368cedcff1e5aa2d07c8f638d654597c4cb405"
+content-hash = "e4053464943f4d60140841fa7f538a1d3dfc3f7c99fb2e459eb682a4508fd372"
 
 [metadata.files]
 alabaster = [
