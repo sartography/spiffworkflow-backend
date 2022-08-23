@@ -46,10 +46,6 @@ from spiffworkflow_backend.services.process_instance_service import (
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 from spiffworkflow_backend.services.spec_file_service import SpecFileService
 
-# from SpiffWorkflow.bpmn.serializer.workflow import BpmnWorkflowSerializer  # type: ignore
-# from SpiffWorkflow.camunda.serializer.task_spec_converters import UserTaskConverter  # type: ignore
-# from SpiffWorkflow.dmn.serializer.task_spec_converters import BusinessRuleTaskConverter  # type: ignore
-
 process_api_blueprint = Blueprint("process_api", __name__)
 
 
@@ -596,69 +592,53 @@ def process_instance_task_list(
 
 def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response:
     """Task_show."""
-    principal = find_principal_or_raise()
-
     process_instance = find_process_instance_by_id_or_raise(process_instance_id)
     process_model = get_process_model(
         process_instance.process_model_identifier,
         process_instance.process_group_identifier,
     )
 
-    active_task_assigned_to_me = ActiveTaskModel.query.filter_by(
-        process_instance_id=process_instance_id,
-        task_id=task_id,
-        assigned_principal_id=principal.id,
-    ).first()
-
     form_schema_file_name = ""
     form_ui_schema_file_name = ""
-    task = None
-    if active_task_assigned_to_me:
-        form_schema_file_name = active_task_assigned_to_me.form_file_name
-        form_ui_schema_file_name = active_task_assigned_to_me.ui_form_file_name
-        active_task_assigned_to_me.process_model_identifier = (
-            process_instance.process_model_identifier
-        )
-        task = ActiveTaskModel.to_task(active_task_assigned_to_me)
-    else:
-        spiff_task = get_spiff_task_from_process_instance(task_id, process_instance)
-        extensions = spiff_task.task_spec.extensions
+    spiff_task = get_spiff_task_from_process_instance(task_id, process_instance)
+    extensions = spiff_task.task_spec.extensions
 
-        if "properties" in extensions:
-            properties = extensions["properties"]
-            if "formJsonSchemaFilename" in properties:
-                form_schema_file_name = properties["formJsonSchemaFilename"]
-            if "formUiSchemaFilename" in properties:
-                form_ui_schema_file_name = properties["formUiSchemaFilename"]
-        task = ProcessInstanceService.spiff_task_to_api_task(spiff_task)
-        task.data = spiff_task.data
+    if "properties" in extensions:
+        properties = extensions["properties"]
+        if "formJsonSchemaFilename" in properties:
+            form_schema_file_name = properties["formJsonSchemaFilename"]
+        if "formUiSchemaFilename" in properties:
+            form_ui_schema_file_name = properties["formUiSchemaFilename"]
+    task = ProcessInstanceService.spiff_task_to_api_task(spiff_task)
+    task.data = spiff_task.data
 
-    if form_schema_file_name is None:
-        raise (
-            ApiError(
-                code="missing_form_file",
-                message=f"Cannot find a form file for process_instance_id: {process_instance_id}, task_id: {task_id}",
-                status_code=500,
+    if task.type == "UserTask":
+        if not form_schema_file_name:
+            raise (
+                ApiError(
+                    code="missing_form_file",
+                    message=f"Cannot find a form file for process_instance_id: {process_instance_id}, task_id: {task_id}",
+                    status_code=500,
+                )
             )
-        )
 
-    form_contents = prepare_form_data(
-        form_schema_file_name,
-        task.data,
-        process_model,
-    )
-
-    if form_contents:
-        task.form_schema = form_contents
-
-    if form_ui_schema_file_name:
-        ui_form_contents = prepare_form_data(
-            form_ui_schema_file_name,
+        form_contents = prepare_form_data(
+            form_schema_file_name,
             task.data,
             process_model,
         )
-        if ui_form_contents:
-            task.form_ui_schema = ui_form_contents
+
+        if form_contents:
+            task.form_schema = form_contents
+
+        if form_ui_schema_file_name:
+            ui_form_contents = prepare_form_data(
+                form_ui_schema_file_name,
+                task.data,
+                process_model,
+            )
+            if ui_form_contents:
+                task.form_ui_schema = ui_form_contents
 
     return make_response(jsonify(task), 200)
 
