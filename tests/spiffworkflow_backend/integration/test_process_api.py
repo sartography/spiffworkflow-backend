@@ -123,8 +123,10 @@ class TestProcessApi(BaseTest):
         process_model = ProcessModelService().get_process_model("make_cookies")
         assert process_model.id == "make_cookies"
         assert process_model.display_name == "Cooooookies"
+        assert process_model.is_review is False
 
         process_model.display_name = "Updated Display Name"
+        process_model.is_review = True
 
         user = self.find_or_create_user()
         response = client.put(
@@ -136,6 +138,7 @@ class TestProcessApi(BaseTest):
         assert response.status_code == 200
         assert response.json is not None
         assert response.json["display_name"] == "Updated Display Name"
+        assert response.json["is_review"] is False
 
     def test_process_model_list(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None

@@ -166,8 +166,13 @@ def process_model_update(
     process_group_id: str, process_model_id: str, body: Dict[str, Union[str, bool, int]]
 ) -> Any:
     """Process_model_update."""
+    body_include_list = ["display_name"]
+    body_filtered = {
+        include_item: body[include_item] for include_item in body_include_list
+    }
+
     process_model = get_process_model(process_model_id, process_group_id)
-    ProcessModelService().update_spec(process_model, body)
+    ProcessModelService().update_spec(process_model, body_filtered)
     return ProcessModelInfoSchema().dump(process_model)
 
 
