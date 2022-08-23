@@ -146,9 +146,6 @@ def process_model_add(
         )
 
     process_model_info.process_group = process_group
-    workflows = process_model_service.cleanup_workflow_spec_display_order(process_group)
-    size = len(workflows)
-    process_model_info.display_order = size
     process_model_service.add_spec(process_model_info)
     return Response(
         json.dumps(ProcessModelInfoSchema().dump(process_model_info)),
@@ -169,8 +166,8 @@ def process_model_update(
     process_group_id: str, process_model_id: str, body: Dict[str, Union[str, bool, int]]
 ) -> Any:
     """Process_model_update."""
-    process_model = ProcessModelInfoSchema().load(body)
-    ProcessModelService().update_spec(process_model)
+    process_model = get_process_model(process_model_id, process_group_id)
+    ProcessModelService().update_spec(process_model, body)
     return ProcessModelInfoSchema().dump(process_model)
 
 
@@ -267,7 +264,7 @@ def add_file(process_group_id: str, process_model_id: str) -> flask.wrappers.Res
     file.process_group_id = process_model.process_group_id
     if not process_model.primary_process_id and file.type == FileType.bpmn.value:
         SpecFileService.set_primary_bpmn(process_model, file.name)
-        process_model_service.update_spec(process_model)
+        process_model_service.save_process_model(process_model)
     return Response(
         json.dumps(FileSchema().dump(file)), status=201, mimetype="application/json"
     )

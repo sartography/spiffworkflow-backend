@@ -129,7 +129,7 @@ def process_model_upload_file(process_model_id: str) -> Response:
                 SpecFileService.add_file(
                     process_model, request_file.filename, request_file.stream.read()
                 )
-                process_model_service.update_spec(process_model)
+                process_model_service.save_process_model(process_model)
 
     return redirect(
         url_for("admin.process_model_show", process_model_id=process_model.id)

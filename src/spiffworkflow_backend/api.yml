@@ -358,19 +358,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/WorkflowSpec"
-    # process_instance_create
-    post:
-      operationId: spiffworkflow_backend.routes.process_api_blueprint.process_instance_create
-      summary: Creates an process instance from a process model and returns the instance
-      tags:
-        - Process Instances
-      responses:
-        "201":
-          description: Workflow generated successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Workflow"
     # process_model_delete
     delete:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.process_model_delete
@@ -474,6 +461,19 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Workflow"
+    # process_instance_create
+    post:
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.process_instance_create
+      summary: Creates an process instance from a process model and returns the instance
+      tags:
+        - Process Instances
+      responses:
+        "201":
+          description: Workflow generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Workflow"
 
   /process-models/{process_group_id}/{process_model_id}/process-instances/{process_instance_id}:
     parameters:

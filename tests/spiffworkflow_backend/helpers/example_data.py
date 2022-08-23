@@ -71,7 +71,7 @@ class ExampleDataLoader:
                 if is_primary:
                     SpecFileService.set_primary_bpmn(spec, filename, data)
                     workflow_spec_service = ProcessModelService()
-                    workflow_spec_service.update_spec(spec)
+                    workflow_spec_service.save_process_model(spec)
             except IsADirectoryError:
                 # Ignore sub directories
                 pass

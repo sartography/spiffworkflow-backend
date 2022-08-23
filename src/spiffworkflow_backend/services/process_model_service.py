@@ -6,7 +6,6 @@ from typing import Any
 from typing import List
 from typing import Optional
 from typing import TypeVar
-from typing import Union
 
 from flask_bpmn.api.api_error import ApiError
 
@@ -46,21 +45,34 @@ class ProcessModelService(FileSystemService):
         end = start + per_page
         return items[start:end]
 
-    def add_spec(self, spec: ProcessModelInfo) -> None:
+    def add_spec(self, process_model: ProcessModelInfo) -> None:
         """Add_spec."""
-        display_order = self.next_display_order(spec)
-        spec.display_order = display_order
-        self.update_spec(spec)
+        display_order = self.next_display_order(process_model)
+        process_model.display_order = display_order
+        self.save_process_model(process_model)
 
-    def update_spec(self, spec: ProcessModelInfo) -> None:
+    def update_spec(
+        self, process_model: ProcessModelInfo, attributes_to_update: dict
+    ) -> None:
         """Update_spec."""
-        spec_path = self.workflow_path(spec)
-        if spec.is_master_spec or spec.library or spec.standalone:
-            spec.process_group_id = ""
+        for atu_key, atu_value in attributes_to_update.items():
+            if hasattr(process_model, atu_key):
+                setattr(process_model, atu_key, atu_value)
+        self.save_process_model(process_model)
+
+    def save_process_model(self, process_model: ProcessModelInfo) -> None:
+        """Save_process_model."""
+        spec_path = self.workflow_path(process_model)
+        if (
+            process_model.is_master_spec
+            or process_model.library
+            or process_model.standalone
+        ):
+            process_model.process_group_id = ""
         os.makedirs(spec_path, exist_ok=True)
         json_path = os.path.join(spec_path, self.WF_JSON_FILE)
         with open(json_path, "w") as wf_json:
-            json.dump(self.WF_SCHEMA.dump(spec), wf_json, indent=4)
+            json.dump(self.WF_SCHEMA.dump(process_model), wf_json, indent=4)
 
     def process_model_delete(self, process_model_id: str) -> None:
         """Delete Procecss Model."""
@@ -73,17 +85,17 @@ class ProcessModelService(FileSystemService):
                 message=f"We cannot delete the model `{process_model_id}`, there are existing instances that depend on it.",
             )
         process_model = self.get_process_model(process_model_id)
-        if process_model.library:
-            self.__remove_library_references(process_model.id)
+        # if process_model.library:
+        #     self.__remove_library_references(process_model.id)
         path = self.workflow_path(process_model)
         shutil.rmtree(path)
 
-    def __remove_library_references(self, spec_id: str) -> None:
-        """__remove_library_references."""
-        for process_model in self.get_process_models():
-            if spec_id in process_model.libraries:
-                process_model.libraries.remove(spec_id)
-                self.update_spec(process_model)
+    # def __remove_library_references(self, spec_id: str) -> None:
+    #     """__remove_library_references."""
+    #     for process_model in self.get_process_models():
+    #         if spec_id in process_model.libraries:
+    #             process_model.libraries.remove(spec_id)
+    #             self.update_spec(process_model)
 
     @property
     def master_spec(self) -> Optional[ProcessModelInfo]:
@@ -145,19 +157,6 @@ class ProcessModelService(FileSystemService):
         for process_group in process_groups:
             process_models.extend(process_group.process_models)
         return process_models
-
-    def cleanup_workflow_spec_display_order(
-        self, process_group: ProcessGroup
-    ) -> List[Union[Any, ProcessModelInfo]]:
-        """Cleanup_workflow_spec_display_order."""
-        index = 0
-        if not process_group:
-            return []
-        for workflow in process_group.process_models:
-            workflow.display_order = index
-            self.update_spec(workflow)
-            index += 1
-        return process_group.process_models
 
     def get_process_groups(self) -> list[ProcessGroup]:
         """Returns the process_groups as a list in display order."""

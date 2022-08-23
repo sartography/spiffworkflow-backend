@@ -469,7 +469,7 @@ class TestProcessApi(BaseTest):
         user = self.find_or_create_user()
         spec = load_test_spec("hello_world")
         response = client.post(
-            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}",
+            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/process-instances",
             headers=logged_in_headers(user),
         )
         assert response.status_code == 201
@@ -1059,8 +1059,10 @@ class TestProcessApi(BaseTest):
         process_model = ProcessModelService().get_process_model(
             process_model_id, process_group_id
         )
-        process_model.fault_or_suspend_on_exception = NotificationType.suspend.value
-        ProcessModelService().update_spec(process_model)
+        ProcessModelService().update_spec(
+            process_model,
+            {"fault_or_suspend_on_exception": NotificationType.suspend.value},
+        )
 
         process = (
             db.session.query(ProcessInstanceModel)
@@ -1097,10 +1099,9 @@ class TestProcessApi(BaseTest):
         process_model = ProcessModelService().get_process_model(
             process_model_id, process_group_id
         )
-        process_model.exception_notification_addresses = [
-            "user@example.com",
-        ]
-        ProcessModelService().update_spec(process_model)
+        ProcessModelService().update_spec(
+            process_model, {"exception_notification_addresses": ["user@example.com"]}
+        )
 
         mail = app.config["MAIL_APP"]
         with mail.record_messages() as outbox:
@@ -1157,7 +1158,7 @@ class TestProcessApi(BaseTest):
         """Create_process_instance."""
         load_test_spec(test_process_model_id, process_group_id=test_process_group_id)
         response = client.post(
-            f"/v1.0/process-models/{test_process_group_id}/{test_process_model_id}",
+            f"/v1.0/process-models/{test_process_group_id}/{test_process_model_id}/process-instances",
             headers=headers,
         )
         assert response.status_code == 201
