@@ -297,7 +297,8 @@ class SpecFileService(FileSystemService):
                             != process_model_info.process_group_id
                         ):
                             raise ValidationException(
-                                f"Message model is already used to start process model '{process_model_info.process_group_id}/{process_model_info.id}'"
+                                "Message model is already used to start process model"
+                                f"'{process_model_info.process_group_id}/{process_model_info.id}'"
                             )
 
         for child in et_root:
@@ -328,7 +329,7 @@ class SpecFileService(FileSystemService):
                     if message_model is None:
                         raise ValidationException(
                             f"Could not find message model with identifier '{message_model_identifier}'"
-                            f"specified by message event definition: {message_event_definition}"
+                            f"specified by correlation property: {cpre}"
                         )
 
                     message_correlation_property = (

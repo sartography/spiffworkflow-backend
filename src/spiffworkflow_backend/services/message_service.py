@@ -1,9 +1,9 @@
 """Message_service."""
+from typing import Any
 from typing import Optional
 
 import flask
 from flask_bpmn.models.db import db
-from SpiffWorkflow.bpmn.specs.events.event_definitions import MessageEventDefinition  # type: ignore
 from sqlalchemy import and_
 from sqlalchemy import or_
 from sqlalchemy import select
@@ -194,7 +194,7 @@ class MessageService:
                         or_(*message_correlation_filter),
                     )
                 )
-                .join(MessageCorrelationMessageInstanceModel)
+                .join(MessageCorrelationMessageInstanceModel)  # type: ignore
                 .filter_by(
                     message_instance_id=message_instance_receive.id,
                 )
@@ -216,7 +216,7 @@ class MessageService:
 
     def get_process_instance_for_message_instance(
         self, message_instance: MessageInstanceModel
-    ) -> ProcessInstanceModel:
+    ) -> Any:
         """Get_process_instance_for_message_instance."""
         process_instance = ProcessInstanceModel.query.filter_by(
             id=message_instance.process_instance_id

@@ -4,6 +4,7 @@ import time
 from typing import Any
 from typing import Dict
 from typing import List
+from typing import Optional
 from typing import Union
 
 from flask import current_app
@@ -28,7 +29,7 @@ from SpiffWorkflow.dmn.serializer import BusinessRuleTaskConverter  # type: igno
 from SpiffWorkflow.serializer.exceptions import MissingSpecError  # type: ignore
 from SpiffWorkflow.specs import WorkflowSpec  # type: ignore
 from SpiffWorkflow.spiff.parser.process import SpiffBpmnParser  # type: ignore
-from SpiffWorkflow.spiff.serializer import BoundaryEventConverter
+from SpiffWorkflow.spiff.serializer import BoundaryEventConverter  # type: ignore
 from SpiffWorkflow.spiff.serializer import CallActivityTaskConverter
 from SpiffWorkflow.spiff.serializer import EndEventConverter
 from SpiffWorkflow.spiff.serializer import IntermediateCatchEventConverter
@@ -80,22 +81,22 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
         """Evaluate."""
         return self._evaluate(expression, task.data, task)
 
-    # def _evaluate(
-    #     self,
-    #     expression: str,
-    #     context: Dict[str, Union[Box, str]],
-    #     task: Optional[SpiffTask] = None,
-    #     _external_methods: None = None,
-    # ) -> Any:
-    #     """Evaluate the given expression, within the context of the given task and return the result."""
-    #     try:
-    #         return super()._evaluate(expression, context, task, {})
-    #     except Exception as exception:
-    #         raise WorkflowTaskExecException(
-    #             task,
-    #             "Error evaluating expression "
-    #             "'%s', %s" % (expression, str(exception)),
-    #         ) from exception
+    def _evaluate(
+        self,
+        expression: str,
+        context: Dict[str, Union[Box, str]],
+        task: Optional[SpiffTask] = None,
+        _external_methods: None = None,
+    ) -> Any:
+        """Evaluate the given expression, within the context of the given task and return the result."""
+        try:
+            return super()._evaluate(expression, context, task, {})
+        except Exception as exception:
+            raise WorkflowTaskExecException(
+                task,
+                "Error evaluating expression "
+                "'%s', %s" % (expression, str(exception)),
+            ) from exception
 
     def execute(
         self, task: SpiffTask, script: str, data: Dict[str, Dict[str, str]]
@@ -527,7 +528,8 @@ class ProcessInstanceProcessor:
                     if message_correlation_property is None:
                         raise ApiError(
                             "message_correlations_missing_from_process",
-                            f"Could not find a known message correlation with identifier: {message_correlation_property_identifier}",
+                            "Could not find a known message correlation with identifier:"
+                            f"{message_correlation_property_identifier}",
                         )
                     message_correlations.append(
                         {
