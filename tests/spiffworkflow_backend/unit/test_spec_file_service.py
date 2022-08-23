@@ -15,3 +15,4 @@ class TestSpecFileService(BaseTest):
     def test_can_check_for_messages_in_bpmn_xml(
         self, app: Flask, with_db_and_bpmn_file_cleanup: None
     ) -> None:
+        assert True

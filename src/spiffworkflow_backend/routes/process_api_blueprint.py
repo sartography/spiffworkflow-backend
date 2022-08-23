@@ -303,7 +303,6 @@ def process_instance_run(
         process_instance_id
     )
     processor = ProcessInstanceProcessor(process_instance)
-    processor.do_engine_steps()
 
     if do_engine_steps:
         try:
@@ -319,8 +318,6 @@ def process_instance_run(
             ) from e
         processor.save()
         ProcessInstanceService.update_task_assignments(processor)
-        MessageService().process_message_instances()
-        MessageService().process_message_instances()
 
     process_instance_api = ProcessInstanceService.processor_to_process_instance_api(
         processor
