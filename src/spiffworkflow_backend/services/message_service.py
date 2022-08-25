@@ -17,6 +17,7 @@ from spiffworkflow_backend.models.message_triggerable_process_model import (
     MessageTriggerableProcessModel,
 )
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
+from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.services.process_instance_processor import (
     ProcessInstanceProcessor,
 )
@@ -40,7 +41,7 @@ class MessageServiceWithAppContext:
     def process_message_instances_with_app_context(self) -> None:
         """Since this runs in a scheduler, we need to specify the app context as well."""
         with self.app.app_context():
-            MessageService().process_message_instances()
+            MessageService.process_message_instances()
 
 
 class MessageServiceError(Exception):
@@ -50,7 +51,8 @@ class MessageServiceError(Exception):
 class MessageService:
     """MessageService."""
 
-    def process_message_instances(self) -> None:
+    @classmethod
+    def process_message_instances(cls) -> None:
         """Process_message_instances."""
         message_instances_send = MessageInstanceModel.query.filter_by(
             message_type="send", status="ready"
@@ -70,7 +72,7 @@ class MessageService:
 
             message_instance_receive = None
             try:
-                message_instance_receive = self.get_message_instance_receive(
+                message_instance_receive = cls.get_message_instance_receive(
                     message_instance_send, message_instances_receive
                 )
                 if message_instance_receive is None:
@@ -85,31 +87,22 @@ class MessageService:
                             service_id="system_user",
                             username="system_user",
                         )
-                        process_instance_receive = ProcessInstanceService.create_process_instance(
-                            message_triggerable_process_model.process_model_identifier,
-                            system_user,
-                            process_group_identifier=message_triggerable_process_model.process_group_identifier,
-                        )
-                        processor_receive = ProcessInstanceProcessor(
-                            process_instance_receive
-                        )
-                        processor_receive.do_engine_steps()
-                        processor_receive.bpmn_process_instance.catch_bpmn_message(
+                        cls.process_message_triggerable_process_model(
+                            message_triggerable_process_model,
                             message_instance_send.message_model.name,
                             message_instance_send.payload,
-                            correlations={},
+                            system_user,
                         )
-                        processor_receive.save()
-                        processor_receive.do_engine_steps()
-                        processor_receive.save()
                         message_instance_send.status = "completed"
                     else:
                         # if we can't get a queued message then put it back in the queue
                         message_instance_send.status = "ready"
 
                 else:
-                    self.process_message_receive(
-                        message_instance_send, message_instance_receive
+                    cls.process_message_receive(
+                        message_instance_receive,
+                        message_instance_send.message_model.name,
+                        message_instance_send.payload,
                     )
                     message_instance_receive.status = "completed"
                     db.session.add(message_instance_receive)
@@ -131,10 +124,37 @@ class MessageService:
                 db.session.commit()
                 raise exception
 
+    @staticmethod
+    def process_message_triggerable_process_model(
+        message_triggerable_process_model: MessageTriggerableProcessModel,
+        message_model_name: str,
+        message_payload: dict,
+        user: UserModel,
+    ) -> ProcessInstanceModel:
+        """Process_message_triggerable_process_model."""
+        process_instance_receive = ProcessInstanceService.create_process_instance(
+            message_triggerable_process_model.process_model_identifier,
+            user,
+            process_group_identifier=message_triggerable_process_model.process_group_identifier,
+        )
+        processor_receive = ProcessInstanceProcessor(process_instance_receive)
+        processor_receive.do_engine_steps()
+        processor_receive.bpmn_process_instance.catch_bpmn_message(
+            message_model_name,
+            message_payload,
+            correlations={},
+        )
+        processor_receive.save()
+        processor_receive.do_engine_steps()
+        processor_receive.save()
+
+        return process_instance_receive
+
+    @staticmethod
     def process_message_receive(
-        self,
-        message_instance_send: MessageInstanceModel,
         message_instance_receive: MessageInstanceModel,
+        message_model_name: str,
+        message_payload: dict,
     ) -> None:
         """Process_message_receive."""
         process_instance_receive = ProcessInstanceModel.query.filter_by(
@@ -150,15 +170,15 @@ class MessageService:
 
         processor_receive = ProcessInstanceProcessor(process_instance_receive)
         processor_receive.bpmn_process_instance.catch_bpmn_message(
-            message_instance_send.message_model.name,
-            message_instance_send.payload,
+            message_model_name,
+            message_payload,
             correlations={},
         )
         processor_receive.do_engine_steps()
         processor_receive.save()
 
+    @staticmethod
     def get_message_instance_receive(
-        self,
         message_instance_send: MessageInstanceModel,
         message_instances_receive: list[MessageInstanceModel],
     ) -> Optional[MessageInstanceModel]:
@@ -214,8 +234,9 @@ class MessageService:
 
         return None
 
+    @staticmethod
     def get_process_instance_for_message_instance(
-        self, message_instance: MessageInstanceModel
+        message_instance: MessageInstanceModel,
     ) -> Any:
         """Get_process_instance_for_message_instance."""
         process_instance = ProcessInstanceModel.query.filter_by(

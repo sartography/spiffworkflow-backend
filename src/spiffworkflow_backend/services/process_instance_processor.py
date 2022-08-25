@@ -741,7 +741,7 @@ class ProcessInstanceProcessor:
         """Complete_task."""
         self.bpmn_process_instance.complete_task_from_id(task.id)
 
-    def get_data(self) -> dict[str, str]:
+    def get_data(self) -> dict[str, Any]:
         """Get_data."""
         return self.bpmn_process_instance.data  # type: ignore
 

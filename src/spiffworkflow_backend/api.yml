@@ -171,7 +171,7 @@ paths:
               $ref: "#/components/schemas/WorkflowSpecCategory"
       responses:
         "201":
-          description: Workflow spec category
+          description: Processs Group
           content:
             application/json:
               schema:
@@ -193,7 +193,7 @@ paths:
         - Process Groups
       responses:
         "200":
-          description: Workflow spec category.
+          description: Processs Group.
           content:
             application/json:
               schema:
@@ -865,6 +865,32 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/OkTrue"
+
+  /messages/{message_identifier}:
+    parameters:
+      - name: message_identifier
+        in: path
+        required: true
+        description: The unique identifier of the message model.
+        schema:
+          type: string
+    post:
+      tags:
+        - Messages
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.message_start
+      summary: Instantiate and run a given process model with a message start event matching given identifier
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Workflow"
+      responses:
+        "200":
+          description: One task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Workflow"
 
 components:
   securitySchemes:
