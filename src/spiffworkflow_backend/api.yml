@@ -810,6 +810,20 @@ paths:
                 items:
                   $ref: "#/components/schemas/Task"
 
+  /service_tasks:
+    get:
+      tags:
+        - Service Tasks
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.service_tasks_show
+      summary: Gets all available service task operators
+      responses:
+        "200":
+          description: All service task operators
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceTask"
+
   /tasks/{process_instance_id}/{task_id}:
     parameters:
       - name: task_id
@@ -1546,6 +1560,32 @@ components:
           type: number
           format: integer
           example: 5
+    ServiceTask:
+      properties:
+        items:
+          type: array
+          $ref: "#/components/schemas/ServiceTaskOperator"
+          readOnly: true
+    ServiceTaskOperator:
+      properties:
+        name:
+          type: string
+          example: SlackWebhookOperator
+        parameters:
+          type: array
+          $ref: "#/components/schemas/ServiceTaskOperatorParameter"
+          readOnly: true
+    ServiceTaskOperatorParameter:
+      properties:
+        name:
+          type: string
+          example: webhook_token
+        label:
+          type: string
+          example: Webhook Token
+        type:
+          type: string
+          example: string
     GitRepo:
       properties:
         #        remote:
