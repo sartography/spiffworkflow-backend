@@ -14,8 +14,9 @@ from marshmallow_enum import EnumField  # type: ignore
 from SpiffWorkflow.navigation import NavItem  # type: ignore
 from SpiffWorkflow.util.deep_merge import DeepMerge  # type: ignore
 from sqlalchemy import ForeignKey
-from sqlalchemy.orm import deferred, validates
+from sqlalchemy.orm import deferred
 from sqlalchemy.orm import relationship
+from sqlalchemy.orm import validates
 
 from spiffworkflow_backend.helpers.spiff_enum import SpiffEnum
 from spiffworkflow_backend.models.process_model import ProcessModelInfo

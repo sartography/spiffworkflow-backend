@@ -724,7 +724,7 @@ class TestProcessApi(BaseTest):
             id=process_instance_id
         ).first()
         assert process_instance
-        assert process_instance.status == 'terminated'
+        assert process_instance.status == "terminated"
 
     def test_process_instance_delete(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
@@ -1056,7 +1056,7 @@ class TestProcessApi(BaseTest):
         )
         assert type(process_instance_dict["start_in_seconds"]) is int
         assert process_instance_dict["start_in_seconds"] > 0
-        assert process_instance_dict["status"] == "waiting"
+        assert process_instance_dict["status"] == "complete"
 
     def test_process_instance_report_show_with_dynamic_filter_and_query_param(
         self,
