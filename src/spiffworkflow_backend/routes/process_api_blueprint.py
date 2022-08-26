@@ -45,6 +45,7 @@ from spiffworkflow_backend.services.process_instance_service import (
 )
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 from spiffworkflow_backend.services.spec_file_service import SpecFileService
+from spiffworkflow_backend.services.service_task_service import ServiceTaskService
 
 process_api_blueprint = Blueprint("process_api", __name__)
 
@@ -491,16 +492,7 @@ def process_instance_report_delete(
 
 def service_tasks_show() -> flask.wrappers.Response:
     # TODO move this logic out elsewhere and build dynamically
-    available_operators = [
-            { 
-                "name": "SlackWebhookOperator", 
-                "parameters": [
-                    { "name": "webhook_token", "label": "Webhook Token", "type": "string" },
-                    { "name": "message", "label": "Message", "type": "string" },
-                    { "name": "channel", "label": "Channel", "type": "string" },
-                ]
-            },
-    ]
+    available_operators = ServiceTaskService.available_operators()
 
     return Response(json.dumps(available_operators), status=200, mimetype="application/json")
 
