@@ -66,9 +66,9 @@ from spiffworkflow_backend.models.user import UserModelSchema
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 from spiffworkflow_backend.services.spec_file_service import SpecFileService
 from spiffworkflow_backend.services.user_service import UserService
+from spiffworkflow_backend.services.service_task_service import ServiceTaskService
 
 # from crc.services.user_file_service import UserFileService
-
 
 class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
     """This is a custom script processor that can be easily injected into Spiff Workflow.
@@ -109,6 +109,11 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
         except Exception as e:
             raise WorkflowTaskExecException(task, f" {script}, {e}", e) from e
 
+class CustomServiceTaskScriptEngine(CustomBpmnScriptEngine):
+    def __init__(self):
+        scripting_additions = ServiceTaskService.scripting_additions()
+        return super().__init__(scriptingAdditions=scripting_additions)
+
 
 class MyCustomParser(BpmnDmnParser):  # type: ignore
     """A BPMN and DMN parser that can also parse spiffworkflow-specific extensions."""
@@ -121,6 +126,7 @@ class ProcessInstanceProcessor:
     """ProcessInstanceProcessor."""
 
     _script_engine = CustomBpmnScriptEngine()
+    _service_task_script_engine = CustomServiceTaskScriptEngine()
     SERIALIZER_VERSION = "1.0-CRC"
     wf_spec_converter = BpmnWorkflowSerializer.configure_workflow_spec_converter(
         [
@@ -222,7 +228,9 @@ class ProcessInstanceProcessor:
             self.bpmn_process_instance = self.__get_bpmn_process_instance(
                 process_instance_model, spec, validate_only
             )
+            # TODO factor out a set_script_engines(typeof self)
             self.bpmn_process_instance.script_engine = self._script_engine
+            self.bpmn_process_instance.servicetask_script_engine = self._service_task_script_engine
 
             self.add_user_info_to_process_instance(self.bpmn_process_instance)
 
@@ -341,9 +349,13 @@ class ProcessInstanceProcessor:
             bpmn_process_instance.script_engine = (
                 ProcessInstanceProcessor._script_engine
             )
+            bpmn_process_instance.servicetask_script_engine = (
+                ProcessInstanceProcessor._service_task_script_engine
+            )
         else:
             bpmn_process_instance = BpmnWorkflow(
-                spec, script_engine=ProcessInstanceProcessor._script_engine
+                spec, script_engine=ProcessInstanceProcessor._script_engine,
+                servicetask_script_engine=ProcessInstanceProcessor._service_task_script_engine
             )
             bpmn_process_instance.data[
                 ProcessInstanceProcessor.VALIDATION_PROCESS_KEY

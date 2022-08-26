@@ -491,7 +491,6 @@ def process_instance_report_delete(
     return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
 
 def service_tasks_show() -> flask.wrappers.Response:
-    # TODO move this logic out elsewhere and build dynamically
     available_operators = ServiceTaskService.available_operators()
 
     return Response(json.dumps(available_operators), status=200, mimetype="application/json")
