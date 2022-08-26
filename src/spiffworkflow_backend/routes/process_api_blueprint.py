@@ -333,6 +333,21 @@ def process_instance_run(
     )
 
 
+def process_instance_terminate(
+    process_group_id: str,
+    process_model_id: str,
+    process_instance_id: int,
+    do_engine_steps: bool = True,
+) -> flask.wrappers.Response:
+    """Process_instance_run."""
+    process_instance = ProcessInstanceService().get_process_instance(
+        process_instance_id
+    )
+    processor = ProcessInstanceProcessor(process_instance)
+    processor.terminate()
+    return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
+
+
 # body: {
 #   payload: dict,
 #   process_instance_id: Optional[int],

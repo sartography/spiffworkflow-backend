@@ -688,6 +688,44 @@ class TestProcessApi(BaseTest):
         assert process_instance_data
         assert process_instance_data["the_payload"] == payload
 
+    def test_process_instance_can_be_terminated(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        """Test_message_start_when_providing_message_to_running_process_instance."""
+        # this task will wait on a catch event
+        process_model = load_test_spec("message_sender")
+        user = self.find_or_create_user()
+        response = self.create_process_instance(
+            client,
+            process_model.process_group_id,
+            process_model.id,
+            logged_in_headers(user),
+        )
+        assert response.json is not None
+        process_instance_id = response.json["id"]
+
+        response = client.post(
+            f"/v1.0/process-models/{process_model.process_group_id}/"
+            f"{process_model.id}/process-instances/{process_instance_id}/run",
+            headers=logged_in_headers(user),
+        )
+        assert response.status_code == 200
+        assert response.json is not None
+
+        response = client.post(
+            f"/v1.0/process-models/{process_model.process_group_id}/"
+            f"{process_model.id}/process-instances/{process_instance_id}/terminate",
+            headers=logged_in_headers(user),
+        )
+        assert response.status_code == 200
+        assert response.json is not None
+
+        process_instance = ProcessInstanceModel.query.filter_by(
+            id=process_instance_id
+        ).first()
+        assert process_instance
+        assert process_instance.status == 'terminated'
+
     def test_process_instance_delete(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:

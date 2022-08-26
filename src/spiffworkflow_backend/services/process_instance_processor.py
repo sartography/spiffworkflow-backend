@@ -835,3 +835,10 @@ class ProcessInstanceProcessor:
             "invalid_spec",
             f"Unable to find a task in the process_instance called '{spec_name}'",
         )
+
+    def terminate(self) -> bool:
+        self.bpmn_process_instance.cancel()
+        self.save()
+        self.process_instance_model.status = 'terminated'
+        db.session.add(self.process_instance_model)
+        db.session.commit()
