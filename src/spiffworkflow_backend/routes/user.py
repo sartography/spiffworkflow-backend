@@ -261,7 +261,8 @@ def logout_return() -> Response:
 def get_decoded_token(token: str) -> Optional[Dict]:
     """Get_token_type."""
     try:
-        decoded_token = jwt.decode(token, options={"verify_signature": False})
+        #decoded_token = jwt.decode(token, options={"verify_signature": False, 'verify_aud': False})
+        decoded_token = jwt.decode(token, audience='account', options={"verify_signature": False})
     except Exception as e:
         print(f"Exception in get_token_type: {e}")
         raise ApiError(code="invalid_token", message="Cannot decode token.") from e
@@ -289,7 +290,8 @@ def get_decoded_token(token: str) -> Optional[Dict]:
 def get_scope(token: str) -> str:
     """Get_scope."""
     scope = ""
-    decoded_token = jwt.decode(token, options={"verify_signature": False})
+    #decoded_token = jwt.decode(token, options={"verify_signature": False, 'verify_aud': False})
+    decoded_token = jwt.decode(token, audience='account', options={"verify_signature": False})
     if "scope" in decoded_token:
         scope = decoded_token["scope"]
     return scope
