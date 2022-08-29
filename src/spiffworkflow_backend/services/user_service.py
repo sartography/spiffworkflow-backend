@@ -19,9 +19,9 @@ class UserService:
         self,
         service: str,
         service_id: str,
-        name: Optional[str] = None,
-        username: Optional[str] = None,
-        email: Optional[str] = None,
+        name: Optional[str] = "",
+        username: Optional[str] = "",
+        email: Optional[str] = "",
     ) -> UserModel:
         """Create_user."""
         user_model: Optional[UserModel] = (
@@ -30,12 +30,8 @@ class UserService:
             .first()
         )
         if user_model is None:
-            if name is None:
-                name = ""
-            if username is None:
-                username = ""
-            if email is None:
-                email = ""
+            if username == "":
+                username = service_id
 
             user_model = UserModel(
                 username=username,
