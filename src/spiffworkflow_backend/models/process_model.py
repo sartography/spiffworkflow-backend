@@ -45,7 +45,7 @@ class ProcessModelInfo:
 
     def __post_init__(self) -> None:
         """__post_init__."""
-        self.sort_index = f"{self.display_order}:{self.process_group_id}:{self.id}"
+        self.sort_index = f"{self.process_group_id}:{self.id}"
 
     def __eq__(self, other: Any) -> bool:
         """__eq__."""

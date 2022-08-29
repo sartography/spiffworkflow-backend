@@ -92,7 +92,7 @@ def process_group_update(
 
 def process_groups_list(page: int = 1, per_page: int = 100) -> flask.wrappers.Response:
     """Process_groups_list."""
-    process_groups = sorted(ProcessModelService().get_process_groups())
+    process_groups = ProcessModelService().get_process_groups()
     batch = ProcessModelService().get_batch(
         items=process_groups, page=page, per_page=per_page
     )
@@ -195,7 +195,7 @@ def process_model_list(
     process_group_id: str, page: int = 1, per_page: int = 100
 ) -> flask.wrappers.Response:
     """Process model list!"""
-    process_models = sorted(ProcessModelService().get_process_models(process_group_id))
+    process_models = ProcessModelService().get_process_models(process_group_id)
     batch = ProcessModelService().get_batch(
         process_models, page=page, per_page=per_page
     )

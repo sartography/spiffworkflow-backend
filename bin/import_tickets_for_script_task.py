@@ -15,7 +15,9 @@ def main():
     from spiffworkflow_backend.services.process_instance_service import (
         ProcessInstanceService,
     )
-    from spiffworkflow_backend.models.process_instance_report import ProcessInstanceReportModel
+    from spiffworkflow_backend.models.process_instance_report import (
+        ProcessInstanceReportModel,
+    )
 
     process_model_identifier_ticket = "ticket"
     db.session.query(ProcessInstanceModel).filter(

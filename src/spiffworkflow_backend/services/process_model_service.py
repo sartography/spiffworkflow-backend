@@ -156,6 +156,7 @@ class ProcessModelService(FileSystemService):
         process_models = []
         for process_group in process_groups:
             process_models.extend(process_group.process_models)
+        process_models.sort()
         return process_models
 
     def get_process_groups(self) -> list[ProcessGroup]:
