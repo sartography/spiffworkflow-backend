@@ -132,7 +132,10 @@ class PublicAuthenticationService:
             open_id_client_secret_key,
         ) = get_open_id_args()
         try:
-            decoded_token = jwt.decode(id_token, options={"verify_signature": False})
+            decoded_token = jwt.decode(id_token, options={
+                "verify_signature": False, 
+                "verify_aud": False,
+            })
         except Exception as e:
             raise ApiError(
                 code="bad_id_token", message="Cannot decode id_token", status_code=401
