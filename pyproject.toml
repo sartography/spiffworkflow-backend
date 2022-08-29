@@ -43,7 +43,7 @@ connexion = {extras = [ "swagger-ui",], version = "^2.13.1"}
 lxml = "^4.9.1"
 marshmallow-enum = "^1.5.1"
 marshmallow-sqlalchemy = "^0.28.0"
-PyJWT = "^2.4.0"
+PyJWT = "^1.7.0"
 gunicorn = "^20.1.0"
 types-pytz = "^2022.1.1"
 python-keycloak = "^2.5.0"
