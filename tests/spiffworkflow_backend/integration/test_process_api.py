@@ -30,6 +30,9 @@ from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
 from spiffworkflow_backend.models.task_event import TaskEventModel
 from spiffworkflow_backend.models.user import UserModel
+from spiffworkflow_backend.services.process_instance_processor import (
+    ProcessInstanceProcessor,
+)
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 
 
@@ -597,6 +600,132 @@ class TestProcessApi(BaseTest):
         assert response.json["data"]["Mike"] == "Awesome"
         assert response.json["data"]["person"] == "Kevin"
 
+    def test_message_start_when_starting_process_instance(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        """Test_message_start_when_starting_process_instance."""
+        # ensure process model is loaded in db
+        load_test_spec("message_receiver")
+        user = self.find_or_create_user()
+        message_model_identifier = "message_send"
+        payload = {
+            "topica": "the_topica_string",
+            "topicb": "the_topicb_string",
+            "andThis": "another_item_non_key",
+        }
+        response = client.post(
+            f"/v1.0/messages/{message_model_identifier}",
+            content_type="application/json",
+            headers=logged_in_headers(user),
+            data=json.dumps({"payload": payload}),
+        )
+        assert response.status_code == 200
+        json_data = response.json
+        assert json_data
+        assert json_data["status"] == "complete"
+        process_instance_id = json_data["id"]
+        process_instance = ProcessInstanceModel.query.filter_by(
+            id=process_instance_id
+        ).first()
+        assert process_instance
+
+        processor = ProcessInstanceProcessor(process_instance)
+        process_instance_data = processor.get_data()
+        assert process_instance_data
+        assert process_instance_data["the_payload"] == payload
+
+    def test_message_start_when_providing_message_to_running_process_instance(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        """Test_message_start_when_providing_message_to_running_process_instance."""
+        process_model = load_test_spec("message_sender")
+        user = self.find_or_create_user()
+        message_model_identifier = "message_response"
+        payload = {
+            "the_payload": {
+                "topica": "the_payload.topica_string",
+                "topicb": "the_payload.topicb_string",
+                "andThis": "another_item_non_key",
+            }
+        }
+        response = self.create_process_instance(
+            client,
+            process_model.process_group_id,
+            process_model.id,
+            logged_in_headers(user),
+        )
+        assert response.json is not None
+        process_instance_id = response.json["id"]
+
+        response = client.post(
+            f"/v1.0/process-models/{process_model.process_group_id}/"
+            f"{process_model.id}/process-instances/{process_instance_id}/run",
+            headers=logged_in_headers(user),
+        )
+
+        assert response.json is not None
+
+        response = client.post(
+            f"/v1.0/messages/{message_model_identifier}",
+            content_type="application/json",
+            headers=logged_in_headers(user),
+            data=json.dumps(
+                {"payload": payload, "process_instance_id": process_instance_id}
+            ),
+        )
+        assert response.status_code == 200
+        json_data = response.json
+        assert json_data
+        assert json_data["status"] == "complete"
+        process_instance_id = json_data["id"]
+        process_instance = ProcessInstanceModel.query.filter_by(
+            id=process_instance_id
+        ).first()
+        assert process_instance
+
+        processor = ProcessInstanceProcessor(process_instance)
+        process_instance_data = processor.get_data()
+        assert process_instance_data
+        assert process_instance_data["the_payload"] == payload
+
+    def test_process_instance_can_be_terminated(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        """Test_message_start_when_providing_message_to_running_process_instance."""
+        # this task will wait on a catch event
+        process_model = load_test_spec("message_sender")
+        user = self.find_or_create_user()
+        response = self.create_process_instance(
+            client,
+            process_model.process_group_id,
+            process_model.id,
+            logged_in_headers(user),
+        )
+        assert response.json is not None
+        process_instance_id = response.json["id"]
+
+        response = client.post(
+            f"/v1.0/process-models/{process_model.process_group_id}/"
+            f"{process_model.id}/process-instances/{process_instance_id}/run",
+            headers=logged_in_headers(user),
+        )
+        assert response.status_code == 200
+        assert response.json is not None
+
+        response = client.post(
+            f"/v1.0/process-models/{process_model.process_group_id}/"
+            f"{process_model.id}/process-instances/{process_instance_id}/terminate",
+            headers=logged_in_headers(user),
+        )
+        assert response.status_code == 200
+        assert response.json is not None
+
+        process_instance = ProcessInstanceModel.query.filter_by(
+            id=process_instance_id
+        ).first()
+        assert process_instance
+        assert process_instance.status == "terminated"
+
     def test_process_instance_delete(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
@@ -927,7 +1056,7 @@ class TestProcessApi(BaseTest):
         )
         assert type(process_instance_dict["start_in_seconds"]) is int
         assert process_instance_dict["start_in_seconds"] > 0
-        assert process_instance_dict["status"] == "waiting"
+        assert process_instance_dict["status"] == "complete"
 
     def test_process_instance_report_show_with_dynamic_filter_and_query_param(
         self,

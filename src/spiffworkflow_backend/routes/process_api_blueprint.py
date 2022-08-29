@@ -26,6 +26,11 @@ from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
 from spiffworkflow_backend.models.active_task import ActiveTaskModel
 from spiffworkflow_backend.models.file import FileSchema
 from spiffworkflow_backend.models.file import FileType
+from spiffworkflow_backend.models.message_instance import MessageInstanceModel
+from spiffworkflow_backend.models.message_model import MessageModel
+from spiffworkflow_backend.models.message_triggerable_process_model import (
+    MessageTriggerableProcessModel,
+)
 from spiffworkflow_backend.models.principal import PrincipalModel
 from spiffworkflow_backend.models.process_group import ProcessGroupSchema
 from spiffworkflow_backend.models.process_instance import ProcessInstanceApiSchema
@@ -37,6 +42,7 @@ from spiffworkflow_backend.models.process_instance_report import (
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
 from spiffworkflow_backend.services.error_handling_service import ErrorHandlingService
+from spiffworkflow_backend.services.message_service import MessageService
 from spiffworkflow_backend.services.process_instance_processor import (
     ProcessInstanceProcessor,
 )
@@ -87,7 +93,7 @@ def process_group_update(
 
 def process_groups_list(page: int = 1, per_page: int = 100) -> flask.wrappers.Response:
     """Process_groups_list."""
-    process_groups = sorted(ProcessModelService().get_process_groups())
+    process_groups = ProcessModelService().get_process_groups()
     batch = ProcessModelService().get_batch(
         items=process_groups, page=page, per_page=per_page
     )
@@ -190,7 +196,7 @@ def process_model_list(
     process_group_id: str, page: int = 1, per_page: int = 100
 ) -> flask.wrappers.Response:
     """Process model list!"""
-    process_models = sorted(ProcessModelService().get_process_models(process_group_id))
+    process_models = ProcessModelService().get_process_models(process_group_id)
     batch = ProcessModelService().get_batch(
         process_models, page=page, per_page=per_page
     )
@@ -325,6 +331,105 @@ def process_instance_run(
     process_instance_metadata["data"] = process_instance_data
     return Response(
         json.dumps(process_instance_metadata), status=200, mimetype="application/json"
+    )
+
+
+def process_instance_terminate(
+    process_group_id: str,
+    process_model_id: str,
+    process_instance_id: int,
+    do_engine_steps: bool = True,
+) -> flask.wrappers.Response:
+    """Process_instance_run."""
+    process_instance = ProcessInstanceService().get_process_instance(
+        process_instance_id
+    )
+    processor = ProcessInstanceProcessor(process_instance)
+    processor.terminate()
+    return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
+
+
+# body: {
+#   payload: dict,
+#   process_instance_id: Optional[int],
+# }
+def message_start(
+    message_identifier: str,
+    body: Dict[str, Any],
+) -> flask.wrappers.Response:
+    """Message_start."""
+    message_model = MessageModel.query.filter_by(identifier=message_identifier).first()
+    if message_model is None:
+        raise (
+            ApiError(
+                code="unknown_message",
+                message=f"Could not find message with identifier: {message_identifier}",
+                status_code=404,
+            )
+        )
+
+    if "payload" not in body:
+        raise (
+            ApiError(
+                code="missing_payload",
+                message="Body is missing payload.",
+                status_code=400,
+            )
+        )
+
+    process_instance = None
+    if "process_instance_id" in body:
+        # to make sure we have a valid process_instance_id
+        process_instance = find_process_instance_by_id_or_raise(
+            body["process_instance_id"]
+        )
+
+        message_instance = MessageInstanceModel.query.filter_by(
+            process_instance_id=process_instance.id,
+            message_model_id=message_model.id,
+            message_type="receive",
+            status="ready",
+        ).first()
+        if message_instance is None:
+            raise (
+                ApiError(
+                    code="cannot_find_waiting_message",
+                    message=f"Could not find waiting message for identifier {message_identifier} "
+                    f"and process instance {process_instance.id}",
+                    status_code=400,
+                )
+            )
+        MessageService.process_message_receive(
+            message_instance, message_model.name, body["payload"]
+        )
+
+    else:
+        message_triggerable_process_model = (
+            MessageTriggerableProcessModel.query.filter_by(
+                message_model_id=message_model.id
+            ).first()
+        )
+
+        if message_triggerable_process_model is None:
+            raise (
+                ApiError(
+                    code="cannot_start_message",
+                    message=f"Message with identifier cannot be start with message: {message_identifier}",
+                    status_code=400,
+                )
+            )
+
+        process_instance = MessageService.process_message_triggerable_process_model(
+            message_triggerable_process_model,
+            message_model.name,
+            body["payload"],
+            g.user,
+        )
+
+    return Response(
+        json.dumps(ProcessInstanceModelSchema().dump(process_instance)),
+        status=200,
+        mimetype="application/json",
     )
 
 

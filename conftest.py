@@ -78,6 +78,10 @@ def setup_process_instances_for_reports() -> list[ProcessInstanceModel]:
         )
         processor = ProcessInstanceProcessor(process_instance)
         processor.slam_in_data(data)
+        process_instance.status = "complete"
+        db.session.add(process_instance)
+        db.session.commit()
+
         process_instances.append(process_instance)
 
     return process_instances

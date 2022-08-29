@@ -15,6 +15,9 @@ def main():
     from spiffworkflow_backend.services.process_instance_service import (
         ProcessInstanceService,
     )
+    from spiffworkflow_backend.models.process_instance_report import (
+        ProcessInstanceReportModel,
+    )
 
     process_model_identifier_ticket = "ticket"
     db.session.query(ProcessInstanceModel).filter(
@@ -42,7 +45,7 @@ def main():
     }
     columns_to_header_index_mappings = {}
 
-    user = UserModel.query.filter_by(username="test_user1").first()
+    user = UserModel.query.first()
 
     with open("tests/files/tickets.csv") as infile:
         reader = csv.reader(infile, delimiter=",")
@@ -96,6 +99,9 @@ def main():
 
                 process_instance_data = processor.get_data()
                 print(f"process_instance_data: {process_instance_data}")
+
+    ProcessInstanceReportModel.add_fixtures()
+    print("added report fixtures")
 
 
 main()

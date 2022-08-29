@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1ny7jp4" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.0.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.17.0">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:spiffworkflow="http://spiffworkflow.org/bpmn/schema/1.0/core" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1ny7jp4" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.0.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.17.0">
   <bpmn:process id="sample" isExecutable="true">
     <bpmn:startEvent id="StartEvent_1">
       <bpmn:outgoing>Flow_10jwwqy</bpmn:outgoing>
@@ -17,7 +17,10 @@ Mike = "Awesome"
 person = "Kevin"</bpmn:script>
     </bpmn:scriptTask>
     <bpmn:sequenceFlow id="Flow_1hd6o66" sourceRef="Activity_0a21ntf" targetRef="Event_1qb1u6a" />
-    <bpmn:businessRuleTask id="Activity_0a21ntf" name="is wonderful?" camunda:decisionRef="wonderful">
+    <bpmn:businessRuleTask id="Activity_0a21ntf" name="is wonderful?">
+      <bpmn:extensionElements>
+        <spiffworkflow:calledDecisionId>wonderful</spiffworkflow:calledDecisionId>
+      </bpmn:extensionElements>
       <bpmn:incoming>Flow_0htxke7</bpmn:incoming>
       <bpmn:outgoing>Flow_1hd6o66</bpmn:outgoing>
     </bpmn:businessRuleTask>

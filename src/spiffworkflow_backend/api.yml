@@ -171,7 +171,7 @@ paths:
               $ref: "#/components/schemas/WorkflowSpecCategory"
       responses:
         "201":
-          description: Workflow spec category
+          description: Processs Group
           content:
             application/json:
               schema:
@@ -193,7 +193,7 @@ paths:
         - Process Groups
       responses:
         "200":
-          description: Workflow spec category.
+          description: Processs Group.
           content:
             application/json:
               schema:
@@ -561,6 +561,39 @@ paths:
               schema:
                 $ref: "#/components/schemas/Workflow"
 
+  /process-models/{process_group_id}/{process_model_id}/process-instances/{process_instance_id}/terminate:
+    parameters:
+      - name: process_group_id
+        in: path
+        required: true
+        description: The unique id of an existing process group
+        schema:
+          type: string
+      - name: process_model_id
+        in: path
+        required: true
+        description: The unique id of an existing workflow specification.
+        schema:
+          type: string
+      - name: process_instance_id
+        in: path
+        required: true
+        description: The unique id of an existing process instance.
+        schema:
+          type: integer
+    post:
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.process_instance_terminate
+      summary: Terminate a process instance
+      tags:
+        - Process Instances
+      responses:
+        "200":
+          description: Empty ok true response on successful termination.
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/OkTrue"
+
   /process-models/{process_group_id}/{process_model_id}/process-instances/reports:
     parameters:
       - name: process_group_id
@@ -879,6 +912,32 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/OkTrue"
+
+  /messages/{message_identifier}:
+    parameters:
+      - name: message_identifier
+        in: path
+        required: true
+        description: The unique identifier of the message model.
+        schema:
+          type: string
+    post:
+      tags:
+        - Messages
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.message_start
+      summary: Instantiate and run a given process model with a message start event matching given identifier
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Workflow"
+      responses:
+        "200":
+          description: One task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Workflow"
 
 components:
   securitySchemes:

@@ -16,6 +16,7 @@ from SpiffWorkflow.util.deep_merge import DeepMerge  # type: ignore
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import deferred
 from sqlalchemy.orm import relationship
+from sqlalchemy.orm import validates
 
 from spiffworkflow_backend.helpers.spiff_enum import SpiffEnum
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
@@ -77,6 +78,7 @@ class ProcessInstanceStatus(SpiffEnum):
     complete = "complete"
     faulted = "faulted"
     suspended = "suspended"
+    terminated = "terminated"
 
 
 class ProcessInstanceModel(SpiffworkflowBaseDBModel):
@@ -129,6 +131,11 @@ class ProcessInstanceModel(SpiffworkflowBaseDBModel):
         serialized_top_level_attributes = self.serialized
         serialized_top_level_attributes.pop("data", None)
         return cast(dict, DeepMerge.merge(self.data, serialized_top_level_attributes))
+
+    @validates("status")
+    def validate_status(self, key: str, value: Any) -> Any:
+        """Validate_status."""
+        return self.validate_enum_field(key, value, ProcessInstanceStatus)
 
 
 class ProcessInstanceModelSchema(Schema):

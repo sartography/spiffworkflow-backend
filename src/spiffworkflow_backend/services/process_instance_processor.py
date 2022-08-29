@@ -753,9 +753,30 @@ class ProcessInstanceProcessor:
         """Complete_task."""
         self.bpmn_process_instance.complete_task_from_id(task.id)
 
-    def get_data(self) -> dict[str, str]:
+    def get_data(self) -> dict[str, Any]:
         """Get_data."""
         return self.bpmn_process_instance.data  # type: ignore
+
+    def get_current_data(self) -> dict[str, Any]:
+        """Get the current data for the process.
+
+        Return either most recent task data or the process data
+        if the process instance is complete
+        """
+        if self.process_instance_model.status == "complete":
+            return self.get_data()
+
+        most_recent_task = None
+        for task in self.get_all_ready_or_waiting_tasks():
+            if most_recent_task is None:
+                most_recent_task = task
+            elif most_recent_task.last_state_change < task.last_state_change:  # type: ignore
+                most_recent_task = task
+
+        if most_recent_task:
+            return most_recent_task.data  # type: ignore
+
+        return {}
 
     def get_process_instance_id(self) -> int:
         """Get_process_instance_id."""
@@ -847,3 +868,11 @@ class ProcessInstanceProcessor:
             "invalid_spec",
             f"Unable to find a task in the process_instance called '{spec_name}'",
         )
+
+    def terminate(self) -> None:
+        """Terminate."""
+        self.bpmn_process_instance.cancel()
+        self.save()
+        self.process_instance_model.status = "terminated"
+        db.session.add(self.process_instance_model)
+        db.session.commit()

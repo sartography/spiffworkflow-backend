@@ -16,7 +16,6 @@ from spiffworkflow_backend.services.process_instance_processor import (
 from spiffworkflow_backend.services.process_instance_service import (
     ProcessInstanceService,
 )
-from spiffworkflow_backend.services.user_service import UserService
 
 
 class TestMessageService(BaseTest):
@@ -28,13 +27,11 @@ class TestMessageService(BaseTest):
         """Test_can_send_message_to_waiting_message."""
         process_model_sender = load_test_spec("message_sender")
         load_test_spec("message_receiver")
-        system_user = UserService().find_or_create_user(
-            service="internal", service_id="system_user"
-        )
+        user = self.find_or_create_user()
 
         process_instance_sender = ProcessInstanceService.create_process_instance(
             process_model_sender.id,
-            system_user,
+            user,
             process_group_identifier=process_model_sender.process_group_id,
         )
         processor_sender = ProcessInstanceProcessor(process_instance_sender)
@@ -77,7 +74,7 @@ class TestMessageService(BaseTest):
         )
 
         # process first message
-        MessageService().process_message_instances()
+        MessageService.process_message_instances()
         assert message_instance_sender.status == "completed"
 
         process_instance_result = ProcessInstanceModel.query.all()
@@ -96,7 +93,7 @@ class TestMessageService(BaseTest):
         assert message_instance_receiver.status == "ready"
 
         # process second message
-        MessageService().process_message_instances()
+        MessageService.process_message_instances()
 
         message_instance_result = MessageInstanceModel.query.all()
         assert len(message_instance_result) == 3

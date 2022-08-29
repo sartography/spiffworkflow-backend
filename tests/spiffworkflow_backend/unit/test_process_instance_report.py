@@ -117,7 +117,7 @@ def test_generate_report_with_columns(
     }
     results = do_report_with_metadata_and_instances(report_metadata, process_instances)
     assert len(results) == 1
-    assert results == [{"name": "ray", "status": "waiting"}]
+    assert results == [{"name": "ray", "status": "complete"}]
 
 
 def do_report_with_metadata_and_instances(
