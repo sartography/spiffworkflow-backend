@@ -30,6 +30,7 @@ werkzeug = "*"
 #spiffworkflow = {git = "https://github.com/sartography/SpiffWorkflow", rev = "feature/message-correlations"}
 # spiffworkflow = {develop = true, path = "/home/jason/projects/github/sartography/SpiffWorkflow"}
 spiffworkflow = {develop = true, path = "/home/jon/projects/github/sartography/SpiffWorkflow"}
+#spiffworkflow = {git = "https://github.com/sartography/SpiffWorkflow", rev = "main"}
 sentry-sdk = "1.9.0"
 sphinx-autoapi = "^1.8.4"
 # flask-bpmn = {develop = true, path = "/home/jason/projects/github/sartography/flask-bpmn"}
