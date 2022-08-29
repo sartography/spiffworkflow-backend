@@ -1436,7 +1436,7 @@ pycryptodome = ["pyasn1", "pycryptodome (>=3.3.1,<4.0.0)"]
 
 [[package]]
 name = "python-keycloak"
-version = "1.9.1"
+version = "2.5.0"
 description = "python-keycloak is a Python package providing access to the Keycloak API."
 category = "main"
 optional = false
@@ -1445,6 +1445,7 @@ python-versions = ">=3.7,<4.0"
 [package.dependencies]
 python-jose = ">=3.3.0,<4.0.0"
 requests = ">=2.20.0,<3.0.0"
+requests-toolbelt = ">=0.9.1,<0.10.0"
 urllib3 = ">=1.26.0,<2.0.0"
 
 [package.extras]
@@ -1524,6 +1525,17 @@ urllib3 = ">=1.21.1,<1.27"
 [package.extras]
 socks = ["PySocks (>=1.5.6,!=1.5.7)"]
 use_chardet_on_py3 = ["chardet (>=3.0.2,<5)"]
+
+[[package]]
+name = "requests-toolbelt"
+version = "0.9.1"
+description = "A utility belt for advanced users of python-requests"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+requests = ">=2.0.1,<3.0.0"
 
 [[package]]
 name = "restructuredtext-lint"
@@ -2145,7 +2157,7 @@ testing = ["func-timeout", "jaraco.itertools", "pytest (>=6)", "pytest-black (>=
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "2bd45c1aaf4b21c2b1384902f66c5c9c59f44e383ce3769c44156a0dbeea768d"
+content-hash = "e395233463dec69fa7870815ff342096d7de3ea8899c54eac61ba334ff0b1c73"
 
 [metadata.files]
 alabaster = [
@@ -3011,8 +3023,8 @@ python-jose = [
     {file = "python_jose-3.3.0-py2.py3-none-any.whl", hash = "sha256:9b1376b023f8b298536eedd47ae1089bcdb848f1535ab30555cd92002d78923a"},
 ]
 python-keycloak = [
-    {file = "python-keycloak-1.9.1.tar.gz", hash = "sha256:f13ad45d99449c34be5c94122fae00334bef7b672dfd1e222971e77e3aa2ea7a"},
-    {file = "python_keycloak-1.9.1-py3-none-any.whl", hash = "sha256:e368a77733136f9796de85e1778f84f2a743fae88d8aab63fa4f24c5ac2fb360"},
+    {file = "python-keycloak-2.5.0.tar.gz", hash = "sha256:b401d2c67dc1b9e2dbb3309ef2012c2d178584925dc14bd07f6bd2416e5e3ff8"},
+    {file = "python_keycloak-2.5.0-py3-none-any.whl", hash = "sha256:ed1c1935ceaf5d7f928b1b3ab945130f7d54685e4b17da053dbc7bfee0c0271e"},
 ]
 pytz = [
     {file = "pytz-2022.1-py2.py3-none-any.whl", hash = "sha256:e68985985296d9a66a881eb3193b0906246245294a881e7c8afe623866ac6a5c"},
@@ -3144,6 +3156,10 @@ reorder-python-imports = [
 requests = [
     {file = "requests-2.28.0-py3-none-any.whl", hash = "sha256:bc7861137fbce630f17b03d3ad02ad0bf978c844f3536d0edda6499dafce2b6f"},
     {file = "requests-2.28.0.tar.gz", hash = "sha256:d568723a7ebd25875d8d1eaf5dfa068cd2fc8194b2e483d7b1f7c81918dbec6b"},
+]
+requests-toolbelt = [
+    {file = "requests-toolbelt-0.9.1.tar.gz", hash = "sha256:968089d4584ad4ad7c171454f0a5c6dac23971e9472521ea3b6d49d610aa6fc0"},
+    {file = "requests_toolbelt-0.9.1-py2.py3-none-any.whl", hash = "sha256:380606e1d10dc85c3bd47bf5a6095f815ec007be7a8b69c878507068df059e6f"},
 ]
 restructuredtext-lint = [
     {file = "restructuredtext_lint-1.4.0.tar.gz", hash = "sha256:1b235c0c922341ab6c530390892eb9e92f90b9b75046063e047cacfb0f050c45"},
