@@ -1,8 +1,8 @@
 """Example_data."""
 import glob
 import os
-
 from typing import Optional
+
 from flask import current_app
 
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
@@ -53,24 +53,36 @@ class ExampleDataLoader:
         if not bpmn_file_name_with_extension:
             bpmn_file_name_with_extension = process_model_id
 
-        if not bpmn_file_name_with_extension.endswith('.bpmn'):
-            bpmn_file_name_with_extension += '.bpmn'
+        if not bpmn_file_name_with_extension.endswith(".bpmn"):
+            bpmn_file_name_with_extension += ".bpmn"
 
         process_model_source_directory_to_use = process_model_source_directory
         if not process_model_source_directory_to_use:
             process_model_source_directory_to_use = process_model_id
 
-        file_name_matcher = '*.*'
+        file_name_matcher = "*.*"
         if bpmn_file_name:
             file_name_matcher = bpmn_file_name_with_extension
 
         file_glob = ""
         if from_tests:
             file_glob = os.path.join(
-                current_app.instance_path, "..", "..", "tests", "data", process_model_source_directory_to_use, file_name_matcher
+                current_app.instance_path,
+                "..",
+                "..",
+                "tests",
+                "data",
+                process_model_source_directory_to_use,
+                file_name_matcher,
             )
         else:
-            file_glob = os.path.join(current_app.root_path, "static", "bpmn", process_model_source_directory_to_use, file_name_matcher)
+            file_glob = os.path.join(
+                current_app.root_path,
+                "static",
+                "bpmn",
+                process_model_source_directory_to_use,
+                file_name_matcher,
+            )
 
         files = glob.glob(file_glob)
         for file_path in files:

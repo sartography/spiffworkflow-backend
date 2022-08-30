@@ -39,8 +39,8 @@ class MessageInstanceModel(SpiffworkflowBaseDBModel):
     __tablename__ = "message_instance"
 
     id = db.Column(db.Integer, primary_key=True)
-    process_instance_id = db.Column(ForeignKey(ProcessInstanceModel.id), nullable=False)  # type: ignore
-    message_model_id = db.Column(ForeignKey(MessageModel.id), nullable=False)
+    process_instance_id: int = db.Column(ForeignKey(ProcessInstanceModel.id), nullable=False)  # type: ignore
+    message_model_id: int = db.Column(ForeignKey(MessageModel.id), nullable=False)
     message_model = relationship("MessageModel")
 
     message_type = db.Column(db.String(20), nullable=False)
