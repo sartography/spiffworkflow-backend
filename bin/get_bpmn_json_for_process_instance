@@ -1,3 +1,4 @@
+"""Get the bpmn process json for a given process instance id and store it in /tmp."""
 #!/usr/bin/env python
 import os
 import sys
@@ -7,6 +8,7 @@ from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 
 
 def main(process_instance_id: str):
+    """Main."""
     os.environ["FLASK_ENV"] = "development"
     flask_env_key = "FLASK_SESSION_SECRET_KEY"
     os.environ[flask_env_key] = "whatevs"
