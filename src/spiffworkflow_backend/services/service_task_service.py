@@ -65,7 +65,7 @@ class ServiceTaskService:
     #type OperatorParm = Dict[k in [name, parameter], str]
 
     @classmethod
-    def available_operators(cls) -> [Dict[str, Union[str, list[OperatorParam]]:
+    def available_operators(cls):
         # TODO do we define models to add types?
         available_operators = [{
             "name": name, 
