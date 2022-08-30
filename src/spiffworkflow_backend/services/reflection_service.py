@@ -55,7 +55,18 @@ class ReflectionService:
                 yield clz_name, clz
 
     @staticmethod
-    def _parse_operator_params(c: Callable) -> list[ParameterDescription]:
+    def _param_annotation_desc(param: inspect.Parameter) -> str:
+        annotation = param.annotation
+        if annotation == param.empty:
+            return "any"
+        if type(annotation) == type:
+            return annotation.__name__
+
+        # TODO parse the hairy ones
+        return str(annotation)
+
+    @staticmethod
+    def callable_params_desc(c: Callable) -> list[ParameterDescription]:
         """Parses the signature of a callable and returns a description of each parameter."""
 
         sig = inspect.signature(c)
@@ -66,7 +77,7 @@ class ReflectionService:
         params = [{
             "id": param.name, 
             # TODO parsing to better fill out these two fields
-            "type": str(param.annotation), 
+            "type": ReflectionService._param_annotation_desc(param), 
             "required": True 
         } for param in params]
 

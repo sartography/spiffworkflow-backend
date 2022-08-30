@@ -26,9 +26,13 @@ def test_can_find_classes_of_type_base_test(
 def bob(sam:str = "sue") -> None:
     return None
 
-def test_XXX(
+def test_can_describe_bobs_params(
     app: Flask, with_db_and_bpmn_file_cleanup: None
 ) -> None:
-    #print(ast.dump(bob.__code__))
-    pass
+    param_descs = ReflectionService.callable_params_desc(bob)
+    assert len(param_descs) == 1
+
+    assert param_descs[0]['id'] == 'sam'
+    assert param_descs[0]['type'] == 'str'
+    assert param_descs[0]['required'] == True
 

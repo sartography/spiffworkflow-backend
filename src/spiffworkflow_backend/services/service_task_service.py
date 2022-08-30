@@ -6,16 +6,11 @@ import pkgutil
 import sys
 from typing import Any, Generator, TypedDict
 
-from spiffworkflow_backend.services.reflection_service import ReflectionService
-
-class OperatorParameter(TypedDict):
-    id: str
-    type: str
-    required: bool
+from spiffworkflow_backend.services.reflection_service import ParameterDescription, ReflectionService
 
 class Operator(TypedDict):
     id: str
-    parameters: list[OperatorParameter]
+    parameters: list[ParameterDescription]
 
 OperatorClass = Any
 OperatorClassGenerator = Generator[tuple[str, OperatorClass], None, None]
@@ -36,22 +31,10 @@ class ServiceTaskService:
             pass
 
     @staticmethod
-    def _parse_operator_params(operator_class) -> list[OperatorParameter]:
+    def _parse_operator_params(operator_class) -> list[ParameterDescription]:
         """Parses the init of the given operator_class to build a list of OperatorParameters."""
 
-        init_sig = inspect.signature(operator_class.__init__)
-        params_to_skip = ['self', 'kwargs']
-        params = filter(lambda param: param.name not in params_to_skip, init_sig.parameters.values())
-        # TODO remove iterable, take inner type
-        # TODO on union form set of types
-        params = [{
-            "id": param.name, 
-            # TODO parsing to better fill out these two fields
-            "type": str(param.annotation), 
-            "required": True 
-        } for param in params]
-
-        return params
+        return ReflectionService.callable_params_desc(operator_class.__init__)
 
     @classmethod
     def available_operator_classes(cls) -> OperatorClassGenerator:
