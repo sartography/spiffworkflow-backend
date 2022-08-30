@@ -4,7 +4,9 @@ import time
 from typing import Any
 from typing import Dict
 from typing import List
+from typing import NewType
 from typing import Optional
+from typing import Tuple
 from typing import Union
 
 from flask import current_app
@@ -117,11 +119,16 @@ class MyCustomParser(BpmnDmnParser):  # type: ignore
     OVERRIDE_PARSER_CLASSES.update(SpiffBpmnParser.OVERRIDE_PARSER_CLASSES)
 
 
+IdToBpmnProcessSpecMapping = NewType(
+    "IdToBpmnProcessSpecMapping", dict[str, BpmnProcessSpec]
+)
+
+
 class ProcessInstanceProcessor:
     """ProcessInstanceProcessor."""
 
     _script_engine = CustomBpmnScriptEngine()
-    SERIALIZER_VERSION = "1.0-CRC"
+    SERIALIZER_VERSION = "1.0-spiffworkflow-backend"
     wf_spec_converter = BpmnWorkflowSerializer.configure_workflow_spec_converter(
         [
             BoundaryEventConverter,
@@ -145,6 +152,9 @@ class ProcessInstanceProcessor:
     PROCESS_INSTANCE_ID_KEY = "process_instance_id"
     VALIDATION_PROCESS_KEY = "validate_only"
 
+    # __init__ calls these helpers:
+    #   * get_spec, which returns a spec and any subprocesses (as IdToBpmnProcessSpecMapping dict)
+    #   * __get_bpmn_process_instance, which takes spec and subprocesses and instantiates and returns a BpmnWorkflow
     def __init__(
         self, process_instance_model: ProcessInstanceModel, validate_only: bool = False
     ) -> None:
@@ -152,6 +162,7 @@ class ProcessInstanceProcessor:
         self.process_instance_model = process_instance_model
         self.process_model_service = ProcessModelService()
         spec = None
+        subprocesses: Optional[IdToBpmnProcessSpecMapping] = None
         if process_instance_model.bpmn_json is None:
             spec_info = self.process_model_service.get_process_model(
                 process_instance_model.process_model_identifier
@@ -166,7 +177,7 @@ class ProcessInstanceProcessor:
             self.spec_files = SpecFileService.get_files(
                 spec_info, include_libraries=True
             )
-            spec = self.get_spec(self.spec_files, spec_info)
+            (spec, subprocesses) = self.get_spec(self.spec_files, spec_info)
         else:
             bpmn_json_length = len(process_instance_model.bpmn_json.encode("utf-8"))
             megabyte = float(1024**2)
@@ -220,7 +231,7 @@ class ProcessInstanceProcessor:
 
         try:
             self.bpmn_process_instance = self.__get_bpmn_process_instance(
-                process_instance_model, spec, validate_only
+                process_instance_model, spec, validate_only, subprocesses=subprocesses
             )
             self.bpmn_process_instance.script_engine = self._script_engine
 
@@ -322,6 +333,7 @@ class ProcessInstanceProcessor:
         process_instance_model: ProcessInstanceModel,
         spec: WorkflowSpec = None,
         validate_only: bool = False,
+        subprocesses: Optional[IdToBpmnProcessSpecMapping] = None,
     ) -> BpmnWorkflow:
         """__get_bpmn_process_instance."""
         if process_instance_model.bpmn_json:
@@ -343,7 +355,9 @@ class ProcessInstanceProcessor:
             )
         else:
             bpmn_process_instance = BpmnWorkflow(
-                spec, script_engine=ProcessInstanceProcessor._script_engine
+                spec,
+                script_engine=ProcessInstanceProcessor._script_engine,
+                subprocess_specs=subprocesses,
             )
             bpmn_process_instance.data[
                 ProcessInstanceProcessor.VALIDATION_PROCESS_KEY
@@ -436,7 +450,7 @@ class ProcessInstanceProcessor:
     @staticmethod
     def get_spec(
         files: List[File], process_model_info: ProcessModelInfo
-    ) -> BpmnProcessSpec:
+    ) -> Tuple[BpmnProcessSpec, IdToBpmnProcessSpecMapping]:
         """Returns a SpiffWorkflow specification for the given process_instance spec, using the files provided."""
         parser = ProcessInstanceProcessor.get_parser()
 
@@ -461,6 +475,11 @@ class ProcessInstanceProcessor:
             )
         try:
             spec = parser.get_spec(process_model_info.primary_process_id)
+
+            # returns a dict of {process_id: spec}, otherwise known as an IdToBpmnProcessSpecMapping
+            subprocesses = parser.get_subprocess_specs(
+                process_model_info.primary_process_id
+            )
         except ValidationException as ve:
             raise ApiError(
                 code="process_instance_validation_error",
@@ -470,7 +489,7 @@ class ProcessInstanceProcessor:
                 task_id=ve.id,
                 tag=ve.tag,
             ) from ve
-        return spec
+        return (spec, subprocesses)
 
     @staticmethod
     def status_of(bpmn_process_instance: BpmnWorkflow) -> ProcessInstanceStatus:
