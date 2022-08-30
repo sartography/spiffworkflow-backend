@@ -14,7 +14,7 @@ class OperatorParameter(TypedDict):
     required: bool
 
 class Operator(TypedDict):
-    name: str
+    id: str
     parameters: list[OperatorParameter]
 
 OperatorClass = Any
@@ -66,7 +66,7 @@ class ServiceTaskService:
         a service task."""
 
         available_operators = [{
-            "name": operator_name, 
+            "id": operator_name, 
             "parameters": cls._parse_operator_params(operator_class)
         } for operator_name, operator_class in cls.available_operator_classes()]
 
