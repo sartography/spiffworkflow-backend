@@ -19,52 +19,40 @@ class SlackWebhookOperator:
         pass
 
 # TODO these could be moved to a more generic location
-def _submodules_of(pkg):
+def _modules_in_pkg(pkg):
     for finder, name, ispkg in pkgutil.iter_modules(pkg.__path__):
-        if not ispkg:
-            print('** ' + name)
-            try:
-                spec = finder.find_spec(name)
-                mod = types.ModuleType(spec.name)
-                spec.loader.exec_module(mod)
-                for n, o in inspect.getmembers(mod):
-                    if inspect.isclass(o):
-                        print('$$ ' + n)
-            except:
-                pass
+        if ispkg:
+            # TODO couldn't get this to work with exec_module
+            sub_pkg = finder.find_module(name).load_module(name)
+            yield from _modules_in_pkg(sub_pkg)
             continue
-        submodule = finder.find_module(name).load_module(name)
-        yield from _submodules_of(submodule)
-        yield submodule, name
+        try:
+            spec = finder.find_spec(name)
+            module = types.ModuleType(spec.name)
+            spec.loader.exec_module(module)
+            yield name, module
+        except:
+            pass
 
-def _import_submodules_of(pkg):
-    for submodule, name in _submodules_of(pkg):
-        print(name)
-        #x = __import__(name)
-        #x = importlib.import_module(name)
-        #print(submodule)
-        #print(x)
-        for n, o in inspect.getmembers(submodule):
-            if inspect.isclass(o):
-                print('** ' + n)
-                continue
-            #print('$ ' + submodule['__path__'])
-    print('hi')
+def _classes_in_pkg(pkg):
+    for module_name, module in _modules_in_pkg(pkg):
+        for clz_name, clz in inspect.getmembers(module, inspect.isclass):
+            if clz.__module__ == module_name:
+                yield clz_name, clz
 
-def _classes_in(pkg):
-    for submodule, name in _submodules_of(pkg):
-        pass
-        #print(name)
-        #print(dir(submodule))
-        #print(submodule.__dict__)
-        #for k, v in submodule.__dict__.items():
-        #    print(k)
+def _classes_of_type_in_pkg(pkg, clz_type):
+    for clz_name, clz in _classes_in_pkg(pkg):
+        if isinstance(clz, clz_type):
+            yield clz_name, clz
 
 def _import_airflow_operators():
     import airflow.providers
+    from airflow.models import BaseOperator
     #from airflow.providers.slack.operators.slack_webhook import SlackWebhookOperator
     #import airflow.providers.slack.operators.slack_webhook
-    _classes_in(airflow.providers)
+    x = list(_classes_of_type_in_pkg(airflow.providers, type(BaseOperator)))
+    print(x)
+    print(len(x))
 
 class ServiceTaskService:
 
