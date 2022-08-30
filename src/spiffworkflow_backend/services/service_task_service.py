@@ -1,4 +1,5 @@
 """ServiceTask_service."""
+import ast
 import importlib
 import inspect
 import pkgutil
@@ -29,7 +30,7 @@ class ServiceTaskService:
         try:
             import airflow.providers
             from airflow.models import BaseOperator
-            # TODO filter only operators with no subclasses
+            # TODO filter operators - __subclasses__() check didn't pan out immediately
             yield from DiscoveryService.classes_of_type_in_pkg(airflow.providers, type(BaseOperator))
         except:
             pass
@@ -43,7 +44,13 @@ class ServiceTaskService:
         params = filter(lambda param: param.name not in params_to_skip, init_sig.parameters.values())
         # TODO remove iterable, take inner type
         # TODO on union form set of types
-        params = [{"name": param.name, "type": str(param.annotation), "required": True } for param in params]
+        params = [{
+            "name": param.name, 
+            # TODO parsing to better fill out these two fields
+            "type": str(param.annotation), 
+            "required": True 
+        } for param in params]
+
         return params
 
     @classmethod
