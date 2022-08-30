@@ -46,8 +46,11 @@ class ServiceTaskService:
 
     @staticmethod
     def _infer_operator_params(operator_class):
-        # TODO
-        return []
+        init_sig = inspect.signature(operator_class.__init__)
+        params_to_skip = ['self', 'kwargs']
+        params = filter(lambda param: param.name not in params_to_skip, init_sig.parameters.values())
+        params = [{"name": param.name, "type": str(param.annotation) } for param in params]
+        return params
 
     @classmethod
     def available_operator_classes(cls):
