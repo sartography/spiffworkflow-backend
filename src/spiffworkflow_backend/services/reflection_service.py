@@ -1,4 +1,4 @@
-"""Discovery_service."""
+"""Reflection_service."""
 import importlib
 import inspect
 import pkgutil
@@ -10,8 +10,8 @@ DiscoveredModule = Any
 DiscoveredClassGenerator = Generator[tuple[str, DiscoveredClass], None, None]
 DiscoveredModuleGenerator = Generator[tuple[str, DiscoveredModule], None, None]
 
-class DiscoveryService:
-    """Discovers classes and modules within a given package."""
+class ReflectionService:
+    """Utilities to aid in reflection."""
     
     @staticmethod
     def modules_in_pkg(pkg) -> DiscoveredModuleGenerator:
@@ -21,7 +21,7 @@ class DiscoveryService:
             if ispkg:
                 # TODO couldn't get this to work with exec_module
                 sub_pkg = finder.find_module(name).load_module(name)
-                yield from DiscoveryService.modules_in_pkg(sub_pkg)
+                yield from ReflectionService.modules_in_pkg(sub_pkg)
                 continue
             try:
                 spec = finder.find_spec(name)
@@ -35,7 +35,7 @@ class DiscoveryService:
     def classes_in_pkg(pkg) -> DiscoveredClassGenerator:
         """Recursively yields a (name, class) for each class in each module in the given pkg."""
 
-        for module_name, module in DiscoveryService.modules_in_pkg(pkg):
+        for module_name, module in ReflectionService.modules_in_pkg(pkg):
             for clz_name, clz in inspect.getmembers(module, inspect.isclass):
                 if clz.__module__ == module_name:
                     yield clz_name, clz
@@ -45,7 +45,7 @@ class DiscoveryService:
         """Recursively yields a (name, class) for each class in each module in the given pkg 
         that isinstance of the given clz_type."""
 
-        for clz_name, clz in DiscoveryService.classes_in_pkg(pkg):
+        for clz_name, clz in ReflectionService.classes_in_pkg(pkg):
             if isinstance(clz, clz_type):
                 yield clz_name, clz
 

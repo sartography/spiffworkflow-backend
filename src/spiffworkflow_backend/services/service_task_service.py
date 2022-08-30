@@ -6,7 +6,7 @@ import pkgutil
 import sys
 from typing import Any, Generator, TypedDict
 
-from spiffworkflow_backend.services.discovery_service import DiscoveryService
+from spiffworkflow_backend.services.reflection_service import ReflectionService
 
 class OperatorParameter(TypedDict):
     name: str
@@ -31,7 +31,7 @@ class ServiceTaskService:
             import airflow.providers
             from airflow.models import BaseOperator
             # TODO filter operators - __subclasses__() check didn't pan out immediately
-            yield from DiscoveryService.classes_of_type_in_pkg(airflow.providers, type(BaseOperator))
+            yield from ReflectionService.classes_of_type_in_pkg(airflow.providers, type(BaseOperator))
         except:
             pass
 
