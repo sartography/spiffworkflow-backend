@@ -3,12 +3,17 @@ import importlib
 import inspect
 import pkgutil
 import types
-from typing import Any, Generator
+from typing import Any, Callable, Generator, TypedDict
 
 DiscoveredClass = Any
 DiscoveredModule = Any
 DiscoveredClassGenerator = Generator[tuple[str, DiscoveredClass], None, None]
 DiscoveredModuleGenerator = Generator[tuple[str, DiscoveredModule], None, None]
+
+class ParameterDescription(TypedDict):
+    id: str
+    type: str
+    required: bool
 
 class ReflectionService:
     """Utilities to aid in reflection."""
@@ -49,3 +54,20 @@ class ReflectionService:
             if isinstance(clz, clz_type):
                 yield clz_name, clz
 
+    @staticmethod
+    def _parse_operator_params(c: Callable) -> list[ParameterDescription]:
+        """Parses the signature of a callable and returns a description of each parameter."""
+
+        sig = inspect.signature(c)
+        params_to_skip = ['self', 'kwargs']
+        params = filter(lambda param: param.name not in params_to_skip, sig.parameters.values())
+        # TODO remove iterable, take inner type
+        # TODO on union form set of types
+        params = [{
+            "id": param.name, 
+            # TODO parsing to better fill out these two fields
+            "type": str(param.annotation), 
+            "required": True 
+        } for param in params]
+
+        return params

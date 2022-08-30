@@ -9,7 +9,7 @@ from typing import Any, Generator, TypedDict
 from spiffworkflow_backend.services.reflection_service import ReflectionService
 
 class OperatorParameter(TypedDict):
-    name: str
+    id: str
     type: str
     required: bool
 
@@ -45,7 +45,7 @@ class ServiceTaskService:
         # TODO remove iterable, take inner type
         # TODO on union form set of types
         params = [{
-            "name": param.name, 
+            "id": param.name, 
             # TODO parsing to better fill out these two fields
             "type": str(param.annotation), 
             "required": True 
