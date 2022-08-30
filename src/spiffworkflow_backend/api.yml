@@ -1639,12 +1639,12 @@ components:
         name:
           type: string
           example: webhook_token
-        label:
-          type: string
-          example: Webhook Token
         type:
           type: string
           example: string
+        required:
+          type: boolean
+          example: false
     GitRepo:
       properties:
         #        remote:

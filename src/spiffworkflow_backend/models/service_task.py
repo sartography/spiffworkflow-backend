@@ -1,3 +1,0 @@
-"""ServiceTask."""
-
-# TODO

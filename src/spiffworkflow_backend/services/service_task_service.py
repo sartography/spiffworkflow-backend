@@ -26,13 +26,13 @@ class ServiceTaskService:
         """Yields name and class for all airflow operators that are available for use in 
         service tasks."""
 
-        #try:
-        import airflow.providers
-        from airflow.models import BaseOperator
-        # TODO filter only operators with no subclasses
-        yield from DiscoveryService.classes_of_type_in_pkg(airflow.providers, type(BaseOperator))
-        #except:
-        #    pass
+        try:
+            import airflow.providers
+            from airflow.models import BaseOperator
+            # TODO filter only operators with no subclasses
+            yield from DiscoveryService.classes_of_type_in_pkg(airflow.providers, type(BaseOperator))
+        except:
+            pass
 
     @staticmethod
     def _parse_operator_params(operator_class) -> list[OperatorParameter]:
