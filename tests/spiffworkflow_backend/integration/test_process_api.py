@@ -13,7 +13,7 @@ from flask_bpmn.models.db import db
 from tests.spiffworkflow_backend.helpers.base_test import BaseTest
 from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
 from tests.spiffworkflow_backend.helpers.test_data import logged_in_headers
-from werkzeug.test import TestResponse
+#from werkzeug.test import TestResponse
 
 from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
     ProcessEntityNotFoundError,
@@ -1286,7 +1286,7 @@ class TestProcessApi(BaseTest):
         test_process_group_id: str,
         test_process_model_id: str,
         headers: Dict[str, str],
-    ) -> TestResponse:
+    ) -> any:
         """Create_process_instance."""
         load_test_spec(test_process_model_id, process_group_id=test_process_group_id)
         response = client.post(
@@ -1307,7 +1307,7 @@ class TestProcessApi(BaseTest):
         exception_notification_addresses: Optional[list] = None,
         primary_process_id: Optional[str] = None,
         primary_file_name: Optional[str] = None,
-    ) -> TestResponse:
+    ) -> any:
         """Create_process_model."""
         process_model_service = ProcessModelService()
 

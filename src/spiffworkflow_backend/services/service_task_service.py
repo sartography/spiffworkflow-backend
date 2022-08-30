@@ -57,8 +57,11 @@ class ServiceTaskService:
         # TODO maybe premature to have a place to aggregate other operator types?
         yield from cls._available_airflow_operator_classes()
 
+    # TODO wtf is the syntax here?
+    #type OperatorParm = Dict[k in [name, parameter], str]
+
     @classmethod
-    def available_operators(cls):
+    def available_operators(cls) -> [Dict[str, Union[str, list[OperatorParam]]:
         # TODO do we define models to add types?
         available_operators = [{
             "name": name, 
