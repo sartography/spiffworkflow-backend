@@ -25,8 +25,8 @@ class TestMessageService(BaseTest):
         self, app: Flask, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_can_send_message_to_waiting_message."""
-        process_model_sender = load_test_spec("message_sender")
-        load_test_spec("message_receiver")
+        process_model_sender = load_test_spec("message_sender", process_model_source_directory="message_send_one_conversation", bpmn_file_name="message_sender")
+        load_test_spec("message_receiver", process_model_source_directory="message_send_one_conversation", bpmn_file_name="message_receiver")
         user = self.find_or_create_user()
 
         process_instance_sender = ProcessInstanceService.create_process_instance(
@@ -34,6 +34,7 @@ class TestMessageService(BaseTest):
             user,
             process_group_identifier=process_model_sender.process_group_id,
         )
+
         processor_sender = ProcessInstanceProcessor(process_instance_sender)
         processor_sender.do_engine_steps()
         processor_sender.save()
