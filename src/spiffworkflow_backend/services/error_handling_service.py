@@ -93,13 +93,13 @@ class ErrorHandlingService:
     @staticmethod
     def handle_waku_notification(_error: ApiError, _recipients: List) -> Any:
         """WakuHandler."""
-
-        class WakuMessage:
-            payload: str
-            contentTopic: str  # Optional
-            version: int  # Optional
-            timestamp: int  # Optional
-
+        # class WakuMessage:
+        #     """WakuMessage."""
+        #
+        #     payload: str
+        #     contentTopic: str  # Optional
+        #     version: int  # Optional
+        #     timestamp: int  # Optional
 
 
 class FailingService:

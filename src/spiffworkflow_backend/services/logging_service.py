@@ -143,10 +143,12 @@ def setup_logger(app: Flask) -> None:
 
     setup_logger_for_sql_statements(app)
 
-    spiff_logger = logging.getLogger('spiff.metrics')
+    spiff_logger = logging.getLogger("spiff.metrics")
     spiff_logger.setLevel(logging.DEBUG)
     # spiff_logger_handler = logging.StreamHandler(sys.stdout)
-    spiff_formatter = logging.Formatter('%(asctime)s | %(levelname)s | %(message)s | %(action)s | %(task_type)s | %(process)s | %(processName)s')
+    spiff_formatter = logging.Formatter(
+        "%(asctime)s | %(levelname)s | %(message)s | %(action)s | %(task_type)s | %(process)s | %(processName)s"
+    )
     # spiff_logger_handler.setFormatter(spiff_formatter)
     # fh = logging.FileHandler('test.log')
     # spiff_logger_handler.setLevel(logging.DEBUG)
@@ -158,6 +160,8 @@ def setup_logger(app: Flask) -> None:
 
 
 class DBHandler(logging.Handler):
+    """DBHandler."""
 
-    def emit(self, record):
+    def emit(self, record: logging.LogRecord) -> None:
+        """Emit."""
         print(record.process)

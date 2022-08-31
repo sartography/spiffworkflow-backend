@@ -2,11 +2,17 @@
 import io
 import json
 import time
+from typing import Any
+from typing import Dict
+from typing import Optional
 
 from flask.app import Flask
 from flask.testing import FlaskClient
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
+from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
+from tests.spiffworkflow_backend.helpers.test_data import logged_in_headers
+from werkzeug.test import TestResponse
 
 from spiffworkflow_backend.models.process_group import ProcessGroup
 from spiffworkflow_backend.models.process_group import ProcessGroupSchema
@@ -17,15 +23,6 @@ from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
 from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 from spiffworkflow_backend.services.user_service import UserService
-
-from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
-from tests.spiffworkflow_backend.helpers.test_data import logged_in_headers
-
-from typing import Any
-from typing import Dict
-from typing import Optional
-
-from werkzeug.test import TestResponse
 
 
 class BaseTest:
@@ -209,7 +206,6 @@ class BaseTest:
         assert response.json is not None
         assert response.json["id"] == process_group_id
         return process_group_id
-
 
     # @staticmethod
     # def get_public_access_token(username: str, password: str) -> dict:
