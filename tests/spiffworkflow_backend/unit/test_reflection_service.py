@@ -35,7 +35,7 @@ def test_can_describe_sample_params(
         ParamWithOptionalStrAnnotationAndDefaultValue,
         ParamWithOptionalDictAnnotation,
         ParamWithOptionalListAnnotation,
-        #ParamWithOptionalBuiltinListAnnotation,
+        ParamWithOptionalBuiltinListAnnotation,
     ])
 
 def test_can_describe_airflow_operator_params(
@@ -46,7 +46,7 @@ def test_can_describe_airflow_operator_params(
         HTTPSensor,
         ImapAttachmentSensor,
         SlackAPIFileOperator,
-        #SlackWebhookOperator,
+        SlackWebhookOperator,
     ])
 
 def _test_param_descs(desc, test_classes):
