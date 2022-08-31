@@ -68,7 +68,7 @@ class ReflectionService:
             param_type_desc = annotation.__name__
         else:
             # TODO parse the hairy ones
-            param_type_desc = str(annotation)
+            param_type_desc = 'any'
 
             origin = get_origin(annotation)
             args = get_args(annotation)

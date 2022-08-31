@@ -26,7 +26,7 @@ def test_can_find_classes_of_type_base_test(
 def test_can_describe_bobs_params(
     app: Flask, with_db_and_bpmn_file_cleanup: None
 ) -> None:
-    def bob(sam:str = "sue") -> None:
+    def bob(sam:str) -> None:
         return None
 
     param_descs = ReflectionService.callable_params_desc(bob)
@@ -46,12 +46,12 @@ def test_can_describe_airflow_operators(
     test_cases = [(op.__init__, op.expected) for op in operators]
 
     for i, (c, expected) in enumerate(test_cases):
-        test_desc = f"Case #{i}"
+        test_case_desc = f"Test #{i}"
         actual = ReflectionService.callable_params_desc(c)
-        assert len(actual) == len(expected), f"Case #{i}"
+        assert len(actual) == len(expected), test_case_desc
 
         for i, (actual, expected) in enumerate(zip(actual, expected)):
-            test_desc = f"{test_desc}:{i}"
+            test_desc = f"{test_case_desc}:{i}"
             assert actual['id'] == expected[0], test_desc
             assert actual['type'] == expected[1], test_desc
             assert actual['required'] == expected[2], test_desc
