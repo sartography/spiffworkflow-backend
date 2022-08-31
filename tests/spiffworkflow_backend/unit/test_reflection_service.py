@@ -30,6 +30,9 @@ def test_can_describe_sample_params(
         NoParams,
         ParamWithNoAnnotation,
         ParamWithStrAnnotation,
+        ParamWithOptionalStrAnnotation,
+        ParamWithDefaultValue,
+        ParamWithOptionalStrAnnotationAndDefaultValue,
     ])
 
 def test_can_describe_airflow_operator_params(
@@ -39,7 +42,7 @@ def test_can_describe_airflow_operator_params(
         FTPSensor,
         HTTPSensor,
         ImapAttachmentSensor,
-        SlackAPIFileOperator,
+        #SlackAPIFileOperator,
     ])
 
 def _test_param_descs(desc, test_classes):
@@ -67,8 +70,20 @@ class ParamWithNoAnnotation:
 
 
 class ParamWithStrAnnotation:
-    def __init__(bob:str): pass
+    def __init__(bob: str): pass
     expected = [('bob', 'str', True)]
+
+class ParamWithOptionalStrAnnotation:
+    def __init__(filename: Optional[str]): pass
+    expected = [('filename', 'str', False)]
+
+class ParamWithDefaultValue:
+    def __init__(bob: int=33): pass
+    expected = [('bob', 'int', False)]
+
+class ParamWithOptionalStrAnnotationAndDefaultValue:
+    def __init__(bob: Optional[str]='sam'): pass
+    expected = [('bob', 'str', False)]
 
 # mock airflow providers
 
