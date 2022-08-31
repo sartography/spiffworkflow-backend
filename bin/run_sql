@@ -18,7 +18,7 @@ message_correlation_message_instance
 
 for i in "${tables[@]}" ;do
   echo "$i"
-  mysql -uroot -e "select * from spiffworkflow_backend_testing.${i}"
+  mysql -uroot -e "select * from spiffworkflow_backend_development.${i}"
 done
 
 mysql -uroot -e "select id,process_model_identifier,process_group_identifier,status from spiffworkflow_backend_testing.process_instance"
