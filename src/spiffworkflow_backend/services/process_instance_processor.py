@@ -44,6 +44,7 @@ from SpiffWorkflow.spiff.serializer import StartEventConverter
 from SpiffWorkflow.spiff.serializer import SubWorkflowTaskConverter
 from SpiffWorkflow.spiff.serializer import TransactionSubprocessConverter
 from SpiffWorkflow.spiff.serializer import UserTaskConverter
+from SpiffWorkflow.spiff.serializer import ServiceTaskConverter
 from SpiffWorkflow.util.deep_merge import DeepMerge  # type: ignore
 
 from spiffworkflow_backend.models.active_task import ActiveTaskModel
@@ -101,11 +102,11 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
             ) from exception
 
     def execute(
-        self, task: SpiffTask, script: str, data: Dict[str, Dict[str, str]]
+            self, task: SpiffTask, script: str, data: Dict[str, Dict[str, str]], external_methods: any = None
     ) -> None:
         """Execute."""
         try:
-            super().execute(task, script, data)
+            super().execute(task, script, data, external_methods)
         except WorkflowException as e:
             raise e
         except Exception as e:
@@ -151,6 +152,7 @@ class ProcessInstanceProcessor:
             SubWorkflowTaskConverter,
             TransactionSubprocessConverter,
             UserTaskConverter,
+            ServiceTaskConverter
         ]
     )
     _serializer = BpmnWorkflowSerializer(wf_spec_converter, version=SERIALIZER_VERSION)

@@ -22,5 +22,8 @@ export APPLICATION_ROOT="/"
 if [[ -n "${SPIFFWORKFLOW_BACKEND_LOAD_FIXTURE_DATA:-}" ]]; then
   ./bin/boot_server_in_docker
 else
-  PROCESS_WAITING_MESSAGES="true" FLASK_APP=src/spiffworkflow_backend poetry run flask run -p 7000
+  if [[ -z "${PROCESS_WAITING_MESSAGES:-}" ]]; then
+    export PROCESS_WAITING_MESSAGES="true"
+  fi
+  FLASK_APP=src/spiffworkflow_backend poetry run flask run -p 7000
 fi
