@@ -19,9 +19,9 @@ class UserService:
         self,
         service: str,
         service_id: str,
-        name: Optional[str] = None,
-        username: Optional[str] = None,
-        email: Optional[str] = None,
+        name: Optional[str] = "",
+        username: Optional[str] = "",
+        email: Optional[str] = "",
     ) -> UserModel:
         """Create_user."""
         user_model: Optional[UserModel] = (
@@ -30,12 +30,8 @@ class UserService:
             .first()
         )
         if user_model is None:
-            if name is None:
-                name = ""
-            if username is None:
-                username = ""
-            if email is None:
-                email = ""
+            if username == "":
+                username = service_id
 
             user_model = UserModel(
                 username=username,
@@ -67,6 +63,32 @@ class UserService:
                     status_code=409,
                 )
             )
+
+    def find_or_create_user(
+        self,
+        service: str,
+        service_id: str,
+        name: Optional[str] = None,
+        username: Optional[str] = None,
+        email: Optional[str] = None,
+    ) -> UserModel:
+        """Find_or_create_user."""
+        user_model: UserModel
+        try:
+            user_model = self.create_user(
+                service=service,
+                service_id=service_id,
+                name=name,
+                username=username,
+                email=email,
+            )
+        except ApiError:
+            user_model = (
+                UserModel.query.filter(UserModel.service == service)
+                .filter(UserModel.service_id == service_id)
+                .first()
+            )
+        return user_model
 
     # Returns true if the current user is logged in.
     @staticmethod

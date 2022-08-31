@@ -26,6 +26,11 @@ from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
 from spiffworkflow_backend.models.active_task import ActiveTaskModel
 from spiffworkflow_backend.models.file import FileSchema
 from spiffworkflow_backend.models.file import FileType
+from spiffworkflow_backend.models.message_instance import MessageInstanceModel
+from spiffworkflow_backend.models.message_model import MessageModel
+from spiffworkflow_backend.models.message_triggerable_process_model import (
+    MessageTriggerableProcessModel,
+)
 from spiffworkflow_backend.models.principal import PrincipalModel
 from spiffworkflow_backend.models.process_group import ProcessGroupSchema
 from spiffworkflow_backend.models.process_instance import ProcessInstanceApiSchema
@@ -37,6 +42,7 @@ from spiffworkflow_backend.models.process_instance_report import (
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
 from spiffworkflow_backend.services.error_handling_service import ErrorHandlingService
+from spiffworkflow_backend.services.message_service import MessageService
 from spiffworkflow_backend.services.process_instance_processor import (
     ProcessInstanceProcessor,
 )
@@ -45,10 +51,6 @@ from spiffworkflow_backend.services.process_instance_service import (
 )
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 from spiffworkflow_backend.services.spec_file_service import SpecFileService
-
-# from SpiffWorkflow.bpmn.serializer.workflow import BpmnWorkflowSerializer  # type: ignore
-# from SpiffWorkflow.camunda.serializer.task_spec_converters import UserTaskConverter  # type: ignore
-# from SpiffWorkflow.dmn.serializer.task_spec_converters import BusinessRuleTaskConverter  # type: ignore
 
 process_api_blueprint = Blueprint("process_api", __name__)
 
@@ -90,7 +92,7 @@ def process_group_update(
 
 def process_groups_list(page: int = 1, per_page: int = 100) -> flask.wrappers.Response:
     """Process_groups_list."""
-    process_groups = sorted(ProcessModelService().get_process_groups())
+    process_groups = ProcessModelService().get_process_groups()
     batch = ProcessModelService().get_batch(
         items=process_groups, page=page, per_page=per_page
     )
@@ -150,9 +152,6 @@ def process_model_add(
         )
 
     process_model_info.process_group = process_group
-    workflows = process_model_service.cleanup_workflow_spec_display_order(process_group)
-    size = len(workflows)
-    process_model_info.display_order = size
     process_model_service.add_spec(process_model_info)
     return Response(
         json.dumps(ProcessModelInfoSchema().dump(process_model_info)),
@@ -173,8 +172,13 @@ def process_model_update(
     process_group_id: str, process_model_id: str, body: Dict[str, Union[str, bool, int]]
 ) -> Any:
     """Process_model_update."""
-    process_model = ProcessModelInfoSchema().load(body)
-    ProcessModelService().update_spec(process_model)
+    body_include_list = ["display_name"]
+    body_filtered = {
+        include_item: body[include_item] for include_item in body_include_list
+    }
+
+    process_model = get_process_model(process_model_id, process_group_id)
+    ProcessModelService().update_spec(process_model, body_filtered)
     return ProcessModelInfoSchema().dump(process_model)
 
 
@@ -191,7 +195,7 @@ def process_model_list(
     process_group_id: str, page: int = 1, per_page: int = 100
 ) -> flask.wrappers.Response:
     """Process model list!"""
-    process_models = sorted(ProcessModelService().get_process_models(process_group_id))
+    process_models = ProcessModelService().get_process_models(process_group_id)
     batch = ProcessModelService().get_batch(
         process_models, page=page, per_page=per_page
     )
@@ -271,7 +275,7 @@ def add_file(process_group_id: str, process_model_id: str) -> flask.wrappers.Res
     file.process_group_id = process_model.process_group_id
     if not process_model.primary_process_id and file.type == FileType.bpmn.value:
         SpecFileService.set_primary_bpmn(process_model, file.name)
-        process_model_service.update_spec(process_model)
+        process_model_service.save_process_model(process_model)
     return Response(
         json.dumps(FileSchema().dump(file)), status=201, mimetype="application/json"
     )
@@ -326,6 +330,105 @@ def process_instance_run(
     process_instance_metadata["data"] = process_instance_data
     return Response(
         json.dumps(process_instance_metadata), status=200, mimetype="application/json"
+    )
+
+
+def process_instance_terminate(
+    process_group_id: str,
+    process_model_id: str,
+    process_instance_id: int,
+    do_engine_steps: bool = True,
+) -> flask.wrappers.Response:
+    """Process_instance_run."""
+    process_instance = ProcessInstanceService().get_process_instance(
+        process_instance_id
+    )
+    processor = ProcessInstanceProcessor(process_instance)
+    processor.terminate()
+    return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
+
+
+# body: {
+#   payload: dict,
+#   process_instance_id: Optional[int],
+# }
+def message_start(
+    message_identifier: str,
+    body: Dict[str, Any],
+) -> flask.wrappers.Response:
+    """Message_start."""
+    message_model = MessageModel.query.filter_by(identifier=message_identifier).first()
+    if message_model is None:
+        raise (
+            ApiError(
+                code="unknown_message",
+                message=f"Could not find message with identifier: {message_identifier}",
+                status_code=404,
+            )
+        )
+
+    if "payload" not in body:
+        raise (
+            ApiError(
+                code="missing_payload",
+                message="Body is missing payload.",
+                status_code=400,
+            )
+        )
+
+    process_instance = None
+    if "process_instance_id" in body:
+        # to make sure we have a valid process_instance_id
+        process_instance = find_process_instance_by_id_or_raise(
+            body["process_instance_id"]
+        )
+
+        message_instance = MessageInstanceModel.query.filter_by(
+            process_instance_id=process_instance.id,
+            message_model_id=message_model.id,
+            message_type="receive",
+            status="ready",
+        ).first()
+        if message_instance is None:
+            raise (
+                ApiError(
+                    code="cannot_find_waiting_message",
+                    message=f"Could not find waiting message for identifier {message_identifier} "
+                    f"and process instance {process_instance.id}",
+                    status_code=400,
+                )
+            )
+        MessageService.process_message_receive(
+            message_instance, message_model.name, body["payload"]
+        )
+
+    else:
+        message_triggerable_process_model = (
+            MessageTriggerableProcessModel.query.filter_by(
+                message_model_id=message_model.id
+            ).first()
+        )
+
+        if message_triggerable_process_model is None:
+            raise (
+                ApiError(
+                    code="cannot_start_message",
+                    message=f"Message with identifier cannot be start with message: {message_identifier}",
+                    status_code=400,
+                )
+            )
+
+        process_instance = MessageService.process_message_triggerable_process_model(
+            message_triggerable_process_model,
+            message_model.name,
+            body["payload"],
+            g.user,
+        )
+
+    return Response(
+        json.dumps(ProcessInstanceModelSchema().dump(process_instance)),
+        status=200,
+        mimetype="application/json",
     )
 
 
@@ -542,10 +645,23 @@ def task_list_my_tasks(page: int = 1, per_page: int = 100) -> flask.wrappers.Res
     active_tasks = (
         ActiveTaskModel.query.filter_by(assigned_principal_id=principal.id)
         .order_by(desc(ActiveTaskModel.id))  # type: ignore
+        .join(ProcessInstanceModel)
+        # just need this add_columns to add the process_model_identifier. Then add everything back that was removed.
+        .add_columns(
+            ProcessInstanceModel.process_model_identifier,
+            ActiveTaskModel.task_data,
+            ActiveTaskModel.task_name,
+            ActiveTaskModel.task_title,
+            ActiveTaskModel.task_type,
+            ActiveTaskModel.task_status,
+            ActiveTaskModel.task_id,
+            ActiveTaskModel.id,
+            ActiveTaskModel.process_instance_id,
+        )
         .paginate(page, per_page, False)
     )
 
-    tasks = [active_task.to_task() for active_task in active_tasks.items]
+    tasks = [ActiveTaskModel.to_task(active_task) for active_task in active_tasks.items]
 
     response_json = {
         "results": tasks,
@@ -582,67 +698,54 @@ def process_instance_task_list(
 
 
 def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response:
-    """Task_list_my_tasks."""
-    principal = find_principal_or_raise()
-
+    """Task_show."""
     process_instance = find_process_instance_by_id_or_raise(process_instance_id)
     process_model = get_process_model(
         process_instance.process_model_identifier,
         process_instance.process_group_identifier,
     )
 
-    active_task_assigned_to_me = ActiveTaskModel.query.filter_by(
-        process_instance_id=process_instance_id,
-        task_id=task_id,
-        assigned_principal_id=principal.id,
-    ).first()
-
     form_schema_file_name = ""
     form_ui_schema_file_name = ""
-    task = None
-    if active_task_assigned_to_me:
-        form_schema_file_name = active_task_assigned_to_me.form_file_name
-        form_ui_schema_file_name = active_task_assigned_to_me.ui_form_file_name
-        task = active_task_assigned_to_me.to_task()
-    else:
-        spiff_task = get_spiff_task_from_process_instance(task_id, process_instance)
-        extensions = spiff_task.task_spec.extensions
+    spiff_task = get_spiff_task_from_process_instance(task_id, process_instance)
+    extensions = spiff_task.task_spec.extensions
 
-        if "properties" in extensions:
-            properties = extensions["properties"]
-            if "formJsonSchemaFilename" in properties:
-                form_schema_file_name = properties["formJsonSchemaFilename"]
-            if "formUiSchemaFilename" in properties:
-                form_ui_schema_file_name = properties["formUiSchemaFilename"]
-        task = ProcessInstanceService.spiff_task_to_api_task(spiff_task)
-        task.data = spiff_task.data
+    if "properties" in extensions:
+        properties = extensions["properties"]
+        if "formJsonSchemaFilename" in properties:
+            form_schema_file_name = properties["formJsonSchemaFilename"]
+        if "formUiSchemaFilename" in properties:
+            form_ui_schema_file_name = properties["formUiSchemaFilename"]
+    task = ProcessInstanceService.spiff_task_to_api_task(spiff_task)
+    task.data = spiff_task.data
 
-    if form_schema_file_name is None:
-        raise (
-            ApiError(
-                code="missing_form_file",
-                message=f"Cannot find a form file for process_instance_id: {process_instance_id}, task_id: {task_id}",
-                status_code=500,
+    if task.type == "UserTask":
+        if not form_schema_file_name:
+            raise (
+                ApiError(
+                    code="missing_form_file",
+                    message=f"Cannot find a form file for process_instance_id: {process_instance_id}, task_id: {task_id}",
+                    status_code=500,
+                )
             )
-        )
 
-    form_contents = prepare_form_data(
-        form_schema_file_name,
-        task.data,
-        process_model,
-    )
-
-    if form_contents:
-        task.form_schema = form_contents
-
-    if form_ui_schema_file_name:
-        ui_form_contents = prepare_form_data(
-            form_ui_schema_file_name,
+        form_contents = prepare_form_data(
+            form_schema_file_name,
             task.data,
             process_model,
         )
-        if ui_form_contents:
-            task.form_ui_schema = ui_form_contents
+
+        if form_contents:
+            task.form_schema = form_contents
+
+        if form_ui_schema_file_name:
+            ui_form_contents = prepare_form_data(
+                form_ui_schema_file_name,
+                task.data,
+                process_model,
+            )
+            if ui_form_contents:
+                task.form_ui_schema = ui_form_contents
 
     return make_response(jsonify(task), 200)
 
@@ -702,7 +805,9 @@ def task_submit(
         assigned_principal_id=principal.id, process_instance_id=process_instance.id
     ).first()
     if next_active_task_assigned_to_me:
-        return make_response(jsonify(next_active_task_assigned_to_me.to_task()), 200)
+        return make_response(
+            jsonify(ActiveTaskModel.to_task(next_active_task_assigned_to_me)), 200
+        )
 
     return Response(json.dumps({"ok": True}), status=202, mimetype="application/json")
 

@@ -39,6 +39,7 @@ if [[ "${SPIFFWORKFLOW_BACKEND_LOAD_FIXTURE_DATA:-}" == "true" ]]; then
 fi
 
 export IS_GUNICORN="true"
+export PROCESS_WAITING_MESSAGES="true"
 
 # THIS MUST BE THE LAST COMMAND!
 exec poetry run gunicorn ${additional_args} --bind "0.0.0.0:$port" --workers="$workers" --timeout 90 --capture-output --access-logfile '-' --log-level debug wsgi:app

@@ -303,7 +303,7 @@ class ProcessInstanceReportModel(SpiffworkflowBaseDBModel):
         def to_serialized(process_instance: ProcessInstanceModel) -> dict:
             """To_serialized."""
             processor = ProcessInstanceProcessor(process_instance)
-            process_instance.data = processor.get_data()
+            process_instance.data = processor.get_current_data()
             return process_instance.serialized_flat
 
         process_instance_dicts = map(to_serialized, process_instances)

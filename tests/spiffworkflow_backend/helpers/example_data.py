@@ -66,12 +66,12 @@ class ExampleDataLoader:
                 file = open(file_path, "rb")
                 data = file.read()
                 SpecFileService.add_file(
-                    workflow_spec=spec, file_name=filename, binary_data=data
+                    process_model_info=spec, file_name=filename, binary_data=data
                 )
                 if is_primary:
                     SpecFileService.set_primary_bpmn(spec, filename, data)
                     workflow_spec_service = ProcessModelService()
-                    workflow_spec_service.update_spec(spec)
+                    workflow_spec_service.save_process_model(spec)
             except IsADirectoryError:
                 # Ignore sub directories
                 pass

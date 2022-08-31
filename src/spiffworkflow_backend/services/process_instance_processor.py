@@ -29,12 +29,33 @@ from SpiffWorkflow.dmn.serializer import BusinessRuleTaskConverter  # type: igno
 from SpiffWorkflow.serializer.exceptions import MissingSpecError  # type: ignore
 from SpiffWorkflow.specs import WorkflowSpec  # type: ignore
 from SpiffWorkflow.spiff.parser.process import SpiffBpmnParser  # type: ignore
-from SpiffWorkflow.spiff.serializer import UserTaskConverter  # type: ignore
+from SpiffWorkflow.spiff.serializer import BoundaryEventConverter  # type: ignore
+from SpiffWorkflow.spiff.serializer import CallActivityTaskConverter
+from SpiffWorkflow.spiff.serializer import EndEventConverter
+from SpiffWorkflow.spiff.serializer import IntermediateCatchEventConverter
+from SpiffWorkflow.spiff.serializer import IntermediateThrowEventConverter
+from SpiffWorkflow.spiff.serializer import ManualTaskConverter
+from SpiffWorkflow.spiff.serializer import NoneTaskConverter
+from SpiffWorkflow.spiff.serializer import ReceiveTaskConverter
+from SpiffWorkflow.spiff.serializer import SendTaskConverter
+from SpiffWorkflow.spiff.serializer import StartEventConverter
+from SpiffWorkflow.spiff.serializer import SubWorkflowTaskConverter
+from SpiffWorkflow.spiff.serializer import TransactionSubprocessConverter
+from SpiffWorkflow.spiff.serializer import UserTaskConverter
 from SpiffWorkflow.util.deep_merge import DeepMerge  # type: ignore
 
 from spiffworkflow_backend.models.active_task import ActiveTaskModel
 from spiffworkflow_backend.models.file import File
 from spiffworkflow_backend.models.file import FileType
+from spiffworkflow_backend.models.message_correlation import MessageCorrelationModel
+from spiffworkflow_backend.models.message_correlation_message_instance import (
+    MessageCorrelationMessageInstanceModel,
+)
+from spiffworkflow_backend.models.message_correlation_property import (
+    MessageCorrelationPropertyModel,
+)
+from spiffworkflow_backend.models.message_instance import MessageInstanceModel
+from spiffworkflow_backend.models.message_instance import MessageModel
 from spiffworkflow_backend.models.principal import PrincipalModel
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 from spiffworkflow_backend.models.process_instance import ProcessInstanceStatus
@@ -102,7 +123,22 @@ class ProcessInstanceProcessor:
     _script_engine = CustomBpmnScriptEngine()
     SERIALIZER_VERSION = "1.0-CRC"
     wf_spec_converter = BpmnWorkflowSerializer.configure_workflow_spec_converter(
-        [UserTaskConverter, BusinessRuleTaskConverter]
+        [
+            BoundaryEventConverter,
+            BusinessRuleTaskConverter,
+            CallActivityTaskConverter,
+            EndEventConverter,
+            IntermediateCatchEventConverter,
+            IntermediateThrowEventConverter,
+            ManualTaskConverter,
+            NoneTaskConverter,
+            ReceiveTaskConverter,
+            SendTaskConverter,
+            StartEventConverter,
+            SubWorkflowTaskConverter,
+            TransactionSubprocessConverter,
+            UserTaskConverter,
+        ]
     )
     _serializer = BpmnWorkflowSerializer(wf_spec_converter, version=SERIALIZER_VERSION)
     _old_serializer = BpmnSerializer()
@@ -384,7 +420,7 @@ class ProcessInstanceProcessor:
                     task_name=ready_or_waiting_task.task_spec.name,
                     task_title=ready_or_waiting_task.task_spec.description,
                     task_type=ready_or_waiting_task.task_spec.__class__.__name__,
-                    task_status=ready_or_waiting_task.state.name,
+                    task_status=ready_or_waiting_task.get_state_name(),
                     task_data=json.dumps(ready_or_waiting_task.data),
                 )
                 db.session.add(active_task)
@@ -454,11 +490,143 @@ class ProcessInstanceProcessor:
         """Get_status."""
         return self.status_of(self.bpmn_process_instance)
 
+    # messages have one correlation key (possibly wrong)
+    # correlation keys may have many correlation properties
+    def process_bpmn_messages(self) -> None:
+        """Process_bpmn_messages."""
+        bpmn_messages = self.bpmn_process_instance.get_bpmn_messages()
+        for bpmn_message in bpmn_messages:
+            # only message sends are in get_bpmn_messages
+            message_type = "send"
+            message_model = MessageModel.query.filter_by(name=bpmn_message.name).first()
+            if message_model is None:
+                raise ApiError(
+                    "invalid_message_name",
+                    f"Invalid message name: {bpmn_message.name}.",
+                )
+
+            if not bpmn_message.correlations:
+                raise ApiError(
+                    "message_correlations_missing",
+                    f"Could not find any message correlations bpmn_message: {bpmn_message}",
+                )
+
+            message_correlations = []
+            for (
+                message_correlation_key,
+                message_correlation_properties,
+            ) in bpmn_message.correlations.items():
+                for (
+                    message_correlation_property_identifier,
+                    message_correlation_property_value,
+                ) in message_correlation_properties.items():
+                    message_correlation_property = (
+                        MessageCorrelationPropertyModel.query.filter_by(
+                            identifier=message_correlation_property_identifier,
+                        ).first()
+                    )
+                    if message_correlation_property is None:
+                        raise ApiError(
+                            "message_correlations_missing_from_process",
+                            "Could not find a known message correlation with identifier:"
+                            f"{message_correlation_property_identifier}",
+                        )
+                    message_correlations.append(
+                        {
+                            "message_correlation_property": message_correlation_property,
+                            "name": message_correlation_key,
+                            "value": message_correlation_property_value,
+                        }
+                    )
+
+            message_instance = MessageInstanceModel(
+                process_instance_id=self.process_instance_model.id,
+                message_type=message_type,
+                message_model_id=message_model.id,
+                payload=bpmn_message.payload,
+            )
+            db.session.add(message_instance)
+            db.session.commit()
+
+            for message_correlation in message_correlations:
+                message_correlation = MessageCorrelationModel(
+                    process_instance_id=self.process_instance_model.id,
+                    message_correlation_property_id=message_correlation[
+                        "message_correlation_property"
+                    ].id,
+                    name=message_correlation["name"],
+                    value=message_correlation["value"],
+                )
+                db.session.add(message_correlation)
+                db.session.commit()
+                message_correlation_message_instance = (
+                    MessageCorrelationMessageInstanceModel(
+                        message_instance_id=message_instance.id,
+                        message_correlation_id=message_correlation.id,
+                    )
+                )
+                db.session.add(message_correlation_message_instance)
+            db.session.commit()
+
+    def queue_waiting_receive_messages(self) -> None:
+        """Queue_waiting_receive_messages."""
+        waiting_tasks = self.get_all_waiting_tasks()
+        for waiting_task in waiting_tasks:
+            if waiting_task.task_spec.__class__.__name__ in [
+                "IntermediateCatchEvent",
+                "ReceiveTask",
+            ]:
+                message_model = MessageModel.query.filter_by(
+                    name=waiting_task.task_spec.event_definition.name
+                ).first()
+                if message_model is None:
+                    raise ApiError(
+                        "invalid_message_name",
+                        f"Invalid message name: {waiting_task.task_spec.event_definition.name}.",
+                    )
+
+                message_instance = MessageInstanceModel(
+                    process_instance_id=self.process_instance_model.id,
+                    message_type="receive",
+                    message_model_id=message_model.id,
+                )
+                db.session.add(message_instance)
+
+                for (
+                    spiff_correlation_property
+                ) in waiting_task.task_spec.event_definition.correlation_properties:
+                    # NOTE: we may have to cycle through keys here
+                    # not sure yet if it's valid for a property to be associated with multiple keys
+                    correlation_key_name = spiff_correlation_property.correlation_keys[
+                        0
+                    ]
+                    message_correlation = (
+                        MessageCorrelationModel.query.filter_by(
+                            process_instance_id=self.process_instance_model.id,
+                            name=correlation_key_name,
+                        )
+                        .join(MessageCorrelationPropertyModel)
+                        .filter_by(identifier=spiff_correlation_property.name)
+                        .first()
+                    )
+                    message_correlation_message_instance = (
+                        MessageCorrelationMessageInstanceModel(
+                            message_instance_id=message_instance.id,
+                            message_correlation_id=message_correlation.id,
+                        )
+                    )
+                    db.session.add(message_correlation_message_instance)
+
+                db.session.commit()
+
     def do_engine_steps(self, exit_at: None = None) -> None:
         """Do_engine_steps."""
         try:
             self.bpmn_process_instance.refresh_waiting_tasks()
             self.bpmn_process_instance.do_engine_steps(exit_at=exit_at)
+            self.process_bpmn_messages()
+            self.queue_waiting_receive_messages()
+
         except WorkflowTaskExecException as we:
             raise ApiError.from_workflow_exception("task_error", str(we), we) from we
 
@@ -506,7 +674,8 @@ class ProcessInstanceProcessor:
                     and task.workflow == self.bpmn_process_instance
                 ):
                     endtasks.append(task)
-            return endtasks[-1]
+            if len(endtasks) > 0:
+                return endtasks[-1]
 
         # If there are ready tasks to complete, return the next ready task, but return the one
         # in the active parallel path if possible.  In some cases the active parallel path may itself be
@@ -572,9 +741,30 @@ class ProcessInstanceProcessor:
         """Complete_task."""
         self.bpmn_process_instance.complete_task_from_id(task.id)
 
-    def get_data(self) -> dict[str, str]:
+    def get_data(self) -> dict[str, Any]:
         """Get_data."""
         return self.bpmn_process_instance.data  # type: ignore
+
+    def get_current_data(self) -> dict[str, Any]:
+        """Get the current data for the process.
+
+        Return either most recent task data or the process data
+        if the process instance is complete
+        """
+        if self.process_instance_model.status == "complete":
+            return self.get_data()
+
+        most_recent_task = None
+        for task in self.get_all_ready_or_waiting_tasks():
+            if most_recent_task is None:
+                most_recent_task = task
+            elif most_recent_task.last_state_change < task.last_state_change:  # type: ignore
+                most_recent_task = task
+
+        if most_recent_task:
+            return most_recent_task.data  # type: ignore
+
+        return {}
 
     def get_process_instance_id(self) -> int:
         """Get_process_instance_id."""
@@ -613,10 +803,23 @@ class ProcessInstanceProcessor:
             and t.state in [TaskState.COMPLETED, TaskState.CANCELLED]
         ]
 
+    def get_all_waiting_tasks(self) -> list[SpiffTask]:
+        """Get_all_ready_or_waiting_tasks."""
+        all_tasks = self.bpmn_process_instance.get_tasks(TaskState.ANY_MASK)
+        return [t for t in all_tasks if t.state in [TaskState.WAITING]]
+
     def get_all_ready_or_waiting_tasks(self) -> list[SpiffTask]:
         """Get_all_ready_or_waiting_tasks."""
         all_tasks = self.bpmn_process_instance.get_tasks(TaskState.ANY_MASK)
         return [t for t in all_tasks if t.state in [TaskState.WAITING, TaskState.READY]]
+
+    def get_task_by_id(self, task_id: str) -> SpiffTask:
+        """Get_task_by_id."""
+        all_tasks = self.bpmn_process_instance.get_tasks(TaskState.ANY_MASK)
+        for task in all_tasks:
+            if task.id == task_id:
+                return task
+        return None
 
     def get_nav_item(self, task: SpiffTask) -> Any:
         """Get_nav_item."""
@@ -653,3 +856,11 @@ class ProcessInstanceProcessor:
             "invalid_spec",
             f"Unable to find a task in the process_instance called '{spec_name}'",
         )
+
+    def terminate(self) -> None:
+        """Terminate."""
+        self.bpmn_process_instance.cancel()
+        self.save()
+        self.process_instance_model.status = "terminated"
+        db.session.add(self.process_instance_model)
+        db.session.commit()

@@ -28,7 +28,7 @@ class ProcessGroup:
 
     def __post_init__(self) -> None:
         """__post_init__."""
-        self.sort_index = f"{self.display_order}:{self.id}"
+        self.sort_index = self.id
 
     def __eq__(self, other: Any) -> bool:
         """__eq__."""

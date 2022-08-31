@@ -58,7 +58,6 @@ class ErrorHandlingService:
             except Exception as e:
                 # hmm... what to do if a notification method fails. Probably log, at least
                 print(e)
-        print(f"handle_error: {_error}")
 
     @staticmethod
     def hanle_sentry_notification(_error: ApiError, _recipients: List) -> None:
