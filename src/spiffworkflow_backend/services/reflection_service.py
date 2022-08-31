@@ -56,27 +56,47 @@ class ReflectionService:
 
     @staticmethod
     def _param_annotation_desc(param: inspect.Parameter) -> ParameterDescription:
-        # TODO clean this up after tests pass
         param_id = param.name
         param_type_desc = ""
+        # TODO this check is working but appears wrong
         param_req = param.default is param.empty
-
         annotation = param.annotation
+
         if annotation == param.empty:
             param_type_desc = "any"
         elif type(annotation) == type:
+            # TODO handle non builtin types
             param_type_desc = annotation.__name__
         else:
-            # TODO parse the hairy ones
-            param_type_desc = 'any'
 
             origin = get_origin(annotation)
             args = get_args(annotation)
 
-            print(str(annotation))
-            print(origin)
-            print(args)
-            print('-----')
+            if origin is None or args == ():
+                param_type_desc = 'any'
+            else:
+                none_type_set = {type(None)}
+                print(args)
+                # this simplistic composite type erasure will work for a bit but will break down 
+                # with a union of dict and string for example
+                # - will need to recursively resolve origins
+                args = set(filter(lambda t: type(t) == type, args))
+                if param_req and args & none_type_set:
+                    param_req = False
+                args -= none_type_set
+                print(args)
+                if len(args) == 1:
+                    param_type = args.pop()
+                    if type(param_type) == type:
+                        param_type_desc == param_type.__name__
+                else:
+                    param_type_desc = 'any'
+                print('~~~~~')
+
+            #print(str(annotation))
+            #print(origin)
+            #print(args)
+            #print('****')
 
         return { "id": param_id, "type": param_type_desc, "required": param_req }
 

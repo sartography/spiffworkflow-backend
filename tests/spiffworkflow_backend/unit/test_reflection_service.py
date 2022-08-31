@@ -23,30 +23,29 @@ def test_can_find_classes_of_type_base_test(
     found = ReflectionService.classes_of_type_in_pkg(tests.spiffworkflow_backend, type(BaseTest))
     assert len(list(found)) > 1
 
-def test_can_describe_bobs_params(
+def test_can_describe_sample_params(
     app: Flask, with_db_and_bpmn_file_cleanup: None
 ) -> None:
-    def bob(sam:str) -> None:
-        return None
+    _test_param_descs("Sample Params", [
+        NoParams,
+        ParamWithNoAnnotation,
+        ParamWithStrAnnotation,
+    ])
 
-    param_descs = ReflectionService.callable_params_desc(bob)
-    assert len(param_descs) == 1
-
-    assert param_descs[0]['id'] == 'sam'
-    assert param_descs[0]['type'] == 'str'
-    assert param_descs[0]['required'] == True
-
-def test_can_describe_airflow_operators(
+def test_can_describe_airflow_operator_params(
     app: Flask, with_db_and_bpmn_file_cleanup: None
 ) -> None:
-    operators = [
+    _test_param_descs("Mock Airflow Operators", [
         FTPSensor,
         HTTPSensor,
-    ]
-    test_cases = [(op.__init__, op.expected) for op in operators]
+        ImapAttachmentSensor,
+        SlackAPIFileOperator,
+    ])
 
+def _test_param_descs(desc, test_classes):
+    test_cases = [(tc.__init__, tc.expected) for tc in test_classes]
     for i, (c, expected) in enumerate(test_cases):
-        test_case_desc = f"Test #{i}"
+        test_case_desc = f"{desc} #{i}"
         actual = ReflectionService.callable_params_desc(c)
         assert len(actual) == len(expected), test_case_desc
 
@@ -55,6 +54,21 @@ def test_can_describe_airflow_operators(
             assert actual['id'] == expected[0], test_desc
             assert actual['type'] == expected[1], test_desc
             assert actual['required'] == expected[2], test_desc
+
+# Granular Param Testing
+
+class NoParams:
+    def __init__(): pass
+    expected = []
+
+class ParamWithNoAnnotation:
+    def __init__(bob): pass
+    expected = [('bob', 'any', True)]
+
+
+class ParamWithStrAnnotation:
+    def __init__(bob:str): pass
+    expected = [('bob', 'str', True)]
 
 # mock airflow providers
 
@@ -102,3 +116,44 @@ class HTTPSensor:
         ('tcp_keep_alive_count', 'int', False),
         ('tcp_keep_alive_interval', 'int', False),
     ] 
+
+class ImapAttachmentSensor:
+    def __init__(
+        self,
+        *,
+        attachment_name,
+        check_regex=False,
+        mail_folder='INBOX',
+        mail_filter='All',
+        conn_id='imap_default',
+        **kwargs,
+    ) -> None:
+        return None
+
+    expected = [
+        ('attachment_name', 'any', True),
+        ('check_regex', 'any', False),
+        ('mail_folder', 'any', False),
+        ('mail_filter', 'any', False),
+        ('conn_id', 'any', False),
+    ]
+
+class SlackAPIFileOperator:
+    def __init__(
+        self,
+        channel: str = '#general',
+        initial_comment: str = 'No message has been set!',
+        filename: Optional[str] = None,
+        filetype: Optional[str] = None,
+        content: Optional[str] = None,
+        **kwargs,
+    ) -> None:
+        return None
+
+    expected = [
+        ('channel', 'str', False),
+        ('initial_comment', 'str', False),
+        ('filename', 'str', False),
+        ('filetype', 'str', False),
+        ('content', 'str', False),
+    ]
