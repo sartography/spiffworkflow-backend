@@ -16,10 +16,10 @@ from spiffworkflow_backend.services.process_model_service import ProcessModelSer
 def assure_process_group_exists(process_group_id: Optional[str] = None) -> ProcessGroup:
     """Assure_process_group_exists."""
     process_group = None
-    workflow_spec_service = ProcessModelService()
+    process_model_service = ProcessModelService()
     if process_group_id is not None:
         try:
-            process_group = workflow_spec_service.get_process_group(process_group_id)
+            process_group = process_model_service.get_process_group(process_group_id)
         except ProcessEntityNotFoundError:
             process_group = None
 
@@ -33,7 +33,7 @@ def assure_process_group_exists(process_group_id: Optional[str] = None) -> Proce
             admin=False,
             display_order=0,
         )
-        workflow_spec_service.add_process_group(process_group)
+        process_model_service.add_process_group(process_group)
     return process_group
 
 
@@ -42,10 +42,12 @@ def load_test_spec(
     master_spec: bool = False,
     process_group_id: Optional[str] = None,
     library: bool = False,
+    bpmn_file_name: Optional[str] = None,
+    process_model_source_directory: Optional[str] = None,
 ) -> ProcessModelInfo:
     """Loads a process model into the bpmn dir based on a directory in tests/data."""
     process_group = None
-    workflow_spec_service = ProcessModelService()
+    process_model_service = ProcessModelService()
     if process_group_id is None:
         process_group_id = "test_process_group_id"
     if not master_spec and not library:
@@ -53,17 +55,19 @@ def load_test_spec(
         process_group_id = process_group.id
 
     try:
-        return workflow_spec_service.get_process_model(
+        return process_model_service.get_process_model(
             process_model_id, group_id=process_group_id
         )
     except ProcessEntityNotFoundError:
         spec = ExampleDataLoader().create_spec(
-            id=process_model_id,
+            process_model_id=process_model_id,
             master_spec=master_spec,
             from_tests=True,
             display_name=process_model_id,
             process_group_id=process_group_id,
             library=library,
+            bpmn_file_name=bpmn_file_name,
+            process_model_source_directory=process_model_source_directory,
         )
         return spec
 
