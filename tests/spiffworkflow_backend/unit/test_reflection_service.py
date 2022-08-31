@@ -1,5 +1,5 @@
 """Process Model."""
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from flask.app import Flask
 
@@ -33,6 +33,9 @@ def test_can_describe_sample_params(
         ParamWithOptionalStrAnnotation,
         ParamWithDefaultValue,
         ParamWithOptionalStrAnnotationAndDefaultValue,
+        ParamWithOptionalDictAnnotation,
+        ParamWithOptionalListAnnotation,
+        #ParamWithOptionalBuiltinListAnnotation,
     ])
 
 def test_can_describe_airflow_operator_params(
@@ -42,7 +45,8 @@ def test_can_describe_airflow_operator_params(
         FTPSensor,
         HTTPSensor,
         ImapAttachmentSensor,
-        #SlackAPIFileOperator,
+        SlackAPIFileOperator,
+        #SlackWebhookOperator,
     ])
 
 def _test_param_descs(desc, test_classes):
@@ -68,7 +72,6 @@ class ParamWithNoAnnotation:
     def __init__(bob): pass
     expected = [('bob', 'any', True)]
 
-
 class ParamWithStrAnnotation:
     def __init__(bob: str): pass
     expected = [('bob', 'str', True)]
@@ -85,6 +88,18 @@ class ParamWithOptionalStrAnnotationAndDefaultValue:
     def __init__(bob: Optional[str]='sam'): pass
     expected = [('bob', 'str', False)]
 
+class ParamWithOptionalDictAnnotation:
+    def __init__(ok: Optional[Dict]): pass
+    expected = [('ok', 'any', False)]
+
+class ParamWithOptionalListAnnotation:
+    def __init__(ok: Optional[List]): pass
+    expected = [('ok', 'any', False)]
+
+class ParamWithOptionalBuiltinListAnnotation:
+    def __init__(ok: Optional[list]): pass
+    expected = [('ok', 'any', False)]
+    
 # mock airflow providers
 
 class FTPSensor:
@@ -171,4 +186,37 @@ class SlackAPIFileOperator:
         ('filename', 'str', False),
         ('filetype', 'str', False),
         ('content', 'str', False),
+    ]
+
+class SlackWebhookOperator:
+    def __init__(
+        self,
+        *,
+        http_conn_id: str,
+        webhook_token: Optional[str] = None,
+        message: str = "",
+        attachments: Optional[list] = None,
+        blocks: Optional[list] = None,
+        channel: Optional[str] = None,
+        username: Optional[str] = None,
+        icon_emoji: Optional[str] = None,
+        icon_url: Optional[str] = None,
+        link_names: bool = False,
+        proxy: Optional[str] = None,
+        **kwargs,
+    ) -> None:
+        return None
+
+    expected = [
+        ('http_conn_id', 'str', True),
+        ('webhook_token', 'str', False),
+        ('message', 'str', False),
+        ('attachments', 'any', False),
+        ('blocks', 'any', False),
+        ('channel', 'str', False),
+        ('username', 'str', False),
+        ('icon_emoji', 'str', False),
+        ('icon_url', 'str', False),
+        ('link_names', 'bool', False),
+        ('proxy', 'str', False),
     ]

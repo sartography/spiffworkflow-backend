@@ -56,34 +56,42 @@ class ReflectionService:
 
     @staticmethod
     def _param_annotation_desc(param: inspect.Parameter) -> ParameterDescription:
+        """Parses a callable parameter's type annotation, if any, to form a ParameterDescription."""
+
         param_id = param.name
         param_type_desc = "any"
-        # TODO this check is working so far but appears wrong
-        param_req = param.default is param.empty
+
+        none_type = type(None)
+        supported_types = {str, int, bool, none_type}
+        unsupported_type_marker = object
+
+        assert unsupported_type_marker not in supported_types
+
         annotation = param.annotation
 
-        if annotation == param.empty:
-            pass
-        elif type(annotation) == type:
-            # TODO handle non builtin types
-            param_type_desc = annotation.__name__
+        if annotation in supported_types:
+            annotation_types = {annotation}
         else:
+            # an annotation can have more than one type in the case of a union
+            # get_args normalizes Union[str, dict] to (str, dict)
+            # get_args normalizes Optional[str] to (str, none)
+            # all unsupported types are marked so (str, dict) -> (str, unsupported)
+            # the absense of a type annotation results in an empty set
+            annotation_types = set(map(lambda t: t if t in supported_types else unsupported_type_marker, 
+                get_args(annotation)))
 
-            origin = get_origin(annotation)
-            args = get_args(annotation)
+        # a parameter is required if it has no default value and none is not in its type set
+        param_req = param.default is param.empty and none_type not in annotation_types
 
-            if origin is None or args == ():
-                param_type_desc = 'any'
-            else:
-                none_type_set = {type(None)}
-                args = set(filter(lambda t: type(t) == type, args))
-                if param_req and args & none_type_set:
-                    param_req = False
-                args -= none_type_set
-                if len(args) == 1:
-                    param_type = args.pop()
-                    if type(param_type) == type:
-                        param_type_desc = param_type.__name__
+        # the none type from a union is used for requiredness, but needs to be discarded 
+        # to single out the optional type
+        annotation_types.discard(none_type)
+
+        # if we have a single supported type use that, else any is the default
+        if len(annotation_types) == 1:
+            annotation_type = annotation_types.pop()
+            if annotation_type in supported_types:
+                param_type_desc = annotation_type.__name__
 
         return { "id": param_id, "type": param_type_desc, "required": param_req }
 
@@ -94,8 +102,6 @@ class ReflectionService:
         sig = inspect.signature(c)
         params_to_skip = ['self', 'kwargs']
         params = filter(lambda param: param.name not in params_to_skip, sig.parameters.values())
-        # TODO remove iterable, take inner type
-        # TODO on union form set of types
         params = [ReflectionService._param_annotation_desc(param) for param in params]
 
         return params
