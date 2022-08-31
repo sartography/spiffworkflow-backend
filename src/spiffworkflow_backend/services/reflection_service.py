@@ -58,24 +58,27 @@ class ReflectionService:
     def _param_annotation_desc(param: inspect.Parameter) -> ParameterDescription:
         # TODO clean this up after tests pass
         param_id = param.name
+        param_type_desc = ""
         param_req = param.default is param.empty
-        desc = lambda type_desc: { "id": param_id, "type": type_desc, "required": param_req }
+
         annotation = param.annotation
         if annotation == param.empty:
-            return desc("any")
-        if type(annotation) == type:
-            return desc(annotation.__name__)
+            param_type_desc = "any"
+        elif type(annotation) == type:
+            param_type_desc = annotation.__name__
+        else:
+            # TODO parse the hairy ones
+            param_type_desc = str(annotation)
 
-        origin = get_origin(annotation)
-        args = get_args(annotation)
+            origin = get_origin(annotation)
+            args = get_args(annotation)
 
-        print(str(annotation))
-        print(origin)
-        print(args)
-        print('-----')
+            print(str(annotation))
+            print(origin)
+            print(args)
+            print('-----')
 
-        # TODO parse the hairy ones
-        return desc(str(annotation))
+        return { "id": param_id, "type": param_type_desc, "required": param_req }
 
     @staticmethod
     def callable_params_desc(c: Callable) -> list[ParameterDescription]:
