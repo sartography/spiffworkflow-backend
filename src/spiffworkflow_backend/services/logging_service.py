@@ -142,3 +142,22 @@ def setup_logger(app: Flask) -> None:
     logging.basicConfig(handlers=handlers)
 
     setup_logger_for_sql_statements(app)
+
+    spiff_logger = logging.getLogger('spiff.metrics')
+    spiff_logger.setLevel(logging.DEBUG)
+    # spiff_logger_handler = logging.StreamHandler(sys.stdout)
+    spiff_formatter = logging.Formatter('%(asctime)s | %(levelname)s | %(message)s | %(action)s | %(task_type)s | %(process)s | %(processName)s')
+    # spiff_logger_handler.setFormatter(spiff_formatter)
+    # fh = logging.FileHandler('test.log')
+    # spiff_logger_handler.setLevel(logging.DEBUG)
+    # spiff_logger.addHandler(spiff_logger_handler)
+    db_handler = DBHandler()
+    db_handler.setLevel(logging.DEBUG)
+    db_handler.setFormatter(spiff_formatter)
+    spiff_logger.addHandler(db_handler)
+
+
+class DBHandler(logging.Handler):
+
+    def emit(self, record):
+        print(record.process)
