@@ -24,9 +24,9 @@ class ServiceTaskService:
 
         try:
             import airflow.providers
-            from airflow.models import BaseOperator
+            from airflow.hooks.base import BaseHook
             # TODO filter operators - __subclasses__() check didn't pan out immediately
-            yield from ReflectionService.classes_of_type_in_pkg(airflow.providers, type(BaseOperator))
+            yield from ReflectionService.classes_of_type_in_pkg(airflow.providers, type(BaseHook))
         except:
             pass
 
