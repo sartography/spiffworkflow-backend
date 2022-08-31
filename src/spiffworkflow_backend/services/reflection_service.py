@@ -3,7 +3,7 @@ import importlib
 import inspect
 import pkgutil
 import types
-from typing import Any, Callable, Generator, TypedDict
+from typing import get_args, get_origin, Any, Callable, Generator, TypedDict
 
 DiscoveredClass = Any
 DiscoveredModule = Any
@@ -55,15 +55,27 @@ class ReflectionService:
                 yield clz_name, clz
 
     @staticmethod
-    def _param_annotation_desc(param: inspect.Parameter) -> str:
+    def _param_annotation_desc(param: inspect.Parameter) -> ParameterDescription:
+        # TODO clean this up after tests pass
+        param_id = param.name
+        param_req = param.default is param.empty
+        desc = lambda type_desc: { "id": param_id, "type": type_desc, "required": param_req }
         annotation = param.annotation
         if annotation == param.empty:
-            return "any"
+            return desc("any")
         if type(annotation) == type:
-            return annotation.__name__
+            return desc(annotation.__name__)
+
+        origin = get_origin(annotation)
+        args = get_args(annotation)
+
+        print(str(annotation))
+        print(origin)
+        print(args)
+        print('-----')
 
         # TODO parse the hairy ones
-        return str(annotation)
+        return desc(str(annotation))
 
     @staticmethod
     def callable_params_desc(c: Callable) -> list[ParameterDescription]:
@@ -74,11 +86,6 @@ class ReflectionService:
         params = filter(lambda param: param.name not in params_to_skip, sig.parameters.values())
         # TODO remove iterable, take inner type
         # TODO on union form set of types
-        params = [{
-            "id": param.name, 
-            # TODO parsing to better fill out these two fields
-            "type": ReflectionService._param_annotation_desc(param), 
-            "required": True 
-        } for param in params]
+        params = [ReflectionService._param_annotation_desc(param) for param in params]
 
         return params
