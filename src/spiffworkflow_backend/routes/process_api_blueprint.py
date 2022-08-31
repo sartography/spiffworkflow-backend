@@ -723,6 +723,7 @@ def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response
             form_ui_schema_file_name = properties["formUiSchemaFilename"]
     task = ProcessInstanceService.spiff_task_to_api_task(spiff_task)
     task.data = spiff_task.data
+    task.process_name = process_model.id
 
     if task.type == "UserTask":
         if not form_schema_file_name:

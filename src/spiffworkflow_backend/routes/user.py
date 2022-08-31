@@ -80,14 +80,10 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[Union[str, i
                         .first()
                     )
                     if user_model is None:
-                        # Do we ever get here any more, now that we have login_return method?
-                        current_app.logger.debug("create_user in verify_token")
-                        user_model = UserService().create_user(
-                            service="open_id",
-                            service_id=user_info["sub"],
-                            name=user_info["name"],
-                            username=user_info["preferred_username"],
-                            email=user_info["email"],
+                        raise ApiError(
+                            code="invalid_user",
+                            message="Invalid user. Please log in.",
+                            status_code=401,
                         )
                 # no user_info
                 else:

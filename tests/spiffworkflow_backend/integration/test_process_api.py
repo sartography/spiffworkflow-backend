@@ -604,7 +604,11 @@ class TestProcessApi(BaseTest):
     ) -> None:
         """Test_message_start_when_starting_process_instance."""
         # ensure process model is loaded in db
-        load_test_spec("message_receiver")
+        load_test_spec(
+            "message_receiver",
+            process_model_source_directory="message_send_one_conversation",
+            bpmn_file_name="message_receiver",
+        )
         user = self.find_or_create_user()
         message_model_identifier = "message_send"
         payload = {
@@ -637,7 +641,11 @@ class TestProcessApi(BaseTest):
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_message_start_when_providing_message_to_running_process_instance."""
-        process_model = load_test_spec("message_sender")
+        process_model = load_test_spec(
+            "message_sender",
+            process_model_source_directory="message_send_one_conversation",
+            bpmn_file_name="message_sender",
+        )
         user = self.find_or_create_user()
         message_model_identifier = "message_response"
         payload = {
@@ -692,7 +700,11 @@ class TestProcessApi(BaseTest):
     ) -> None:
         """Test_message_start_when_providing_message_to_running_process_instance."""
         # this task will wait on a catch event
-        process_model = load_test_spec("message_sender")
+        process_model = load_test_spec(
+            "message_sender",
+            process_model_source_directory="message_send_one_conversation",
+            bpmn_file_name="message_sender",
+        )
         user = self.find_or_create_user()
         response = self.create_process_instance(
             client,
