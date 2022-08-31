@@ -27,7 +27,7 @@ flask-marshmallow = "*"
 flask-migrate = "*"
 flask-restful = "*"
 werkzeug = "*"
-spiffworkflow = {git = "https://github.com/sartography/SpiffWorkflow", rev = "bugfix/prune-correlations-in-bpmn-messages"}
+spiffworkflow = {git = "https://github.com/sartography/SpiffWorkflow", rev = "main"}
 # spiffworkflow = {develop = true, path = "/home/jason/projects/github/sartography/SpiffWorkflow"}
 sentry-sdk = "1.9.0"
 sphinx-autoapi = "^1.8.4"
