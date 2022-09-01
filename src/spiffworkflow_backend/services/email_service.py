@@ -2,7 +2,7 @@
 from typing import List
 from typing import Optional
 
-from flask import current_app
+from flask import current_app  # type: ignore
 from flask_mail import Message  # type: ignore
 
 

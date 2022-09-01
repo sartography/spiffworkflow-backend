@@ -5,10 +5,13 @@ import pkgutil
 import types
 from typing import get_args, get_origin, Any, Callable, Generator, TypedDict
 
-DiscoveredClass = Any
-DiscoveredModule = Any
-DiscoveredClassGenerator = Generator[tuple[str, DiscoveredClass], None, None]
-DiscoveredModuleGenerator = Generator[tuple[str, DiscoveredModule], None, None]
+Class = Any
+ClassType = Any
+Module = Any
+Package = Any
+
+ClassGenerator = Generator[tuple[str, Class], None, None]
+ModuleGenerator = Generator[tuple[str, Module], None, None]
 
 class ParameterDescription(TypedDict):
     id: str
@@ -19,7 +22,7 @@ class ReflectionService:
     """Utilities to aid in reflection."""
     
     @staticmethod
-    def modules_in_pkg(pkg) -> DiscoveredModuleGenerator:
+    def modules_in_pkg(pkg: Package) -> ModuleGenerator:
         """Recursively yields a (name, module) for each module in the given pkg."""
 
         for finder, name, ispkg in pkgutil.iter_modules(pkg.__path__):
@@ -37,7 +40,7 @@ class ReflectionService:
                 pass
 
     @staticmethod
-    def classes_in_pkg(pkg) -> DiscoveredClassGenerator:
+    def classes_in_pkg(pkg: Package) -> ClassGenerator:
         """Recursively yields a (name, class) for each class in each module in the given pkg."""
 
         for module_name, module in ReflectionService.modules_in_pkg(pkg):
@@ -46,7 +49,7 @@ class ReflectionService:
                     yield clz_name, clz
 
     @staticmethod
-    def classes_of_type_in_pkg(pkg, clz_type) -> DiscoveredClassGenerator:
+    def classes_of_type_in_pkg(pkg: Package, clz_type: ClassType) -> ClassGenerator:
         """Recursively yields a (name, class) for each class in each module in the given pkg 
         that isinstance of the given clz_type."""
 
