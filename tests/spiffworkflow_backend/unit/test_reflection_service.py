@@ -5,7 +5,7 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
-from flask.app import Flask
+from flask.app import Flask # type: ignore
 
 from spiffworkflow_backend.services.reflection_service import ReflectionService
 
@@ -64,81 +64,81 @@ def test_can_describe_airflow_operator_params(
     )
 
 
-def _test_param_descs(desc, test_classes):
-    test_cases = [(tc.__init__, tc.expected) for tc in test_classes]
+def _test_param_descs(desc: str, test_classes: list[Callable]) -> None:
+    test_cases = [(tc.__init__, tc.expected) for tc in test_classes] # type: ignore
     for i, (c, expected) in enumerate(test_cases):
         test_case_desc = f"{desc} #{i}"
         actual = ReflectionService.callable_params_desc(c)
-        assert len(actual) == len(expected), test_case_desc
+        assert len(actual) == len(expected), test_case_desc # type: ignore
 
-        for i, (actual, expected) in enumerate(zip(actual, expected)):
+        for i, (actual, expected) in enumerate(zip(actual, expected)): # type: ignore
             test_desc = f"{test_case_desc}:{i}"
-            assert actual["id"] == expected[0], test_desc
-            assert actual["type"] == expected[1], test_desc
-            assert actual["required"] == expected[2], test_desc
+            assert actual["id"] == expected[0], test_desc # type: ignore
+            assert actual["type"] == expected[1], test_desc # type: ignore
+            assert actual["required"] == expected[2], test_desc # type: ignore
 
 
 # Granular Param Testing
 
 
 class NoParams:
-    def __init__():
+    def __init__(self) -> None:
         pass
 
-    expected = []
+    expected = [] # type: ignore 
 
 
 class ParamWithNoAnnotation:
-    def __init__(bob):
+    def __init__(self, bob): # type: ignore
         pass
 
     expected = [("bob", "any", True)]
 
 
 class ParamWithStrAnnotation:
-    def __init__(bob: str):
+    def __init__(self, bob: str):
         pass
 
     expected = [("bob", "str", True)]
 
 
 class ParamWithOptionalStrAnnotation:
-    def __init__(filename: Optional[str]):
+    def __init__(self, filename: Optional[str]):
         pass
 
     expected = [("filename", "str", False)]
 
 
 class ParamWithDefaultValue:
-    def __init__(bob: int = 33):
+    def __init__(self, bob: int = 33):
         pass
 
     expected = [("bob", "int", False)]
 
 
 class ParamWithOptionalStrAnnotationAndDefaultValue:
-    def __init__(bob: Optional[str] = "sam"):
+    def __init__(self, bob: Optional[str] = "sam"):
         pass
 
     expected = [("bob", "str", False)]
 
 
 class ParamWithOptionalDictAnnotation:
-    def __init__(ok: Optional[Dict]):
+    def __init__(self, ok: Optional[Dict]):
         pass
 
     expected = [("ok", "any", False)]
 
 
 class ParamWithOptionalListAnnotation:
-    def __init__(ok: Optional[List]):
+    def __init__(self, ok: Optional[List]):
         pass
 
     expected = [("ok", "any", False)]
 
 
 class ParamWithOptionalBuiltinListAnnotation:
-    def __init__(ok: Optional[list]):
+    def __init__(self, ok: Optional[list]):
         pass
 
     expected = [("ok", "any", False)]
@@ -148,14 +148,14 @@ class ParamWithOptionalBuiltinListAnnotation:
 
 
 class FTPSensor:
-    def __init__(
+    def __init__( # type: ignore
         self,
         *,
         path: str,
         ftp_conn_id: str = "ftp_default",
         fail_on_transient_errors: bool = True,
         **kwargs,
-    ) -> None:
+        ) -> None:
         return None
 
     expected = [
@@ -181,7 +181,7 @@ class HTTPSensor:
         tcp_keep_alive_count: int = 20,
         tcp_keep_alive_interval: int = 30,
         **kwargs: Any,
-    ) -> None:
+        ) -> None:
         return None
 
     expected = [
@@ -200,7 +200,7 @@ class HTTPSensor:
 
 
 class ImapAttachmentSensor:
-    def __init__(
+    def __init__( # type: ignore
         self,
         *,
         attachment_name,
@@ -209,7 +209,7 @@ class ImapAttachmentSensor:
         mail_filter="All",
         conn_id="imap_default",
         **kwargs,
-    ) -> None:
+        ) -> None:
         return None
 
     expected = [
@@ -222,7 +222,7 @@ class ImapAttachmentSensor:
 
 
 class SlackAPIFileOperator:
-    def __init__(
+    def __init__( # type: ignore
         self,
         channel: str = "#general",
         initial_comment: str = "No message has been set!",
@@ -230,7 +230,7 @@ class SlackAPIFileOperator:
         filetype: Optional[str] = None,
         content: Optional[str] = None,
         **kwargs,
-    ) -> None:
+        ) -> None:
         return None
 
     expected = [
@@ -243,7 +243,7 @@ class SlackAPIFileOperator:
 
 
 class SlackWebhookOperator:
-    def __init__(
+    def __init__( # type: ignore
         self,
         *,
         http_conn_id: str,
@@ -258,7 +258,7 @@ class SlackWebhookOperator:
         link_names: bool = False,
         proxy: Optional[str] = None,
         **kwargs,
-    ) -> None:
+        ) -> None:
         return None
 
     expected = [

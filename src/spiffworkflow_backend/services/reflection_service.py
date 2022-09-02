@@ -6,6 +6,7 @@ import types
 from typing import Any
 from typing import Callable
 from typing import Generator
+from typing import Iterable
 from typing import get_args
 from typing import get_origin
 from typing import TypedDict
@@ -39,14 +40,12 @@ class ReflectionService:
                 # but if provided then failure
                 sub_pkg = finder.find_module(name).load_module(name) # type: ignore
                 yield from ReflectionService.modules_in_pkg(sub_pkg)
-                continue
-            try:
+            else:
                 spec = finder.find_spec(name) # type: ignore
-                module = types.ModuleType(spec.name)
-                spec.loader.exec_module(module)
-                yield name, module
-            except:
-                pass
+                if spec is not None and spec.loader is not None:
+                    module = types.ModuleType(spec.name)
+                    spec.loader.exec_module(module)
+                    yield name, module
 
     @staticmethod
     def classes_in_pkg(pkg: Package) -> ClassGenerator:
@@ -91,7 +90,7 @@ class ReflectionService:
             # the absense of a type annotation results in an empty set
             annotation_types = set(
                 map(
-                    lambda t: t if t in supported_types else unsupported_type_marker,
+                    lambda t: t if t in supported_types else unsupported_type_marker, # type: ignore
                     get_args(annotation),
                 )
             )
@@ -112,14 +111,14 @@ class ReflectionService:
         return {"id": param_id, "type": param_type_desc, "required": param_req}
 
     @staticmethod
-    def callable_params_desc(c: Callable) -> list[ParameterDescription]:
+    def callable_params_desc(c: Callable) -> Iterable[ParameterDescription]:
         """Parses the signature of a callable and returns a description of each parameter."""
 
         sig = inspect.signature(c)
         params_to_skip = ["self", "kwargs"]
-        params = filter(
+        sig_params = filter(
             lambda param: param.name not in params_to_skip, sig.parameters.values()
         )
-        params = [ReflectionService._param_annotation_desc(param) for param in params]
+        params = [ReflectionService._param_annotation_desc(param) for param in sig_params]
 
         return params

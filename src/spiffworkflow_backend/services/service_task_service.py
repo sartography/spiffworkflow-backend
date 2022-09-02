@@ -6,6 +6,7 @@ import pkgutil
 import sys
 from typing import Any
 from typing import Generator
+from typing import Iterable
 from typing import TypedDict
 
 from spiffworkflow_backend.services.reflection_service import ParameterDescription
@@ -14,7 +15,7 @@ from spiffworkflow_backend.services.reflection_service import ReflectionService
 
 class Operator(TypedDict):
     id: str
-    parameters: list[ParameterDescription]
+    parameters: Iterable[ParameterDescription]
 
 
 OperatorClass = Any
@@ -39,7 +40,7 @@ class ServiceTaskService:
             pass
 
     @staticmethod
-    def _parse_operator_params(operator_class) -> list[ParameterDescription]:
+    def _parse_operator_params(operator_class: OperatorClass) -> Iterable[ParameterDescription]:
         """Parses the init of the given operator_class to build a list of OperatorParameters."""
 
         return ReflectionService.callable_params_desc(operator_class.__init__)
@@ -56,7 +57,7 @@ class ServiceTaskService:
         """Returns a list of all operator names and init parameters that are available for use in
         a service task."""
 
-        available_operators = [
+        available_operators: list[Operator] = [
             {
                 "id": operator_name,
                 "parameters": cls._parse_operator_params(operator_class),
