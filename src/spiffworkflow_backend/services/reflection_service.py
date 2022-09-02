@@ -3,7 +3,12 @@ import importlib
 import inspect
 import pkgutil
 import types
-from typing import get_args, get_origin, Any, Callable, Generator, TypedDict
+from typing import Any
+from typing import Callable
+from typing import Generator
+from typing import get_args
+from typing import get_origin
+from typing import TypedDict
 
 Class = Any
 ClassType = Any
@@ -13,14 +18,16 @@ Package = Any
 ClassGenerator = Generator[tuple[str, Class], None, None]
 ModuleGenerator = Generator[tuple[str, Module], None, None]
 
+
 class ParameterDescription(TypedDict):
     id: str
     type: str
     required: bool
 
+
 class ReflectionService:
     """Utilities to aid in reflection."""
-    
+
     @staticmethod
     def modules_in_pkg(pkg: Package) -> ModuleGenerator:
         """Recursively yields a (name, module) for each module in the given pkg."""
@@ -28,11 +35,13 @@ class ReflectionService:
         for finder, name, ispkg in pkgutil.iter_modules(pkg.__path__):
             if ispkg:
                 # TODO couldn't get this to work with exec_module
-                sub_pkg = finder.find_module(name).load_module(name)
+                # mypy thinks load_module and find_spec have a second required param, 
+                # but if provided then failure
+                sub_pkg = finder.find_module(name).load_module(name) # type: ignore
                 yield from ReflectionService.modules_in_pkg(sub_pkg)
                 continue
             try:
-                spec = finder.find_spec(name)
+                spec = finder.find_spec(name) # type: ignore
                 module = types.ModuleType(spec.name)
                 spec.loader.exec_module(module)
                 yield name, module
@@ -50,7 +59,7 @@ class ReflectionService:
 
     @staticmethod
     def classes_of_type_in_pkg(pkg: Package, clz_type: ClassType) -> ClassGenerator:
-        """Recursively yields a (name, class) for each class in each module in the given pkg 
+        """Recursively yields a (name, class) for each class in each module in the given pkg
         that isinstance of the given clz_type."""
 
         for clz_name, clz in ReflectionService.classes_in_pkg(pkg):
@@ -80,13 +89,17 @@ class ReflectionService:
             # get_args normalizes Optional[str] to (str, none)
             # all unsupported types are marked so (str, dict) -> (str, unsupported)
             # the absense of a type annotation results in an empty set
-            annotation_types = set(map(lambda t: t if t in supported_types else unsupported_type_marker, 
-                get_args(annotation)))
+            annotation_types = set(
+                map(
+                    lambda t: t if t in supported_types else unsupported_type_marker,
+                    get_args(annotation),
+                )
+            )
 
         # a parameter is required if it has no default value and none is not in its type set
         param_req = param.default is param.empty and none_type not in annotation_types
 
-        # the none type from a union is used for requiredness, but needs to be discarded 
+        # the none type from a union is used for requiredness, but needs to be discarded
         # to single out the optional type
         annotation_types.discard(none_type)
 
@@ -96,15 +109,17 @@ class ReflectionService:
             if annotation_type in supported_types:
                 param_type_desc = annotation_type.__name__
 
-        return { "id": param_id, "type": param_type_desc, "required": param_req }
+        return {"id": param_id, "type": param_type_desc, "required": param_req}
 
     @staticmethod
     def callable_params_desc(c: Callable) -> list[ParameterDescription]:
         """Parses the signature of a callable and returns a description of each parameter."""
 
         sig = inspect.signature(c)
-        params_to_skip = ['self', 'kwargs']
-        params = filter(lambda param: param.name not in params_to_skip, sig.parameters.values())
+        params_to_skip = ["self", "kwargs"]
+        params = filter(
+            lambda param: param.name not in params_to_skip, sig.parameters.values()
+        )
         params = [ReflectionService._param_annotation_desc(param) for param in params]
 
         return params

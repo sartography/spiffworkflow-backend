@@ -40,11 +40,11 @@ from SpiffWorkflow.spiff.serializer import ManualTaskConverter
 from SpiffWorkflow.spiff.serializer import NoneTaskConverter
 from SpiffWorkflow.spiff.serializer import ReceiveTaskConverter
 from SpiffWorkflow.spiff.serializer import SendTaskConverter
+from SpiffWorkflow.spiff.serializer import ServiceTaskConverter
 from SpiffWorkflow.spiff.serializer import StartEventConverter
 from SpiffWorkflow.spiff.serializer import SubWorkflowTaskConverter
 from SpiffWorkflow.spiff.serializer import TransactionSubprocessConverter
 from SpiffWorkflow.spiff.serializer import UserTaskConverter
-from SpiffWorkflow.spiff.serializer import ServiceTaskConverter
 from SpiffWorkflow.util.deep_merge import DeepMerge  # type: ignore
 
 from spiffworkflow_backend.models.active_task import ActiveTaskModel
@@ -67,11 +67,12 @@ from spiffworkflow_backend.models.task_event import TaskAction
 from spiffworkflow_backend.models.task_event import TaskEventModel
 from spiffworkflow_backend.models.user import UserModelSchema
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
+from spiffworkflow_backend.services.service_task_service import ServiceTaskService
 from spiffworkflow_backend.services.spec_file_service import SpecFileService
 from spiffworkflow_backend.services.user_service import UserService
-from spiffworkflow_backend.services.service_task_service import ServiceTaskService
 
 # from crc.services.user_file_service import UserFileService
+
 
 class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
     """This is a custom script processor that can be easily injected into Spiff Workflow.
@@ -102,7 +103,11 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
             ) from exception
 
     def execute(
-            self, task: SpiffTask, script: str, data: Dict[str, Dict[str, str]], external_methods: any = None
+        self,
+        task: SpiffTask,
+        script: str,
+        data: Dict[str, Dict[str, str]],
+        external_methods: any = None,
     ) -> None:
         """Execute."""
         try:
@@ -111,6 +116,7 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
             raise e
         except Exception as e:
             raise WorkflowTaskExecException(task, f" {script}, {e}", e) from e
+
 
 class CustomServiceTaskScriptEngine(CustomBpmnScriptEngine):
     def __init__(self):
@@ -152,7 +158,7 @@ class ProcessInstanceProcessor:
             SubWorkflowTaskConverter,
             TransactionSubprocessConverter,
             UserTaskConverter,
-            ServiceTaskConverter
+            ServiceTaskConverter,
         ]
     )
     _serializer = BpmnWorkflowSerializer(wf_spec_converter, version=SERIALIZER_VERSION)
@@ -243,7 +249,9 @@ class ProcessInstanceProcessor:
             )
             # TODO factor out a set_script_engines(typeof self)
             self.bpmn_process_instance.script_engine = self._script_engine
-            self.bpmn_process_instance.servicetask_script_engine = self._service_task_script_engine
+            self.bpmn_process_instance.servicetask_script_engine = (
+                self._service_task_script_engine
+            )
 
             self.add_user_info_to_process_instance(self.bpmn_process_instance)
 

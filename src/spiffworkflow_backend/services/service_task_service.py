@@ -4,29 +4,37 @@ import importlib
 import inspect
 import pkgutil
 import sys
-from typing import Any, Generator, TypedDict
+from typing import Any
+from typing import Generator
+from typing import TypedDict
 
-from spiffworkflow_backend.services.reflection_service import ParameterDescription, ReflectionService
+from spiffworkflow_backend.services.reflection_service import ParameterDescription
+from spiffworkflow_backend.services.reflection_service import ReflectionService
+
 
 class Operator(TypedDict):
     id: str
     parameters: list[ParameterDescription]
 
+
 OperatorClass = Any
 OperatorClassGenerator = Generator[tuple[str, OperatorClass], None, None]
 
-class ServiceTaskService:
 
+class ServiceTaskService:
     @staticmethod
     def _available_airflow_operator_classes() -> OperatorClassGenerator:
-        """Yields name and class for all airflow operators that are available for use in 
+        """Yields name and class for all airflow operators that are available for use in
         service tasks."""
 
         try:
             import airflow.providers
             from airflow.hooks.base import BaseHook
+
             # TODO filter operators - __subclasses__() check didn't pan out immediately
-            yield from ReflectionService.classes_of_type_in_pkg(airflow.providers, type(BaseHook))
+            yield from ReflectionService.classes_of_type_in_pkg(
+                airflow.providers, type(BaseHook)
+            )
         except:
             pass
 
@@ -45,19 +53,22 @@ class ServiceTaskService:
 
     @classmethod
     def available_operators(cls) -> list[Operator]:
-        """Returns a list of all operator names and init parameters that are available for use in 
+        """Returns a list of all operator names and init parameters that are available for use in
         a service task."""
 
-        available_operators = [{
-            "id": operator_name, 
-            "parameters": cls._parse_operator_params(operator_class)
-        } for operator_name, operator_class in cls.available_operator_classes()]
+        available_operators = [
+            {
+                "id": operator_name,
+                "parameters": cls._parse_operator_params(operator_class),
+            }
+            for operator_name, operator_class in cls.available_operator_classes()
+        ]
 
         return list(available_operators)
 
     @classmethod
     def scripting_additions(cls) -> dict[str, OperatorClass]:
-        """Returns a dictionary of operator names and classes for loading into a 
+        """Returns a dictionary of operator names and classes for loading into a
         scripting engine instance."""
 
         operator_classes = list(cls.available_operator_classes())

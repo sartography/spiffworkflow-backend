@@ -105,4 +105,4 @@ def logged_in_headers(
     # user = UserService.current_user(allow_admin_impersonate=True)
     # self.assertEqual(uid, user.uid, 'Logged in user should match given user uid')
 
-    return dict(Authorization="Bearer " + user.encode_auth_token().decode('utf-8'))
+    return dict(Authorization="Bearer " + user.encode_auth_token().decode("utf-8"))
