@@ -28,16 +28,17 @@ class ServiceTaskService:
         """Yields name and class for all airflow operators that are available for use in
         service tasks."""
 
-        try:
-            import airflow.providers
-            from airflow.hooks.base import BaseHook
-
-            # TODO filter operators - __subclasses__() check didn't pan out immediately
-            yield from ReflectionService.classes_of_type_in_pkg(
-                airflow.providers, type(BaseHook)
-            )
-        except:
-            pass
+        # To wire an operator:
+        #try:
+        #    import airflow.providers
+        #    from airflow.hooks.base import BaseHook
+        #
+        #    yield from ReflectionService.classes_of_type_in_pkg(
+        #        airflow.providers, type(BaseHook)
+        #    )
+        #except:
+        #    pass
+        return []
 
     @staticmethod
     def _parse_operator_params(operator_class: OperatorClass) -> Iterable[ParameterDescription]:
