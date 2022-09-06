@@ -1,5 +1,7 @@
 """Process_instance_processor."""
 import json
+import logging
+import threading
 import time
 from typing import Any
 from typing import Dict
@@ -159,6 +161,8 @@ class ProcessInstanceProcessor:
         self, process_instance_model: ProcessInstanceModel, validate_only: bool = False
     ) -> None:
         """Create a Workflow Processor based on the serialized information available in the process_instance model."""
+        current_app.config['THREAD_LOCAL_DATA'].process_instance_id = process_instance_model.id
+
         self.process_instance_model = process_instance_model
         self.process_model_service = ProcessModelService()
         spec = None

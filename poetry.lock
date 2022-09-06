@@ -1846,8 +1846,8 @@ pytz = "*"
 [package.source]
 type = "git"
 url = "https://github.com/sartography/SpiffWorkflow"
-reference = "main"
-resolved_reference = "0fa2048ef2d9dd5fe856f2e476df77966bdab892"
+reference = "feature/centralized-logging"
+resolved_reference = "ea360a901fe35408885e3c9797af07a2c6ced812"
 
 [[package]]
 name = "sqlalchemy"
@@ -2157,7 +2157,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "e395233463dec69fa7870815ff342096d7de3ea8899c54eac61ba334ff0b1c73"
+content-hash = "22c1b45f95769cf86303de8139a7be931a85d87d9e3c3f826e3af201a388df82"
 
 [metadata.files]
 alabaster = [
