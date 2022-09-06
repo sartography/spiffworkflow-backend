@@ -98,7 +98,7 @@ class SpiffFilter(logging.Filter):
         process_instance_id = ""
         if hasattr(tld, "process_instance_id"):
             process_instance_id = tld.process_instance_id
-        setattr(record, "process_instance_id", process_instance_id)
+        setattr(record, "process_instance_id", process_instance_id)  # noqa: B010
         return True
 
 
