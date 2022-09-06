@@ -71,11 +71,11 @@ def _test_param_descs(desc: str, test_classes: list[Callable]) -> None:
         tc_actual = ReflectionService.callable_params_desc(c)
         assert len(tc_actual) == len(tc_expected), test_case_desc  # type: ignore
 
-        for i, (actual, expected) in enumerate(zip(tc_actual, tc_expected)):  # type: ignore
+        for i, (actual, expected) in enumerate(zip(tc_actual, tc_expected)):
             test_desc = f"{test_case_desc}:{i}"
-            assert actual["id"] == expected[0], test_desc  # type: ignore
-            assert actual["type"] == expected[1], test_desc  # type: ignore
-            assert actual["required"] == expected[2], test_desc  # type: ignore
+            assert actual["id"] == expected[0], test_desc
+            assert actual["type"] == expected[1], test_desc
+            assert actual["required"] == expected[2], test_desc
 
 
 # Granular Param Testing

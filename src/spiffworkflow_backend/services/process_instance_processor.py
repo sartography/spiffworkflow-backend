@@ -114,6 +114,7 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
             raise WorkflowTaskExecException(task, f" {script}, {e}", e) from e
 
     def available_service_task_external_methods(self) -> Dict[str, Any]:
+        """Returns available service task external methods."""
         return ServiceTaskService.scripting_additions()
 
 
