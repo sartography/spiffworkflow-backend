@@ -92,13 +92,13 @@ class SpiffFilter(logging.Filter):
         self.app = app
         super().__init__()
 
-    def filter(self, record):
+    def filter(self, record: logging.LogRecord) -> bool:
         """Filter."""
         tld = self.app.config["THREAD_LOCAL_DATA"]
         process_instance_id = ""
         if hasattr(tld, "process_instance_id"):
             process_instance_id = tld.process_instance_id
-        record.process_instance_id = process_instance_id
+        setattr(record, 'process_instance_id', process_instance_id)
         return True
 
 
