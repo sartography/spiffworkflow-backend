@@ -90,7 +90,7 @@ class ReflectionService:
             # the absense of a type annotation results in an empty set
             annotation_types = set(
                 map(
-                    lambda t: t if t in supported_types else unsupported_type_marker, # type: ignore
+                    lambda t: t if t in supported_types else unsupported_type_marker,
                     get_args(annotation),
                 )
             )
