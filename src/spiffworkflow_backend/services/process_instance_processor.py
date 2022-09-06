@@ -92,7 +92,7 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
     ) -> Any:
         """Evaluate the given expression, within the context of the given task and return the result."""
         try:
-            return super()._evaluate(expression, context, task, {})
+            return super()._evaluate(expression, context)
         except Exception as exception:
             raise WorkflowTaskExecException(
                 task,
@@ -101,11 +101,11 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
             ) from exception
 
     def execute(
-        self, task: SpiffTask, script: str, data: Dict[str, Dict[str, str]]
+        self, task: SpiffTask, script: str
     ) -> None:
         """Execute."""
         try:
-            super().execute(task, script, data)
+            super().execute(task, script)
         except WorkflowException as e:
             raise e
         except Exception as e:
