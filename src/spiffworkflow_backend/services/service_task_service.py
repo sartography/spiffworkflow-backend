@@ -1,9 +1,4 @@
 """ServiceTask_service."""
-import ast
-import importlib
-import inspect
-import pkgutil
-import sys
 from typing import Any
 from typing import Generator
 from typing import Iterable
@@ -14,6 +9,8 @@ from spiffworkflow_backend.services.reflection_service import ReflectionService
 
 
 class Operator(TypedDict):
+    """Describes an operator and its parameters."""
+
     id: str
     parameters: Iterable[ParameterDescription]
 
@@ -23,11 +20,11 @@ OperatorClassGenerator = Generator[tuple[str, OperatorClass], None, None]
 
 
 class ServiceTaskService:
+    """ServiceTaskService."""
+
     @staticmethod
     def _available_airflow_operator_classes() -> OperatorClassGenerator:
-        """Yields name and class for all airflow operators that are available for use in
-        service tasks."""
-
+        """Yields name and class for all airflow operators available for use in service tasks."""
         # Example code to wire up all installed airflow hooks
         # try:
         #    import airflow.providers
@@ -45,21 +42,17 @@ class ServiceTaskService:
         operator_class: OperatorClass,
     ) -> Iterable[ParameterDescription]:
         """Parses the init of the given operator_class to build a list of OperatorParameters."""
-
         return ReflectionService.callable_params_desc(operator_class.__init__)
 
     @classmethod
     def available_operator_classes(cls) -> OperatorClassGenerator:
-        """Yields name and class for all operators that are available for use in a service task."""
-
+        """Yields name and class for all operators that are available for use."""
         # TODO maybe premature to have a place to aggregate other operator types?
         yield from cls._available_airflow_operator_classes()
 
     @classmethod
     def available_operators(cls) -> list[Operator]:
-        """Returns a list of all operator names and init parameters that are available for use in
-        a service task."""
-
+        """Returns a list of all operator names and parameters that are available for use."""
         available_operators: list[Operator] = [
             {
                 "id": operator_name,
@@ -72,9 +65,7 @@ class ServiceTaskService:
 
     @classmethod
     def scripting_additions(cls) -> dict[str, OperatorClass]:
-        """Returns a dictionary of operator names and classes for loading into a
-        scripting engine instance."""
-
+        """Returns a dictionary of operator names and classes."""
         operator_classes = list(cls.available_operator_classes())
         scripting_additions = {name: clz for name, clz in operator_classes}
         return scripting_additions

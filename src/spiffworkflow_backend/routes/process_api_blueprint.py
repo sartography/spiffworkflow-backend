@@ -598,6 +598,7 @@ def process_instance_report_delete(
 
 
 def service_tasks_show() -> flask.wrappers.Response:
+    """service_tasks_show."""
     available_operators = ServiceTaskService.available_operators()
 
     return Response(

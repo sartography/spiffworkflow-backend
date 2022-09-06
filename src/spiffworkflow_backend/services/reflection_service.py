@@ -1,5 +1,4 @@
 """Reflection_service."""
-import importlib
 import inspect
 import pkgutil
 import types
@@ -7,7 +6,6 @@ from typing import Any
 from typing import Callable
 from typing import Generator
 from typing import get_args
-from typing import get_origin
 from typing import Iterable
 from typing import TypedDict
 
@@ -21,6 +19,8 @@ ModuleGenerator = Generator[tuple[str, Module], None, None]
 
 
 class ParameterDescription(TypedDict):
+    """Describes a constructor parameter for a class."""
+
     id: str
     type: str
     required: bool
@@ -32,7 +32,6 @@ class ReflectionService:
     @staticmethod
     def modules_in_pkg(pkg: Package) -> ModuleGenerator:
         """Recursively yields a (name, module) for each module in the given pkg."""
-
         for finder, name, ispkg in pkgutil.iter_modules(pkg.__path__):
             if ispkg:
                 # TODO couldn't get this to work with exec_module
@@ -50,7 +49,6 @@ class ReflectionService:
     @staticmethod
     def classes_in_pkg(pkg: Package) -> ClassGenerator:
         """Recursively yields a (name, class) for each class in each module in the given pkg."""
-
         for module_name, module in ReflectionService.modules_in_pkg(pkg):
             for clz_name, clz in inspect.getmembers(module, inspect.isclass):
                 if clz.__module__ == module_name:
@@ -58,9 +56,7 @@ class ReflectionService:
 
     @staticmethod
     def classes_of_type_in_pkg(pkg: Package, clz_type: ClassType) -> ClassGenerator:
-        """Recursively yields a (name, class) for each class in each module in the given pkg
-        that isinstance of the given clz_type."""
-
+        """Recursively yields a (name, class) for each class that isinstance of the given clz_type."""
         for clz_name, clz in ReflectionService.classes_in_pkg(pkg):
             if isinstance(clz, clz_type):
                 yield clz_name, clz
@@ -68,15 +64,12 @@ class ReflectionService:
     @staticmethod
     def _param_annotation_desc(param: inspect.Parameter) -> ParameterDescription:
         """Parses a callable parameter's type annotation, if any, to form a ParameterDescription."""
-
         param_id = param.name
         param_type_desc = "any"
 
         none_type = type(None)
         supported_types = {str, int, bool, none_type}
         unsupported_type_marker = object
-
-        assert unsupported_type_marker not in supported_types
 
         annotation = param.annotation
 
@@ -113,7 +106,6 @@ class ReflectionService:
     @staticmethod
     def callable_params_desc(c: Callable) -> Iterable[ParameterDescription]:
         """Parses the signature of a callable and returns a description of each parameter."""
-
         sig = inspect.signature(c)
         params_to_skip = ["self", "kwargs"]
         sig_params = filter(

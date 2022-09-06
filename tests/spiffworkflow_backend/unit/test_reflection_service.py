@@ -66,12 +66,12 @@ def test_can_describe_airflow_operator_params(
 
 def _test_param_descs(desc: str, test_classes: list[Callable]) -> None:
     test_cases = [(tc.__init__, tc.expected) for tc in test_classes]  # type: ignore
-    for i, (c, expected) in enumerate(test_cases):
+    for i, (c, tc_expected) in enumerate(test_cases):
         test_case_desc = f"{desc} #{i}"
-        actual = ReflectionService.callable_params_desc(c)
-        assert len(actual) == len(expected), test_case_desc  # type: ignore
+        tc_actual = ReflectionService.callable_params_desc(c)
+        assert len(tc_actual) == len(tc_expected), test_case_desc  # type: ignore
 
-        for i, (actual, expected) in enumerate(zip(actual, expected)):  # type: ignore
+        for i, (actual, expected) in enumerate(zip(tc_actual, tc_expected)):  # type: ignore
             test_desc = f"{test_case_desc}:{i}"
             assert actual["id"] == expected[0], test_desc  # type: ignore
             assert actual["type"] == expected[1], test_desc  # type: ignore
@@ -82,63 +82,90 @@ def _test_param_descs(desc: str, test_classes: list[Callable]) -> None:
 
 
 class NoParams:
+    """docstring."""
+
     def __init__(self) -> None:
+        """docstring."""
         pass
 
     expected = []  # type: ignore
 
 
 class ParamWithNoAnnotation:
+    """docstring."""
+
     def __init__(self, bob):  # type: ignore
+        """docstring."""
         pass
 
     expected = [("bob", "any", True)]
 
 
 class ParamWithStrAnnotation:
+    """docstring."""
+
     def __init__(self, bob: str):
+        """docstring."""
         pass
 
     expected = [("bob", "str", True)]
 
 
 class ParamWithOptionalStrAnnotation:
+    """docstring."""
+
     def __init__(self, filename: Optional[str]):
+        """docstring."""
         pass
 
     expected = [("filename", "str", False)]
 
 
 class ParamWithDefaultValue:
+    """docstring."""
+
     def __init__(self, bob: int = 33):
+        """docstring."""
         pass
 
     expected = [("bob", "int", False)]
 
 
 class ParamWithOptionalStrAnnotationAndDefaultValue:
+    """docstring."""
+
     def __init__(self, bob: Optional[str] = "sam"):
+        """docstring."""
         pass
 
     expected = [("bob", "str", False)]
 
 
 class ParamWithOptionalDictAnnotation:
+    """docstring."""
+
     def __init__(self, ok: Optional[Dict]):
+        """docstring."""
         pass
 
     expected = [("ok", "any", False)]
 
 
 class ParamWithOptionalListAnnotation:
+    """docstring."""
+
     def __init__(self, ok: Optional[List]):
+        """docstring."""
         pass
 
     expected = [("ok", "any", False)]
 
 
 class ParamWithOptionalBuiltinListAnnotation:
+    """docstring."""
+
     def __init__(self, ok: Optional[list]):
+        """docstring."""
         pass
 
     expected = [("ok", "any", False)]
@@ -148,6 +175,8 @@ class ParamWithOptionalBuiltinListAnnotation:
 
 
 class FTPSensor:
+    """docstring."""
+
     def __init__(  # type: ignore
         self,
         *,
@@ -156,6 +185,7 @@ class FTPSensor:
         fail_on_transient_errors: bool = True,
         **kwargs,
     ) -> None:
+        """docstring."""
         return None
 
     expected = [
@@ -166,6 +196,8 @@ class FTPSensor:
 
 
 class HTTPSensor:
+    """docstring."""
+
     def __init__(
         self,
         *,
@@ -182,6 +214,7 @@ class HTTPSensor:
         tcp_keep_alive_interval: int = 30,
         **kwargs: Any,
     ) -> None:
+        """docstring."""
         return None
 
     expected = [
@@ -200,6 +233,8 @@ class HTTPSensor:
 
 
 class ImapAttachmentSensor:
+    """docstring."""
+
     def __init__(  # type: ignore
         self,
         *,
@@ -210,6 +245,7 @@ class ImapAttachmentSensor:
         conn_id="imap_default",
         **kwargs,
     ) -> None:
+        """docstring."""
         return None
 
     expected = [
@@ -222,6 +258,8 @@ class ImapAttachmentSensor:
 
 
 class SlackAPIFileOperator:
+    """docstring."""
+
     def __init__(  # type: ignore
         self,
         channel: str = "#general",
@@ -231,6 +269,7 @@ class SlackAPIFileOperator:
         content: Optional[str] = None,
         **kwargs,
     ) -> None:
+        """docstring."""
         return None
 
     expected = [
@@ -243,6 +282,8 @@ class SlackAPIFileOperator:
 
 
 class SlackWebhookOperator:
+    """docstring."""
+
     def __init__(  # type: ignore
         self,
         *,
@@ -259,6 +300,7 @@ class SlackWebhookOperator:
         proxy: Optional[str] = None,
         **kwargs,
     ) -> None:
+        """docstring."""
         return None
 
     expected = [
