@@ -3,8 +3,6 @@ import io
 import json
 import time
 from typing import Any
-from typing import Dict
-from typing import Optional
 
 import pytest
 from flask.app import Flask
@@ -13,7 +11,6 @@ from flask_bpmn.models.db import db
 from tests.spiffworkflow_backend.helpers.base_test import BaseTest
 from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
 from tests.spiffworkflow_backend.helpers.test_data import logged_in_headers
-from werkzeug.test import TestResponse
 
 from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
     ProcessEntityNotFoundError,
@@ -26,7 +23,6 @@ from spiffworkflow_backend.models.process_instance_report import (
     ProcessInstanceReportModel,
 )
 from spiffworkflow_backend.models.process_model import NotificationType
-from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
 from spiffworkflow_backend.models.task_event import TaskEventModel
 from spiffworkflow_backend.models.user import UserModel
@@ -1292,152 +1288,6 @@ class TestProcessApi(BaseTest):
         assert result["name"] == file_name
         assert bytes(str(result["file_contents"]), "utf-8") == file_data
 
-    def create_process_instance(
-        self,
-        client: FlaskClient,
-        test_process_group_id: str,
-        test_process_model_id: str,
-        headers: Dict[str, str],
-    ) -> TestResponse:
-        """Create_process_instance."""
-        load_test_spec(test_process_model_id, process_group_id=test_process_group_id)
-        response = client.post(
-            f"/v1.0/process-models/{test_process_group_id}/{test_process_model_id}/process-instances",
-            headers=headers,
-        )
-        assert response.status_code == 201
-        return response
-
-    def create_process_model(
-        self,
-        client: FlaskClient,
-        process_group_id: Optional[str] = None,
-        process_model_id: Optional[str] = None,
-        process_model_display_name: Optional[str] = None,
-        process_model_description: Optional[str] = None,
-        fault_or_suspend_on_exception: Optional[str] = None,
-        exception_notification_addresses: Optional[list] = None,
-        primary_process_id: Optional[str] = None,
-        primary_file_name: Optional[str] = None,
-    ) -> TestResponse:
-        """Create_process_model."""
-        process_model_service = ProcessModelService()
-
-        # make sure we have a group
-        if process_group_id is None:
-            process_group_tmp = ProcessGroup(
-                id="test_cat",
-                display_name="Test Category",
-                display_order=0,
-                admin=False,
-            )
-            process_group = process_model_service.add_process_group(process_group_tmp)
-        else:
-            process_group = ProcessModelService().get_process_group(process_group_id)
-
-        if process_model_id is None:
-            process_model_id = "make_cookies"
-        if process_model_display_name is None:
-            process_model_display_name = "Cooooookies"
-        if process_model_description is None:
-            process_model_description = "Om nom nom delicious cookies"
-        if fault_or_suspend_on_exception is None:
-            fault_or_suspend_on_exception = NotificationType.suspend.value
-        if exception_notification_addresses is None:
-            exception_notification_addresses = []
-        if primary_process_id is None:
-            primary_process_id = ""
-        if primary_file_name is None:
-            primary_file_name = ""
-        model = ProcessModelInfo(
-            id=process_model_id,
-            display_name=process_model_display_name,
-            description=process_model_description,
-            process_group_id=process_group.id,
-            standalone=False,
-            is_review=False,
-            is_master_spec=False,
-            libraries=[],
-            library=False,
-            primary_process_id=primary_process_id,
-            primary_file_name=primary_file_name,
-            fault_or_suspend_on_exception=fault_or_suspend_on_exception,
-            exception_notification_addresses=exception_notification_addresses,
-        )
-        user = self.find_or_create_user()
-        response = client.post(
-            "/v1.0/process-models",
-            content_type="application/json",
-            data=json.dumps(ProcessModelInfoSchema().dump(model)),
-            headers=logged_in_headers(user),
-        )
-        assert response.status_code == 201
-        return response
-
-    def create_spec_file(
-        self,
-        client: FlaskClient,
-        process_group_id: str = "",
-        process_model_id: str = "",
-        file_name: str = "",
-        file_data: bytes = b"",
-    ) -> Any:
-        """Test_create_spec_file."""
-        if process_group_id == "":
-            process_group_id = "random_fact"
-        if process_model_id == "":
-            process_model_id = "random_fact"
-        if file_name == "":
-            file_name = "random_fact.svg"
-        if file_data == b"":
-            file_data = b"abcdef"
-        spec = load_test_spec(process_model_id, process_group_id=process_group_id)
-        data = {"file": (io.BytesIO(file_data), file_name)}
-        user = self.find_or_create_user()
-        response = client.post(
-            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/file",
-            data=data,
-            follow_redirects=True,
-            content_type="multipart/form-data",
-            headers=logged_in_headers(user),
-        )
-        assert response.status_code == 201
-        assert response.get_data() is not None
-        file = json.loads(response.get_data(as_text=True))
-        # assert FileType.svg.value == file["type"]
-        # assert "image/svg+xml" == file["content_type"]
-
-        response = client.get(
-            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/file/{file_name}",
-            headers=logged_in_headers(user),
-        )
-        assert response.status_code == 200
-        file2 = json.loads(response.get_data(as_text=True))
-        assert file["file_contents"] == file2["file_contents"]
-        return file
-
-    def create_process_group(
-        self,
-        client: FlaskClient,
-        user: Any,
-        process_group_id: str,
-        display_name: str = "",
-    ) -> str:
-        """Create_process_group."""
-        process_group = ProcessGroup(
-            id=process_group_id, display_name=display_name, display_order=0, admin=False
-        )
-        response = client.post(
-            "/v1.0/process-groups",
-            headers=logged_in_headers(user),
-            content_type="application/json",
-            data=json.dumps(ProcessGroupSchema().dump(process_group)),
-        )
-        assert response.status_code == 201
-        assert response.json is not None
-        assert response.json["id"] == process_group_id
-        return process_group_id
-
     # def test_get_process_model(self):
     #
     #     load_test_spec('random_fact')
@@ -1449,3 +1299,94 @@ class TestProcessApi(BaseTest):
     #     fs_spec = process_model_service.get_spec('random_fact')
     #     assert(WorkflowSpecInfoSchema().dump(fs_spec) == json_data)
     #
+
+    # def test_waku_debug_info(self) -> None:
+    #     """Test_waku_debug_info."""
+    #     debug_info_method = "get_waku_v2_debug_v1_info"
+    #
+    #     headers = {"Content-Type": "application/json"}
+    #
+    #     rpc_json = {
+    #         "jsonrpc": "2.0",
+    #         "method": debug_info_method,
+    #         "params": [],
+    #         "id": "id",
+    #     }
+    #
+    #     request_url = "http://localhost:8545"
+    #     rpc_response = requests.post(request_url, headers=headers, json=rpc_json)
+    #
+    #     rpc_json_text: dict = json.loads(rpc_response.text)
+    #     assert isinstance(rpc_json_text, dict)
+    #     # assert 'jsonrpc' in rpc_json_text
+    #     # assert rpc_json_text['jsonrpc'] == '2.0'
+    #     assert "result" in rpc_json_text
+    #     result = rpc_json_text["result"]
+    #     assert isinstance(result, dict)
+    #     assert "listenAddresses" in result
+    #     assert "enrUri" in result
+    #
+    #     print("test_call_waku")
+    #
+    # def test_send_message(self) -> None:
+    #     """Test_send_message."""
+    #     relay_message_method = "post_waku_v2_relay_v1_message"
+    #
+    #     headers = {"Content-Type": "application/json"}
+    #
+    #     # class WakuMessage:
+    #     #     payload: str
+    #     #     contentTopic: str  # Optional
+    #     #     # version: int  # Optional
+    #     #     timestamp: int  # Optional
+    #     payload = "This is my message"
+    #     contentTopic = "myTestTopic"  # noqa: N806
+    #     timestamp = time.time()
+    #
+    #     waku_relay_message = {
+    #         "payload": payload,
+    #         "contentTopic": contentTopic,
+    #         "timestamp": timestamp,
+    #     }
+    #
+    #     # ["", [{"contentTopic":"/waku/2/default-content/proto"}]]
+    #     params = ["/waku/2/default-waku/proto", {"message": waku_relay_message}]
+    #     rpc_json = {
+    #         "jsonrpc": "2.0",
+    #         "method": relay_message_method,
+    #         "params": params,
+    #         "id": 1,
+    #     }
+    #
+    #     request_url = "http://localhost:8545"
+    #     rpc_response = requests.post(request_url, headers=headers, json=rpc_json)
+    #     assert rpc_response.status_code == 200
+    #
+    #     rpc_json_data: dict = json.loads(rpc_response.text)
+    #     assert "error" in rpc_json_data
+    #     assert "result" in rpc_json_data
+    #     assert rpc_json_data["error"] is None
+    #     assert rpc_json_data["result"] is True
+    #
+    #     print("test_send_message")
+    #
+    # def test_get_waku_messages(self) -> None:
+    #     """Test_get_waku_messages."""
+    #     method = "get_waku_v2_store_v1_messages"
+    #     headers = {"Content-Type": "application/json"}
+    #     params = [{"contentTopic": "/waku/2/default-content/proto"}]
+    #
+    #     rpc_json = {"jsonrpc": "2.0", "method": method, "params": params, "id": 1}
+    #     request_url = "http://localhost:8545"
+    #     rpc_response = requests.post(request_url, headers=headers, json=rpc_json)
+    #     assert rpc_response.status_code == 200
+    #
+    #     rpc_json_data: dict = json.loads(rpc_response.text)
+    #     assert "error" in rpc_json_data
+    #     assert rpc_json_data["error"] is None
+    #     assert "result" in rpc_json_data
+    #     assert isinstance(rpc_json_data["result"], dict)
+    #     assert "messages" in rpc_json_data["result"]
+    #     assert "pagingInfo" in rpc_json_data["result"]
+    #
+    #     print("get_waku_messages")

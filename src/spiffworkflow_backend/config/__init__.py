@@ -1,5 +1,6 @@
 """__init__.py."""
 import os
+import threading
 
 from flask.app import Flask
 from werkzeug.utils import ImportStringError
@@ -58,3 +59,6 @@ def setup_config(app: Flask) -> None:
         raise ModuleNotFoundError(
             f"Cannot find config module: {env_config_module}"
         ) from exception
+
+    thread_local_data = threading.local()
+    app.config["THREAD_LOCAL_DATA"] = thread_local_data

@@ -8,6 +8,7 @@ from typing import Union
 
 import connexion  # type: ignore
 import flask.wrappers
+import jinja2
 from flask import Blueprint
 from flask import g
 from flask import jsonify
@@ -756,6 +757,12 @@ def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response
             )
             if ui_form_contents:
                 task.form_ui_schema = ui_form_contents
+    elif task.type == "ManualTask":
+        if task.properties and task.data:
+            if task.properties["instructionsForEndUser"]:
+                task.properties["instructionsForEndUser"] = render_jinja_template(
+                    task.properties["instructionsForEndUser"], task.data
+                )
 
     return make_response(jsonify(task), 200)
 
@@ -928,13 +935,14 @@ def prepare_form_data(
         return ""
 
     file_contents = SpecFileService.get_data(process_model, form_file).decode("utf-8")
+    return render_jinja_template(file_contents, task_data)
 
-    # trade out pieces like "{{variable_name}}" for the corresponding form data value
-    for key, value in task_data.items():
-        if isinstance(value, str) or isinstance(value, int):
-            file_contents = file_contents.replace("{{" + key + "}}", str(value))
 
-    return file_contents
+def render_jinja_template(unprocessed_template: str, data: dict[str, Any]) -> str:
+    """Render_jinja_template."""
+    jinja_environment = jinja2.Environment(autoescape=True)
+    template = jinja_environment.from_string(unprocessed_template)
+    return template.render(**data)
 
 
 def get_spiff_task_from_process_instance(

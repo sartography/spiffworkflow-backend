@@ -1,12 +1,13 @@
 """Logging_service."""
 import json
 import logging
-import os
-import sys
 from typing import Any
 from typing import Optional
 
 from flask.app import Flask
+from flask_bpmn.models.db import db
+
+from spiffworkflow_backend.models.spiff_logging import SpiffLoggingModel
 
 
 # flask logging formats:
@@ -83,25 +84,35 @@ class JsonFormatter(logging.Formatter):
         return json.dumps(message_dict, default=str)
 
 
-def setup_logger_for_sql_statements(app: Flask) -> None:
-    """Setup_logger_for_sql_statements."""
-    db_log_file_name = f"log/db_{app.env}.log"
-    db_handler_log_level = logging.INFO
-    db_logger_log_level = logging.DEBUG
-    db_handler = logging.FileHandler(db_log_file_name)
-    db_handler.setLevel(db_handler_log_level)
-    db_logger = logging.getLogger("sqlalchemy")
-    db_logger.propagate = False
-    db_logger.addHandler(db_handler)
-    db_logger.setLevel(db_logger_log_level)
+class SpiffFilter(logging.Filter):
+    """SpiffFilter."""
+
+    def __init__(self, app: Flask):
+        """__init__."""
+        self.app = app
+        super().__init__()
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        """Filter."""
+        tld = self.app.config["THREAD_LOCAL_DATA"]
+        process_instance_id = ""
+        if hasattr(tld, "process_instance_id"):
+            process_instance_id = tld.process_instance_id
+        setattr(record, "process_instance_id", process_instance_id)  # noqa: B010
+        return True
 
 
 def setup_logger(app: Flask) -> None:
     """Setup_logger."""
     log_level = logging.DEBUG
-    handlers = []
+    log_formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
 
-    log_formatter = logging._defaultFormatter  # type: ignore
+    log_level = logging.DEBUG
+    log_formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
 
     # the json formatter is nice for real environments but makes
     # debugging locally a little more difficult
@@ -120,25 +131,47 @@ def setup_logger(app: Flask) -> None:
         )
         log_formatter = json_formatter
 
-    if os.environ.get("IS_GUNICORN") == "true":
-        gunicorn_logger_error = logging.getLogger("gunicorn.error")
-        log_level = gunicorn_logger_error.level
-        ghandler = gunicorn_logger_error.handlers[0]
-        ghandler.setFormatter(log_formatter)
-        handlers.append(ghandler)
+    # make all loggers act the same
+    for name in logging.root.manager.loggerDict:
+        if "spiff" not in name:
+            the_logger = logging.getLogger(name)
+            the_logger.setLevel(log_level)
+            for the_handler in the_logger.handlers:
+                the_handler.setFormatter(log_formatter)
+                the_handler.setLevel(log_level)
 
-        gunicorn_logger_access = logging.getLogger("gunicorn.access")
-        log_level = gunicorn_logger_access.level
-        ghandler = gunicorn_logger_access.handlers[0]
-        ghandler.setFormatter(log_formatter)
-        handlers.append(ghandler)
+    spiff_logger = logging.getLogger("spiff.metrics")
+    spiff_logger.setLevel(logging.DEBUG)
+    # spiff_logger_handler = logging.StreamHandler(sys.stdout)
+    spiff_formatter = logging.Formatter(
+        "%(asctime)s | %(levelname)s | %(message)s | %(action)s | %(task_type)s | %(process)s | %(processName)s | %(process_instance_id)s"
+    )
+    # spiff_logger_handler.setFormatter(spiff_formatter)
+    # fh = logging.FileHandler('test.log')
+    # spiff_logger_handler.setLevel(logging.DEBUG)
+    # spiff_logger.addHandler(spiff_logger_handler)
 
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setLevel(log_level)
+    # if you add a handler to spiff, it will be used/inherited by spiff.metrics
+    # if you add a filter to the spiff logger directly (and not the handler), it will NOT be inherited by spiff.metrics
+    # so put filters on handlers.
+    db_handler = DBHandler()
+    db_handler.setLevel(logging.DEBUG)
+    db_handler.setFormatter(spiff_formatter)
+    db_handler.addFilter(SpiffFilter(app))
+    spiff_logger.addHandler(db_handler)
 
-    handler.setFormatter(log_formatter)
-    handlers.append(handler)
 
-    logging.basicConfig(handlers=handlers)
+# https://9to5answer.com/python-logging-to-database
+class DBHandler(logging.Handler):
+    """DBHandler."""
 
-    setup_logger_for_sql_statements(app)
+    def emit(self, record: logging.LogRecord) -> None:
+        """Emit."""
+        spiff_log = SpiffLoggingModel(
+            process=record.process,
+            task=record.task_spec,  # type: ignore
+            status=record.action,  # type: ignore
+        )
+        db.session.add(spiff_log)
+        db.session.commit()
+        print(record)

@@ -93,7 +93,13 @@ class ErrorHandlingService:
     @staticmethod
     def handle_waku_notification(_error: ApiError, _recipients: List) -> Any:
         """WakuHandler."""
-        ...
+        # class WakuMessage:
+        #     """WakuMessage."""
+        #
+        #     payload: str
+        #     contentTopic: str  # Optional
+        #     version: int  # Optional
+        #     timestamp: int  # Optional
 
 
 class FailingService:
@@ -102,4 +108,4 @@ class FailingService:
     @staticmethod
     def fail_as_service() -> None:
         """It fails."""
-        raise ApiError(code="bad_service", message="This is my failing service")
+        raise ApiError(code="failing_service", message="This is my failing service")
