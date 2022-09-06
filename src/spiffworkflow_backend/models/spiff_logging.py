@@ -1,5 +1,4 @@
 """Spiff_logging."""
-
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 

@@ -1,9 +1,6 @@
 """Logging_service."""
 import json
 import logging
-import os
-import sys
-import threading
 from typing import Any
 from typing import Optional
 
@@ -88,15 +85,18 @@ class JsonFormatter(logging.Formatter):
 
 
 class SpiffFilter(logging.Filter):
+    """SpiffFilter."""
+
     def __init__(self, app: Flask):
+        """__init__."""
         self.app = app
         super().__init__()
 
-
     def filter(self, record):
-        tld = self.app.config['THREAD_LOCAL_DATA']
-        process_instance_id = ''
-        if hasattr(tld, 'process_instance_id'):
+        """Filter."""
+        tld = self.app.config["THREAD_LOCAL_DATA"]
+        process_instance_id = ""
+        if hasattr(tld, "process_instance_id"):
             process_instance_id = tld.process_instance_id
         record.process_instance_id = process_instance_id
         return True
@@ -105,10 +105,14 @@ class SpiffFilter(logging.Filter):
 def setup_logger(app: Flask) -> None:
     """Setup_logger."""
     log_level = logging.DEBUG
-    log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    log_formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
 
     log_level = logging.DEBUG
-    log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    log_formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
 
     # the json formatter is nice for real environments but makes
     # debugging locally a little more difficult
@@ -129,7 +133,7 @@ def setup_logger(app: Flask) -> None:
 
     # make all loggers act the same
     for name in logging.root.manager.loggerDict:
-        if 'spiff' not in name:
+        if "spiff" not in name:
             the_logger = logging.getLogger(name)
             the_logger.setLevel(log_level)
             for the_handler in the_logger.handlers:

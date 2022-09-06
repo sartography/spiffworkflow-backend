@@ -61,4 +61,4 @@ def setup_config(app: Flask) -> None:
         ) from exception
 
     thread_local_data = threading.local()
-    app.config['THREAD_LOCAL_DATA'] = thread_local_data
+    app.config["THREAD_LOCAL_DATA"] = thread_local_data

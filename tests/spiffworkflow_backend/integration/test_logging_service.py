@@ -1,7 +1,7 @@
 """Test_logging_service."""
-from tests.spiffworkflow_backend.helpers.base_test import BaseTest
 from flask.app import Flask
 from flask.testing import FlaskClient
+from tests.spiffworkflow_backend.helpers.base_test import BaseTest
 from tests.spiffworkflow_backend.helpers.test_data import logged_in_headers
 
 
