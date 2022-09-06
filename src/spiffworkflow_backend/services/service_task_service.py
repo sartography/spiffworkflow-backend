@@ -28,7 +28,7 @@ class ServiceTaskService:
         """Yields name and class for all airflow operators that are available for use in
         service tasks."""
 
-        # To wire an operator:
+        # Example code to wire up all installed airflow hooks
         #try:
         #    import airflow.providers
         #    from airflow.hooks.base import BaseHook
@@ -38,7 +38,7 @@ class ServiceTaskService:
         #    )
         #except:
         #    pass
-        return []
+        yield from []
 
     @staticmethod
     def _parse_operator_params(operator_class: OperatorClass) -> Iterable[ParameterDescription]:

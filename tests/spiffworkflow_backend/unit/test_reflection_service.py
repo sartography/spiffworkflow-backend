@@ -5,7 +5,7 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
-from flask.app import Flask # type: ignore
+from flask.app import Flask
 
 from spiffworkflow_backend.services.reflection_service import ReflectionService
 

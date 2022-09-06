@@ -107,7 +107,7 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
         task: SpiffTask,
         script: str,
         data: Dict[str, Dict[str, str]],
-        external_methods: any = None,
+        external_methods: Any = None,
     ) -> None:
         """Execute."""
         try:
