@@ -117,12 +117,8 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
         except Exception as e:
             raise WorkflowTaskExecException(task, f" {script}, {e}", e) from e
 
-
-class CustomServiceTaskScriptEngine(CustomBpmnScriptEngine):
-    def __init__(self):
-        scripting_additions = ServiceTaskService.scripting_additions()
-        return super().__init__(scriptingAdditions=scripting_additions)
-
+    def available_service_task_external_methods(self) -> Dict[str, Any]:
+        return ServiceTaskService.scripting_additions()
 
 class MyCustomParser(BpmnDmnParser):  # type: ignore
     """A BPMN and DMN parser that can also parse spiffworkflow-specific extensions."""
@@ -140,7 +136,6 @@ class ProcessInstanceProcessor:
     """ProcessInstanceProcessor."""
 
     _script_engine = CustomBpmnScriptEngine()
-    _service_task_script_engine = CustomServiceTaskScriptEngine()
     SERIALIZER_VERSION = "1.0-spiffworkflow-backend"
     wf_spec_converter = BpmnWorkflowSerializer.configure_workflow_spec_converter(
         [
@@ -247,11 +242,7 @@ class ProcessInstanceProcessor:
             self.bpmn_process_instance = self.__get_bpmn_process_instance(
                 process_instance_model, spec, validate_only, subprocesses=subprocesses
             )
-            # TODO factor out a set_script_engines(typeof self)
             self.bpmn_process_instance.script_engine = self._script_engine
-            self.bpmn_process_instance.servicetask_script_engine = (
-                self._service_task_script_engine
-            )
 
             self.add_user_info_to_process_instance(self.bpmn_process_instance)
 
@@ -371,14 +362,10 @@ class ProcessInstanceProcessor:
             bpmn_process_instance.script_engine = (
                 ProcessInstanceProcessor._script_engine
             )
-            bpmn_process_instance.servicetask_script_engine = (
-                ProcessInstanceProcessor._service_task_script_engine
-            )
         else:
             bpmn_process_instance = BpmnWorkflow(
                 spec,
                 script_engine=ProcessInstanceProcessor._script_engine,
-                servicetask_script_engine=ProcessInstanceProcessor._service_task_script_engine,
                 subprocess_specs=subprocesses,
             )
             bpmn_process_instance.data[
