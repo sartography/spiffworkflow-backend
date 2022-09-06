@@ -5,7 +5,6 @@ import time
 from typing import Any
 
 import pytest
-import requests
 from flask.app import Flask
 from flask.testing import FlaskClient
 from flask_bpmn.models.db import db
