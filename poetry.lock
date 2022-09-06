@@ -1833,7 +1833,7 @@ pytz = "*"
 type = "git"
 url = "https://github.com/sartography/SpiffWorkflow"
 reference = "feature/service_task"
-resolved_reference = "32ce3d907380418978ae5c69e29b21fd91f66318"
+resolved_reference = "3896dc09bf04be90d358f7b2042c72df56c6d677"
 
 [[package]]
 name = "sqlalchemy"
