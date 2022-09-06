@@ -29,19 +29,21 @@ class ServiceTaskService:
         service tasks."""
 
         # Example code to wire up all installed airflow hooks
-        #try:
+        # try:
         #    import airflow.providers
         #    from airflow.hooks.base import BaseHook
         #
         #    yield from ReflectionService.classes_of_type_in_pkg(
         #        airflow.providers, type(BaseHook)
         #    )
-        #except:
+        # except:
         #    pass
         yield from []
 
     @staticmethod
-    def _parse_operator_params(operator_class: OperatorClass) -> Iterable[ParameterDescription]:
+    def _parse_operator_params(
+        operator_class: OperatorClass,
+    ) -> Iterable[ParameterDescription]:
         """Parses the init of the given operator_class to build a list of OperatorParameters."""
 
         return ReflectionService.callable_params_desc(operator_class.__init__)

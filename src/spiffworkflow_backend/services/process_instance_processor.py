@@ -102,7 +102,9 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
                 "'%s', %s" % (expression, str(exception)),
             ) from exception
 
-    def execute(self, task: SpiffTask, script: str, external_methods: Any = None) -> None:
+    def execute(
+        self, task: SpiffTask, script: str, external_methods: Any = None
+    ) -> None:
         """Execute."""
         try:
             super().execute(task, script, external_methods)
@@ -113,6 +115,7 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
 
     def available_service_task_external_methods(self) -> Dict[str, Any]:
         return ServiceTaskService.scripting_additions()
+
 
 class MyCustomParser(BpmnDmnParser):  # type: ignore
     """A BPMN and DMN parser that can also parse spiffworkflow-specific extensions."""

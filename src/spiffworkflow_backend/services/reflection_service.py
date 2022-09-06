@@ -6,9 +6,9 @@ import types
 from typing import Any
 from typing import Callable
 from typing import Generator
-from typing import Iterable
 from typing import get_args
 from typing import get_origin
+from typing import Iterable
 from typing import TypedDict
 
 Class = Any
@@ -36,12 +36,12 @@ class ReflectionService:
         for finder, name, ispkg in pkgutil.iter_modules(pkg.__path__):
             if ispkg:
                 # TODO couldn't get this to work with exec_module
-                # mypy thinks load_module and find_spec have a second required param, 
+                # mypy thinks load_module and find_spec have a second required param,
                 # but if provided then failure
-                sub_pkg = finder.find_module(name).load_module(name) # type: ignore
+                sub_pkg = finder.find_module(name).load_module(name)  # type: ignore
                 yield from ReflectionService.modules_in_pkg(sub_pkg)
             else:
-                spec = finder.find_spec(name) # type: ignore
+                spec = finder.find_spec(name)  # type: ignore
                 if spec is not None and spec.loader is not None:
                     module = types.ModuleType(spec.name)
                     spec.loader.exec_module(module)
@@ -119,6 +119,8 @@ class ReflectionService:
         sig_params = filter(
             lambda param: param.name not in params_to_skip, sig.parameters.values()
         )
-        params = [ReflectionService._param_annotation_desc(param) for param in sig_params]
+        params = [
+            ReflectionService._param_annotation_desc(param) for param in sig_params
+        ]
 
         return params
