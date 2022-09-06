@@ -7,6 +7,9 @@ from typing import Any
 from typing import Optional
 
 from flask.app import Flask
+from flask_bpmn.models.db import db
+
+from spiffworkflow_backend.models.spiff_logging import SpiffLoggingModel
 
 
 # flask logging formats:
@@ -159,9 +162,17 @@ def setup_logger(app: Flask) -> None:
     spiff_logger.addHandler(db_handler)
 
 
+# https://9to5answer.com/python-logging-to-database
 class DBHandler(logging.Handler):
     """DBHandler."""
 
     def emit(self, record: logging.LogRecord) -> None:
         """Emit."""
-        print(record.process)
+        spiff_log = SpiffLoggingModel(
+            process=record.process,
+            task=record.task_spec,  # type: ignore
+            status=record.action,  # type: ignore
+        )
+        db.session.add(spiff_log)
+        db.session.commit()
+        print(record)
