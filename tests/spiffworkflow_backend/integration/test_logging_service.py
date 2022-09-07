@@ -32,6 +32,7 @@ class TestLoggingService(BaseTest):
             headers=logged_in_headers(user),
         )
         assert log_response.status_code == 200
+        assert log_response.json
         logs: list = log_response.json
         assert len(logs) > 0
         for log in logs:
