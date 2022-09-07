@@ -33,7 +33,7 @@ class TestLoggingService(BaseTest):
             headers=logged_in_headers(user)
         )
         assert log_response.status_code == 200
-        logs = log_response.json
+        logs: list = log_response.json
         assert len(logs) > 0
         for log in logs:
             assert log["process_instance_id"] == process_instance_id
