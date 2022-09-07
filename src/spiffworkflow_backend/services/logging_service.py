@@ -168,14 +168,14 @@ class DBHandler(logging.Handler):
     def emit(self, record: logging.LogRecord) -> None:
         """Emit."""
         if record:
-            process_id = record.workflow if hasattr(record, "workflow") else None
-            task = str(record.task_id) if hasattr(record, "task_id") else None
+            process_id = record.workflow if hasattr(record, "workflow") else None  # type: ignore
+            task = str(record.task_id) if hasattr(record, "task_id") else None  # type: ignore
             message = record.msg if hasattr(record, "msg") else None
             timestamp = record.created if hasattr(record, "created") else None
             spiff_log = SpiffLoggingModel(
-                process_instance_id=record.process_instance_id,
+                process_instance_id=record.process_instance_id,  # type: ignore
                 process_id=process_id,
-                task=task,  # type: ignore
+                task=task,
                 message=message,
                 timestamp=timestamp
             )
