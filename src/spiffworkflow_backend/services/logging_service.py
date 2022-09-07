@@ -140,7 +140,7 @@ def setup_logger(app: Flask) -> None:
                 the_handler.setFormatter(log_formatter)
                 the_handler.setLevel(log_level)
 
-    spiff_logger = logging.getLogger("spiff.metrics")
+    spiff_logger = logging.getLogger("spiff")
     spiff_logger.setLevel(logging.DEBUG)
     # spiff_logger_handler = logging.StreamHandler(sys.stdout)
     spiff_formatter = logging.Formatter(
@@ -167,11 +167,17 @@ class DBHandler(logging.Handler):
 
     def emit(self, record: logging.LogRecord) -> None:
         """Emit."""
-        spiff_log = SpiffLoggingModel(
-            process=record.process,
-            task=record.task_spec,  # type: ignore
-            status=record.action,  # type: ignore
-        )
-        db.session.add(spiff_log)
-        db.session.commit()
-        print(record)
+        if record:
+            process_id = record.workflow if hasattr(record, "workflow") else None
+            task = str(record.task_id) if hasattr(record, "task_id") else None
+            message = record.msg if hasattr(record, "msg") else None
+            timestamp = record.created if hasattr(record, "created") else None
+            spiff_log = SpiffLoggingModel(
+                process_instance_id=record.process_instance_id,
+                process_id=process_id,
+                task=task,  # type: ignore
+                message=message,
+                timestamp=timestamp
+            )
+            db.session.add(spiff_log)
+            db.session.commit()
