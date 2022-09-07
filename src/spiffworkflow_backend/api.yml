@@ -925,6 +925,28 @@ paths:
               schema:
                 $ref: "#/components/schemas/Workflow"
 
+
+  /process-instance/{process_instance_id}/logs:
+    parameters:
+      - name: process_instance_id
+        in: path
+        required: true
+        description: the id of the process instance
+        schema:
+          type: integer
+    get:
+      tags:
+        - Process Instances
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.get_process_instance_logs
+      summary: returns a list of logs associated with the process instance
+      responses:
+        "200":
+          description: list of logs
+          content:
+            application/json:
+              schema:
+                type: array
+
 components:
   securitySchemes:
     jwt:
