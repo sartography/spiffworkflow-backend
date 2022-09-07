@@ -1,5 +1,4 @@
 """Test_logging_service."""
-
 from flask.app import Flask
 from flask.testing import FlaskClient
 from tests.spiffworkflow_backend.helpers.base_test import BaseTest
@@ -30,7 +29,7 @@ class TestLoggingService(BaseTest):
 
         log_response = client.get(
             f"/v1.0/process-instance/{process_instance_id}/logs",
-            headers=logged_in_headers(user)
+            headers=logged_in_headers(user),
         )
         assert log_response.status_code == 200
         logs: list = log_response.json

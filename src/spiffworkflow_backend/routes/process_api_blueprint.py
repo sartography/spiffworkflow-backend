@@ -19,7 +19,6 @@ from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
 from SpiffWorkflow import Task as SpiffTask  # type: ignore
 from SpiffWorkflow import TaskState
-from spiffworkflow_backend.models.spiff_logging import SpiffLoggingModel, SpiffLoggingModelSchema
 from sqlalchemy import desc
 
 from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
@@ -43,6 +42,8 @@ from spiffworkflow_backend.models.process_instance_report import (
 )
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
+from spiffworkflow_backend.models.spiff_logging import SpiffLoggingModel
+from spiffworkflow_backend.models.spiff_logging import SpiffLoggingModelSchema
 from spiffworkflow_backend.services.error_handling_service import ErrorHandlingService
 from spiffworkflow_backend.services.message_service import MessageService
 from spiffworkflow_backend.services.process_instance_processor import (
@@ -351,9 +352,10 @@ def process_instance_terminate(
 
 
 def get_process_instance_logs(process_instance_id: int) -> Response:
-    logs = SpiffLoggingModel.query.\
-        filter(SpiffLoggingModel.process_instance_id == process_instance_id).\
-        all()
+    """Get_process_instance_logs."""
+    logs = SpiffLoggingModel.query.filter(
+        SpiffLoggingModel.process_instance_id == process_instance_id
+    ).all()
     log_schema = SpiffLoggingModelSchema(many=True).dump(logs)
     return Response(
         json.dumps(log_schema),

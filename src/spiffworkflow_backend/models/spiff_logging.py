@@ -1,7 +1,6 @@
 """Spiff_logging."""
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import SpiffworkflowBaseDBModel
-
 from marshmallow import Schema
 
 
@@ -25,5 +24,3 @@ class SpiffLoggingModelSchema(Schema):
 
         model = SpiffLoggingModel
         fields = ["process_instance_id", "process_id", "task", "message", "timestamp"]
-
-

@@ -925,7 +925,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Workflow"
 
-
   /process-instance/{process_instance_id}/logs:
     parameters:
       - name: process_instance_id

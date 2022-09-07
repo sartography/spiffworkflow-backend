@@ -177,7 +177,7 @@ class DBHandler(logging.Handler):
                 process_id=process_id,
                 task=task,
                 message=message,
-                timestamp=timestamp
+                timestamp=timestamp,
             )
             db.session.add(spiff_log)
             db.session.commit()
