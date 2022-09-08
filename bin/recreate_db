@@ -11,9 +11,13 @@ export FLASK_SESSION_SECRET_KEY="this_is_recreate_db_secret_key"
 
 tasks=""
 if [[ "${1:-}" == "clean" ]]; then
-  if [[ "${2:-}" == "rmall" ]]; then
+  subcommand="${2:-}"
+  if [[ "$subcommand" == "rmall" ]]; then
     tasks="$tasks init migrate"
     rm -rf migrations/
+  elif [[ -n "$subcommand" ]]; then
+    >&2 echo "ERROR: you passed a subcommand that was not rmall, and that is not supported: $subcommand"
+    exit 1
   fi
 
   rm -f ./src/instance/*.sqlite3
