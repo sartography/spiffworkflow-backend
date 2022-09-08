@@ -1830,11 +1830,11 @@ test = ["pytest"]
 [[package]]
 name = "SpiffWorkflow"
 version = "1.1.7"
-description = "A workflow framework and BPMN/DMN Processor"
+description = ""
 category = "main"
 optional = false
 python-versions = "*"
-develop = true
+develop = false
 
 [package.dependencies]
 celery = "*"
@@ -1844,8 +1844,10 @@ lxml = "*"
 pytz = "*"
 
 [package.source]
-type = "directory"
-url = "../SpiffWorkflow"
+type = "git"
+url = "https://github.com/sartography/SpiffWorkflow"
+reference = "feature/dependencies"
+resolved_reference = "22853a4806e06395f39d66d2401d0c6b917a338d"
 
 [[package]]
 name = "sqlalchemy"
@@ -2155,7 +2157,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "645cb811651af21330bcd61e27d293ff280f5fd68997b4f42e3237289ef14212"
+content-hash = "8b2690c841abe0bb0502fb451165e464d8481d5b843f6623a45ee55f69c78a74"
 
 [metadata.files]
 alabaster = [

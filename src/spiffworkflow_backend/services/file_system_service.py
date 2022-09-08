@@ -50,9 +50,8 @@ class FileSystemService:
 
     @staticmethod
     def full_path_from_relative_path(relative_path: str) -> str:
-        return os.path.join(
-            FileSystemService.root_path(), relative_path
-        )
+        """Full_path_from_relative_path."""
+        return os.path.join(FileSystemService.root_path(), relative_path)
 
     @staticmethod
     def process_model_relative_path(spec: ProcessModelInfo) -> str:

@@ -4,6 +4,7 @@ from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 
 
 class BpmnProcessIdLookup(SpiffworkflowBaseDBModel):
+    """BpmnProcessIdLookup."""
 
     __tablename__ = "bpmn_process_id_lookup"
 

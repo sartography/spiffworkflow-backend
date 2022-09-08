@@ -100,7 +100,9 @@ class ExampleDataLoader:
                     process_model_info=spec, file_name=filename, binary_data=data
                 )
                 if is_primary:
-                    SpecFileService.process_bpmn_file(spec, filename, data, set_primary_file=True)
+                    SpecFileService.process_bpmn_file(
+                        spec, filename, data, set_primary_file=True
+                    )
                     workflow_spec_service = ProcessModelService()
                     workflow_spec_service.save_process_model(spec)
             finally:
