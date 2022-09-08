@@ -277,7 +277,7 @@ def add_file(process_group_id: str, process_model_id: str) -> flask.wrappers.Res
     file.process_model_id = process_model.id
     file.process_group_id = process_model.process_group_id
     if not process_model.primary_process_id and file.type == FileType.bpmn.value:
-        SpecFileService.set_primary_bpmn(process_model, file.name)
+        SpecFileService.process_bpmn_file(process_model, file.name, set_primary_file=True)
         process_model_service.save_process_model(process_model)
     return Response(
         json.dumps(FileSchema().dump(file)), status=201, mimetype="application/json"

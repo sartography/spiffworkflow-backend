@@ -26,6 +26,7 @@ from spiffworkflow_backend.models.process_instance_report import (
 )  # noqa: F401
 from spiffworkflow_backend.models.task_event import TaskEventModel  # noqa: F401
 from spiffworkflow_backend.models.user import UserModel  # noqa: F401
+from spiffworkflow_backend.models.bpmn_process_id_lookup import BpmnProcessIdLookup  # noqa: F401
 from spiffworkflow_backend.models.user_group_assignment import (
     UserGroupAssignmentModel,
 )  # noqa: F401
