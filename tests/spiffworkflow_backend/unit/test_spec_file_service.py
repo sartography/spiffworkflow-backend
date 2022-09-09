@@ -1,4 +1,6 @@
 """Test_message_service."""
+import os
+
 import pytest
 from flask import Flask
 from flask_bpmn.api.api_error import ApiError
@@ -11,6 +13,10 @@ from spiffworkflow_backend.models.bpmn_process_id_lookup import BpmnProcessIdLoo
 
 class TestSpecFileService(BaseTest):
     """TestSpecFileService."""
+
+    call_activity_nested_relative_file_path = os.path.join(
+        "test_process_group_id", "call_activity_nested", "call_activity_nested.bpmn"
+    )
 
     def test_can_check_for_messages_in_bpmn_xml(
         self, app: Flask, with_db_and_bpmn_file_cleanup: None
@@ -32,7 +38,7 @@ class TestSpecFileService(BaseTest):
         assert bpmn_process_id_lookups[0].bpmn_process_identifier == "Level1"
         assert (
             bpmn_process_id_lookups[0].bpmn_file_relative_path
-            == "test_process_group_id/call_activity_nested/call_activity_nested.bpmn"
+            == self.call_activity_nested_relative_file_path
         )
 
     def test_fails_to_save_duplicate_process_id(
@@ -53,7 +59,7 @@ class TestSpecFileService(BaseTest):
         )
         assert (
             bpmn_process_id_lookups[0].bpmn_file_relative_path
-            == "test_process_group_id/call_activity_nested/call_activity_nested.bpmn"
+            == self.call_activity_nested_relative_file_path
         )
         with pytest.raises(ApiError) as exception:
             load_test_spec(
@@ -70,8 +76,8 @@ class TestSpecFileService(BaseTest):
     ) -> None:
         """Test_updates_relative_file_path_when_appropriate."""
         bpmn_process_identifier = "Level1"
-        bpmn_file_relative_path = (
-            "test_process_group_id/call_activity_nested/new_bpmn_file.bpmn"
+        bpmn_file_relative_path = os.path.join(
+            "test_process_group_id", "call_activity_nested", "new_bpmn_file.bpmn"
         )
         process_id_lookup = BpmnProcessIdLookup(
             bpmn_process_identifier=bpmn_process_identifier,
@@ -93,5 +99,5 @@ class TestSpecFileService(BaseTest):
         )
         assert (
             bpmn_process_id_lookups[0].bpmn_file_relative_path
-            == "test_process_group_id/call_activity_nested/call_activity_nested.bpmn"
+            == self.call_activity_nested_relative_file_path
         )
