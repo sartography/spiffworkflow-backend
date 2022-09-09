@@ -1,27 +1,10 @@
 Spiffworkflow Backend
 ==========
 
-|PyPI| |Status| |Python Version| |License|
-
-|Read the Docs| |Tests| |Codecov|
+|Tests| |Codecov|
 
 |pre-commit| |Black|
 
-.. |PyPI| image:: https://img.shields.io/pypi/v/spiffworkflow-backend.svg
-   :target: https://pypi.org/project/spiffworkflow-backend/
-   :alt: PyPI
-.. |Status| image:: https://img.shields.io/pypi/status/spiffworkflow-backend.svg
-   :target: https://pypi.org/project/spiffworkflow-backend/
-   :alt: Status
-.. |Python Version| image:: https://img.shields.io/pypi/pyversions/spiffworkflow-backend
-   :target: https://pypi.org/project/spiffworkflow-backend
-   :alt: Python Version
-.. |License| image:: https://img.shields.io/pypi/l/spiffworkflow-backend
-   :target: https://opensource.org/licenses/MIT
-   :alt: License
-.. |Read the Docs| image:: https://img.shields.io/readthedocs/spiffworkflow-backend/latest.svg?label=Read%20the%20Docs
-   :target: https://spiffworkflow-backend.readthedocs.io/
-   :alt: Read the documentation at https://spiffworkflow-backend.readthedocs.io/
 .. |Tests| image:: https://github.com/sartography/spiffworkflow-backend/workflows/Tests/badge.svg
    :target: https://github.com/sartography/spiffworkflow-backend/actions?workflow=Tests
    :alt: Tests
