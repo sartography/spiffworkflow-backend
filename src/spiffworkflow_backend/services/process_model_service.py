@@ -85,17 +85,8 @@ class ProcessModelService(FileSystemService):
                 message=f"We cannot delete the model `{process_model_id}`, there are existing instances that depend on it.",
             )
         process_model = self.get_process_model(process_model_id)
-        # if process_model.library:
-        #     self.__remove_library_references(process_model.id)
         path = self.workflow_path(process_model)
         shutil.rmtree(path)
-
-    # def __remove_library_references(self, spec_id: str) -> None:
-    #     """__remove_library_references."""
-    #     for process_model in self.get_process_models():
-    #         if spec_id in process_model.libraries:
-    #             process_model.libraries.remove(spec_id)
-    #             self.update_spec(process_model)
 
     @property
     def master_spec(self) -> Optional[ProcessModelInfo]:

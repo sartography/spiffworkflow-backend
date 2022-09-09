@@ -453,11 +453,38 @@ class ProcessInstanceProcessor:
         return parser
 
     @staticmethod
-    def find_required_files(
+    def backfill_missing_bpmn_process_id_lookup_records(
+        bpmn_process_identifier: None,
+    ) -> Optional[str]:
+        """Backfill_missing_bpmn_process_id_lookup_records."""
+        process_models = ProcessModelService().get_process_models()
+        for process_model in process_models:
+            if process_model.primary_file_name:
+                etree_element = SpecFileService.get_etree_element_from_file_name(
+                    process_model, process_model.primary_file_name
+                )
+                bpmn_process_identifiers = (
+                    SpecFileService.get_executable_bpmn_process_identifiers(
+                        etree_element
+                    )
+                )
+                if bpmn_process_identifier in bpmn_process_identifiers:
+                    SpecFileService.store_bpmn_process_identifiers(
+                        process_model,
+                        process_model.primary_file_name,
+                        etree_element,
+                    )
+                    return FileSystemService.full_path_to_process_model_file(
+                        process_model, process_model.primary_file_name
+                    )
+        return None
+
+    @staticmethod
+    def update_spiff_parser_with_all_process_dependency_files(
         parser: BpmnDmnParser,
         processed_identifiers: Optional[set[str]] = None,
     ) -> None:
-        """Find_required_files."""
+        """Update_spiff_parser_with_all_process_dependency_files."""
         if processed_identifiers is None:
             processed_identifiers = set()
         processor_dependencies = parser.get_process_dependencies()
@@ -470,19 +497,29 @@ class ProcessInstanceProcessor:
             ).first()
             new_bpmn_file_full_path = None
             if bpmn_process_id_lookup is None:
-                # TODO: this should only happen rarely
-                new_bpmn_file_full_path = ""
+                new_bpmn_file_full_path = ProcessInstanceProcessor.backfill_missing_bpmn_process_id_lookup_records(
+                    bpmn_process_identifier
+                )
             else:
                 new_bpmn_file_full_path = os.path.join(
                     FileSystemService.root_path(),
                     bpmn_process_id_lookup.bpmn_file_relative_path,
                 )
+            if new_bpmn_file_full_path is None:
+                raise (
+                    ApiError(
+                        code="could_not_find_bpmn_process_identifier",
+                        message="Could not find the the given bpmn process identifier from any sources"
+                        % bpmn_process_identifier,
+                    )
+                )
+
             new_bpmn_files.add(new_bpmn_file_full_path)
             processed_identifiers.add(bpmn_process_identifier)
 
         for new_bpmn_file_full_path in new_bpmn_files:
             parser.add_bpmn_file(new_bpmn_file_full_path)
-            ProcessInstanceProcessor.find_required_files(
+            ProcessInstanceProcessor.update_spiff_parser_with_all_process_dependency_files(
                 parser, processed_identifiers
             )
 
@@ -508,16 +545,13 @@ class ProcessInstanceProcessor:
             raise (
                 ApiError(
                     code="no_primary_bpmn_error",
-                    message="There is no primary BPMN model defined for process_instance %s"
+                    message="There is no primary BPMN process id defined for process_model %s"
                     % process_model_info.id,
                 )
             )
-
-        workflow_path = FileSystemService.workflow_path(process_model_info) or ""
-        primary_file_full_path = os.path.join(
-            workflow_path, (process_model_info.primary_file_name or "")
+        ProcessInstanceProcessor.update_spiff_parser_with_all_process_dependency_files(
+            parser
         )
-        ProcessInstanceProcessor.find_required_files(parser)
 
         try:
             spec = parser.get_spec(process_model_info.primary_process_id)
