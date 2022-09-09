@@ -109,11 +109,6 @@ def setup_logger(app: Flask) -> None:
         "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
 
-    log_level = logging.DEBUG
-    log_formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
-
     # the json formatter is nice for real environments but makes
     # debugging locally a little more difficult
     if app.env != "development":
@@ -131,25 +126,31 @@ def setup_logger(app: Flask) -> None:
         )
         log_formatter = json_formatter
 
+    spiff_logger_filehandler = None
+    if app.config["SPIFFWORKFLOW_BACKEND_LOG_TO_FILE"]:
+        spiff_logger_filehandler = logging.FileHandler(f"log/{app.env}.log")
+        spiff_logger_filehandler.setLevel(logging.DEBUG)
+        spiff_logger_filehandler.setFormatter(log_formatter)
+
     # make all loggers act the same
     for name in logging.root.manager.loggerDict:
         if "spiff" not in name:
             the_logger = logging.getLogger(name)
             the_logger.setLevel(log_level)
-            for the_handler in the_logger.handlers:
-                the_handler.setFormatter(log_formatter)
-                the_handler.setLevel(log_level)
+            if spiff_logger_filehandler:
+                the_logger.handlers = []
+                the_logger.propagate = False
+                the_logger.addHandler(spiff_logger_filehandler)
+            else:
+                for the_handler in the_logger.handlers:
+                    the_handler.setFormatter(log_formatter)
+                    the_handler.setLevel(log_level)
 
     spiff_logger = logging.getLogger("spiff")
     spiff_logger.setLevel(logging.DEBUG)
-    # spiff_logger_handler = logging.StreamHandler(sys.stdout)
     spiff_formatter = logging.Formatter(
         "%(asctime)s | %(levelname)s | %(message)s | %(action)s | %(task_type)s | %(process)s | %(processName)s | %(process_instance_id)s"
     )
-    # spiff_logger_handler.setFormatter(spiff_formatter)
-    # fh = logging.FileHandler('test.log')
-    # spiff_logger_handler.setLevel(logging.DEBUG)
-    # spiff_logger.addHandler(spiff_logger_handler)
 
     # if you add a handler to spiff, it will be used/inherited by spiff.metrics
     # if you add a filter to the spiff logger directly (and not the handler), it will NOT be inherited by spiff.metrics

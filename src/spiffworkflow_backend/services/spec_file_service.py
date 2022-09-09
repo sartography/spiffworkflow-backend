@@ -12,6 +12,7 @@ from lxml.etree import _Element  # type: ignore
 from lxml.etree import Element as EtreeElement
 from SpiffWorkflow.bpmn.parser.ValidationException import ValidationException  # type: ignore
 
+from spiffworkflow_backend.models.bpmn_process_id_lookup import BpmnProcessIdLookup
 from spiffworkflow_backend.models.file import File
 from spiffworkflow_backend.models.file import FileType
 from spiffworkflow_backend.models.message_correlation_property import (
@@ -72,13 +73,21 @@ class SpecFileService(FileSystemService):
         file_path = SpecFileService.file_path(process_model_info, file_name)
         SpecFileService.write_file_data_to_system(file_path, binary_data)
         file = SpecFileService.to_file_object(file_name, file_path)
-        if file_name == process_model_info.primary_file_name:
-            SpecFileService.set_primary_bpmn(process_model_info, file_name, binary_data)
-        elif process_model_info.primary_file_name is None and file.type == str(
-            FileType.bpmn
-        ):
-            # If no primary process exists, make this pirmary process.
-            SpecFileService.set_primary_bpmn(process_model_info, file_name, binary_data)
+
+        if file.type == str(FileType.bpmn):
+            set_primary_file = False
+            if (
+                process_model_info.primary_file_name is None
+                or file_name == process_model_info.primary_file_name
+            ):
+                # If no primary process exists, make this primary process.
+                set_primary_file = True
+            SpecFileService.process_bpmn_file(
+                process_model_info,
+                file_name,
+                binary_data,
+                set_primary_file=set_primary_file,
+            )
 
         return file
 
@@ -138,10 +147,11 @@ class SpecFileService(FileSystemService):
             shutil.rmtree(dir_path)
 
     @staticmethod
-    def set_primary_bpmn(
+    def process_bpmn_file(
         process_model_info: ProcessModelInfo,
         file_name: str,
         binary_data: Optional[bytes] = None,
+        set_primary_file: Optional[bool] = False,
     ) -> None:
         """Set_primary_bpmn."""
         # If this is a BPMN, extract the process id, and determine if it is contains swim lanes.
@@ -151,13 +161,23 @@ class SpecFileService(FileSystemService):
             if not binary_data:
                 binary_data = SpecFileService.get_data(process_model_info, file_name)
             try:
-                bpmn: EtreeElement = etree.fromstring(binary_data)
-                process_model_info.primary_process_id = SpecFileService.get_process_id(
-                    bpmn
+                bpmn_etree_element: EtreeElement = etree.fromstring(binary_data)
+
+                if set_primary_file:
+                    process_model_info.primary_process_id = (
+                        SpecFileService.get_process_id(bpmn_etree_element)
+                    )
+                    process_model_info.primary_file_name = file_name
+                    process_model_info.is_review = SpecFileService.has_swimlane(
+                        bpmn_etree_element
+                    )
+
+                SpecFileService.check_for_message_models(
+                    bpmn_etree_element, process_model_info
                 )
-                process_model_info.primary_file_name = file_name
-                process_model_info.is_review = SpecFileService.has_swimlane(bpmn)
-                SpecFileService.check_for_message_models(bpmn, process_model_info)
+                SpecFileService.store_process_ids(
+                    process_model_info, file_name, bpmn_etree_element
+                )
 
             except etree.XMLSyntaxError as xse:
                 raise ApiError(
@@ -197,8 +217,8 @@ class SpecFileService(FileSystemService):
         return retval
 
     @staticmethod
-    def get_process_id(et_root: _Element) -> str:
-        """Get_process_id."""
+    def get_executable_process_elements(et_root: _Element) -> list[_Element]:
+        """Get_executable_process_elements."""
         process_elements = []
         for child in et_root:
             if child.tag.endswith("process") and child.attrib.get(
@@ -208,6 +228,19 @@ class SpecFileService(FileSystemService):
 
         if len(process_elements) == 0:
             raise ValidationException("No executable process tag found")
+        return process_elements
+
+    @staticmethod
+    def get_executable_process_ids(et_root: _Element) -> list[str]:
+        """Get_executable_process_ids."""
+        process_elements = SpecFileService.get_executable_process_elements(et_root)
+        process_ids = [pe.attrib["id"] for pe in process_elements]
+        return process_ids
+
+    @staticmethod
+    def get_process_id(et_root: _Element) -> str:
+        """Get_process_id."""
+        process_elements = SpecFileService.get_executable_process_elements(et_root)
 
         # There are multiple root elements
         if len(process_elements) > 1:
@@ -225,6 +258,48 @@ class SpecFileService(FileSystemService):
             )
 
         return str(process_elements[0].attrib["id"])
+
+    @staticmethod
+    def store_process_ids(
+        process_model_info: ProcessModelInfo, bpmn_file_name: str, et_root: _Element
+    ) -> None:
+        """Store_process_ids."""
+        relative_process_model_path = SpecFileService.process_model_relative_path(
+            process_model_info
+        )
+        relative_bpmn_file_path = os.path.join(
+            relative_process_model_path, bpmn_file_name
+        )
+        process_ids = SpecFileService.get_executable_process_ids(et_root)
+        for process_id in process_ids:
+            process_id_lookup = BpmnProcessIdLookup.query.filter_by(
+                bpmn_process_identifier=process_id
+            ).first()
+            if process_id_lookup is None:
+                process_id_lookup = BpmnProcessIdLookup(
+                    bpmn_process_identifier=process_id,
+                    bpmn_file_relative_path=relative_bpmn_file_path,
+                )
+                db.session.add(process_id_lookup)
+                db.session.commit()
+            else:
+                if relative_bpmn_file_path != process_id_lookup.bpmn_file_relative_path:
+                    full_bpmn_file_path = SpecFileService.full_path_from_relative_path(
+                        process_id_lookup.bpmn_file_relative_path
+                    )
+                    # if the old relative bpmn file no longer exists, then assume things were moved around
+                    # on the file system. Otherwise, assume it is a duplicate process id and error.
+                    if os.path.isfile(full_bpmn_file_path):
+                        raise ValidationException(
+                            f"Process id ({process_id}) has already been used for "
+                            f"{process_id_lookup.bpmn_file_relative_path}. It cannot be reused."
+                        )
+                    else:
+                        process_id_lookup.bpmn_file_relative_path = (
+                            relative_bpmn_file_path
+                        )
+                        db.session.add(process_id_lookup)
+                        db.session.commit()
 
     @staticmethod
     def check_for_message_models(

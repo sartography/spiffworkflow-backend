@@ -49,6 +49,21 @@ class FileSystemService:
         )
 
     @staticmethod
+    def full_path_from_relative_path(relative_path: str) -> str:
+        """Full_path_from_relative_path."""
+        return os.path.join(FileSystemService.root_path(), relative_path)
+
+    @staticmethod
+    def process_model_relative_path(spec: ProcessModelInfo) -> str:
+        """Get the file path to a process model relative to BPMN_SPEC_ABSOLUTE_DIR.
+
+        If the full path is /path/to/process-group-a/group-b/process-model-a, it will return:
+        process-group-a/group-b/process-model-a
+        """
+        workflow_path = FileSystemService.workflow_path(spec)
+        return os.path.relpath(workflow_path, start=FileSystemService.root_path())
+
+    @staticmethod
     def process_group_path_for_spec(spec: ProcessModelInfo) -> str:
         """Category_path_for_spec."""
         if spec.is_master_spec:

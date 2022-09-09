@@ -90,6 +90,7 @@ class ExampleDataLoader:
                 continue  # Don't try to process sub directories
 
             filename = os.path.basename(file_path)
+            # since there are multiple bpmn files in a test data directory, ensure we set the correct one as the primary
             is_primary = filename.lower() == bpmn_file_name_with_extension
             file = None
             try:
@@ -99,12 +100,11 @@ class ExampleDataLoader:
                     process_model_info=spec, file_name=filename, binary_data=data
                 )
                 if is_primary:
-                    SpecFileService.set_primary_bpmn(spec, filename, data)
+                    SpecFileService.process_bpmn_file(
+                        spec, filename, data, set_primary_file=True
+                    )
                     workflow_spec_service = ProcessModelService()
                     workflow_spec_service.save_process_model(spec)
-            except IsADirectoryError:
-                # Ignore sub directories
-                pass
             finally:
                 if file:
                     file.close()

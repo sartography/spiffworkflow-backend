@@ -1,5 +1,6 @@
 """Process_instance_processor."""
 import json
+import os
 import time
 from typing import Any
 from typing import Dict
@@ -47,6 +48,7 @@ from SpiffWorkflow.spiff.serializer import UserTaskConverter
 from SpiffWorkflow.util.deep_merge import DeepMerge  # type: ignore
 
 from spiffworkflow_backend.models.active_task import ActiveTaskModel
+from spiffworkflow_backend.models.bpmn_process_id_lookup import BpmnProcessIdLookup
 from spiffworkflow_backend.models.file import File
 from spiffworkflow_backend.models.file import FileType
 from spiffworkflow_backend.models.message_correlation import MessageCorrelationModel
@@ -65,6 +67,7 @@ from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.task_event import TaskAction
 from spiffworkflow_backend.models.task_event import TaskEventModel
 from spiffworkflow_backend.models.user import UserModelSchema
+from spiffworkflow_backend.services.file_system_service import FileSystemService
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 from spiffworkflow_backend.services.spec_file_service import SpecFileService
 from spiffworkflow_backend.services.user_service import UserService
@@ -450,6 +453,42 @@ class ProcessInstanceProcessor:
         return parser
 
     @staticmethod
+    def find_required_files(
+        bpmn_file_full_path: str,
+        parser: BpmnDmnParser,
+        processed_identifiers: Optional[set[str]] = None,
+    ) -> None:
+        """Find_required_files."""
+        if processed_identifiers is None:
+            processed_identifiers = set()
+        parser.get_dependencies()
+        processor_dependencies = parser.get_process_dependencies()
+        processor_dependencies_new = processor_dependencies - processed_identifiers
+
+        new_bpmn_files = set()
+        for bpmn_process_identifier in processor_dependencies_new:
+            bpmn_process_id_lookup = BpmnProcessIdLookup.query.filter_by(
+                bpmn_process_identifier=bpmn_process_identifier
+            ).first()
+            new_bpmn_file_full_path = None
+            if bpmn_process_id_lookup is None:
+                # TODO: this should only happen rarely
+                new_bpmn_file_full_path = ""
+            else:
+                new_bpmn_file_full_path = os.path.join(
+                    FileSystemService.root_path(),
+                    bpmn_process_id_lookup.bpmn_file_relative_path,
+                )
+            new_bpmn_files.add(new_bpmn_file_full_path)
+            processed_identifiers.add(bpmn_process_identifier)
+
+        for new_bpmn_file_full_path in new_bpmn_files:
+            parser.add_bpmn_file(new_bpmn_file_full_path)
+            ProcessInstanceProcessor.find_required_files(
+                new_bpmn_file_full_path, parser, processed_identifiers
+            )
+
+    @staticmethod
     def get_spec(
         files: List[File], process_model_info: ProcessModelInfo
     ) -> Tuple[BpmnProcessSpec, IdToBpmnProcessSpecMapping]:
@@ -475,6 +514,13 @@ class ProcessInstanceProcessor:
                     % process_model_info.id,
                 )
             )
+
+        workflow_path = FileSystemService.workflow_path(process_model_info) or ""
+        primary_file_full_path = os.path.join(
+            workflow_path, (process_model_info.primary_file_name or "")
+        )
+        ProcessInstanceProcessor.find_required_files(primary_file_full_path, parser)
+
         try:
             spec = parser.get_spec(process_model_info.primary_process_id)
 

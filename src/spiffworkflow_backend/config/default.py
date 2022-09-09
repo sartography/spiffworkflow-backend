@@ -30,3 +30,7 @@ OPEN_ID_REALM_NAME = environ.get("OPEN_ID_REALM_NAME", default="spiffworkflow")
 OPEN_ID_CLIENT_SECRET_KEY = environ.get(
     "OPEN_ID_CLIENT_SECRET_KEY", default="JXeQExm0JhQPLumgHtIIqf52bDalHz0q"
 )  # noqa: S105
+
+SPIFFWORKFLOW_BACKEND_LOG_TO_FILE = (
+    environ.get("SPIFFWORKFLOW_BACKEND_LOG_TO_FILE", default="false") == "false"
+)

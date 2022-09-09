@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: e16389841ca6
+Revision ID: 240bdce32a9f
 Revises: 
-Create Date: 2022-09-07 11:41:16.981763
+Create Date: 2022-09-08 12:49:51.609196
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'e16389841ca6'
+revision = '240bdce32a9f'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -25,6 +25,13 @@ def upgrade():
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('token')
     )
+    op.create_table('bpmn_process_id_lookup',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('bpmn_process_identifier', sa.String(length=50), nullable=True),
+    sa.Column('bpmn_file_relative_path', sa.String(length=255), nullable=True),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_bpmn_process_id_lookup_bpmn_process_identifier'), 'bpmn_process_id_lookup', ['bpmn_process_identifier'], unique=True)
     op.create_table('group',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=255), nullable=True),
@@ -290,5 +297,7 @@ def downgrade():
     op.drop_index(op.f('ix_message_model_identifier'), table_name='message_model')
     op.drop_table('message_model')
     op.drop_table('group')
+    op.drop_index(op.f('ix_bpmn_process_id_lookup_bpmn_process_identifier'), table_name='bpmn_process_id_lookup')
+    op.drop_table('bpmn_process_id_lookup')
     op.drop_table('admin_session')
     # ### end Alembic commands ###
