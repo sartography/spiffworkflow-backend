@@ -461,7 +461,6 @@ class ProcessInstanceProcessor:
         """Find_required_files."""
         if processed_identifiers is None:
             processed_identifiers = set()
-        parser.get_dependencies()
         processor_dependencies = parser.get_process_dependencies()
         processor_dependencies_new = processor_dependencies - processed_identifiers
 
