@@ -454,7 +454,6 @@ class ProcessInstanceProcessor:
 
     @staticmethod
     def find_required_files(
-        bpmn_file_full_path: str,
         parser: BpmnDmnParser,
         processed_identifiers: Optional[set[str]] = None,
     ) -> None:
@@ -484,7 +483,7 @@ class ProcessInstanceProcessor:
         for new_bpmn_file_full_path in new_bpmn_files:
             parser.add_bpmn_file(new_bpmn_file_full_path)
             ProcessInstanceProcessor.find_required_files(
-                new_bpmn_file_full_path, parser, processed_identifiers
+                parser, processed_identifiers
             )
 
     @staticmethod
@@ -518,7 +517,7 @@ class ProcessInstanceProcessor:
         primary_file_full_path = os.path.join(
             workflow_path, (process_model_info.primary_file_name or "")
         )
-        ProcessInstanceProcessor.find_required_files(primary_file_full_path, parser)
+        ProcessInstanceProcessor.find_required_files(parser)
 
         try:
             spec = parser.get_spec(process_model_info.primary_process_id)
