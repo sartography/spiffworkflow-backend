@@ -234,8 +234,8 @@ class SpecFileService(FileSystemService):
     def get_executable_process_ids(et_root: _Element) -> list[str]:
         """Get_executable_process_ids."""
         process_elements = SpecFileService.get_executable_process_elements(et_root)
-        process_ids = [pe.attrib["id"] for pe in process_elements]
-        return process_ids
+        bpmn_process_identifiers = [pe.attrib["id"] for pe in process_elements]
+        return bpmn_process_identifiers
 
     @staticmethod
     def get_process_id(et_root: _Element) -> str:
@@ -270,14 +270,14 @@ class SpecFileService(FileSystemService):
         relative_bpmn_file_path = os.path.join(
             relative_process_model_path, bpmn_file_name
         )
-        process_ids = SpecFileService.get_executable_process_ids(et_root)
-        for process_id in process_ids:
+        bpmn_process_identifiers = SpecFileService.get_executable_process_ids(et_root)
+        for bpmn_process_identifier in bpmn_process_identifiers:
             process_id_lookup = BpmnProcessIdLookup.query.filter_by(
-                bpmn_process_identifier=process_id
+                bpmn_process_identifier=bpmn_process_identifier
             ).first()
             if process_id_lookup is None:
                 process_id_lookup = BpmnProcessIdLookup(
-                    bpmn_process_identifier=process_id,
+                    bpmn_process_identifier=bpmn_process_identifier,
                     bpmn_file_relative_path=relative_bpmn_file_path,
                 )
                 db.session.add(process_id_lookup)
@@ -291,7 +291,7 @@ class SpecFileService(FileSystemService):
                     # on the file system. Otherwise, assume it is a duplicate process id and error.
                     if os.path.isfile(full_bpmn_file_path):
                         raise ValidationException(
-                            f"Process id ({process_id}) has already been used for "
+                            f"Process id ({bpmn_process_identifier}) has already been used for "
                             f"{process_id_lookup.bpmn_file_relative_path}. It cannot be reused."
                         )
                     else:

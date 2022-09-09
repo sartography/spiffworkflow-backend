@@ -32,5 +32,5 @@ OPEN_ID_CLIENT_SECRET_KEY = environ.get(
 )  # noqa: S105
 
 SPIFFWORKFLOW_BACKEND_LOG_TO_FILE = (
-    environ.get("SPIFFWORKFLOW_BACKEND_LOG_TO_FILE", default="false") == "false"
+    environ.get("SPIFFWORKFLOW_BACKEND_LOG_TO_FILE", default="false") == "true"
 )

@@ -28,14 +28,14 @@ class TestLoggingService(BaseTest):
         assert response.status_code == 200
 
         log_response = client.get(
-            f"/v1.0/process-instance/{process_instance_id}/logs",
+            f"/v1.0/process-models/{process_group_id}/{process_model_id}/process-instances/{process_instance_id}/logs",
             headers=logged_in_headers(user),
         )
         assert log_response.status_code == 200
         assert log_response.json
-        logs: list = log_response.json
+        logs: list = log_response.json["results"]
         assert len(logs) > 0
         for log in logs:
             assert log["process_instance_id"] == process_instance_id
-            for key in ["timestamp", "task", "process_id", "message"]:
+            for key in ["timestamp", "task", "bpmn_process_identifier", "message"]:
                 assert key in log.keys()

@@ -43,7 +43,6 @@ from spiffworkflow_backend.models.process_instance_report import (
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
 from spiffworkflow_backend.models.spiff_logging import SpiffLoggingModel
-from spiffworkflow_backend.models.spiff_logging import SpiffLoggingModelSchema
 from spiffworkflow_backend.services.error_handling_service import ErrorHandlingService
 from spiffworkflow_backend.services.message_service import MessageService
 from spiffworkflow_backend.services.process_instance_processor import (
@@ -353,17 +352,35 @@ def process_instance_terminate(
     return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
 
 
-def get_process_instance_logs(process_instance_id: int) -> Response:
-    """Get_process_instance_logs."""
-    logs = SpiffLoggingModel.query.filter(
-        SpiffLoggingModel.process_instance_id == process_instance_id
-    ).all()
-    log_schema = SpiffLoggingModelSchema(many=True).dump(logs)
-    return Response(
-        json.dumps(log_schema),
-        status=200,
-        mimetype="application/json",
+def process_instance_log_list(
+    process_group_id: str,
+    process_model_id: str,
+    process_instance_id: int,
+    page: int = 1,
+    per_page: int = 100,
+) -> flask.wrappers.Response:
+    """Process_instance_log_list."""
+    # to make sure the process instance exists
+    process_instance = find_process_instance_by_id_or_raise(process_instance_id)
+
+    logs = (
+        SpiffLoggingModel.query.filter(
+            SpiffLoggingModel.process_instance_id == process_instance.id
+        )
+        .order_by(SpiffLoggingModel.timestamp.desc())  # type: ignore
+        .paginate(page, per_page, False)
     )
+
+    response_json = {
+        "results": logs.items,
+        "pagination": {
+            "count": len(logs.items),
+            "total": logs.total,
+            "pages": logs.pages,
+        },
+    }
+
+    return make_response(jsonify(response_json), 200)
 
 
 # body: {

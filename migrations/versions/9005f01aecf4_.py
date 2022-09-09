@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 240bdce32a9f
+Revision ID: 9005f01aecf4
 Revises: 
-Create Date: 2022-09-08 12:49:51.609196
+Create Date: 2022-09-09 12:55:35.301314
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '240bdce32a9f'
+revision = '9005f01aecf4'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -48,11 +48,11 @@ def upgrade():
     op.create_index(op.f('ix_message_model_name'), 'message_model', ['name'], unique=True)
     op.create_table('spiff_logging',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('process_instance_id', sa.Integer(), nullable=True),
-    sa.Column('process_id', sa.String(length=50), nullable=True),
-    sa.Column('task', sa.String(length=50), nullable=True),
+    sa.Column('process_instance_id', sa.Integer(), nullable=False),
+    sa.Column('bpmn_process_identifier', sa.String(length=50), nullable=False),
+    sa.Column('task', sa.String(length=50), nullable=False),
+    sa.Column('timestamp', sa.Float(), nullable=False),
     sa.Column('message', sa.String(length=50), nullable=True),
-    sa.Column('timestamp', sa.Float(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('user',
