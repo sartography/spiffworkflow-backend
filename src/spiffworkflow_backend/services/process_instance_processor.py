@@ -462,7 +462,7 @@ class ProcessInstanceProcessor:
 
     @staticmethod
     def backfill_missing_bpmn_process_id_lookup_records(
-        bpmn_process_identifier: None,
+        bpmn_process_identifier: str,
     ) -> Optional[str]:
         """Backfill_missing_bpmn_process_id_lookup_records."""
         process_models = ProcessModelService().get_process_models()
@@ -495,6 +495,34 @@ class ProcessInstanceProcessor:
         return None
 
     @staticmethod
+    def bpmn_file_full_path_from_bpmn_process_identifier(
+        bpmn_process_identifier: str,
+    ) -> str:
+        """Bpmn_file_full_path_from_bpmn_process_identifier."""
+        bpmn_process_id_lookup = BpmnProcessIdLookup.query.filter_by(
+            bpmn_process_identifier=bpmn_process_identifier
+        ).first()
+        bpmn_file_full_path = None
+        if bpmn_process_id_lookup is None:
+            bpmn_file_full_path = ProcessInstanceProcessor.backfill_missing_bpmn_process_id_lookup_records(
+                bpmn_process_identifier
+            )
+        else:
+            bpmn_file_full_path = os.path.join(
+                FileSystemService.root_path(),
+                bpmn_process_id_lookup.bpmn_file_relative_path,
+            )
+        if bpmn_file_full_path is None:
+            raise (
+                ApiError(
+                    code="could_not_find_bpmn_process_identifier",
+                    message="Could not find the the given bpmn process identifier from any sources: %s"
+                    % bpmn_process_identifier,
+                )
+            )
+        return os.path.abspath(bpmn_file_full_path)
+
+    @staticmethod
     def update_spiff_parser_with_all_process_dependency_files(
         parser: BpmnDmnParser,
         processed_identifiers: Optional[set[str]] = None,
@@ -504,7 +532,7 @@ class ProcessInstanceProcessor:
             processed_identifiers = set()
         processor_dependencies = parser.get_process_dependencies()
         processor_dependencies_new = processor_dependencies - processed_identifiers
-        bpmn_process_identifiers_in_parser = parser.find_all_specs().keys()
+        bpmn_process_identifiers_in_parser = parser.get_process_ids()
 
         new_bpmn_files = set()
         for bpmn_process_identifier in processor_dependencies_new:
@@ -513,28 +541,9 @@ class ProcessInstanceProcessor:
             if bpmn_process_identifier in bpmn_process_identifiers_in_parser:
                 continue
 
-            bpmn_process_id_lookup = BpmnProcessIdLookup.query.filter_by(
-                bpmn_process_identifier=bpmn_process_identifier
-            ).first()
-            new_bpmn_file_full_path = None
-            if bpmn_process_id_lookup is None:
-                new_bpmn_file_full_path = ProcessInstanceProcessor.backfill_missing_bpmn_process_id_lookup_records(
-                    bpmn_process_identifier
-                )
-            else:
-                new_bpmn_file_full_path = os.path.join(
-                    FileSystemService.root_path(),
-                    bpmn_process_id_lookup.bpmn_file_relative_path,
-                )
-            if new_bpmn_file_full_path is None:
-                raise (
-                    ApiError(
-                        code="could_not_find_bpmn_process_identifier",
-                        message="Could not find the the given bpmn process identifier from any sources: %s"
-                        % bpmn_process_identifier,
-                    )
-                )
-
+            new_bpmn_file_full_path = ProcessInstanceProcessor.bpmn_file_full_path_from_bpmn_process_identifier(
+                bpmn_process_identifier
+            )
             new_bpmn_files.add(new_bpmn_file_full_path)
             processed_identifiers.add(bpmn_process_identifier)
 
@@ -739,13 +748,16 @@ class ProcessInstanceProcessor:
 
                 db.session.commit()
 
-    def do_engine_steps(self, exit_at: None = None) -> None:
+    def do_engine_steps(self, exit_at: None = None, save: bool = False) -> None:
         """Do_engine_steps."""
         try:
             self.bpmn_process_instance.refresh_waiting_tasks()
             self.bpmn_process_instance.do_engine_steps(exit_at=exit_at)
             self.process_bpmn_messages()
             self.queue_waiting_receive_messages()
+
+            if save:
+                self.save()
 
         except WorkflowTaskExecException as we:
             raise ApiError.from_workflow_exception("task_error", str(we), we) from we

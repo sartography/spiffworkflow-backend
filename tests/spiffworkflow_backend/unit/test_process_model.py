@@ -22,7 +22,23 @@ class TestProcessModel(BaseTest):
         assert process_model_one.files == []
         assert process_model_one.libraries == []
 
-    def test_can_run_process_model_with_call_activities(
+    def test_can_run_process_model_with_call_activities_when_in_same_process_model_directory(
+        self, app: Flask, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        """Test_can_run_process_model_with_call_activities."""
+        process_model = load_test_spec(
+            "call_activity_test",
+            process_model_source_directory="call_activity_same_directory",
+        )
+
+        process_instance = self.create_process_instance_from_process_model(
+            process_model
+        )
+        processor = ProcessInstanceProcessor(process_instance)
+        processor.do_engine_steps(save=True)
+        assert process_instance.status == "complete"
+
+    def test_can_run_process_model_with_call_activities_when_not_in_same_directory(
         self, app: Flask, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_can_run_process_model_with_call_activities."""
@@ -47,7 +63,8 @@ class TestProcessModel(BaseTest):
             process_model
         )
         processor = ProcessInstanceProcessor(process_instance)
-        processor.do_engine_steps()
+        processor.do_engine_steps(save=True)
+        assert process_instance.status == "complete"
 
     def test_can_run_process_model_with_call_activities_when_process_identifier_is_not_in_database(
         self, app: Flask, with_db_and_bpmn_file_cleanup: None
@@ -78,7 +95,8 @@ class TestProcessModel(BaseTest):
         # process model when running the process
         db.session.query(BpmnProcessIdLookup).delete()
         processor = ProcessInstanceProcessor(process_instance)
-        processor.do_engine_steps()
+        processor.do_engine_steps(save=True)
+        assert process_instance.status == "complete"
 
     def create_test_process_model(self, id: str, display_name: str) -> ProcessModelInfo:
         """Create_test_process_model."""

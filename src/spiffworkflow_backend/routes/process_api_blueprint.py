@@ -1,5 +1,6 @@
 """APIs for dealing with process groups, process models, and process instances."""
 import json
+import os
 import uuid
 from typing import Any
 from typing import Dict
@@ -44,6 +45,7 @@ from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
 from spiffworkflow_backend.models.spiff_logging import SpiffLoggingModel
 from spiffworkflow_backend.services.error_handling_service import ErrorHandlingService
+from spiffworkflow_backend.services.file_system_service import FileSystemService
 from spiffworkflow_backend.services.message_service import MessageService
 from spiffworkflow_backend.services.process_instance_processor import (
     ProcessInstanceProcessor,
@@ -773,8 +775,24 @@ def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response
             form_ui_schema_file_name = properties["formUiSchemaFilename"]
     task = ProcessInstanceService.spiff_task_to_api_task(spiff_task)
     task.data = spiff_task.data
-    task.process_name = process_model.id
     task.process_model_display_name = process_model.display_name
+
+    process_model_with_form = process_model
+    if task.process_name != process_model.primary_process_id:
+        bpmn_file_full_path = (
+            ProcessInstanceProcessor.bpmn_file_full_path_from_bpmn_process_identifier(
+                task.process_name
+            )
+        )
+        relative_path = os.path.relpath(
+            bpmn_file_full_path, start=FileSystemService.root_path()
+        )
+        process_model_relative_path = os.path.dirname(relative_path)
+        process_model_with_form = (
+            ProcessModelService.get_process_model_from_relative_path(
+                process_model_relative_path
+            )
+        )
 
     if task.type == "UserTask":
         if not form_schema_file_name:
@@ -789,7 +807,7 @@ def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response
         form_contents = prepare_form_data(
             form_schema_file_name,
             task.data,
-            process_model,
+            process_model_with_form,
         )
 
         if form_contents:
@@ -799,7 +817,7 @@ def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response
             ui_form_contents = prepare_form_data(
                 form_ui_schema_file_name,
                 task.data,
-                process_model,
+                process_model_with_form,
             )
             if ui_form_contents:
                 task.form_ui_schema = ui_form_contents

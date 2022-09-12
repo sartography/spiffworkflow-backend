@@ -102,6 +102,16 @@ class ProcessModelService(FileSystemService):
             return self.__scan_spec(path, FileSystemService.MASTER_SPECIFICATION)
         return None
 
+    @classmethod
+    def get_process_model_from_relative_path(
+        cls, relative_path: str
+    ) -> ProcessModelInfo:
+        """Get_process_model_from_relative_path."""
+        process_group_identifier = os.path.dirname(relative_path)
+        process_group = cls().get_process_group(process_group_identifier)
+        path = os.path.join(FileSystemService.root_path(), relative_path)
+        return cls().__scan_spec(path, process_group=process_group)
+
     def get_process_model(
         self, process_model_id: str, group_id: Optional[str] = None
     ) -> ProcessModelInfo:
@@ -268,7 +278,10 @@ class ProcessModelService(FileSystemService):
         return process_group
 
     def __scan_spec(
-        self, path: str, name: str, process_group: Optional[ProcessGroup] = None
+        self,
+        path: str,
+        name: Optional[str] = None,
+        process_group: Optional[ProcessGroup] = None,
     ) -> ProcessModelInfo:
         """__scan_spec."""
         spec_path = os.path.join(path, self.WF_JSON_FILE)
@@ -284,6 +297,12 @@ class ProcessModelService(FileSystemService):
                         message=f"We could not load the process_model from disk with data: {data}",
                     )
         else:
+            if name is None:
+                raise ApiError(
+                    code="missing_name_of_process_model",
+                    message="Missing name of process model. It should be given",
+                )
+
             spec = ProcessModelInfo(
                 id=name,
                 library=False,
