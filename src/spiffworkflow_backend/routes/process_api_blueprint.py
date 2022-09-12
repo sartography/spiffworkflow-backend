@@ -691,6 +691,7 @@ def task_list_my_tasks(page: int = 1, per_page: int = 100) -> flask.wrappers.Res
             ActiveTaskModel.task_status,
             ActiveTaskModel.task_id,
             ActiveTaskModel.id,
+            ActiveTaskModel.process_model_display_name,
             ActiveTaskModel.process_instance_id,
         )
         .paginate(page, per_page, False)
@@ -754,6 +755,7 @@ def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response
     task = ProcessInstanceService.spiff_task_to_api_task(spiff_task)
     task.data = spiff_task.data
     task.process_name = process_model.id
+    task.process_model_display_name = process_model.display_name
 
     if task.type == "UserTask":
         if not form_schema_file_name:

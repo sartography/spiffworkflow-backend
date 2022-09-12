@@ -430,8 +430,16 @@ class ProcessInstanceProcessor:
                     if "formUiSchemaFilename" in properties:
                         ui_form_file_name = properties["formUiSchemaFilename"]
 
+                process_model_display_name = ""
+                process_model_info = self.process_model_service.get_process_model(
+                    self.process_instance_model.process_model_identifier
+                )
+                if process_model_info is not None:
+                    process_model_display_name = process_model_info.display_name
+
                 active_task = ActiveTaskModel(
                     process_instance_id=self.process_instance_model.id,
+                    process_model_display_name=process_model_display_name,
                     assigned_principal_id=principal.id,
                     form_file_name=form_file_name,
                     ui_form_file_name=ui_form_file_name,

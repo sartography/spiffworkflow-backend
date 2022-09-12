@@ -45,6 +45,7 @@ class ActiveTaskModel(SpiffworkflowBaseDBModel):
     task_title = db.Column(db.String(50))
     task_type = db.Column(db.String(50))
     task_status = db.Column(db.String(50))
+    process_model_display_name = db.Column(db.String(255))
     task_data: str = db.Column(db.Text)
 
     @classmethod
@@ -61,7 +62,7 @@ class ActiveTaskModel(SpiffworkflowBaseDBModel):
             data=task_data,
             process_instance_id=task.process_instance_id,
         )
-        if hasattr(task, "process_model_identifier"):
-            new_task.process_name = task.process_model_identifier
+        if hasattr(task, "process_model_display_name"):
+            new_task.process_model_display_name = task.process_model_display_name
 
         return new_task
