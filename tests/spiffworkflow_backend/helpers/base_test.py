@@ -177,7 +177,7 @@ class BaseTest:
         # assert "image/svg+xml" == file["content_type"]
 
         response = client.get(
-            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/file/{file_name}",
+            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/files/{file_name}",
             headers=logged_in_headers(user),
         )
         assert response.status_code == 200

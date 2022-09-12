@@ -383,7 +383,7 @@ class TestProcessApi(BaseTest):
         data = {"key1": "THIS DATA"}
         user = self.find_or_create_user()
         response = client.put(
-            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/file/random_fact.svg",
+            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/files/random_fact.svg",
             data=data,
             follow_redirects=True,
             content_type="multipart/form-data",
@@ -404,7 +404,7 @@ class TestProcessApi(BaseTest):
         data = {"file": (io.BytesIO(b""), "random_fact.svg")}
         user = self.find_or_create_user()
         response = client.put(
-            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/file/random_fact.svg",
+            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/files/random_fact.svg",
             data=data,
             follow_redirects=True,
             content_type="multipart/form-data",
@@ -426,7 +426,7 @@ class TestProcessApi(BaseTest):
         data = {"file": (io.BytesIO(new_file_contents), "random_fact.svg")}
         user = self.find_or_create_user()
         response = client.put(
-            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/file/random_fact.svg",
+            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/files/random_fact.svg",
             data=data,
             follow_redirects=True,
             content_type="multipart/form-data",
@@ -438,7 +438,7 @@ class TestProcessApi(BaseTest):
         assert response.json["ok"]
 
         response = client.get(
-            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/file/random_fact.svg",
+            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/files/random_fact.svg",
             headers=logged_in_headers(user),
         )
         assert response.status_code == 200
@@ -455,7 +455,7 @@ class TestProcessApi(BaseTest):
         spec = load_test_spec("random_fact")
         user = self.find_or_create_user()
         response = client.delete(
-            f"/v1.0/process-models/INCORRECT-NON-EXISTENT-GROUP/{spec.id}/file/random_fact.svg",
+            f"/v1.0/process-models/INCORRECT-NON-EXISTENT-GROUP/{spec.id}/files/random_fact.svg",
             follow_redirects=True,
             headers=logged_in_headers(user),
         )
@@ -473,7 +473,7 @@ class TestProcessApi(BaseTest):
         spec = load_test_spec("random_fact")
         user = self.find_or_create_user()
         response = client.delete(
-            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/file/random_fact_DOES_NOT_EXIST.svg",
+            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/files/random_fact_DOES_NOT_EXIST.svg",
             follow_redirects=True,
             headers=logged_in_headers(user),
         )
@@ -491,7 +491,7 @@ class TestProcessApi(BaseTest):
         spec = load_test_spec("random_fact")
         user = self.find_or_create_user()
         response = client.delete(
-            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/file/random_fact.svg",
+            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/files/random_fact.svg",
             follow_redirects=True,
             headers=logged_in_headers(user),
         )
@@ -501,7 +501,7 @@ class TestProcessApi(BaseTest):
         assert response.json["ok"]
 
         response = client.get(
-            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/file/random_fact.svg",
+            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/files/random_fact.svg",
             headers=logged_in_headers(user),
         )
         assert response.status_code == 404
@@ -515,7 +515,7 @@ class TestProcessApi(BaseTest):
         process_model_dir_name = "hello_world"
         load_test_spec(process_model_dir_name, process_group_id=test_process_group_id)
         response = client.get(
-            f"/v1.0/process-models/{test_process_group_id}/{process_model_dir_name}/file/hello_world.bpmn",
+            f"/v1.0/process-models/{test_process_group_id}/{process_model_dir_name}/files/hello_world.bpmn",
             headers=logged_in_headers(user),
         )
         assert response.status_code == 200
