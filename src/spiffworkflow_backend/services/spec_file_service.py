@@ -74,7 +74,7 @@ class SpecFileService(FileSystemService):
         SpecFileService.write_file_data_to_system(file_path, binary_data)
         file = SpecFileService.to_file_object(file_name, file_path)
 
-        if file.type == str(FileType.bpmn):
+        if file.type == FileType.bpmn.value:
             set_primary_file = False
             if (
                 process_model_info.primary_file_name is None
