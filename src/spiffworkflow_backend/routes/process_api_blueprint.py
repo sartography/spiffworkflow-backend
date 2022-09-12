@@ -256,6 +256,25 @@ def process_model_file_update(
     return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
 
 
+def process_model_file_delete(
+    process_group_id: str, process_model_id: str, file_name: str
+) -> flask.wrappers.Response:
+    """Process_model_file_delete."""
+    process_model = get_process_model(process_model_id, process_group_id)
+    try:
+        SpecFileService.delete_file(process_model, file_name)
+    except FileNotFoundError as exception:
+        raise (
+            ApiError(
+                code="process_model_file_cannot_be_found",
+                message=f"Process model file cannot be found: {file_name}",
+                status_code=400,
+            )
+        ) from exception
+
+    return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
+
+
 def add_file(process_group_id: str, process_model_id: str) -> flask.wrappers.Response:
     """Add_file."""
     process_model_service = ProcessModelService()
