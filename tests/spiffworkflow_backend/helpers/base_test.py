@@ -164,7 +164,7 @@ class BaseTest:
         data = {"file": (io.BytesIO(file_data), file_name)}
         user = self.find_or_create_user()
         response = client.post(
-            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/file",
+            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/files",
             data=data,
             follow_redirects=True,
             content_type="multipart/form-data",

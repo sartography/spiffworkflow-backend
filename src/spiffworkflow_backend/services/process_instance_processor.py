@@ -471,11 +471,18 @@ class ProcessInstanceProcessor:
                 etree_element = SpecFileService.get_etree_element_from_file_name(
                     process_model, process_model.primary_file_name
                 )
-                bpmn_process_identifiers = (
-                    SpecFileService.get_executable_bpmn_process_identifiers(
-                        etree_element
+                bpmn_process_identifiers = []
+
+                try:
+                    bpmn_process_identifiers = (
+                        SpecFileService.get_executable_bpmn_process_identifiers(
+                            etree_element
+                        )
                     )
-                )
+                except ValidationException:
+                    # ignore validation errors here
+                    pass
+
                 if bpmn_process_identifier in bpmn_process_identifiers:
                     SpecFileService.store_bpmn_process_identifiers(
                         process_model,
@@ -497,9 +504,15 @@ class ProcessInstanceProcessor:
             processed_identifiers = set()
         processor_dependencies = parser.get_process_dependencies()
         processor_dependencies_new = processor_dependencies - processed_identifiers
+        bpmn_process_identifiers_in_parser = parser.find_all_specs().keys()
 
         new_bpmn_files = set()
         for bpmn_process_identifier in processor_dependencies_new:
+
+            # ignore identifiers that spiff already knows about
+            if bpmn_process_identifier in bpmn_process_identifiers_in_parser:
+                continue
+
             bpmn_process_id_lookup = BpmnProcessIdLookup.query.filter_by(
                 bpmn_process_identifier=bpmn_process_identifier
             ).first()
@@ -517,7 +530,7 @@ class ProcessInstanceProcessor:
                 raise (
                     ApiError(
                         code="could_not_find_bpmn_process_identifier",
-                        message="Could not find the the given bpmn process identifier from any sources"
+                        message="Could not find the the given bpmn process identifier from any sources: %s"
                         % bpmn_process_identifier,
                     )
                 )

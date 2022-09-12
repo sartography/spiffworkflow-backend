@@ -223,14 +223,14 @@ class ProcessModelService(FileSystemService):
             process_groups = []
             for item in directory_items:
                 if item.is_dir() and not item.name[0] == ".":
-                    if item.name == self.REFERENCE_FILES:
-                        continue
-                    elif item.name == self.MASTER_SPECIFICATION:
-                        continue
-                    elif item.name == self.LIBRARY_SPECS:
-                        continue
-                    elif item.name == self.STAND_ALONE_SPECS:
-                        continue
+                    # if item.name == self.REFERENCE_FILES:
+                    #     continue
+                    # elif item.name == self.MASTER_SPECIFICATION:
+                    #     continue
+                    # elif item.name == self.LIBRARY_SPECS:
+                    #     continue
+                    # elif item.name == self.STAND_ALONE_SPECS:
+                    #     continue
                     process_groups.append(self.__scan_process_group(item))
             return process_groups
 

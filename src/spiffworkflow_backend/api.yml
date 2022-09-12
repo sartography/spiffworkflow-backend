@@ -280,7 +280,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/WorkflowSpec"
 
-  /process-models/{process_group_id}/{process_model_id}/file:
+  /process-models/{process_group_id}/{process_model_id}/files:
     parameters:
       - name: process_group_id
         in: path
