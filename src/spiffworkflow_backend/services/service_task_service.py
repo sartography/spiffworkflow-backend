@@ -57,8 +57,12 @@ class ServiceTaskService:
     def available_operators(cls) -> list[Operator]:
         """Returns a list of all operator names and parameters that are available for use."""
 
-        # TODO pull url from config
-        response = requests.get('http://localhost:5001/v1/commands')
+        try:
+            # TODO pull url from config
+            response = requests.get('http://localhost:5001/v1/commands')
+        except Exception as e:
+            print(e)
+            return []
 
         if response.status_code != 200:
             return []
