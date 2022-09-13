@@ -58,7 +58,7 @@ class TestSpecFileService(BaseTest):
         with pytest.raises(ApiError) as exception:
             load_test_spec(
                 "call_activity_nested_duplicate",
-                process_model_source_directory="call_activity_nested",
+                process_model_source_directory="call_activity_duplicate",
                 bpmn_file_name="call_activity_nested_duplicate",
             )
         assert f"Process id ({bpmn_process_identifier}) has already been used" in str(

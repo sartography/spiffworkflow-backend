@@ -93,6 +93,11 @@ class FileSystemService:
             process_group_path = FileSystemService.process_group_path_for_spec(spec)
             return os.path.join(process_group_path, spec.id)
 
+    @staticmethod
+    def full_path_to_process_model_file(spec: ProcessModelInfo, file_name: str) -> str:
+        """Full_path_to_process_model_file."""
+        return os.path.join(FileSystemService.workflow_path(spec), file_name)
+
     def next_display_order(self, spec: ProcessModelInfo) -> int:
         """Next_display_order."""
         path = self.process_group_path_for_spec(spec)

@@ -110,6 +110,7 @@ class Task:
         process_name: str = "",
         properties: Union[dict, None] = None,
         process_instance_id: Union[int, None] = None,
+        process_model_display_name: Union[str, None] = None,
         form_schema: Union[str, None] = None,
         form_ui_schema: Union[str, None] = None,
     ):
@@ -128,6 +129,7 @@ class Task:
             self.data = {}
 
         self.process_instance_id = process_instance_id
+        self.process_model_display_name = process_model_display_name
         self.form_schema = form_schema
         self.form_ui_schema = form_ui_schema
 
@@ -169,6 +171,7 @@ class Task:
             "process_name": self.process_name,
             "properties": self.properties,
             "process_instance_id": self.process_instance_id,
+            "process_model_display_name": self.process_model_display_name,
             "form_schema": self.form_schema,
             "form_ui_schema": self.form_ui_schema,
         }

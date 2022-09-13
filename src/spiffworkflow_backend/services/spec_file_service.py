@@ -74,7 +74,7 @@ class SpecFileService(FileSystemService):
         SpecFileService.write_file_data_to_system(file_path, binary_data)
         file = SpecFileService.to_file_object(file_name, file_path)
 
-        if file.type == str(FileType.bpmn):
+        if file.type == FileType.bpmn.value:
             set_primary_file = False
             if (
                 process_model_info.primary_file_name is None
@@ -147,6 +147,30 @@ class SpecFileService(FileSystemService):
             shutil.rmtree(dir_path)
 
     @staticmethod
+    def get_etree_element_from_file_name(
+        process_model_info: ProcessModelInfo, file_name: str
+    ) -> EtreeElement:
+        """Get_etree_element_from_file_name."""
+        binary_data = SpecFileService.get_data(process_model_info, file_name)
+        return SpecFileService.get_etree_element_from_binary_data(
+            binary_data, file_name
+        )
+
+    @staticmethod
+    def get_etree_element_from_binary_data(
+        binary_data: bytes, file_name: str
+    ) -> EtreeElement:
+        """Get_etree_element_from_binary_data."""
+        try:
+            return etree.fromstring(binary_data)
+        except etree.XMLSyntaxError as xse:
+            raise ApiError(
+                "invalid_xml",
+                "Failed to parse xml: " + str(xse),
+                file_name=file_name,
+            ) from xse
+
+    @staticmethod
     def process_bpmn_file(
         process_model_info: ProcessModelInfo,
         file_name: str,
@@ -160,12 +184,17 @@ class SpecFileService(FileSystemService):
         if file_type == FileType.bpmn:
             if not binary_data:
                 binary_data = SpecFileService.get_data(process_model_info, file_name)
-            try:
-                bpmn_etree_element: EtreeElement = etree.fromstring(binary_data)
 
+            bpmn_etree_element: EtreeElement = (
+                SpecFileService.get_etree_element_from_binary_data(
+                    binary_data, file_name
+                )
+            )
+
+            try:
                 if set_primary_file:
                     process_model_info.primary_process_id = (
-                        SpecFileService.get_process_id(bpmn_etree_element)
+                        SpecFileService.get_bpmn_process_identifier(bpmn_etree_element)
                     )
                     process_model_info.primary_file_name = file_name
                     process_model_info.is_review = SpecFileService.has_swimlane(
@@ -175,16 +204,10 @@ class SpecFileService(FileSystemService):
                 SpecFileService.check_for_message_models(
                     bpmn_etree_element, process_model_info
                 )
-                SpecFileService.store_process_ids(
+                SpecFileService.store_bpmn_process_identifiers(
                     process_model_info, file_name, bpmn_etree_element
                 )
 
-            except etree.XMLSyntaxError as xse:
-                raise ApiError(
-                    "invalid_xml",
-                    "Failed to parse xml: " + str(xse),
-                    file_name=file_name,
-                ) from xse
             except ValidationException as ve:
                 if ve.args[0].find("No executable process tag found") >= 0:
                     raise ApiError(
@@ -231,15 +254,15 @@ class SpecFileService(FileSystemService):
         return process_elements
 
     @staticmethod
-    def get_executable_process_ids(et_root: _Element) -> list[str]:
-        """Get_executable_process_ids."""
+    def get_executable_bpmn_process_identifiers(et_root: _Element) -> list[str]:
+        """Get_executable_bpmn_process_identifiers."""
         process_elements = SpecFileService.get_executable_process_elements(et_root)
         bpmn_process_identifiers = [pe.attrib["id"] for pe in process_elements]
         return bpmn_process_identifiers
 
     @staticmethod
-    def get_process_id(et_root: _Element) -> str:
-        """Get_process_id."""
+    def get_bpmn_process_identifier(et_root: _Element) -> str:
+        """Get_bpmn_process_identifier."""
         process_elements = SpecFileService.get_executable_process_elements(et_root)
 
         # There are multiple root elements
@@ -260,17 +283,19 @@ class SpecFileService(FileSystemService):
         return str(process_elements[0].attrib["id"])
 
     @staticmethod
-    def store_process_ids(
+    def store_bpmn_process_identifiers(
         process_model_info: ProcessModelInfo, bpmn_file_name: str, et_root: _Element
     ) -> None:
-        """Store_process_ids."""
+        """Store_bpmn_process_identifiers."""
         relative_process_model_path = SpecFileService.process_model_relative_path(
             process_model_info
         )
         relative_bpmn_file_path = os.path.join(
             relative_process_model_path, bpmn_file_name
         )
-        bpmn_process_identifiers = SpecFileService.get_executable_process_ids(et_root)
+        bpmn_process_identifiers = (
+            SpecFileService.get_executable_bpmn_process_identifiers(et_root)
+        )
         for bpmn_process_identifier in bpmn_process_identifiers:
             process_id_lookup = BpmnProcessIdLookup.query.filter_by(
                 bpmn_process_identifier=bpmn_process_identifier
