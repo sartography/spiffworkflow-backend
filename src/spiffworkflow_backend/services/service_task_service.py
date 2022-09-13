@@ -21,6 +21,11 @@ class Operator(TypedDict):
 OperatorClass = Any
 OperatorClassGenerator = Generator[tuple[str, OperatorClass], None, None]
 
+class ServiceTaskDelegate:
+    @staticmethod
+    def callConnector(name: str, params: Any):
+        print('HERE: ' + name)
+        print(params)
 
 class ServiceTaskService:
     """ServiceTaskService."""
@@ -73,6 +78,7 @@ class ServiceTaskService:
     @classmethod
     def scripting_additions(cls) -> dict[str, OperatorClass]:
         """Returns a dictionary of operator names and classes."""
-        operator_classes = list(cls.available_operator_classes())
-        scripting_additions = {name: clz for name, clz in operator_classes}
-        return scripting_additions
+        #operator_classes = list(cls.available_operator_classes())
+        #scripting_additions = {name: clz for name, clz in operator_classes}
+        #return scripting_additions
+        return { 'ServiceTaskDelegate': ServiceTaskDelegate }
