@@ -85,17 +85,8 @@ class ProcessModelService(FileSystemService):
                 message=f"We cannot delete the model `{process_model_id}`, there are existing instances that depend on it.",
             )
         process_model = self.get_process_model(process_model_id)
-        # if process_model.library:
-        #     self.__remove_library_references(process_model.id)
         path = self.workflow_path(process_model)
         shutil.rmtree(path)
-
-    # def __remove_library_references(self, spec_id: str) -> None:
-    #     """__remove_library_references."""
-    #     for process_model in self.get_process_models():
-    #         if spec_id in process_model.libraries:
-    #             process_model.libraries.remove(spec_id)
-    #             self.update_spec(process_model)
 
     @property
     def master_spec(self) -> Optional[ProcessModelInfo]:
@@ -110,6 +101,16 @@ class ProcessModelService(FileSystemService):
         if os.path.exists(path):
             return self.__scan_spec(path, FileSystemService.MASTER_SPECIFICATION)
         return None
+
+    @classmethod
+    def get_process_model_from_relative_path(
+        cls, relative_path: str
+    ) -> ProcessModelInfo:
+        """Get_process_model_from_relative_path."""
+        process_group_identifier = os.path.dirname(relative_path)
+        process_group = cls().get_process_group(process_group_identifier)
+        path = os.path.join(FileSystemService.root_path(), relative_path)
+        return cls().__scan_spec(path, process_group=process_group)
 
     def get_process_model(
         self, process_model_id: str, group_id: Optional[str] = None
@@ -232,14 +233,14 @@ class ProcessModelService(FileSystemService):
             process_groups = []
             for item in directory_items:
                 if item.is_dir() and not item.name[0] == ".":
-                    if item.name == self.REFERENCE_FILES:
-                        continue
-                    elif item.name == self.MASTER_SPECIFICATION:
-                        continue
-                    elif item.name == self.LIBRARY_SPECS:
-                        continue
-                    elif item.name == self.STAND_ALONE_SPECS:
-                        continue
+                    # if item.name == self.REFERENCE_FILES:
+                    #     continue
+                    # elif item.name == self.MASTER_SPECIFICATION:
+                    #     continue
+                    # elif item.name == self.LIBRARY_SPECS:
+                    #     continue
+                    # elif item.name == self.STAND_ALONE_SPECS:
+                    #     continue
                     process_groups.append(self.__scan_process_group(item))
             return process_groups
 
@@ -277,7 +278,10 @@ class ProcessModelService(FileSystemService):
         return process_group
 
     def __scan_spec(
-        self, path: str, name: str, process_group: Optional[ProcessGroup] = None
+        self,
+        path: str,
+        name: Optional[str] = None,
+        process_group: Optional[ProcessGroup] = None,
     ) -> ProcessModelInfo:
         """__scan_spec."""
         spec_path = os.path.join(path, self.WF_JSON_FILE)
@@ -293,6 +297,12 @@ class ProcessModelService(FileSystemService):
                         message=f"We could not load the process_model from disk with data: {data}",
                     )
         else:
+            if name is None:
+                raise ApiError(
+                    code="missing_name_of_process_model",
+                    message="Missing name of process model. It should be given",
+                )
+
             spec = ProcessModelInfo(
                 id=name,
                 library=False,

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:spiffworkflow="http://spiffworkflow.org/bpmn/schema/1.0/core" id="Definitions_96f6665" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="3.0.0-dev">
   <bpmn:collaboration id="Collaboration_0oye1os">
-    <bpmn:participant id="message_receiver_two" name="Message Receiver" processRef="message_receiver_process" />
+    <bpmn:participant id="message_receiver_two" name="Message Receiver" processRef="message_receiver_process_two" />
     <bpmn:participant id="message_sender" name="Message Sender" />
     <bpmn:messageFlow id="message_send_flow" name="Message Send Flow" sourceRef="message_sender" targetRef="receive_message" />
     <bpmn:messageFlow id="Flow_0ds946g" sourceRef="send_message_response" targetRef="message_sender" />
@@ -40,7 +40,7 @@
 }</spiffworkflow:messagePayload>
     </bpmn:extensionElements>
   </bpmn:message>
-  <bpmn:process id="message_receiver_process" name="Message Receiver Process" isExecutable="true">
+  <bpmn:process id="message_receiver_process_two" name="Message Receiver Process" isExecutable="true">
     <bpmn:sequenceFlow id="Flow_11r9uiw" sourceRef="send_message_response" targetRef="Event_0q5otqd" />
     <bpmn:endEvent id="Event_0q5otqd">
       <bpmn:incoming>Flow_11r9uiw</bpmn:incoming>

@@ -1846,8 +1846,8 @@ pytz = "*"
 [package.source]
 type = "git"
 url = "https://github.com/sartography/SpiffWorkflow"
-reference = "feature/service_task"
-resolved_reference = "91b7bab3105fb982d0515bc1fd5ef79768bdc990"
+reference = "main"
+resolved_reference = "0abc3c914d8c993abcf9fa02eab105e2a8cf6b71"
 
 [[package]]
 name = "sqlalchemy"
@@ -2157,7 +2157,7 @@ testing = ["func-timeout", "jaraco.itertools", "pytest (>=6)", "pytest-black (>=
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "54f4f5606b86d39a483626186273c6934ef45323ab42136d7a85e01005bbe9e4"
+content-hash = "7a3c07a2eef00685adbf44b6e26b740e20fc52bf85e916b6c171b13d4fcc6dc9"
 
 [metadata.files]
 alabaster = [

@@ -164,7 +164,7 @@ class BaseTest:
         data = {"file": (io.BytesIO(file_data), file_name)}
         user = self.find_or_create_user()
         response = client.post(
-            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/file",
+            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/files",
             data=data,
             follow_redirects=True,
             content_type="multipart/form-data",
@@ -177,7 +177,7 @@ class BaseTest:
         # assert "image/svg+xml" == file["content_type"]
 
         response = client.get(
-            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/file/{file_name}",
+            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/files/{file_name}",
             headers=logged_in_headers(user),
         )
         assert response.status_code == 200
@@ -216,7 +216,7 @@ class BaseTest:
     #     return public_access_token
 
     def create_process_instance_from_process_model(
-        self, process_model: ProcessModelInfo, status: str
+        self, process_model: ProcessModelInfo, status: Optional[str] = "not_started"
     ) -> ProcessInstanceModel:
         """Create_process_instance_from_process_model."""
         user = self.find_or_create_user()

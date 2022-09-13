@@ -1,5 +1,6 @@
 """Process_instance_processor."""
 import json
+import os
 import time
 from typing import Any
 from typing import Dict
@@ -48,6 +49,7 @@ from SpiffWorkflow.spiff.serializer import UserTaskConverter
 from SpiffWorkflow.util.deep_merge import DeepMerge  # type: ignore
 
 from spiffworkflow_backend.models.active_task import ActiveTaskModel
+from spiffworkflow_backend.models.bpmn_process_id_lookup import BpmnProcessIdLookup
 from spiffworkflow_backend.models.file import File
 from spiffworkflow_backend.models.file import FileType
 from spiffworkflow_backend.models.message_correlation import MessageCorrelationModel
@@ -66,6 +68,7 @@ from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.task_event import TaskAction
 from spiffworkflow_backend.models.task_event import TaskEventModel
 from spiffworkflow_backend.models.user import UserModelSchema
+from spiffworkflow_backend.services.file_system_service import FileSystemService
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 from spiffworkflow_backend.services.service_task_service import ServiceTaskService
 from spiffworkflow_backend.services.spec_file_service import SpecFileService
@@ -96,11 +99,18 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
         try:
             return super()._evaluate(expression, context)
         except Exception as exception:
-            raise WorkflowTaskExecException(
-                task,
-                "Error evaluating expression "
-                "'%s', %s" % (expression, str(exception)),
-            ) from exception
+            if task is None:
+                raise ApiError(
+                    "error_evaluating_expression",
+                    "Error evaluating expression: "
+                    "'%s', exception: %s" % (expression, str(exception)),
+                ) from exception
+            else:
+                raise WorkflowTaskExecException(
+                    task,
+                    "Error evaluating expression "
+                    "'%s', %s" % (expression, str(exception)),
+                ) from exception
 
     def execute(
         self, task: SpiffTask, script: str, external_methods: Any = None
@@ -436,8 +446,16 @@ class ProcessInstanceProcessor:
                     if "formUiSchemaFilename" in properties:
                         ui_form_file_name = properties["formUiSchemaFilename"]
 
+                process_model_display_name = ""
+                process_model_info = self.process_model_service.get_process_model(
+                    self.process_instance_model.process_model_identifier
+                )
+                if process_model_info is not None:
+                    process_model_display_name = process_model_info.display_name
+
                 active_task = ActiveTaskModel(
                     process_instance_id=self.process_instance_model.id,
+                    process_model_display_name=process_model_display_name,
                     assigned_principal_id=principal.id,
                     form_file_name=form_file_name,
                     ui_form_file_name=ui_form_file_name,
@@ -457,6 +475,99 @@ class ProcessInstanceProcessor:
         """Get_parser."""
         parser = MyCustomParser()
         return parser
+
+    @staticmethod
+    def backfill_missing_bpmn_process_id_lookup_records(
+        bpmn_process_identifier: str,
+    ) -> Optional[str]:
+        """Backfill_missing_bpmn_process_id_lookup_records."""
+        process_models = ProcessModelService().get_process_models()
+        for process_model in process_models:
+            if process_model.primary_file_name:
+                etree_element = SpecFileService.get_etree_element_from_file_name(
+                    process_model, process_model.primary_file_name
+                )
+                bpmn_process_identifiers = []
+
+                try:
+                    bpmn_process_identifiers = (
+                        SpecFileService.get_executable_bpmn_process_identifiers(
+                            etree_element
+                        )
+                    )
+                except ValidationException:
+                    # ignore validation errors here
+                    pass
+
+                if bpmn_process_identifier in bpmn_process_identifiers:
+                    SpecFileService.store_bpmn_process_identifiers(
+                        process_model,
+                        process_model.primary_file_name,
+                        etree_element,
+                    )
+                    return FileSystemService.full_path_to_process_model_file(
+                        process_model, process_model.primary_file_name
+                    )
+        return None
+
+    @staticmethod
+    def bpmn_file_full_path_from_bpmn_process_identifier(
+        bpmn_process_identifier: str,
+    ) -> str:
+        """Bpmn_file_full_path_from_bpmn_process_identifier."""
+        bpmn_process_id_lookup = BpmnProcessIdLookup.query.filter_by(
+            bpmn_process_identifier=bpmn_process_identifier
+        ).first()
+        bpmn_file_full_path = None
+        if bpmn_process_id_lookup is None:
+            bpmn_file_full_path = ProcessInstanceProcessor.backfill_missing_bpmn_process_id_lookup_records(
+                bpmn_process_identifier
+            )
+        else:
+            bpmn_file_full_path = os.path.join(
+                FileSystemService.root_path(),
+                bpmn_process_id_lookup.bpmn_file_relative_path,
+            )
+        if bpmn_file_full_path is None:
+            raise (
+                ApiError(
+                    code="could_not_find_bpmn_process_identifier",
+                    message="Could not find the the given bpmn process identifier from any sources: %s"
+                    % bpmn_process_identifier,
+                )
+            )
+        return os.path.abspath(bpmn_file_full_path)
+
+    @staticmethod
+    def update_spiff_parser_with_all_process_dependency_files(
+        parser: BpmnDmnParser,
+        processed_identifiers: Optional[set[str]] = None,
+    ) -> None:
+        """Update_spiff_parser_with_all_process_dependency_files."""
+        if processed_identifiers is None:
+            processed_identifiers = set()
+        processor_dependencies = parser.get_process_dependencies()
+        processor_dependencies_new = processor_dependencies - processed_identifiers
+        bpmn_process_identifiers_in_parser = parser.get_process_ids()
+
+        new_bpmn_files = set()
+        for bpmn_process_identifier in processor_dependencies_new:
+
+            # ignore identifiers that spiff already knows about
+            if bpmn_process_identifier in bpmn_process_identifiers_in_parser:
+                continue
+
+            new_bpmn_file_full_path = ProcessInstanceProcessor.bpmn_file_full_path_from_bpmn_process_identifier(
+                bpmn_process_identifier
+            )
+            new_bpmn_files.add(new_bpmn_file_full_path)
+            processed_identifiers.add(bpmn_process_identifier)
+
+        for new_bpmn_file_full_path in new_bpmn_files:
+            parser.add_bpmn_file(new_bpmn_file_full_path)
+            ProcessInstanceProcessor.update_spiff_parser_with_all_process_dependency_files(
+                parser, processed_identifiers
+            )
 
     @staticmethod
     def get_spec(
@@ -480,10 +591,14 @@ class ProcessInstanceProcessor:
             raise (
                 ApiError(
                     code="no_primary_bpmn_error",
-                    message="There is no primary BPMN model defined for process_instance %s"
+                    message="There is no primary BPMN process id defined for process_model %s"
                     % process_model_info.id,
                 )
             )
+        ProcessInstanceProcessor.update_spiff_parser_with_all_process_dependency_files(
+            parser
+        )
+
         try:
             spec = parser.get_spec(process_model_info.primary_process_id)
 
@@ -649,13 +764,16 @@ class ProcessInstanceProcessor:
 
                 db.session.commit()
 
-    def do_engine_steps(self, exit_at: None = None) -> None:
+    def do_engine_steps(self, exit_at: None = None, save: bool = False) -> None:
         """Do_engine_steps."""
         try:
             self.bpmn_process_instance.refresh_waiting_tasks()
             self.bpmn_process_instance.do_engine_steps(exit_at=exit_at)
             self.process_bpmn_messages()
             self.queue_waiting_receive_messages()
+
+            if save:
+                self.save()
 
         except WorkflowTaskExecException as we:
             raise ApiError.from_workflow_exception("task_error", str(we), we) from we

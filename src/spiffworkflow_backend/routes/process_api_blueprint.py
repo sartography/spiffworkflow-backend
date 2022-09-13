@@ -1,5 +1,6 @@
 """APIs for dealing with process groups, process models, and process instances."""
 import json
+import os
 import uuid
 from typing import Any
 from typing import Dict
@@ -42,7 +43,9 @@ from spiffworkflow_backend.models.process_instance_report import (
 )
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
+from spiffworkflow_backend.models.spiff_logging import SpiffLoggingModel
 from spiffworkflow_backend.services.error_handling_service import ErrorHandlingService
+from spiffworkflow_backend.services.file_system_service import FileSystemService
 from spiffworkflow_backend.services.message_service import MessageService
 from spiffworkflow_backend.services.process_instance_processor import (
     ProcessInstanceProcessor,
@@ -256,6 +259,25 @@ def process_model_file_update(
     return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
 
 
+def process_model_file_delete(
+    process_group_id: str, process_model_id: str, file_name: str
+) -> flask.wrappers.Response:
+    """Process_model_file_delete."""
+    process_model = get_process_model(process_model_id, process_group_id)
+    try:
+        SpecFileService.delete_file(process_model, file_name)
+    except FileNotFoundError as exception:
+        raise (
+            ApiError(
+                code="process_model_file_cannot_be_found",
+                message=f"Process model file cannot be found: {file_name}",
+                status_code=400,
+            )
+        ) from exception
+
+    return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
+
+
 def add_file(process_group_id: str, process_model_id: str) -> flask.wrappers.Response:
     """Add_file."""
     process_model_service = ProcessModelService()
@@ -275,9 +297,6 @@ def add_file(process_group_id: str, process_model_id: str) -> flask.wrappers.Res
     file.file_contents = file_contents
     file.process_model_id = process_model.id
     file.process_group_id = process_model.process_group_id
-    if not process_model.primary_process_id and file.type == FileType.bpmn.value:
-        SpecFileService.set_primary_bpmn(process_model, file.name)
-        process_model_service.save_process_model(process_model)
     return Response(
         json.dumps(FileSchema().dump(file)), status=201, mimetype="application/json"
     )
@@ -312,6 +331,8 @@ def process_instance_run(
     if do_engine_steps:
         try:
             processor.do_engine_steps()
+        except ApiError as e:
+            raise e
         except Exception as e:
             ErrorHandlingService().handle_error(processor, e)
             task = processor.bpmn_process_instance.last_task
@@ -348,6 +369,37 @@ def process_instance_terminate(
     processor = ProcessInstanceProcessor(process_instance)
     processor.terminate()
     return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
+
+
+def process_instance_log_list(
+    process_group_id: str,
+    process_model_id: str,
+    process_instance_id: int,
+    page: int = 1,
+    per_page: int = 100,
+) -> flask.wrappers.Response:
+    """Process_instance_log_list."""
+    # to make sure the process instance exists
+    process_instance = find_process_instance_by_id_or_raise(process_instance_id)
+
+    logs = (
+        SpiffLoggingModel.query.filter(
+            SpiffLoggingModel.process_instance_id == process_instance.id
+        )
+        .order_by(SpiffLoggingModel.timestamp.desc())  # type: ignore
+        .paginate(page, per_page, False)
+    )
+
+    response_json = {
+        "results": logs.items,
+        "pagination": {
+            "count": len(logs.items),
+            "total": logs.total,
+            "pages": logs.pages,
+        },
+    }
+
+    return make_response(jsonify(response_json), 200)
 
 
 # body: {
@@ -667,6 +719,7 @@ def task_list_my_tasks(page: int = 1, per_page: int = 100) -> flask.wrappers.Res
             ActiveTaskModel.task_status,
             ActiveTaskModel.task_id,
             ActiveTaskModel.id,
+            ActiveTaskModel.process_model_display_name,
             ActiveTaskModel.process_instance_id,
         )
         .paginate(page, per_page, False)
@@ -729,7 +782,24 @@ def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response
             form_ui_schema_file_name = properties["formUiSchemaFilename"]
     task = ProcessInstanceService.spiff_task_to_api_task(spiff_task)
     task.data = spiff_task.data
-    task.process_name = process_model.id
+    task.process_model_display_name = process_model.display_name
+
+    process_model_with_form = process_model
+    if task.process_name != process_model.primary_process_id:
+        bpmn_file_full_path = (
+            ProcessInstanceProcessor.bpmn_file_full_path_from_bpmn_process_identifier(
+                task.process_name
+            )
+        )
+        relative_path = os.path.relpath(
+            bpmn_file_full_path, start=FileSystemService.root_path()
+        )
+        process_model_relative_path = os.path.dirname(relative_path)
+        process_model_with_form = (
+            ProcessModelService.get_process_model_from_relative_path(
+                process_model_relative_path
+            )
+        )
 
     if task.type == "UserTask":
         if not form_schema_file_name:
@@ -744,7 +814,7 @@ def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response
         form_contents = prepare_form_data(
             form_schema_file_name,
             task.data,
-            process_model,
+            process_model_with_form,
         )
 
         if form_contents:
@@ -754,7 +824,7 @@ def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response
             ui_form_contents = prepare_form_data(
                 form_ui_schema_file_name,
                 task.data,
-                process_model,
+                process_model_with_form,
             )
             if ui_form_contents:
                 task.form_ui_schema = ui_form_contents

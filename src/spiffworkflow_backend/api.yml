@@ -204,7 +204,7 @@ paths:
       tags:
         - Process Groups
       responses:
-        "204":
+        "200":
           description: The process group was deleted.
     put:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.process_group_update
@@ -280,7 +280,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/WorkflowSpec"
 
-  /process-models/{process_group_id}/{process_model_id}/file:
+  /process-models/{process_group_id}/{process_model_id}/files:
     parameters:
       - name: process_group_id
         in: path
@@ -299,7 +299,7 @@ paths:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.add_file
       summary: Add a new workflow spec file
       tags:
-        - Spec Files
+        - Process Model Files
       requestBody:
         content:
           multipart/form-data:
@@ -320,7 +320,7 @@ paths:
     #   operationId: spiffworkflow_backend.api.process_api_blueprint.get_files
     #   summary: Provide a list of workflow spec files for the given workflow_spec_id. IMPORTANT, only includes metadata, not the file content.
     #   tags:
-    #     - Spec Files
+    #     - Process Model Files
     #   responses:
     #     '200':
     #       description: An array of file descriptions (not the file content)
@@ -366,7 +366,7 @@ paths:
         - Process Models
       responses:
         "200":
-          description: The workflow specification has been removed.
+          description: The process model has been removed.
           content:
             application/json:
               schema:
@@ -718,7 +718,7 @@ paths:
               schema:
                 $ref: "#components/schemas/OkTrue"
 
-  /process-models/{process_group_id}/{process_model_id}/file/{file_name}:
+  /process-models/{process_group_id}/{process_model_id}/files/{file_name}:
     parameters:
       - name: process_group_id
         in: path
@@ -743,7 +743,7 @@ paths:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.get_file
       summary: Returns metadata about the file
       tags:
-        - Spec Files
+        - Process Model Files
       responses:
         "200":
           description: Returns the file information requested.
@@ -756,7 +756,7 @@ paths:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.process_model_file_update
       summary: save the contents to the given file
       tags:
-        - Spec Files
+        - Process Model Files
       requestBody:
         description: Log Pagination Request
         required: false
@@ -775,14 +775,18 @@ paths:
             application/json:
               schema:
                 $ref: "#components/schemas/OkTrue"
-    # delete:
-    #   operationId: crc.api.spec_file.delete
-    #   summary: Removes an existing workflow spec file.
-    #   tags:
-    #     - Spec Files
-    #   responses:
-    #     '204':
-    #       description: The file was removed.
+    delete:
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.process_model_file_delete
+      summary: Removes an existing process model file
+      tags:
+        - Process Model Files
+      responses:
+        "200":
+          description: The process model has been removed.
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/OkTrue"
 
   /tasks:
     parameters:
@@ -938,6 +942,51 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Workflow"
+
+  /process-models/{process_group_id}/{process_model_id}/process-instances/{process_instance_id}/logs:
+    parameters:
+      - name: process_group_id
+        in: path
+        required: true
+        description: The unique id of an existing process group
+        schema:
+          type: string
+      - name: process_model_id
+        in: path
+        required: true
+        description: The unique id of an existing process model.
+        schema:
+          type: string
+      - name: process_instance_id
+        in: path
+        required: true
+        description: the id of the process instance
+        schema:
+          type: integer
+      - name: page
+        in: query
+        required: false
+        description: The page number to return. Defaults to page 1.
+        schema:
+          type: integer
+      - name: per_page
+        in: query
+        required: false
+        description: The number of items to show per page. Defaults to page 10.
+        schema:
+          type: integer
+    get:
+      tags:
+        - Process Instances
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.process_instance_log_list
+      summary: returns a list of logs associated with the process instance
+      responses:
+        "200":
+          description: list of logs
+          content:
+            application/json:
+              schema:
+                type: array
 
 components:
   securitySchemes:

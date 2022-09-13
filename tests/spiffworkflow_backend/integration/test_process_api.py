@@ -383,7 +383,7 @@ class TestProcessApi(BaseTest):
         data = {"key1": "THIS DATA"}
         user = self.find_or_create_user()
         response = client.put(
-            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/file/random_fact.svg",
+            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/files/random_fact.svg",
             data=data,
             follow_redirects=True,
             content_type="multipart/form-data",
@@ -404,7 +404,7 @@ class TestProcessApi(BaseTest):
         data = {"file": (io.BytesIO(b""), "random_fact.svg")}
         user = self.find_or_create_user()
         response = client.put(
-            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/file/random_fact.svg",
+            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/files/random_fact.svg",
             data=data,
             follow_redirects=True,
             content_type="multipart/form-data",
@@ -426,7 +426,7 @@ class TestProcessApi(BaseTest):
         data = {"file": (io.BytesIO(new_file_contents), "random_fact.svg")}
         user = self.find_or_create_user()
         response = client.put(
-            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/file/random_fact.svg",
+            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/files/random_fact.svg",
             data=data,
             follow_redirects=True,
             content_type="multipart/form-data",
@@ -438,13 +438,73 @@ class TestProcessApi(BaseTest):
         assert response.json["ok"]
 
         response = client.get(
-            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/file/random_fact.svg",
+            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/files/random_fact.svg",
             headers=logged_in_headers(user),
         )
         assert response.status_code == 200
         updated_file = json.loads(response.get_data(as_text=True))
         assert original_file != updated_file
         assert updated_file["file_contents"] == new_file_contents.decode()
+
+    def test_process_model_file_delete_when_bad_process_model(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        """Test_process_model_file_update."""
+        self.create_spec_file(client)
+
+        spec = load_test_spec("random_fact")
+        user = self.find_or_create_user()
+        response = client.delete(
+            f"/v1.0/process-models/INCORRECT-NON-EXISTENT-GROUP/{spec.id}/files/random_fact.svg",
+            follow_redirects=True,
+            headers=logged_in_headers(user),
+        )
+
+        assert response.status_code == 400
+        assert response.json is not None
+        assert response.json["code"] == "process_model_cannot_be_found"
+
+    def test_process_model_file_delete_when_bad_file(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        """Test_process_model_file_update."""
+        self.create_spec_file(client)
+
+        spec = load_test_spec("random_fact")
+        user = self.find_or_create_user()
+        response = client.delete(
+            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/files/random_fact_DOES_NOT_EXIST.svg",
+            follow_redirects=True,
+            headers=logged_in_headers(user),
+        )
+
+        assert response.status_code == 400
+        assert response.json is not None
+        assert response.json["code"] == "process_model_file_cannot_be_found"
+
+    def test_process_model_file_delete(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        """Test_process_model_file_update."""
+        self.create_spec_file(client)
+
+        spec = load_test_spec("random_fact")
+        user = self.find_or_create_user()
+        response = client.delete(
+            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/files/random_fact.svg",
+            follow_redirects=True,
+            headers=logged_in_headers(user),
+        )
+
+        assert response.status_code == 200
+        assert response.json is not None
+        assert response.json["ok"]
+
+        response = client.get(
+            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/files/random_fact.svg",
+            headers=logged_in_headers(user),
+        )
+        assert response.status_code == 404
 
     def test_get_file(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
@@ -455,7 +515,7 @@ class TestProcessApi(BaseTest):
         process_model_dir_name = "hello_world"
         load_test_spec(process_model_dir_name, process_group_id=test_process_group_id)
         response = client.get(
-            f"/v1.0/process-models/{test_process_group_id}/{process_model_dir_name}/file/hello_world.bpmn",
+            f"/v1.0/process-models/{test_process_group_id}/{process_model_dir_name}/files/hello_world.bpmn",
             headers=logged_in_headers(user),
         )
         assert response.status_code == 200

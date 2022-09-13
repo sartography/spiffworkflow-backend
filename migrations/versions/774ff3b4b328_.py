@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 0830969e89ff
+Revision ID: 774ff3b4b328
 Revises: 
-Create Date: 2022-08-31 17:01:45.088603
+Create Date: 2022-09-11 21:51:30.585507
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '0830969e89ff'
+revision = '774ff3b4b328'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -25,6 +25,13 @@ def upgrade():
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('token')
     )
+    op.create_table('bpmn_process_id_lookup',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('bpmn_process_identifier', sa.String(length=50), nullable=True),
+    sa.Column('bpmn_file_relative_path', sa.String(length=255), nullable=True),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_bpmn_process_id_lookup_bpmn_process_identifier'), 'bpmn_process_id_lookup', ['bpmn_process_identifier'], unique=True)
     op.create_table('group',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=255), nullable=True),
@@ -41,9 +48,11 @@ def upgrade():
     op.create_index(op.f('ix_message_model_name'), 'message_model', ['name'], unique=True)
     op.create_table('spiff_logging',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('process', sa.Integer(), nullable=True),
-    sa.Column('task', sa.String(length=50), nullable=True),
-    sa.Column('status', sa.String(length=50), nullable=True),
+    sa.Column('process_instance_id', sa.Integer(), nullable=False),
+    sa.Column('bpmn_process_identifier', sa.String(length=50), nullable=False),
+    sa.Column('task', sa.String(length=50), nullable=False),
+    sa.Column('timestamp', sa.Float(), nullable=False),
+    sa.Column('message', sa.String(length=50), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('user',
@@ -148,6 +157,7 @@ def upgrade():
     sa.Column('task_title', sa.String(length=50), nullable=True),
     sa.Column('task_type', sa.String(length=50), nullable=True),
     sa.Column('task_status', sa.String(length=50), nullable=True),
+    sa.Column('process_model_display_name', sa.String(length=255), nullable=True),
     sa.Column('task_data', sa.Text(), nullable=True),
     sa.ForeignKeyConstraint(['assigned_principal_id'], ['principal.id'], ),
     sa.ForeignKeyConstraint(['process_instance_id'], ['process_instance.id'], ),
@@ -288,5 +298,7 @@ def downgrade():
     op.drop_index(op.f('ix_message_model_identifier'), table_name='message_model')
     op.drop_table('message_model')
     op.drop_table('group')
+    op.drop_index(op.f('ix_bpmn_process_id_lookup_bpmn_process_identifier'), table_name='bpmn_process_id_lookup')
+    op.drop_table('bpmn_process_id_lookup')
     op.drop_table('admin_session')
     # ### end Alembic commands ###
