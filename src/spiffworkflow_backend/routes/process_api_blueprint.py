@@ -330,6 +330,8 @@ def process_instance_run(
     if do_engine_steps:
         try:
             processor.do_engine_steps()
+        except ApiError as e:
+            raise e
         except Exception as e:
             ErrorHandlingService().handle_error(processor, e)
             task = processor.bpmn_process_instance.last_task

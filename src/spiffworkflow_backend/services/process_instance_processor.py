@@ -97,11 +97,18 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
         try:
             return super()._evaluate(expression, context)
         except Exception as exception:
-            raise WorkflowTaskExecException(
-                task,
-                "Error evaluating expression "
-                "'%s', %s" % (expression, str(exception)),
-            ) from exception
+            if task is None:
+                raise ApiError(
+                    "error_evaluating_expression",
+                    "Error evaluating expression: "
+                    "'%s', exception: %s" % (expression, str(exception)),
+                ) from exception
+            else:
+                raise WorkflowTaskExecException(
+                    task,
+                    "Error evaluating expression "
+                    "'%s', %s" % (expression, str(exception)),
+                ) from exception
 
     def execute(self, task: SpiffTask, script: str) -> None:
         """Execute."""
