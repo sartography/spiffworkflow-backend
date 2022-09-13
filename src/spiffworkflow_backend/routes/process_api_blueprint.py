@@ -20,7 +20,6 @@ from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
 from SpiffWorkflow import Task as SpiffTask  # type: ignore
 from SpiffWorkflow import TaskState
-from spiffworkflow_backend.services.secret_service import SecretService
 from sqlalchemy import desc
 
 from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
@@ -28,7 +27,6 @@ from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
 )
 from spiffworkflow_backend.models.active_task import ActiveTaskModel
 from spiffworkflow_backend.models.file import FileSchema
-from spiffworkflow_backend.models.file import FileType
 from spiffworkflow_backend.models.message_instance import MessageInstanceModel
 from spiffworkflow_backend.models.message_model import MessageModel
 from spiffworkflow_backend.models.message_triggerable_process_model import (
@@ -55,6 +53,7 @@ from spiffworkflow_backend.services.process_instance_service import (
     ProcessInstanceService,
 )
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
+from spiffworkflow_backend.services.secret_service import SecretService
 from spiffworkflow_backend.services.spec_file_service import SpecFileService
 
 process_api_blueprint = Blueprint("process_api", __name__)
@@ -280,7 +279,6 @@ def process_model_file_delete(
 
 def add_file(process_group_id: str, process_model_id: str) -> flask.wrappers.Response:
     """Add_file."""
-    process_model_service = ProcessModelService()
     process_model = get_process_model(process_model_id, process_group_id)
     request_file = get_file_from_request()
     if not request_file.filename:
@@ -1031,22 +1029,39 @@ def get_spiff_task_from_process_instance(
 # Methods for secrets CRUD - maybe move somewhere else:
 #
 def get_secret(service: str, client: str) -> str:
+    """Get_secret."""
     secret = SecretService.get_secret(service, client)
     if secret:
         return secret
 
 
-def add_secret(service: str, client: str, secret: str, creator_user_id: int = None, allowed_process: str = None):
+def add_secret(
+    service: str,
+    client: str,
+    secret: str,
+    creator_user_id: int = None,
+    allowed_process: str = None,
+):
+    """Add secret."""
     ...
 
 
-def update_secret(service: str, client: str, secret: str = None, creator_user_id: int = None, allowed_process: str = None):
+def update_secret(
+    service: str,
+    client: str,
+    secret: str = None,
+    creator_user_id: int = None,
+    allowed_process: str = None,
+):
+    """Update secret."""
     ...
 
 
 def delete_secret(service: str, client: str):
+    """Delete secret."""
     ...
 
 
 def get_allowed_process_paths(service: str, client: str):
+    """Get allowed process paths."""
     ...

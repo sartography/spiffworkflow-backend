@@ -17,9 +17,6 @@ from spiffworkflow_backend.models.message_instance import (
     MessageInstanceModel,
 )  # noqa: F401
 from spiffworkflow_backend.models.message_model import MessageModel  # noqa: F401
-from spiffworkflow_backend.models.secret_model import SecretModel
-from spiffworkflow_backend.models.secret_model import SecretAllowedProcessPathModel
-from spiffworkflow_backend.models.spiff_logging import SpiffLoggingModel
 from spiffworkflow_backend.models.message_triggerable_process_model import (
     MessageTriggerableProcessModel,
 )  # noqa: F401
@@ -30,6 +27,11 @@ from spiffworkflow_backend.models.process_instance import (
 from spiffworkflow_backend.models.process_instance_report import (
     ProcessInstanceReportModel,
 )  # noqa: F401
+from spiffworkflow_backend.models.secret_model import (
+    SecretAllowedProcessPathModel,
+)  # noqa: F401
+from spiffworkflow_backend.models.secret_model import SecretModel  # noqa: F401
+from spiffworkflow_backend.models.spiff_logging import SpiffLoggingModel  # noqa: F401
 from spiffworkflow_backend.models.task_event import TaskEventModel  # noqa: F401
 from spiffworkflow_backend.models.user import UserModel  # noqa: F401
 from spiffworkflow_backend.models.user_group_assignment import (

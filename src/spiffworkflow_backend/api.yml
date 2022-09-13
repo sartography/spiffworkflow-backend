@@ -974,7 +974,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/ProcessInstanceLog"
 
-
   /secrets:
     post:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.add_secret
