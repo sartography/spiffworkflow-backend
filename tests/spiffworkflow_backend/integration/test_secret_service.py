@@ -1,11 +1,11 @@
 """Test_secret_service."""
 from flask.app import Flask
 from flask.testing import FlaskClient
-from spiffworkflow_backend.models.user import UserModel
-
 from tests.spiffworkflow_backend.helpers.base_test import BaseTest
 
-from spiffworkflow_backend.models.secret_model import SecretAllowedProcessPathModel, SecretModel
+from spiffworkflow_backend.models.secret_model import SecretAllowedProcessPathModel
+from spiffworkflow_backend.models.secret_model import SecretModel
+from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.services.file_system_service import FileSystemService
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 from spiffworkflow_backend.services.secret_service import SecretService

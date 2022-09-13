@@ -1,6 +1,6 @@
 """Secret_service."""
-from typing import Any
 from typing import Optional
+
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
 
@@ -36,15 +36,19 @@ class SecretService:
     @staticmethod
     def get_secret(service: str, client: str) -> str | None:
         """Get_secret."""
-        secret: str = db.session.query(SecretModel.key).\
-            filter(SecretModel.service == service).\
-            filter(SecretModel.client == client).\
-            scalar()
-        assert secret
-        return secret
+        secret: str = (
+            db.session.query(SecretModel)
+            .filter(SecretModel.service == service)
+            .filter(SecretModel.client == client)
+            .first()
+        )
+        if secret is not None:
+            return secret.key
 
     @staticmethod
-    def add_allowed_process(secret_id: int, allowed_relative_path: str) -> SecretAllowedProcessPathModel:
+    def add_allowed_process(
+        secret_id: int, allowed_relative_path: str
+    ) -> SecretAllowedProcessPathModel:
         """Add_allowed_process."""
         secret_process_model = SecretAllowedProcessPathModel(
             secret_id=secret_id, allowed_relative_path=allowed_relative_path
