@@ -17,6 +17,9 @@ from spiffworkflow_backend.models.message_instance import (
     MessageInstanceModel,
 )  # noqa: F401
 from spiffworkflow_backend.models.message_model import MessageModel  # noqa: F401
+from spiffworkflow_backend.models.secret_model import SecretModel
+from spiffworkflow_backend.models.secret_model import SecretAllowedProcessPathModel
+from spiffworkflow_backend.models.spiff_logging import SpiffLoggingModel
 from spiffworkflow_backend.models.message_triggerable_process_model import (
     MessageTriggerableProcessModel,
 )  # noqa: F401

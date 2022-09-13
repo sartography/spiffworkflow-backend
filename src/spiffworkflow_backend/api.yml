@@ -127,7 +127,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#components/schemas/OkTrue"
+                $ref: "#/components/schemas/OkTrue"
 
   /process-groups:
     parameters:
@@ -315,7 +315,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#components/schemas/File"
+                $ref: "#/components/schemas/File"
     # get:
     #   operationId: spiffworkflow_backend.api.process_api_blueprint.get_files
     #   summary: Provide a list of workflow spec files for the given workflow_spec_id. IMPORTANT, only includes metadata, not the file content.
@@ -370,7 +370,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#components/schemas/OkTrue"
+                $ref: "#/components/schemas/OkTrue"
     # process model update
     put:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.process_model_update
@@ -519,7 +519,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#components/schemas/OkTrue"
+                $ref: "#/components/schemas/OkTrue"
 
   /process-models/{process_group_id}/{process_model_id}/process-instances/{process_instance_id}/run:
     parameters:
@@ -592,7 +592,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#components/schemas/OkTrue"
+                $ref: "#/components/schemas/OkTrue"
 
   /process-models/{process_group_id}/{process_model_id}/process-instances/reports:
     parameters:
@@ -645,7 +645,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#components/schemas/OkTrue"
+                $ref: "#/components/schemas/OkTrue"
 
   /process-models/{process_group_id}/{process_model_id}/process-instances/reports/{report_identifier}:
     parameters:
@@ -704,7 +704,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#components/schemas/OkTrue"
+                $ref: "#/components/schemas/OkTrue"
     delete:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.process_instance_report_delete
       summary: Delete a process instance report
@@ -716,7 +716,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#components/schemas/OkTrue"
+                $ref: "#/components/schemas/OkTrue"
 
   /process-models/{process_group_id}/{process_model_id}/file/{file_name}:
     parameters:
@@ -750,7 +750,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#components/schemas/File"
+                $ref: "#/components/schemas/File"
     # process_model_file_update
     put:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.process_model_file_update
@@ -774,7 +774,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#components/schemas/OkTrue"
+                $ref: "#/components/schemas/OkTrue"
     # delete:
     #   operationId: crc.api.spec_file.delete
     #   summary: Removes an existing workflow spec file.
@@ -968,7 +968,116 @@ paths:
           content:
             application/json:
               schema:
+                $ref: "#/components/schemas/ProcessInstanceLog"
+
+
+  /secrets:
+    post:
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.add_secret
+      summary: Create a secret for a service and client
+      tags:
+        - Secrets
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Secret"
+      responses:
+        "201":
+          description: Secret created successfully
+          content:
+            application/json:
+              schema:
+                type: number
+
+  /secrets/{service}/{client}:
+    parameters:
+      - name: service
+        in: path
+        required: true
+        description: The external service we are using
+        schema:
+          type: string
+      - name: client
+        in: path
+        required: true
+        description: The client identifier of the external service we are using
+        schema:
+          type: string
+    get:
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.get_secret
+      summary: Returns a client secret for a service and client
+      tags:
+        - Secrets
+      responses:
+        "200":
+          description: We return a secret
+          content:
+            application/json:
+              schema:
+                type: string
+    delete:
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.delete_secret
+      summary: Delete a client secret for a service
+      tags:
+        - Secrets
+      responses:
+        "204":
+          description: The secret is deleted
+    put:
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.update_secret
+      summary: Modifies an existing client secret
+      tags:
+        - Secrets
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Secret"
+      responses:
+        "200":
+          description: Secret updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Secret"
+
+  /secrets/{service}/{client}/allowed_process_paths:
+    parameters:
+      - name: service
+        in: path
+        required: true
+        description: The external service we are using
+        schema:
+          type: string
+      - name: client
+        in: path
+        required: true
+        description: The client identifier of the external service we are using
+        schema:
+          type: string
+      - name: allowed_process_path
+        in: query
+        required: false
+        description: The path to an allowed Process Group or Process Model
+        schema:
+          type: string
+    get:
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.get_allowed_process_paths
+      summary: Returns the allowed process paths for a secret
+      tags:
+        - Secrets
+      responses:
+        "200":
+          description: Allowed process paths returned
+          content:
+            application/json:
+              schema:
                 type: array
+                items:
+                  $ref: "#/components/schemas/SecretAllowedProcessPath"
+#    delete:
+#      operationId: spiffworkflow_backend.routes.process_api_blueprint.delete_allowed_process_path
 
 components:
   securitySchemes:
@@ -1670,3 +1779,72 @@ components:
         untracked:
           type: array
           example: ["a_file.txt", "b_file.txt"]
+    Secret:
+      properties:
+        service:
+          description: The service we are contacting
+          type: string
+          example: github
+        client:
+          description: The client of the service we are contacting the service on behalf of. I.e., username, id, etc.
+          type: string
+          example: clients_user_name_at_github
+        secret:
+          description: The secret associated with the client on the service
+          type: string
+          example: my_super_secret_password
+          nullable: true
+        creator_user_id:
+          description: The id of the logged in user that created this secret
+          type: number
+          example: 1
+          nullable: true
+        allowed_processes:
+          description: The id of the process model allowed to access this secret
+          type: string
+          example: my_process_model_id
+          nullable: true
+    ProcessInstanceLog:
+      properties:
+        id:
+          description: The id of the log
+          type: number
+          example: 1
+          nullable: false
+        process_instance_id:
+          description: The id of the associated process instance
+          type: number
+          example: 2
+          nullable: false
+        bpmn_process_identifier:
+          description: The id of the bpmn process element
+          type: string
+          example: Process_SimpleProcess
+          nullable: false
+        task:
+          description: The task identifier
+          type: number
+          example: 1234567890
+          nullable: false
+        message:
+          description: The msg returned in the log
+          type: string
+          example: Some message returned in the log
+          nullable: true
+        timestamp:
+          description: The timestamp returned in the log
+          type: number
+          example: 123456789.12345
+    SecretAllowedProcessPath:
+      properties:
+        id:
+          description: The id of the allowed process path
+          type: number
+          example: 1
+        secret_id:
+          description: The id of the secret associated with this allowed process path
+          type: number
+          example: 2
+        allowed_process_path:
+          description: The allowed process path
+          example: /group_one/group_two/model_a
