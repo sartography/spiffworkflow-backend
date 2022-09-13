@@ -36,7 +36,7 @@ class SecretService:
     @staticmethod
     def get_secret(service: str, client: str) -> str | None:
         """Get_secret."""
-        secret: str = (
+        secret: SecretModel = (
             db.session.query(SecretModel)
             .filter(SecretModel.service == service)
             .filter(SecretModel.client == client)
