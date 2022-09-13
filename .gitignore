@@ -9,6 +9,7 @@
 /docs/_build/
 /src/*.egg-info/
 /src/instance
+src/spiffworkflow_backend/config/secrets.py
 __pycache__/
 *.sqlite3
 node_modules

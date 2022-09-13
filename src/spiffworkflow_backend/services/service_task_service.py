@@ -2,6 +2,8 @@
 import json
 import requests
 
+from flask import current_app
+
 from typing import Any
 from typing import Generator
 from typing import Iterable
@@ -23,10 +25,21 @@ OperatorClassGenerator = Generator[tuple[str, OperatorClass], None, None]
 
 class ServiceTaskDelegate:
     @staticmethod
-    def callConnector(name: str, params: Any):
-        print('HERE: ' + name)
-        print(params)
+    def callConnector(name: str, bpmn_params: Any):
+        def normalizeValue(v: Any):
+            value = v['value']
+            # TODO replace with call to secret store
+            secret_prefix = 'secret:'
+            if value.startswith(secret_prefix):
+                key = value.removeprefix(secret_prefix)
+                value = current_app.config[key]
+            return value
 
+        params = { k: normalizeValue(v) for k, v in bpmn_params.items() }
+        proxied_response = requests.get('http://localhost:5001/v1/do/' + name, params)
+        print(proxied_response.text)
+
+# TODO: delete lots of stuff here
 class ServiceTaskService:
     """ServiceTaskService."""
 

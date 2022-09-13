@@ -49,6 +49,9 @@ def setup_config(app: Flask) -> None:
     else:
         app.config.from_pyfile(f"{app.instance_path}/config.py", silent=True)
 
+    # optional git ignored file to store static secrets
+    app.config.from_pyfile("config/secrets.py", silent=True)
+
     setup_database_uri(app)
     setup_logger(app)
 
