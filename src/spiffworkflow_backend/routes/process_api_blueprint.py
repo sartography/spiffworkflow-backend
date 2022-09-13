@@ -20,6 +20,7 @@ from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
 from SpiffWorkflow import Task as SpiffTask  # type: ignore
 from SpiffWorkflow import TaskState
+from spiffworkflow_backend.models.secret_model import SecretModel
 from sqlalchemy import desc
 
 from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
@@ -1028,20 +1029,18 @@ def get_spiff_task_from_process_instance(
 #
 # Methods for secrets CRUD - maybe move somewhere else:
 #
-def get_secret(service: str, client: str) -> str:
+def get_secret(service: str, client: str) -> str | None:
     """Get_secret."""
-    secret = SecretService.get_secret(service, client)
-    if secret:
-        return secret
+    return SecretService.get_secret(service, client)
 
 
 def add_secret(
     service: str,
     client: str,
     secret: str,
-    creator_user_id: int = None,
-    allowed_process: str = None,
-):
+    creator_user_id: Optional[int] = None,
+    allowed_process: Optional[str] = None,
+) -> SecretModel:
     """Add secret."""
     ...
 
@@ -1049,19 +1048,19 @@ def add_secret(
 def update_secret(
     service: str,
     client: str,
-    secret: str = None,
-    creator_user_id: int = None,
-    allowed_process: str = None,
-):
+    secret: Optional[str] = None,
+    creator_user_id: Optional[int] = None,
+    allowed_process: Optional[str] = None,
+) -> None:
     """Update secret."""
     ...
 
 
-def delete_secret(service: str, client: str):
+def delete_secret(service: str, client: str) -> None:
     """Delete secret."""
     ...
 
 
-def get_allowed_process_paths(service: str, client: str):
+def get_allowed_process_paths(service: str, client: str) -> Any:
     """Get allowed process paths."""
     ...

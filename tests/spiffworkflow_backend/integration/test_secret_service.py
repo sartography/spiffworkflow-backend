@@ -1,9 +1,11 @@
 """Test_secret_service."""
 from flask.app import Flask
 from flask.testing import FlaskClient
+from spiffworkflow_backend.models.user import UserModel
+
 from tests.spiffworkflow_backend.helpers.base_test import BaseTest
 
-from spiffworkflow_backend.models.secret_model import SecretAllowedProcessPathModel
+from spiffworkflow_backend.models.secret_model import SecretAllowedProcessPathModel, SecretModel
 from spiffworkflow_backend.services.file_system_service import FileSystemService
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 from spiffworkflow_backend.services.secret_service import SecretService
@@ -16,13 +18,13 @@ class TestSecretService(BaseTest):
     test_client = "test_client"
     test_key = "1234567890"
 
-    def add_test_secret(self, user):
+    def add_test_secret(self, user: UserModel) -> SecretModel:
         """Add_test_secret."""
         return SecretService().add_secret(
             self.test_service, self.test_client, self.test_key, user.id
         )
 
-    def test_add_secret(self, app: Flask, with_db_and_bpmn_file_cleanup: None):
+    def test_add_secret(self, app: Flask, with_db_and_bpmn_file_cleanup: None) -> None:
         """Test_add_secret."""
         user = self.find_or_create_user()
         test_secret = self.add_test_secret(user)
@@ -33,7 +35,7 @@ class TestSecretService(BaseTest):
         assert test_secret.key == self.test_key
         assert test_secret.creator_user_id == user.id
 
-    def test_get_secret(self, app: Flask, with_db_and_bpmn_file_cleanup: None):
+    def test_get_secret(self, app: Flask, with_db_and_bpmn_file_cleanup: None) -> None:
         """Test_get_secret."""
         user = self.find_or_create_user()
         self.add_test_secret(user)
@@ -44,7 +46,7 @@ class TestSecretService(BaseTest):
 
     def test_get_secret_bad_service(
         self, app: Flask, with_db_and_bpmn_file_cleanup: None
-    ):
+    ) -> None:
         """Test_get_secret_bad_service."""
         user = self.find_or_create_user()
         self.add_test_secret(user)
@@ -54,7 +56,7 @@ class TestSecretService(BaseTest):
 
     def test_get_secret_bad_client(
         self, app: Flask, with_db_and_bpmn_file_cleanup: None
-    ):
+    ) -> None:
         """Test_get_secret_bad_client."""
         user = self.find_or_create_user()
         self.add_test_secret(user)
@@ -64,7 +66,7 @@ class TestSecretService(BaseTest):
 
     def test_secret_add_allowed_process(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
-    ):
+    ) -> None:
         """Test_secret_add_allowed_process."""
         process_group_id = "test"
         process_group_display_name = "My Test Process Group"
@@ -106,10 +108,10 @@ class TestSecretService(BaseTest):
         assert len(test_secret.allowed_processes) == 1
         assert test_secret.allowed_processes[0] == allowed_process_model
 
-    def test_update_secret(self):
+    def test_update_secret(self) -> None:
         """Test update secret."""
         ...
 
-    def test_delete_secret(self):
+    def test_delete_secret(self) -> None:
         """Test delete secret."""
         ...
