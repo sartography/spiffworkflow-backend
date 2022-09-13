@@ -1,4 +1,7 @@
 """ServiceTask_service."""
+import json
+import requests
+
 from typing import Any
 from typing import Generator
 from typing import Iterable
@@ -53,15 +56,15 @@ class ServiceTaskService:
     @classmethod
     def available_operators(cls) -> list[Operator]:
         """Returns a list of all operator names and parameters that are available for use."""
-        available_operators: list[Operator] = [
-            {
-                "id": operator_name,
-                "parameters": cls._parse_operator_params(operator_class),
-            }
-            for operator_name, operator_class in cls.available_operator_classes()
-        ]
 
-        return list(available_operators)
+        # TODO pull url from config
+        response = requests.get('http://localhost:5001/v1/commands')
+
+        if response.status_code != 200:
+            return []
+
+        parsed_response = json.loads(response.text)
+        return parsed_response
 
     @classmethod
     def scripting_additions(cls) -> dict[str, OperatorClass]:
