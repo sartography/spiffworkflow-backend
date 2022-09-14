@@ -24,6 +24,7 @@ from spiffworkflow_backend.models.message_triggerable_process_model import (
 )
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.services.file_system_service import FileSystemService
+from spiffworkflow_backend.services.process_model_service import ProcessModelService
 
 
 class SpecFileService(FileSystemService):
@@ -193,12 +194,17 @@ class SpecFileService(FileSystemService):
 
             try:
                 if set_primary_file:
-                    process_model_info.primary_process_id = (
-                        SpecFileService.get_bpmn_process_identifier(bpmn_etree_element)
-                    )
-                    process_model_info.primary_file_name = file_name
-                    process_model_info.is_review = SpecFileService.has_swimlane(
-                        bpmn_etree_element
+                    attributes_to_update = {
+                        "primary_process_id": (
+                            SpecFileService.get_bpmn_process_identifier(
+                                bpmn_etree_element
+                            )
+                        ),
+                        "primary_file_name": file_name,
+                        "is_review": SpecFileService.has_swimlane(bpmn_etree_element),
+                    }
+                    ProcessModelService().update_spec(
+                        process_model_info, attributes_to_update
                     )
 
                 SpecFileService.check_for_message_models(

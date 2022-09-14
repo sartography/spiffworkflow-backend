@@ -41,8 +41,6 @@ class ExampleDataLoader:
             is_master_spec=master_spec,
             standalone=standalone,
             library=library,
-            primary_file_name="",
-            primary_process_id="",
             is_review=False,
             libraries=[],
         )

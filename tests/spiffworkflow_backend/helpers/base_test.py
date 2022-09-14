@@ -1,11 +1,13 @@
 """Base_test."""
 import io
 import json
+import os
 import time
 from typing import Any
 from typing import Dict
 from typing import Optional
 
+from flask import current_app
 from flask.app import Flask
 from flask.testing import FlaskClient
 from flask_bpmn.api.api_error import ApiError
@@ -77,14 +79,14 @@ class BaseTest:
         assert response.status_code == 201
         return response
 
-    def create_process_model(
+    def create_process_model_with_api(
         self,
         client: FlaskClient,
         process_group_id: Optional[str] = None,
-        process_model_id: Optional[str] = None,
-        process_model_display_name: Optional[str] = None,
-        process_model_description: Optional[str] = None,
-        fault_or_suspend_on_exception: Optional[str] = None,
+        process_model_id: str = "make_cookies",
+        process_model_display_name: str = "Cooooookies",
+        process_model_description: str = "Om nom nom delicious cookies",
+        fault_or_suspend_on_exception: str = NotificationType.suspend.value,
         exception_notification_addresses: Optional[list] = None,
         primary_process_id: Optional[str] = None,
         primary_file_name: Optional[str] = None,
@@ -104,20 +106,8 @@ class BaseTest:
         else:
             process_group = ProcessModelService().get_process_group(process_group_id)
 
-        if process_model_id is None:
-            process_model_id = "make_cookies"
-        if process_model_display_name is None:
-            process_model_display_name = "Cooooookies"
-        if process_model_description is None:
-            process_model_description = "Om nom nom delicious cookies"
-        if fault_or_suspend_on_exception is None:
-            fault_or_suspend_on_exception = NotificationType.suspend.value
         if exception_notification_addresses is None:
             exception_notification_addresses = []
-        if primary_process_id is None:
-            primary_process_id = ""
-        if primary_file_name is None:
-            primary_file_name = ""
         model = ProcessModelInfo(
             id=process_model_id,
             display_name=process_model_display_name,
@@ -146,25 +136,21 @@ class BaseTest:
     def create_spec_file(
         self,
         client: FlaskClient,
-        process_group_id: str = "",
-        process_model_id: str = "",
-        file_name: str = "",
-        file_data: bytes = b"",
+        process_group_id: str = "random_fact",
+        process_model_id: str = "random_fact",
+        process_model: Optional[ProcessModelInfo] = None,
+        file_name: str = "random_fact.svg",
+        file_data: bytes = b"abcdef",
     ) -> Any:
         """Test_create_spec_file."""
-        if process_group_id == "":
-            process_group_id = "random_fact"
-        if process_model_id == "":
-            process_model_id = "random_fact"
-        if file_name == "":
-            file_name = "random_fact.svg"
-        if file_data == b"":
-            file_data = b"abcdef"
-        spec = load_test_spec(process_model_id, process_group_id=process_group_id)
+        if process_model is None:
+            process_model = load_test_spec(
+                process_model_id, process_group_id=process_group_id
+            )
         data = {"file": (io.BytesIO(file_data), file_name)}
         user = self.find_or_create_user()
         response = client.post(
-            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/files",
+            f"/v1.0/process-models/{process_model.process_group_id}/{process_model.id}/files",
             data=data,
             follow_redirects=True,
             content_type="multipart/form-data",
@@ -177,7 +163,7 @@ class BaseTest:
         # assert "image/svg+xml" == file["content_type"]
 
         response = client.get(
-            f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/files/{file_name}",
+            f"/v1.0/process-models/{process_model.process_group_id}/{process_model.id}/files/{file_name}",
             headers=logged_in_headers(user),
         )
         assert response.status_code == 200
@@ -233,3 +219,20 @@ class BaseTest:
         db.session.add(process_instance)
         db.session.commit()
         return process_instance
+
+    def get_test_data_file_contents(
+        self, file_name: str, process_model_test_data_dir: str
+    ) -> bytes:
+        """Get_test_data_file_contents."""
+        current_app.root_path,
+        file_full_path = os.path.join(
+            current_app.root_path,
+            "..",
+            "..",
+            "tests",
+            "data",
+            process_model_test_data_dir,
+            file_name,
+        )
+        with open(file_full_path, "rb") as file:
+            return file.read()

@@ -39,13 +39,11 @@ class TestProcessApi(BaseTest):
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_add_new_process_model."""
-        # group_id = None,
-        model_id = "make_cookies"
-        model_display_name = "Cooooookies"
-        model_description = "Om nom nom delicious cookies"
-        self.create_process_model(
+        model_id = "sample"
+        model_display_name = "Sample"
+        model_description = "The sample"
+        self.create_process_model_with_api(
             client,
-            process_group_id=None,
             process_model_id=model_id,
             process_model_display_name=model_display_name,
             process_model_description=model_description,
@@ -55,13 +53,25 @@ class TestProcessApi(BaseTest):
         assert 0 == process_model.display_order
         assert 1 == len(ProcessModelService().get_process_groups())
 
-        self.create_spec_file(client)
+        bpmn_file_name = "sample.bpmn"
+        bpmn_file_data_bytes = self.get_test_data_file_contents(
+            bpmn_file_name, "sample"
+        )
+        self.create_spec_file(
+            client,
+            file_name=bpmn_file_name,
+            file_data=bpmn_file_data_bytes,
+            process_model=process_model,
+        )
+        process_model = ProcessModelService().get_process_model(model_id)
+        assert process_model.primary_file_name == bpmn_file_name
+        assert process_model.primary_process_id == "sample"
 
     def test_process_model_delete(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_process_model_delete."""
-        self.create_process_model(client)
+        self.create_process_model_with_api(client)
 
         # assert we have a model
         process_model = ProcessModelService().get_process_model("make_cookies")
@@ -118,7 +128,7 @@ class TestProcessApi(BaseTest):
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_process_model_update."""
-        self.create_process_model(client)
+        self.create_process_model_with_api(client)
         process_model = ProcessModelService().get_process_model("make_cookies")
         assert process_model.id == "make_cookies"
         assert process_model.display_name == "Cooooookies"
@@ -153,7 +163,7 @@ class TestProcessApi(BaseTest):
             model_id = f"test_model_{i}"
             model_display_name = f"Test Model {i}"
             model_description = f"Test Model {i} Description"
-            self.create_process_model(
+            self.create_process_model_with_api(
                 client, group_id, model_id, model_display_name, model_description
             )
 
