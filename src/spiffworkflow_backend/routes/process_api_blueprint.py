@@ -241,7 +241,7 @@ def get_file(process_group_id: str, process_model_id: str, file_name: str) -> An
 def process_model_file_update(
     process_group_id: str, process_model_id: str, file_name: str
 ) -> flask.wrappers.Response:
-    """Process_model_file_save."""
+    """Process_model_file_update."""
     process_model = get_process_model(process_model_id, process_group_id)
 
     request_file = get_file_from_request()
