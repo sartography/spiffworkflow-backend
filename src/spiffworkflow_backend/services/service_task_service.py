@@ -11,6 +11,7 @@ from typing import TypedDict
 
 from spiffworkflow_backend.services.reflection_service import ParameterDescription
 from spiffworkflow_backend.services.reflection_service import ReflectionService
+from spiffworkflow_backend.services.secret_service import SecretService
 
 
 class Operator(TypedDict):
@@ -32,12 +33,12 @@ class ServiceTaskDelegate:
             secret_prefix = 'secret:'
             if value.startswith(secret_prefix):
                 key = value.removeprefix(secret_prefix)
-                value = current_app.config[key]
+                value = SecretService.get_secret(key)
             return value
 
         params = { k: normalizeValue(v) for k, v in bpmn_params.items() }
         # TODO pull host/port from config
-        proxied_response = requests.get('http://localhost:5001/v1/do/' + name, params)
+        proxied_response = requests.get('http://localhost:7004/v1/do/' + name, params)
         print('From: ' + name)
         print(proxied_response.text)
 
@@ -79,7 +80,7 @@ class ServiceTaskService:
 
         try:
             # TODO pull url from config
-            response = requests.get('http://localhost:5001/v1/commands')
+            response = requests.get('http://localhost:7004/v1/commands')
         except Exception as e:
             print(e)
             return []

@@ -14,7 +14,7 @@ class SecretModel(SpiffworkflowBaseDBModel):
     __tablename__ = "secret"
     id: int = db.Column(db.Integer, primary_key=True)
     key: str = db.Column(db.String(50))
-    value: str = db.Column(db.String(255))
+    value: str = db.Column(db.Text())
     creator_user_id: int = db.Column(ForeignKey(UserModel.id), nullable=False)
 
     allowed_processes = relationship("SecretAllowedProcessPathModel", cascade="delete")
