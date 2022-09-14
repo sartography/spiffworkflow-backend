@@ -3,7 +3,6 @@ import io
 import json
 import time
 from typing import Any
-from conftest import with_db_and_bpmn_file_cleanup
 
 import pytest
 from flask.app import Flask
@@ -49,7 +48,9 @@ class TestProcessApi(BaseTest):
             process_model_display_name=model_display_name,
             process_model_description=model_description,
         )
-        process_model = ProcessModelService().get_process_model(process_model_identifier)
+        process_model = ProcessModelService().get_process_model(
+            process_model_identifier
+        )
         assert model_display_name == process_model.display_name
         assert 0 == process_model.display_order
         assert 1 == len(ProcessModelService().get_process_groups())
@@ -64,11 +65,16 @@ class TestProcessApi(BaseTest):
             file_data=bpmn_file_data_bytes,
             process_model=process_model,
         )
-        process_model = ProcessModelService().get_process_model(process_model_identifier)
+        process_model = ProcessModelService().get_process_model(
+            process_model_identifier
+        )
         assert process_model.primary_file_name == bpmn_file_name
         assert process_model.primary_process_id == "sample"
 
-    def test_primary_process_id_updates_via_xml(self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None) -> None:
+    def test_primary_process_id_updates_via_xml(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        """Test_primary_process_id_updates_via_xml."""
         process_model_identifier = "sample"
         initial_primary_process_id = "sample"
         terminal_primary_process_id = "new_process_id"
@@ -80,11 +86,13 @@ class TestProcessApi(BaseTest):
         bpmn_file_data_bytes = self.get_test_data_file_contents(
             bpmn_file_name, "sample"
         )
-        bpmn_file_data_string = bpmn_file_data_bytes.decode('utf-8')
+        bpmn_file_data_string = bpmn_file_data_bytes.decode("utf-8")
         old_string = f'bpmn:process id="{initial_primary_process_id}"'
         new_string = f'bpmn:process id="{terminal_primary_process_id}"'
-        updated_bpmn_file_data_string = bpmn_file_data_string.replace(old_string, new_string)
-        updated_bpmn_file_data_bytes = bytearray(updated_bpmn_file_data_string, 'utf-8')
+        updated_bpmn_file_data_string = bpmn_file_data_string.replace(
+            old_string, new_string
+        )
+        updated_bpmn_file_data_bytes = bytearray(updated_bpmn_file_data_string, "utf-8")
         data = {"file": (io.BytesIO(updated_bpmn_file_data_bytes), bpmn_file_name)}
 
         user = self.find_or_create_user()
@@ -96,10 +104,11 @@ class TestProcessApi(BaseTest):
             headers=logged_in_headers(user),
         )
         assert response.status_code == 200
-        process_model = ProcessModelService().get_process_model(process_model_identifier)
+        process_model = ProcessModelService().get_process_model(
+            process_model_identifier
+        )
         assert process_model.primary_file_name == bpmn_file_name
         assert process_model.primary_process_id == terminal_primary_process_id
-
 
     def test_process_model_delete(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
@@ -198,7 +207,11 @@ class TestProcessApi(BaseTest):
             model_display_name = f"Test Model {i}"
             model_description = f"Test Model {i} Description"
             self.create_process_model_with_api(
-                client, group_id, process_model_identifier, model_display_name, model_description
+                client,
+                group_id,
+                process_model_identifier,
+                model_display_name,
+                model_description,
             )
 
         # get all models
