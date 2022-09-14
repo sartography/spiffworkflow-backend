@@ -100,7 +100,7 @@ class TestProcessApi(BaseTest):
             data=data,
             follow_redirects=True,
             content_type="multipart/form-data",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.status_code == 200
         process_model = ProcessModelService().get_process_model(

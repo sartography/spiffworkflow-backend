@@ -28,7 +28,7 @@ class SecretService:
             raise ApiError(
                 code="create_secret_error",
                 message=f"There was an error creating a secret with key: {key} and value ending with: {value[:-4]}. "
-                        f"Original error is {e}",
+                f"Original error is {e}",
             ) from e
         return secret_model
 
