@@ -243,7 +243,7 @@ def get_file(process_group_id: str, process_model_id: str, file_name: str) -> An
 def process_model_file_update(
     process_group_id: str, process_model_id: str, file_name: str
 ) -> flask.wrappers.Response:
-    """Process_model_file_save."""
+    """Process_model_file_update."""
     process_model = get_process_model(process_model_id, process_group_id)
 
     request_file = get_file_from_request()
@@ -330,6 +330,9 @@ def process_instance_run(
     if do_engine_steps:
         try:
             processor.do_engine_steps()
+        except ApiError as e:
+            ErrorHandlingService().handle_error(processor, e)
+            raise e
         except Exception as e:
             ErrorHandlingService().handle_error(processor, e)
             task = processor.bpmn_process_instance.last_task
@@ -773,7 +776,10 @@ def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response
     task.process_model_display_name = process_model.display_name
 
     process_model_with_form = process_model
-    if task.process_name != process_model.primary_process_id:
+    all_processes = SpecFileService.get_all_bpmn_process_identifiers_for_process_model(
+        process_model
+    )
+    if task.process_name not in all_processes:
         bpmn_file_full_path = (
             ProcessInstanceProcessor.bpmn_file_full_path_from_bpmn_process_identifier(
                 task.process_name

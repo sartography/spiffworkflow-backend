@@ -1,12 +1,10 @@
 """Test_secret_service."""
-import json
 
 from flask.app import Flask
 from flask.testing import FlaskClient
 from tests.spiffworkflow_backend.helpers.base_test import BaseTest
 
 from spiffworkflow_backend.models.secret_model import SecretModel
-from spiffworkflow_backend.models.secret_model import SecretModelSchema
 from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.services.secret_service import SecretService
 

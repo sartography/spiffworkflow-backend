@@ -34,8 +34,8 @@ class ProcessModelInfo:
     is_master_spec: bool | None = False
     standalone: bool | None = False
     library: bool | None = False
-    primary_file_name: str | None = ""
-    primary_process_id: str | None = ""
+    primary_file_name: str | None = None
+    primary_process_id: str | None = None
     libraries: list[str] = field(default_factory=list)
     display_order: int | None = 0
     is_review: bool = False
