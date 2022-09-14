@@ -240,6 +240,54 @@ class SpecFileService(FileSystemService):
         return retval
 
     @staticmethod
+    def append_identifier_of_process_to_array(
+        process_element: _Element, process_identifiers: list[str]
+    ) -> None:
+        """Append_identifier_of_process_to_array."""
+        process_id_key = "id"
+        if "name" in process_element.attrib:
+            process_id_key = "name"
+
+        process_identifiers.append(process_element.attrib[process_id_key])
+
+    @staticmethod
+    def get_all_bpmn_process_identifiers_for_process_model(
+        process_model_info: ProcessModelInfo,
+    ) -> list[str]:
+        """Get_all_bpmn_process_identifiers_for_process_model."""
+        if process_model_info.primary_file_name is None:
+            return []
+
+        binary_data = SpecFileService.get_data(
+            process_model_info, process_model_info.primary_file_name
+        )
+
+        et_root: EtreeElement = SpecFileService.get_etree_element_from_binary_data(
+            binary_data, process_model_info.primary_file_name
+        )
+        process_identifiers: list[str] = []
+        for child in et_root:
+            if child.tag.endswith("process") and child.attrib.get(
+                "isExecutable", False
+            ):
+                subprocesses = child.xpath(
+                    "//bpmn:subProcess",
+                    namespaces={"bpmn": "http://www.omg.org/spec/BPMN/20100524/MODEL"},
+                )
+                for subprocess in subprocesses:
+                    SpecFileService.append_identifier_of_process_to_array(
+                        subprocess, process_identifiers
+                    )
+
+                SpecFileService.append_identifier_of_process_to_array(
+                    child, process_identifiers
+                )
+
+        if len(process_identifiers) == 0:
+            raise ValidationException("No executable process tag found")
+        return process_identifiers
+
+    @staticmethod
     def get_executable_process_elements(et_root: _Element) -> list[_Element]:
         """Get_executable_process_elements."""
         process_elements = []

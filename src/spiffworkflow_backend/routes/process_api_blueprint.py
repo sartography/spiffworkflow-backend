@@ -27,7 +27,6 @@ from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
 )
 from spiffworkflow_backend.models.active_task import ActiveTaskModel
 from spiffworkflow_backend.models.file import FileSchema
-from spiffworkflow_backend.models.file import FileType
 from spiffworkflow_backend.models.message_instance import MessageInstanceModel
 from spiffworkflow_backend.models.message_model import MessageModel
 from spiffworkflow_backend.models.message_triggerable_process_model import (
@@ -279,7 +278,7 @@ def process_model_file_delete(
 
 def add_file(process_group_id: str, process_model_id: str) -> flask.wrappers.Response:
     """Add_file."""
-    process_model_service = ProcessModelService()
+    ProcessModelService()
     process_model = get_process_model(process_model_id, process_group_id)
     request_file = get_file_from_request()
     if not request_file.filename:
@@ -331,6 +330,7 @@ def process_instance_run(
         try:
             processor.do_engine_steps()
         except ApiError as e:
+            ErrorHandlingService().handle_error(processor, e)
             raise e
         except Exception as e:
             ErrorHandlingService().handle_error(processor, e)
@@ -775,7 +775,10 @@ def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response
     task.process_model_display_name = process_model.display_name
 
     process_model_with_form = process_model
-    if task.process_name != process_model.primary_process_id:
+    all_processes = SpecFileService.get_all_bpmn_process_identifiers_for_process_model(
+        process_model
+    )
+    if task.process_name not in all_processes:
         bpmn_file_full_path = (
             ProcessInstanceProcessor.bpmn_file_full_path_from_bpmn_process_identifier(
                 task.process_name

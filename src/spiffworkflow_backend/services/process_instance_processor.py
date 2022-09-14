@@ -72,7 +72,9 @@ from spiffworkflow_backend.services.process_model_service import ProcessModelSer
 from spiffworkflow_backend.services.spec_file_service import SpecFileService
 from spiffworkflow_backend.services.user_service import UserService
 
-# from crc.services.user_file_service import UserFileService
+
+class ProcessInstanceProcessorError(Exception):
+    """ProcessInstanceProcessorError."""
 
 
 class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
@@ -98,8 +100,7 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
             return super()._evaluate(expression, context)
         except Exception as exception:
             if task is None:
-                raise ApiError(
-                    "error_evaluating_expression",
+                raise ProcessInstanceProcessorError(
                     "Error evaluating expression: "
                     "'%s', exception: %s" % (expression, str(exception)),
                 ) from exception

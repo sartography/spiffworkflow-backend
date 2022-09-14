@@ -1227,16 +1227,11 @@ class TestProcessApi(BaseTest):
         assert response.status_code == 400
 
         api_error = json.loads(response.get_data(as_text=True))
-        assert api_error["code"] == "unknown_exception"
-        assert "An unknown error occurred." in api_error["message"]
+        assert api_error["code"] == "task_error"
         assert (
-            'Original error: ApiError: Activity_CauseError: TypeError:can only concatenate str (not "int") to str.'
+            'Activity_CauseError: TypeError:can only concatenate str (not "int") to str'
             in api_error["message"]
         )
-        assert (
-            "Error in task 'Cause Error' (Activity_CauseError)." in api_error["message"]
-        )
-        assert "Error is on line 1. In file error.bpmn." in api_error["message"]
 
         process = (
             db.session.query(ProcessInstanceModel)
