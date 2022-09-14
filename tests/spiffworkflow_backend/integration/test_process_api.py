@@ -10,7 +10,6 @@ from flask.testing import FlaskClient
 from flask_bpmn.models.db import db
 from tests.spiffworkflow_backend.helpers.base_test import BaseTest
 from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
-from tests.spiffworkflow_backend.helpers.test_data import logged_in_headers
 
 from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
     ProcessEntityNotFoundError,
@@ -39,29 +38,82 @@ class TestProcessApi(BaseTest):
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_add_new_process_model."""
-        # group_id = None,
-        model_id = "make_cookies"
-        model_display_name = "Cooooookies"
-        model_description = "Om nom nom delicious cookies"
-        self.create_process_model(
+        process_model_identifier = "sample"
+        model_display_name = "Sample"
+        model_description = "The sample"
+        self.create_process_model_with_api(
             client,
-            process_group_id=None,
-            process_model_id=model_id,
+            process_model_id=process_model_identifier,
             process_model_display_name=model_display_name,
             process_model_description=model_description,
         )
-        process_model = ProcessModelService().get_process_model(model_id)
+        process_model = ProcessModelService().get_process_model(
+            process_model_identifier
+        )
         assert model_display_name == process_model.display_name
         assert 0 == process_model.display_order
         assert 1 == len(ProcessModelService().get_process_groups())
 
-        self.create_spec_file(client)
+        bpmn_file_name = "sample.bpmn"
+        bpmn_file_data_bytes = self.get_test_data_file_contents(
+            bpmn_file_name, "sample"
+        )
+        self.create_spec_file(
+            client,
+            file_name=bpmn_file_name,
+            file_data=bpmn_file_data_bytes,
+            process_model=process_model,
+        )
+        process_model = ProcessModelService().get_process_model(
+            process_model_identifier
+        )
+        assert process_model.primary_file_name == bpmn_file_name
+        assert process_model.primary_process_id == "sample"
+
+    def test_primary_process_id_updates_via_xml(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        """Test_primary_process_id_updates_via_xml."""
+        process_model_identifier = "sample"
+        initial_primary_process_id = "sample"
+        terminal_primary_process_id = "new_process_id"
+
+        process_model = load_test_spec(process_model_id=process_model_identifier)
+        assert process_model.primary_process_id == initial_primary_process_id
+
+        bpmn_file_name = "sample.bpmn"
+        bpmn_file_data_bytes = self.get_test_data_file_contents(
+            bpmn_file_name, "sample"
+        )
+        bpmn_file_data_string = bpmn_file_data_bytes.decode("utf-8")
+        old_string = f'bpmn:process id="{initial_primary_process_id}"'
+        new_string = f'bpmn:process id="{terminal_primary_process_id}"'
+        updated_bpmn_file_data_string = bpmn_file_data_string.replace(
+            old_string, new_string
+        )
+        updated_bpmn_file_data_bytes = bytearray(updated_bpmn_file_data_string, "utf-8")
+        data = {"file": (io.BytesIO(updated_bpmn_file_data_bytes), bpmn_file_name)}
+
+        user = self.find_or_create_user()
+        response = client.put(
+            f"/v1.0/process-models/{process_model.process_group_id}/{process_model.id}/files/{bpmn_file_name}",
+            data=data,
+            follow_redirects=True,
+            content_type="multipart/form-data",
+            headers=self.logged_in_headers(user),
+        )
+        assert response.status_code == 200
+        process_model = ProcessModelService().get_process_model(
+            process_model_identifier
+        )
+        assert process_model.primary_file_name == bpmn_file_name
+        assert process_model.primary_process_id == terminal_primary_process_id
 
     def test_process_model_delete(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_process_model_delete."""
-        self.create_process_model(client)
+        self.create_process_model_with_api(client)
 
         # assert we have a model
         process_model = ProcessModelService().get_process_model("make_cookies")
@@ -72,7 +124,7 @@ class TestProcessApi(BaseTest):
         user = self.find_or_create_user()
         response = client.delete(
             f"/v1.0/process-models/{process_model.process_group_id}/{process_model.id}",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.status_code == 200
         assert response.json is not None
@@ -89,7 +141,7 @@ class TestProcessApi(BaseTest):
         test_process_group_id = "runs_without_input"
         test_process_model_id = "sample"
         user = self.find_or_create_user()
-        headers = logged_in_headers(user)
+        headers = self.logged_in_headers(user)
         # create an instance from a model
         response = self.create_process_instance(
             client, test_process_group_id, test_process_model_id, headers
@@ -102,7 +154,7 @@ class TestProcessApi(BaseTest):
         # try to delete the model
         response = client.delete(
             f"/v1.0/process-models/{test_process_group_id}/{test_process_model_id}",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
 
         # make sure we get an error in the response
@@ -118,7 +170,7 @@ class TestProcessApi(BaseTest):
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_process_model_update."""
-        self.create_process_model(client)
+        self.create_process_model_with_api(client)
         process_model = ProcessModelService().get_process_model("make_cookies")
         assert process_model.id == "make_cookies"
         assert process_model.display_name == "Cooooookies"
@@ -130,7 +182,7 @@ class TestProcessApi(BaseTest):
         user = self.find_or_create_user()
         response = client.put(
             f"/v1.0/process-models/{process_model.process_group_id}/{process_model.id}",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
             content_type="application/json",
             data=json.dumps(ProcessModelInfoSchema().dump(process_model)),
         )
@@ -150,17 +202,21 @@ class TestProcessApi(BaseTest):
 
         # add 5 models to the group
         for i in range(5):
-            model_id = f"test_model_{i}"
+            process_model_identifier = f"test_model_{i}"
             model_display_name = f"Test Model {i}"
             model_description = f"Test Model {i} Description"
-            self.create_process_model(
-                client, group_id, model_id, model_display_name, model_description
+            self.create_process_model_with_api(
+                client,
+                group_id,
+                process_model_identifier,
+                model_display_name,
+                model_description,
             )
 
         # get all models
         response = client.get(
             f"/v1.0/process-groups/{group_id}/process-models",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.json is not None
         assert len(response.json["results"]) == 5
@@ -171,7 +227,7 @@ class TestProcessApi(BaseTest):
         # get first page, 1 per page
         response = client.get(
             f"/v1.0/process-groups/{group_id}/process-models?page=1&per_page=1",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.json is not None
         assert len(response.json["results"]) == 1
@@ -183,7 +239,7 @@ class TestProcessApi(BaseTest):
         # get second page, 1 per page
         response = client.get(
             f"/v1.0/process-groups/{group_id}/process-models?page=2&per_page=1",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.json is not None
         assert len(response.json["results"]) == 1
@@ -195,7 +251,7 @@ class TestProcessApi(BaseTest):
         # get first page, 3 per page
         response = client.get(
             f"/v1.0/process-groups/{group_id}/process-models?page=1&per_page=3",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.json is not None
         assert len(response.json["results"]) == 3
@@ -207,7 +263,7 @@ class TestProcessApi(BaseTest):
         # get second page, 3 per page
         response = client.get(
             f"/v1.0/process-groups/{group_id}/process-models?page=2&per_page=3",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         # there should only be 2 left
         assert response.json is not None
@@ -230,7 +286,7 @@ class TestProcessApi(BaseTest):
         user = self.find_or_create_user()
         response = client.post(
             "/v1.0/process-groups",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
             content_type="application/json",
             data=json.dumps(ProcessGroupSchema().dump(process_group)),
         )
@@ -263,7 +319,8 @@ class TestProcessApi(BaseTest):
         assert persisted.id == process_group_id
 
         client.delete(
-            f"/v1.0/process-groups/{process_group_id}", headers=logged_in_headers(user)
+            f"/v1.0/process-groups/{process_group_id}",
+            headers=self.logged_in_headers(user),
         )
 
         with pytest.raises(ProcessEntityNotFoundError):
@@ -288,7 +345,7 @@ class TestProcessApi(BaseTest):
 
         response = client.put(
             f"/v1.0/process-groups/{group_id}",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
             content_type="application/json",
             data=json.dumps(ProcessGroupSchema().dump(process_group)),
         )
@@ -313,7 +370,7 @@ class TestProcessApi(BaseTest):
         # get all groups
         response = client.get(
             "/v1.0/process-groups",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.json is not None
         assert len(response.json["results"]) == 5
@@ -324,7 +381,7 @@ class TestProcessApi(BaseTest):
         # get first page, one per page
         response = client.get(
             "/v1.0/process-groups?page=1&per_page=1",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.json is not None
         assert len(response.json["results"]) == 1
@@ -336,7 +393,7 @@ class TestProcessApi(BaseTest):
         # get second page, one per page
         response = client.get(
             "/v1.0/process-groups?page=2&per_page=1",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.json is not None
         assert len(response.json["results"]) == 1
@@ -348,7 +405,7 @@ class TestProcessApi(BaseTest):
         # get first page, 3 per page
         response = client.get(
             "/v1.0/process-groups?page=1&per_page=3",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.json is not None
         assert len(response.json["results"]) == 3
@@ -362,7 +419,7 @@ class TestProcessApi(BaseTest):
         # get second page, 3 per page
         response = client.get(
             "/v1.0/process-groups?page=2&per_page=3",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         # there should only be 2 left
         assert response.json is not None
@@ -387,7 +444,7 @@ class TestProcessApi(BaseTest):
             data=data,
             follow_redirects=True,
             content_type="multipart/form-data",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
 
         assert response.status_code == 400
@@ -408,7 +465,7 @@ class TestProcessApi(BaseTest):
             data=data,
             follow_redirects=True,
             content_type="multipart/form-data",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
 
         assert response.status_code == 400
@@ -430,7 +487,7 @@ class TestProcessApi(BaseTest):
             data=data,
             follow_redirects=True,
             content_type="multipart/form-data",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
 
         assert response.status_code == 200
@@ -439,7 +496,7 @@ class TestProcessApi(BaseTest):
 
         response = client.get(
             f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/files/random_fact.svg",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.status_code == 200
         updated_file = json.loads(response.get_data(as_text=True))
@@ -457,7 +514,7 @@ class TestProcessApi(BaseTest):
         response = client.delete(
             f"/v1.0/process-models/INCORRECT-NON-EXISTENT-GROUP/{spec.id}/files/random_fact.svg",
             follow_redirects=True,
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
 
         assert response.status_code == 400
@@ -475,7 +532,7 @@ class TestProcessApi(BaseTest):
         response = client.delete(
             f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/files/random_fact_DOES_NOT_EXIST.svg",
             follow_redirects=True,
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
 
         assert response.status_code == 400
@@ -493,7 +550,7 @@ class TestProcessApi(BaseTest):
         response = client.delete(
             f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/files/random_fact.svg",
             follow_redirects=True,
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
 
         assert response.status_code == 200
@@ -502,7 +559,7 @@ class TestProcessApi(BaseTest):
 
         response = client.get(
             f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/files/random_fact.svg",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.status_code == 404
 
@@ -516,7 +573,7 @@ class TestProcessApi(BaseTest):
         load_test_spec(process_model_dir_name, process_group_id=test_process_group_id)
         response = client.get(
             f"/v1.0/process-models/{test_process_group_id}/{process_model_dir_name}/files/hello_world.bpmn",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.status_code == 200
         assert response.json is not None
@@ -532,7 +589,7 @@ class TestProcessApi(BaseTest):
         spec = load_test_spec("hello_world")
         response = client.post(
             f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/process-instances",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.status_code == 201
         assert response.json is not None
@@ -544,7 +601,9 @@ class TestProcessApi(BaseTest):
     ) -> None:
         """Test_get_process_groups_when_none."""
         user = self.find_or_create_user()
-        response = client.get("/v1.0/process-groups", headers=logged_in_headers(user))
+        response = client.get(
+            "/v1.0/process-groups", headers=self.logged_in_headers(user)
+        )
         assert response.status_code == 200
         assert response.json is not None
         assert response.json["results"] == []
@@ -555,7 +614,9 @@ class TestProcessApi(BaseTest):
         """Test_get_process_groups_when_there_are_some."""
         user = self.find_or_create_user()
         load_test_spec("hello_world")
-        response = client.get("/v1.0/process-groups", headers=logged_in_headers(user))
+        response = client.get(
+            "/v1.0/process-groups", headers=self.logged_in_headers(user)
+        )
         assert response.status_code == 200
         assert response.json is not None
         assert len(response.json["results"]) == 1
@@ -573,7 +634,7 @@ class TestProcessApi(BaseTest):
         load_test_spec(process_model_dir_name, process_group_id=test_process_group_id)
         response = client.get(
             f"/v1.0/process-groups/{test_process_group_id}",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.status_code == 200
         assert response.json is not None
@@ -590,7 +651,7 @@ class TestProcessApi(BaseTest):
         load_test_spec(process_model_dir_name, process_group_id=test_process_group_id)
         response = client.get(
             f"/v1.0/process-models/{test_process_group_id}/{process_model_dir_name}",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.status_code == 200
         assert response.json is not None
@@ -607,7 +668,7 @@ class TestProcessApi(BaseTest):
         group_id = self.create_process_group(client, user, "my_group")
         response = client.get(
             f"/v1.0/process-models/{group_id}/{process_model_dir_name}",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.status_code == 400
         assert response.json is not None
@@ -620,7 +681,7 @@ class TestProcessApi(BaseTest):
         test_process_group_id = "runs_without_input"
         test_process_model_id = "sample"
         user = self.find_or_create_user()
-        headers = logged_in_headers(user)
+        headers = self.logged_in_headers(user)
         response = self.create_process_instance(
             client, test_process_group_id, test_process_model_id, headers
         )
@@ -636,7 +697,7 @@ class TestProcessApi(BaseTest):
         process_group_id = "runs_without_input"
         process_model_id = "sample"
         user = self.find_or_create_user()
-        headers = logged_in_headers(user)
+        headers = self.logged_in_headers(user)
         response = self.create_process_instance(
             client, process_group_id, process_model_id, headers
         )
@@ -644,7 +705,7 @@ class TestProcessApi(BaseTest):
         process_instance_id = response.json["id"]
         response = client.post(
             f"/v1.0/process-models/{process_group_id}/{process_model_id}/process-instances/{process_instance_id}/run",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
 
         assert response.json is not None
@@ -676,7 +737,7 @@ class TestProcessApi(BaseTest):
         response = client.post(
             f"/v1.0/messages/{message_model_identifier}",
             content_type="application/json",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
             data=json.dumps({"payload": payload}),
         )
         assert response.status_code == 200
@@ -716,7 +777,7 @@ class TestProcessApi(BaseTest):
             client,
             process_model.process_group_id,
             process_model.id,
-            logged_in_headers(user),
+            self.logged_in_headers(user),
         )
         assert response.json is not None
         process_instance_id = response.json["id"]
@@ -724,7 +785,7 @@ class TestProcessApi(BaseTest):
         response = client.post(
             f"/v1.0/process-models/{process_model.process_group_id}/"
             f"{process_model.id}/process-instances/{process_instance_id}/run",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
 
         assert response.json is not None
@@ -732,7 +793,7 @@ class TestProcessApi(BaseTest):
         response = client.post(
             f"/v1.0/messages/{message_model_identifier}",
             content_type="application/json",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
             data=json.dumps(
                 {"payload": payload, "process_instance_id": process_instance_id}
             ),
@@ -767,7 +828,7 @@ class TestProcessApi(BaseTest):
             client,
             process_model.process_group_id,
             process_model.id,
-            logged_in_headers(user),
+            self.logged_in_headers(user),
         )
         assert response.json is not None
         process_instance_id = response.json["id"]
@@ -775,7 +836,7 @@ class TestProcessApi(BaseTest):
         response = client.post(
             f"/v1.0/process-models/{process_model.process_group_id}/"
             f"{process_model.id}/process-instances/{process_instance_id}/run",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.status_code == 200
         assert response.json is not None
@@ -783,7 +844,7 @@ class TestProcessApi(BaseTest):
         response = client.post(
             f"/v1.0/process-models/{process_model.process_group_id}/"
             f"{process_model.id}/process-instances/{process_instance_id}/terminate",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.status_code == 200
         assert response.json is not None
@@ -802,7 +863,7 @@ class TestProcessApi(BaseTest):
         process_model_id = "user_task"
 
         user = self.find_or_create_user()
-        headers = logged_in_headers(user)
+        headers = self.logged_in_headers(user)
         response = self.create_process_instance(
             client, process_group_id, process_model_id, headers
         )
@@ -811,7 +872,7 @@ class TestProcessApi(BaseTest):
 
         response = client.post(
             f"/v1.0/process-models/{process_group_id}/{process_model_id}/process-instances/{process_instance_id}/run",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
 
         assert response.json is not None
@@ -826,7 +887,7 @@ class TestProcessApi(BaseTest):
 
         delete_response = client.delete(
             f"/v1.0/process-models/{process_group_id}/{process_model_id}/process-instances/{process_instance_id}",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert delete_response.status_code == 200
 
@@ -838,7 +899,7 @@ class TestProcessApi(BaseTest):
         process_model_id = "user_task"
 
         user = self.find_or_create_user()
-        headers = logged_in_headers(user)
+        headers = self.logged_in_headers(user)
         response = self.create_process_instance(
             client, process_group_id, process_model_id, headers
         )
@@ -847,7 +908,7 @@ class TestProcessApi(BaseTest):
 
         response = client.post(
             f"/v1.0/process-models/{process_group_id}/{process_model_id}/process-instances/{process_instance_id}/run",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
 
         assert response.json is not None
@@ -868,14 +929,14 @@ class TestProcessApi(BaseTest):
         test_process_group_id = "runs_without_input"
         process_model_dir_name = "sample"
         user = self.find_or_create_user()
-        headers = logged_in_headers(user)
+        headers = self.logged_in_headers(user)
         self.create_process_instance(
             client, test_process_group_id, process_model_dir_name, headers
         )
 
         response = client.get(
             f"/v1.0/process-models/{test_process_group_id}/{process_model_dir_name}/process-instances",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.status_code == 200
         assert response.json is not None
@@ -904,7 +965,7 @@ class TestProcessApi(BaseTest):
         test_process_group_id = "runs_without_input"
         process_model_dir_name = "sample"
         user = self.find_or_create_user()
-        headers = logged_in_headers(user)
+        headers = self.logged_in_headers(user)
         self.create_process_instance(
             client, test_process_group_id, process_model_dir_name, headers
         )
@@ -923,7 +984,7 @@ class TestProcessApi(BaseTest):
 
         response = client.get(
             f"/v1.0/process-models/{test_process_group_id}/{process_model_dir_name}/process-instances?per_page=2&page=3",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.status_code == 200
         assert response.json is not None
@@ -934,7 +995,7 @@ class TestProcessApi(BaseTest):
 
         response = client.get(
             f"/v1.0/process-models/{test_process_group_id}/{process_model_dir_name}/process-instances?per_page=2&page=1",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.status_code == 200
         assert response.json is not None
@@ -971,7 +1032,7 @@ class TestProcessApi(BaseTest):
         # Without filtering we should get all 5 instances
         response = client.get(
             f"/v1.0/process-models/{test_process_group_id}/{test_process_model_id}/process-instances",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.json is not None
         results = response.json["results"]
@@ -982,7 +1043,7 @@ class TestProcessApi(BaseTest):
         for i in range(5):
             response = client.get(
                 f"/v1.0/process-models/{test_process_group_id}/{test_process_model_id}/process-instances?process_status={ProcessInstanceStatus[statuses[i]].value}",
-                headers=logged_in_headers(user),
+                headers=self.logged_in_headers(user),
             )
             assert response.json is not None
             results = response.json["results"]
@@ -993,7 +1054,7 @@ class TestProcessApi(BaseTest):
         # start > 1000 - this should eliminate the first
         response = client.get(
             f"/v1.0/process-models/{test_process_group_id}/{test_process_model_id}/process-instances?start_from=1001",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.json is not None
         results = response.json["results"]
@@ -1004,7 +1065,7 @@ class TestProcessApi(BaseTest):
         # start > 2000, end < 5000 - this should eliminate the first 2 and the last
         response = client.get(
             f"/v1.0/process-models/{test_process_group_id}/{test_process_model_id}/process-instances?start_from=2001&end_till=5999",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.json is not None
         results = response.json["results"]
@@ -1015,7 +1076,7 @@ class TestProcessApi(BaseTest):
         # start > 1000, start < 4000 - this should eliminate the first and the last 2
         response = client.get(
             f"/v1.0/process-models/{test_process_group_id}/{test_process_model_id}/process-instances?start_from=1001&start_till=3999",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.json is not None
         results = response.json["results"]
@@ -1026,7 +1087,7 @@ class TestProcessApi(BaseTest):
         # end > 2000, end < 6000 - this should eliminate the first and the last
         response = client.get(
             f"/v1.0/process-models/{test_process_group_id}/{test_process_model_id}/process-instances?end_from=2001&end_till=5999",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.json is not None
         results = response.json["results"]
@@ -1041,7 +1102,7 @@ class TestProcessApi(BaseTest):
         process_group_identifier = "runs_without_input"
         process_model_identifier = "sample"
         user = self.find_or_create_user()
-        logged_in_headers(user)
+        self.logged_in_headers(user)
         load_test_spec(
             process_model_identifier, process_group_id=process_group_identifier
         )
@@ -1056,7 +1117,7 @@ class TestProcessApi(BaseTest):
         )
         response = client.get(
             f"/v1.0/process-models/{process_group_identifier}/{process_model_identifier}/process-instances/reports",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.status_code == 200
         assert response.json is not None
@@ -1105,7 +1166,7 @@ class TestProcessApi(BaseTest):
 
         response = client.get(
             f"/v1.0/process-models/{test_process_group_id}/{process_model_dir_name}/process-instances/reports/sure",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.status_code == 200
         assert response.json is not None
@@ -1158,7 +1219,7 @@ class TestProcessApi(BaseTest):
 
         response = client.get(
             f"/v1.0/process-models/{test_process_group_id}/{process_model_dir_name}/process-instances/reports/sure?grade_level=1",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.status_code == 200
         assert response.json is not None
@@ -1178,7 +1239,7 @@ class TestProcessApi(BaseTest):
 
         response = client.get(
             f"/v1.0/process-models/{test_process_group_id}/{process_model_dir_name}/process-instances/reports/sure?grade_level=1",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.status_code == 404
         data = json.loads(response.get_data(as_text=True))
@@ -1192,7 +1253,7 @@ class TestProcessApi(BaseTest):
         user: UserModel,
     ) -> Any:
         """Setup_testing_instance."""
-        headers = logged_in_headers(user)
+        headers = self.logged_in_headers(user)
         response = self.create_process_instance(
             client, process_group_id, process_model_id, headers
         )
@@ -1222,21 +1283,16 @@ class TestProcessApi(BaseTest):
 
         response = client.post(
             f"/v1.0/process-models/{process_group_id}/{process_model_id}/process-instances/{process_instance_id}/run",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.status_code == 400
 
         api_error = json.loads(response.get_data(as_text=True))
-        assert api_error["code"] == "unknown_exception"
-        assert "An unknown error occurred." in api_error["message"]
+        assert api_error["code"] == "task_error"
         assert (
-            'Original error: ApiError: Activity_CauseError: TypeError:can only concatenate str (not "int") to str.'
+            'Activity_CauseError: TypeError:can only concatenate str (not "int") to str'
             in api_error["message"]
         )
-        assert (
-            "Error in task 'Cause Error' (Activity_CauseError)." in api_error["message"]
-        )
-        assert "Error is on line 1. In file error.bpmn." in api_error["message"]
 
         process = (
             db.session.query(ProcessInstanceModel)
@@ -1273,7 +1329,7 @@ class TestProcessApi(BaseTest):
 
         response = client.post(
             f"/v1.0/process-models/{process_group_id}/{process_model_id}/process-instances/{process_instance_id}/run",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.status_code == 400
 
@@ -1308,7 +1364,7 @@ class TestProcessApi(BaseTest):
 
             response = client.post(
                 f"/v1.0/process-models/{process_group_id}/{process_model_id}/process-instances/{process_instance_id}/run",
-                headers=logged_in_headers(user),
+                headers=self.logged_in_headers(user),
             )
             assert response.status_code == 400
             assert len(outbox) == 1

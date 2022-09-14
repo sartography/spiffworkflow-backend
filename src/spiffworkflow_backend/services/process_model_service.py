@@ -310,8 +310,6 @@ class ProcessModelService(FileSystemService):
                 is_master_spec=is_master,
                 display_name=name,
                 description="",
-                primary_process_id="",
-                primary_file_name="",
                 display_order=0,
                 is_review=False,
                 libraries=[],

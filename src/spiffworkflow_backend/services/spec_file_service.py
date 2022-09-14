@@ -24,6 +24,7 @@ from spiffworkflow_backend.models.message_triggerable_process_model import (
 )
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.services.file_system_service import FileSystemService
+from spiffworkflow_backend.services.process_model_service import ProcessModelService
 
 
 class SpecFileService(FileSystemService):
@@ -193,12 +194,17 @@ class SpecFileService(FileSystemService):
 
             try:
                 if set_primary_file:
-                    process_model_info.primary_process_id = (
-                        SpecFileService.get_bpmn_process_identifier(bpmn_etree_element)
-                    )
-                    process_model_info.primary_file_name = file_name
-                    process_model_info.is_review = SpecFileService.has_swimlane(
-                        bpmn_etree_element
+                    attributes_to_update = {
+                        "primary_process_id": (
+                            SpecFileService.get_bpmn_process_identifier(
+                                bpmn_etree_element
+                            )
+                        ),
+                        "primary_file_name": file_name,
+                        "is_review": SpecFileService.has_swimlane(bpmn_etree_element),
+                    }
+                    ProcessModelService().update_spec(
+                        process_model_info, attributes_to_update
                     )
 
                 SpecFileService.check_for_message_models(
@@ -238,6 +244,54 @@ class SpecFileService(FileSystemService):
             if el.get("name"):
                 retval = True
         return retval
+
+    @staticmethod
+    def append_identifier_of_process_to_array(
+        process_element: _Element, process_identifiers: list[str]
+    ) -> None:
+        """Append_identifier_of_process_to_array."""
+        process_id_key = "id"
+        if "name" in process_element.attrib:
+            process_id_key = "name"
+
+        process_identifiers.append(process_element.attrib[process_id_key])
+
+    @staticmethod
+    def get_all_bpmn_process_identifiers_for_process_model(
+        process_model_info: ProcessModelInfo,
+    ) -> list[str]:
+        """Get_all_bpmn_process_identifiers_for_process_model."""
+        if process_model_info.primary_file_name is None:
+            return []
+
+        binary_data = SpecFileService.get_data(
+            process_model_info, process_model_info.primary_file_name
+        )
+
+        et_root: EtreeElement = SpecFileService.get_etree_element_from_binary_data(
+            binary_data, process_model_info.primary_file_name
+        )
+        process_identifiers: list[str] = []
+        for child in et_root:
+            if child.tag.endswith("process") and child.attrib.get(
+                "isExecutable", False
+            ):
+                subprocesses = child.xpath(
+                    "//bpmn:subProcess",
+                    namespaces={"bpmn": "http://www.omg.org/spec/BPMN/20100524/MODEL"},
+                )
+                for subprocess in subprocesses:
+                    SpecFileService.append_identifier_of_process_to_array(
+                        subprocess, process_identifiers
+                    )
+
+                SpecFileService.append_identifier_of_process_to_array(
+                    child, process_identifiers
+                )
+
+        if len(process_identifiers) == 0:
+            raise ValidationException("No executable process tag found")
+        return process_identifiers
 
     @staticmethod
     def get_executable_process_elements(et_root: _Element) -> list[_Element]:

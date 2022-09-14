@@ -27,7 +27,6 @@ from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
 )
 from spiffworkflow_backend.models.active_task import ActiveTaskModel
 from spiffworkflow_backend.models.file import FileSchema
-from spiffworkflow_backend.models.file import FileType
 from spiffworkflow_backend.models.message_instance import MessageInstanceModel
 from spiffworkflow_backend.models.message_model import MessageModel
 from spiffworkflow_backend.models.message_triggerable_process_model import (
@@ -43,6 +42,7 @@ from spiffworkflow_backend.models.process_instance_report import (
 )
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
+from spiffworkflow_backend.models.secret_model import SecretModelSchema
 from spiffworkflow_backend.models.spiff_logging import SpiffLoggingModel
 from spiffworkflow_backend.services.error_handling_service import ErrorHandlingService
 from spiffworkflow_backend.services.file_system_service import FileSystemService
@@ -55,6 +55,7 @@ from spiffworkflow_backend.services.process_instance_service import (
 )
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 from spiffworkflow_backend.services.service_task_service import ServiceTaskService
+from spiffworkflow_backend.services.secret_service import SecretService
 from spiffworkflow_backend.services.spec_file_service import SpecFileService
 
 process_api_blueprint = Blueprint("process_api", __name__)
@@ -243,7 +244,7 @@ def get_file(process_group_id: str, process_model_id: str, file_name: str) -> An
 def process_model_file_update(
     process_group_id: str, process_model_id: str, file_name: str
 ) -> flask.wrappers.Response:
-    """Process_model_file_save."""
+    """Process_model_file_update."""
     process_model = get_process_model(process_model_id, process_group_id)
 
     request_file = get_file_from_request()
@@ -280,7 +281,6 @@ def process_model_file_delete(
 
 def add_file(process_group_id: str, process_model_id: str) -> flask.wrappers.Response:
     """Add_file."""
-    process_model_service = ProcessModelService()
     process_model = get_process_model(process_model_id, process_group_id)
     request_file = get_file_from_request()
     if not request_file.filename:
@@ -332,6 +332,7 @@ def process_instance_run(
         try:
             processor.do_engine_steps()
         except ApiError as e:
+            ErrorHandlingService().handle_error(processor, e)
             raise e
         except Exception as e:
             ErrorHandlingService().handle_error(processor, e)
@@ -785,7 +786,10 @@ def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response
     task.process_model_display_name = process_model.display_name
 
     process_model_with_form = process_model
-    if task.process_name != process_model.primary_process_id:
+    all_processes = SpecFileService.get_all_bpmn_process_identifiers_for_process_model(
+        process_model
+    )
+    if task.process_name not in all_processes:
         bpmn_file_full_path = (
             ProcessInstanceProcessor.bpmn_file_full_path_from_bpmn_process_identifier(
                 task.process_name
@@ -1036,3 +1040,47 @@ def get_spiff_task_from_process_instance(
             )
         )
     return spiff_task
+
+
+#
+# Methods for secrets CRUD - maybe move somewhere else:
+#
+def get_secret(key: str) -> str | None:
+    """Get_secret."""
+    return SecretService.get_secret(key)
+
+
+def add_secret(body: Dict) -> Response:
+    """Add secret."""
+    secret_model = SecretService.add_secret(
+        body["key"], body["service"], body["creator_user_id"]
+    )
+    assert secret_model  # noqa: S101
+    return Response(
+        json.dumps(SecretModelSchema().dump(secret_model)),
+        status=201,
+        mimetype="application/json",
+    )
+
+    # return secret_model
+
+
+def update_secret(
+    service: str,
+    client: str,
+    secret: Optional[str] = None,
+    creator_user_id: Optional[int] = None,
+    allowed_process: Optional[str] = None,
+) -> None:
+    """Update secret."""
+    ...
+
+
+def delete_secret(service: str, client: str) -> None:
+    """Delete secret."""
+    ...
+
+
+def get_allowed_process_paths(service: str, client: str) -> Any:
+    """Get allowed process paths."""
+    ...

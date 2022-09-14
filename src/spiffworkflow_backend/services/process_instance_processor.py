@@ -74,7 +74,9 @@ from spiffworkflow_backend.services.service_task_service import ServiceTaskServi
 from spiffworkflow_backend.services.spec_file_service import SpecFileService
 from spiffworkflow_backend.services.user_service import UserService
 
-# from crc.services.user_file_service import UserFileService
+
+class ProcessInstanceProcessorError(Exception):
+    """ProcessInstanceProcessorError."""
 
 
 class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
@@ -100,8 +102,7 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
             return super()._evaluate(expression, context)
         except Exception as exception:
             if task is None:
-                raise ApiError(
-                    "error_evaluating_expression",
+                raise ProcessInstanceProcessorError(
                     "Error evaluating expression: "
                     "'%s', exception: %s" % (expression, str(exception)),
                 ) from exception
@@ -653,7 +654,7 @@ class ProcessInstanceProcessor:
             if not bpmn_message.correlations:
                 raise ApiError(
                     "message_correlations_missing",
-                    f"Could not find any message correlations bpmn_message: {bpmn_message}",
+                    f"Could not find any message correlations bpmn_message: {bpmn_message.name}",
                 )
 
             message_correlations = []
