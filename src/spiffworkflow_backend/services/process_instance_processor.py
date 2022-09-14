@@ -645,7 +645,7 @@ class ProcessInstanceProcessor:
             if not bpmn_message.correlations:
                 raise ApiError(
                     "message_correlations_missing",
-                    f"Could not find any message correlations bpmn_message: {bpmn_message}",
+                    f"Could not find any message correlations bpmn_message: {bpmn_message.name}",
                 )
 
             message_correlations = []
