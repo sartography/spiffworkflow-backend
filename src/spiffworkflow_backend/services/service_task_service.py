@@ -36,7 +36,9 @@ class ServiceTaskDelegate:
             return value
 
         params = { k: normalizeValue(v) for k, v in bpmn_params.items() }
+        # TODO pull host/port from config
         proxied_response = requests.get('http://localhost:5001/v1/do/' + name, params)
+        print('From: ' + name)
         print(proxied_response.text)
 
 # TODO: delete lots of stuff here
