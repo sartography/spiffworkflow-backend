@@ -2,7 +2,6 @@
 from flask.app import Flask
 from flask.testing import FlaskClient
 from tests.spiffworkflow_backend.helpers.base_test import BaseTest
-from tests.spiffworkflow_backend.helpers.test_data import logged_in_headers
 
 
 class TestLoggingService(BaseTest):
@@ -15,7 +14,7 @@ class TestLoggingService(BaseTest):
         process_group_id = "test_logging_spiff_logger"
         process_model_id = "simple_script"
         user = self.find_or_create_user()
-        headers = logged_in_headers(user)
+        headers = self.logged_in_headers(user)
         response = self.create_process_instance(
             client, process_group_id, process_model_id, headers
         )
@@ -23,13 +22,13 @@ class TestLoggingService(BaseTest):
         process_instance_id = response.json["id"]
         response = client.post(
             f"/v1.0/process-models/{process_group_id}/{process_model_id}/process-instances/{process_instance_id}/run",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.status_code == 200
 
         log_response = client.get(
             f"/v1.0/process-models/{process_group_id}/{process_model_id}/process-instances/{process_instance_id}/logs",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert log_response.status_code == 200
         assert log_response.json

@@ -1,6 +1,7 @@
 """Secret_model."""
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import SpiffworkflowBaseDBModel
+from marshmallow import Schema
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship
 
@@ -12,12 +13,21 @@ class SecretModel(SpiffworkflowBaseDBModel):
 
     __tablename__ = "secret"
     id: int = db.Column(db.Integer, primary_key=True)
-    service: str = db.Column(db.String(50))
-    client: str = db.Column(db.String(50))
     key: str = db.Column(db.String(50))
+    value: str = db.Column(db.String(255))
     creator_user_id: int = db.Column(ForeignKey(UserModel.id), nullable=False)
 
     allowed_processes = relationship("SecretAllowedProcessPathModel", cascade="delete")
+
+
+class SecretModelSchema(Schema):
+    """SecretModelSchema."""
+
+    class Meta:
+        """Meta."""
+
+        model = SecretModel
+        fields = ["key", "value", "creator_user_id"]
 
 
 class SecretAllowedProcessPathModel(SpiffworkflowBaseDBModel):

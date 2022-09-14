@@ -11,7 +11,6 @@ from flask.testing import FlaskClient
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
 from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
-from tests.spiffworkflow_backend.helpers.test_data import logged_in_headers
 from werkzeug.test import TestResponse
 
 from spiffworkflow_backend.models.process_group import ProcessGroup
@@ -23,6 +22,8 @@ from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
 from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 from spiffworkflow_backend.services.user_service import UserService
+
+# from tests.spiffworkflow_backend.helpers.test_data import logged_in_headers
 
 
 class BaseTest:
@@ -138,7 +139,7 @@ class BaseTest:
             "/v1.0/process-models",
             content_type="application/json",
             data=json.dumps(ProcessModelInfoSchema().dump(model)),
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.status_code == 201
         return response
@@ -168,7 +169,7 @@ class BaseTest:
             data=data,
             follow_redirects=True,
             content_type="multipart/form-data",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.status_code == 201
         assert response.get_data() is not None
@@ -178,7 +179,7 @@ class BaseTest:
 
         response = client.get(
             f"/v1.0/process-models/{spec.process_group_id}/{spec.id}/files/{file_name}",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.status_code == 200
         file2 = json.loads(response.get_data(as_text=True))
@@ -198,7 +199,7 @@ class BaseTest:
         )
         response = client.post(
             "/v1.0/process-groups",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
             content_type="application/json",
             data=json.dumps(ProcessGroupSchema().dump(process_group)),
         )
@@ -233,3 +234,29 @@ class BaseTest:
         db.session.add(process_instance)
         db.session.commit()
         return process_instance
+
+    @staticmethod
+    def logged_in_headers(
+        user: UserModel, _redirect_url: str = "http://some/frontend/url"
+    ) -> Dict[str, str]:
+        """Logged_in_headers."""
+        # if user is None:
+        #     uid = 'test_user'
+        #     user_info = {'uid': 'test_user'}
+        # else:
+        #     uid = user.uid
+        #     user_info = {'uid': user.uid}
+
+        # query_string = user_info_to_query_string(user_info, redirect_url)
+        # rv = self.app.get("/v1.0/login%s" % query_string, follow_redirects=False)
+        # self.assertTrue(rv.status_code == 302)
+        # self.assertTrue(str.startswith(rv.location, redirect_url))
+        #
+        # user_model = session.query(UserModel).filter_by(uid=uid).first()
+        # self.assertIsNotNone(user_model.ldap_info.display_name)
+        # self.assertEqual(user_model.uid, uid)
+        # self.assertTrue('user' in g, 'User should be in Flask globals')
+        # user = UserService.current_user(allow_admin_impersonate=True)
+        # self.assertEqual(uid, user.uid, 'Logged in user should match given user uid')
+
+        return dict(Authorization="Bearer " + user.encode_auth_token())

@@ -42,7 +42,7 @@ from spiffworkflow_backend.models.process_instance_report import (
 )
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
-from spiffworkflow_backend.models.secret_model import SecretModel
+from spiffworkflow_backend.models.secret_model import SecretModelSchema
 from spiffworkflow_backend.models.spiff_logging import SpiffLoggingModel
 from spiffworkflow_backend.services.error_handling_service import ErrorHandlingService
 from spiffworkflow_backend.services.file_system_service import FileSystemService
@@ -1029,20 +1029,24 @@ def get_spiff_task_from_process_instance(
 #
 # Methods for secrets CRUD - maybe move somewhere else:
 #
-def get_secret(service: str, client: str) -> str | None:
+def get_secret(key: str) -> str | None:
     """Get_secret."""
-    return SecretService.get_secret(service, client)
+    return SecretService.get_secret(key)
 
 
-def add_secret(
-    service: str,
-    client: str,
-    secret: str,
-    creator_user_id: Optional[int] = None,
-    allowed_process: Optional[str] = None,
-) -> SecretModel:
+def add_secret(body: Dict) -> Response:
     """Add secret."""
-    ...
+    secret_model = SecretService.add_secret(
+        body["key"], body["service"], body["creator_user_id"]
+    )
+    assert secret_model  # noqa: S101
+    return Response(
+        json.dumps(SecretModelSchema().dump(secret_model)),
+        status=201,
+        mimetype="application/json",
+    )
+
+    # return secret_model
 
 
 def update_secret(

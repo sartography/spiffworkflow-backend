@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 71fbd39e5d42
+Revision ID: 33c37028fb51
 Revises: 
-Create Date: 2022-09-13 08:35:27.077613
+Create Date: 2022-09-14 08:59:45.896805
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '71fbd39e5d42'
+revision = '33c37028fb51'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -137,9 +137,8 @@ def upgrade():
     op.create_index(op.f('ix_process_instance_report_process_model_identifier'), 'process_instance_report', ['process_model_identifier'], unique=False)
     op.create_table('secret',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('service', sa.String(length=50), nullable=True),
-    sa.Column('client', sa.String(length=50), nullable=True),
     sa.Column('key', sa.String(length=50), nullable=True),
+    sa.Column('value', sa.String(length=255), nullable=True),
     sa.Column('creator_user_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['creator_user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')

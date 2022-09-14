@@ -993,23 +993,17 @@ paths:
               schema:
                 type: number
 
-  /secrets/{service}/{client}:
+  /secrets/{key}:
     parameters:
-      - name: service
+      - name: secret_id
         in: path
         required: true
-        description: The external service we are using
-        schema:
-          type: string
-      - name: client
-        in: path
-        required: true
-        description: The client identifier of the external service we are using
+        description: The key we are using
         schema:
           type: string
     get:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.get_secret
-      summary: Returns a client secret for a service and client
+      summary: Returns a secret value for a key
       tags:
         - Secrets
       responses:
@@ -1784,28 +1778,26 @@ components:
           example: ["a_file.txt", "b_file.txt"]
     Secret:
       properties:
-        service:
-          description: The service we are contacting
+        value:
+          description: The value associated with the key
           type: string
-          example: github
-        client:
-          description: The client of the service we are contacting the service on behalf of. I.e., username, id, etc.
+          example: my_super_secret_value
+          nullable: false
+        key:
+          description: The key of the secret we want to use
           type: string
-          example: clients_user_name_at_github
-        secret:
-          description: The secret associated with the client on the service
-          type: string
-          example: my_super_secret_password
-          nullable: true
+          example: my_secret_key
+          nullable: false
         creator_user_id:
           description: The id of the logged in user that created this secret
           type: number
           example: 1
           nullable: true
         allowed_processes:
-          description: The id of the process model allowed to access this secret
-          type: string
-          example: my_process_model_id
+          description: The processes allowed to access this secret
+          type: array
+          items:
+            $ref: "#/components/schemas/SecretAllowedProcessPath"
           nullable: true
     ProcessInstanceLog:
       properties:
