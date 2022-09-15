@@ -112,7 +112,9 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
                     "'%s', %s" % (expression, str(exception)),
                 ) from exception
 
-    def execute(self, task: SpiffTask, script: str, external_methods: Any = None) -> None:
+    def execute(
+        self, task: SpiffTask, script: str, external_methods: Any = None
+    ) -> None:
         """Execute."""
         try:
             super().execute(task, script, external_methods)
