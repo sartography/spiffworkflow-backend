@@ -53,6 +53,7 @@ from spiffworkflow_backend.services.process_instance_service import (
     ProcessInstanceService,
 )
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
+from spiffworkflow_backend.services.service_task_service import ServiceTaskService
 from spiffworkflow_backend.services.spec_file_service import SpecFileService
 
 process_api_blueprint = Blueprint("process_api", __name__)
@@ -646,6 +647,15 @@ def process_instance_report_delete(
     db.session.commit()
 
     return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
+
+
+def service_tasks_show() -> flask.wrappers.Response:
+    """service_tasks_show."""
+    available_connectors = []  # ServiceTaskService.available_operators()
+
+    return Response(
+        json.dumps(available_connectors), status=200, mimetype="application/json"
+    )
 
 
 def process_instance_report_show(
