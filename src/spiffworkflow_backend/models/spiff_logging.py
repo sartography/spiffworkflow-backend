@@ -4,6 +4,9 @@ from typing import Optional
 
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import SpiffworkflowBaseDBModel
+from sqlalchemy import ForeignKey
+
+from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 
 
 @dataclass
@@ -12,13 +15,9 @@ class SpiffLoggingModel(SpiffworkflowBaseDBModel):
 
     __tablename__ = "spiff_logging"
     id: int = db.Column(db.Integer, primary_key=True)
-    process_instance_id: int = db.Column(
-        db.Integer, nullable=False
-    )  # record.process_instance_id
-    bpmn_process_identifier: str = db.Column(
-        db.String(50), nullable=False
-    )  # record.workflow
-    task: str = db.Column(db.String(50), nullable=False)  # record.task_id
-    timestamp: float = db.Column(db.Float(), nullable=False)  # record.created
-
-    message: Optional[str] = db.Column(db.String(50), nullable=True)  # record.msg
+    process_instance_id: int = db.Column(ForeignKey(ProcessInstanceModel.id), nullable=False)  # type: ignore
+    bpmn_process_identifier: str = db.Column(db.String(50), nullable=False)
+    bpmn_task_identifier: str = db.Column(db.String(50), nullable=False)
+    spiff_task_guid: str = db.Column(db.String(50), nullable=False)
+    timestamp: float = db.Column(db.DECIMAL(17, 6), nullable=False)
+    message: Optional[str] = db.Column(db.String(50), nullable=True)

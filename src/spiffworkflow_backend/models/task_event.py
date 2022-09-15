@@ -9,7 +9,6 @@ from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from marshmallow import fields
 from marshmallow import INCLUDE
 from marshmallow import Schema
-from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from sqlalchemy import func
 
 
@@ -56,18 +55,6 @@ class TaskEventModel(SpiffworkflowBaseDBModel):
     mi_index = db.Column(db.Integer)
     process_name = db.Column(db.String(50))
     date = db.Column(db.DateTime(timezone=True), default=func.now())
-
-
-class TaskEventModelSchema(SQLAlchemyAutoSchema):
-    """TaskEventModelSchema."""
-
-    class Meta:
-        """Meta."""
-
-        model = TaskEventModel
-        load_instance = True
-        include_relationships = True
-        include_fk = True  # Includes foreign keys
 
 
 class TaskEvent:

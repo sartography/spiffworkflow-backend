@@ -170,13 +170,15 @@ class DBHandler(logging.Handler):
         """Emit."""
         if record:
             bpmn_process_identifier = record.workflow  # type: ignore
-            task = str(record.task_id)  # type: ignore
+            spiff_task_guid = str(record.task_id)  # type: ignore
+            bpmn_task_identifier = str(record.task_spec)  # type: ignore
             timestamp = record.created
             message = record.msg if hasattr(record, "msg") else None
             spiff_log = SpiffLoggingModel(
                 process_instance_id=record.process_instance_id,  # type: ignore
                 bpmn_process_identifier=bpmn_process_identifier,
-                task=task,
+                spiff_task_guid=spiff_task_guid,
+                bpmn_task_identifier=bpmn_task_identifier,
                 message=message,
                 timestamp=timestamp,
             )
