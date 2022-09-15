@@ -651,7 +651,7 @@ def process_instance_report_delete(
 
 def service_tasks_show() -> flask.wrappers.Response:
     """service_tasks_show."""
-    available_connectors = []  # ServiceTaskService.available_operators()
+    available_connectors = ServiceTaskService.available_connectors()
 
     return Response(
         json.dumps(available_connectors), status=200, mimetype="application/json"
