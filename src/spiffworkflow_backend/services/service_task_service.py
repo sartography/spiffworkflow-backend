@@ -7,20 +7,24 @@ import requests
 
 
 class ServiceTaskDelegate:
+    """ServiceTaskDelegate."""
+
     @staticmethod
-    def callConnector(
+    def call_connector(
         name: str, bpmn_params: Any
     ) -> None:  # TODO what is the return/type
-        def normalizeValue(v: Any):
+        """Calls a connector via the configured proxy."""
+
+        def normalize_value(v: Any):
             value = v["value"]
-            secret_prefix = "secret:"
+            secret_prefix = "secret:"  # noqa: S105
             if value.startswith(secret_prefix):
                 key = value.removeprefix(secret_prefix)
                 # TODO replace with call to secret store
                 value = key
             return value
 
-        params = {k: normalizeValue(v) for k, v in bpmn_params.items()}
+        params = {k: normalize_value(v) for k, v in bpmn_params.items()}
         # TODO pull host/port from config
         proxied_response = requests.get("http://localhost:7004/v1/do/" + name, params)
         print("From: " + name)
@@ -33,7 +37,6 @@ class ServiceTaskService:
     @staticmethod
     def available_connectors() -> Any:
         """Returns a list of available connectors."""
-
         try:
             # TODO pull url from config
             response = requests.get("http://localhost:7004/v1/commands")
