@@ -13,8 +13,8 @@ class SecretModel(SpiffworkflowBaseDBModel):
 
     __tablename__ = "secret"
     id: int = db.Column(db.Integer, primary_key=True)
-    key: str = db.Column(db.String(50))
-    value: str = db.Column(db.String(255))
+    key: str = db.Column(db.String(50), unique=True, nullable=False)
+    value: str = db.Column(db.String(255), nullable=False)
     creator_user_id: int = db.Column(ForeignKey(UserModel.id), nullable=False)
 
     allowed_processes = relationship("SecretAllowedProcessPathModel", cascade="delete")
@@ -39,4 +39,4 @@ class SecretAllowedProcessPathModel(SpiffworkflowBaseDBModel):
     __tablename__ = "secret_allowed_process"
     id: int = db.Column(db.Integer, primary_key=True)
     secret_id: int = db.Column(ForeignKey(SecretModel.id), nullable=False)  # type: ignore
-    allowed_relative_path: str = db.Column(db.String(500), nullable=False, index=True)
+    allowed_relative_path: str = db.Column(db.String(500), nullable=False)

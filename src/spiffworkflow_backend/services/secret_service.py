@@ -15,7 +15,7 @@ class SecretService:
     def add_secret(
         key: str,
         value: str,
-        creator_user_id: Optional[int] = None,
+        creator_user_id: int,
     ) -> SecretModel:
         """Add_secret."""
         secret_model = SecretModel(
@@ -43,13 +43,13 @@ class SecretService:
 
     @staticmethod
     def add_allowed_process(
-        secret_id: int, user_id: str, allowed_relative_path: str
+        key: str, user_id: str, allowed_relative_path: str
     ) -> SecretAllowedProcessPathModel:
         """Add_allowed_process."""
-        creator = SecretModel.query.filter(SecretModel.id == secret_id).first()
-        if creator == user_id:
+        secret_model = SecretModel.query.filter(SecretModel.key == key).first()
+        if secret_model.creator_user_id == user_id:
             secret_process_model = SecretAllowedProcessPathModel(
-                secret_id=secret_id, allowed_relative_path=allowed_relative_path
+                secret_id=secret_model.id, allowed_relative_path=allowed_relative_path
             )
             assert secret_process_model  # noqa: S101
             db.session.add(secret_process_model)
@@ -58,7 +58,7 @@ class SecretService:
             except Exception as e:
                 raise ApiError(
                     code="create_allowed_process_failure",
-                    message=f"Count not create an allowed process for for secret: {secret_id} "
+                    message=f"Could not create an allowed process for secret with key: {key} "
                     f"with path: {allowed_relative_path}. "
                     f"Original error is {e}",
                 ) from e
@@ -66,27 +66,47 @@ class SecretService:
         else:
             raise ApiError(
                 code="create_allowed_process_path_error",
-                message=f"User: {user_id} cannot modify the secret with id : {secret_id}",
+                message=f"User: {user_id} cannot modify the secret with key : {key}",
             )
 
+    @staticmethod
     def update_secret(
-        self,
         key: str,
         value: str,
         creator_user_id: Optional[int] = None,
     ) -> None:
         """Does this pass pre commit?"""
-        ...
+        secret_model = SecretModel.query.filter(SecretModel.key == key).first()
+        if secret_model.creator_user_id == creator_user_id:
+            secret_model.value = value
+            db.session.add(secret_model)
+            try:
+                db.session.commit()
+            except Exception as e:
+                raise ApiError(code='update_secret_error',
+                               message=f"There was an error updating the secret with key: {key}, and value: {value}")
+        else:
+            raise ApiError(
+                code="update_secret_error",
+                message=f"User: {creator_user_id} cannot update the secret with key : {key}",
+            )
 
     @staticmethod
-    def delete_secret(key: str) -> None:
+    def delete_secret(key: str, user_id: int) -> None:
         """Delete secret."""
-        secret = SecretModel.query.filter(SecretModel.key == key).first()
-        db.session.delete(secret)
-        try:
-            db.session.commit()
-        except Exception as e:
+        secret_model = SecretModel.query.filter(SecretModel.key == key).first()
+        if secret_model.creator_user_id == user_id:
+            db.session.delete(secret_model)
+            try:
+                db.session.commit()
+            except Exception as e:
+                raise ApiError(
+                    code="delete_secret_error",
+                    message=f"Could not delete secret with key: {key}. Original error is: {e}",
+                ) from e
+        else:
             raise ApiError(
                 code="delete_secret_error",
-                message=f"Could not delete secret with key: {key}. Original error is: {e}",
-            ) from e
+                message=f"User: {user_id} cannot delete the secret with key : {key}",
+            )
+

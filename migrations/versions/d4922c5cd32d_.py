@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 33c37028fb51
+Revision ID: d4922c5cd32d
 Revises: 
-Create Date: 2022-09-14 08:59:45.896805
+Create Date: 2022-09-15 11:08:25.133655
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '33c37028fb51'
+revision = 'd4922c5cd32d'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -137,11 +137,12 @@ def upgrade():
     op.create_index(op.f('ix_process_instance_report_process_model_identifier'), 'process_instance_report', ['process_model_identifier'], unique=False)
     op.create_table('secret',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('key', sa.String(length=50), nullable=True),
-    sa.Column('value', sa.String(length=255), nullable=True),
+    sa.Column('key', sa.String(length=50), nullable=False),
+    sa.Column('value', sa.String(length=255), nullable=False),
     sa.Column('creator_user_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['creator_user_id'], ['user.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('key')
     )
     op.create_table('user_group_assignment',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -229,7 +230,6 @@ def upgrade():
     sa.ForeignKeyConstraint(['secret_id'], ['secret.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index(op.f('ix_secret_allowed_process_allowed_relative_path'), 'secret_allowed_process', ['allowed_relative_path'], unique=False)
     op.create_table('task_event',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
@@ -286,7 +286,6 @@ def downgrade():
     op.drop_table('message_correlation_message_instance')
     op.drop_table('data_store')
     op.drop_table('task_event')
-    op.drop_index(op.f('ix_secret_allowed_process_allowed_relative_path'), table_name='secret_allowed_process')
     op.drop_table('secret_allowed_process')
     op.drop_table('message_instance')
     op.drop_index(op.f('ix_message_correlation_value'), table_name='message_correlation')
