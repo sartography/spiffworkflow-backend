@@ -15,6 +15,7 @@ from flask import g
 from flask import jsonify
 from flask import make_response
 from flask import request
+from flask import current_app
 from flask.wrappers import Response
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
@@ -343,6 +344,9 @@ def process_instance_run(
             ) from e
         processor.save()
         ProcessInstanceService.update_task_assignments(processor)
+
+        if not current_app.config["PROCESS_WAITING_MESSAGES"]:
+            MessageService.process_message_instances()
 
     process_instance_api = ProcessInstanceService.processor_to_process_instance_api(
         processor

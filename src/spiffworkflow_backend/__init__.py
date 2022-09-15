@@ -36,7 +36,7 @@ def start_scheduler(app: flask.app.Flask) -> None:
     scheduler.add_job(
         MessageServiceWithAppContext(app).process_message_instances_with_app_context,
         "interval",
-        minutes=1,
+        seconds=10,
     )
     scheduler.start()
 
