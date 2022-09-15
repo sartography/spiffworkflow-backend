@@ -23,7 +23,6 @@ from SpiffWorkflow.bpmn.parser.ValidationException import ValidationException  #
 from SpiffWorkflow.bpmn.PythonScriptEngine import Box  # type: ignore
 from SpiffWorkflow.bpmn.PythonScriptEngine import PythonScriptEngine
 from SpiffWorkflow.bpmn.serializer import BpmnWorkflowSerializer  # type: ignore
-from SpiffWorkflow.bpmn.serializer.BpmnSerializer import BpmnSerializer  # type: ignore
 from SpiffWorkflow.bpmn.specs.BpmnProcessSpec import BpmnProcessSpec  # type: ignore
 from SpiffWorkflow.bpmn.specs.events import CancelEventDefinition  # type: ignore
 from SpiffWorkflow.bpmn.specs.events import EndEvent
@@ -271,14 +270,16 @@ class ProcessInstanceProcessor:
                 % (self.process_model_identifier, str(ke)),
             ) from ke
 
-    def add_user_info_to_process_instance(self, bpmn_process_instance: BpmnWorkflow) -> None:
+    def add_user_info_to_process_instance(
+        self, bpmn_process_instance: BpmnWorkflow
+    ) -> None:
         """Add_user_info_to_process_instance."""
         current_user = None
         if UserService.has_user():
             current_user = UserService.current_user(allow_admin_impersonate=True)
 
         # fall back to initiator if g.user is not set
-        # this is for background processes when there will not be a user 
+        # this is for background processes when there will not be a user
         #   coming in from the api
         elif self.process_instance_model.process_initiator_id:
             current_user = self.process_instance_model.process_initiator

@@ -11,11 +11,11 @@ import connexion  # type: ignore
 import flask.wrappers
 import jinja2
 from flask import Blueprint
+from flask import current_app
 from flask import g
 from flask import jsonify
 from flask import make_response
 from flask import request
-from flask import current_app
 from flask.wrappers import Response
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
