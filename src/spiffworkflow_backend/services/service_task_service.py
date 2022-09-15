@@ -7,7 +7,7 @@ import requests
 from flask import current_app
 
 
-def connector_proxy_url() -> str:
+def connector_proxy_url() -> Any:
     """Returns the connector proxy url."""
     return current_app.config["CONNECTOR_PROXY_URL"]
 
@@ -21,7 +21,7 @@ class ServiceTaskDelegate:
     ) -> None:  # TODO what is the return/type
         """Calls a connector via the configured proxy."""
 
-        def normalize_value(v: Any):
+        def normalize_value(v: Any) -> Any:
             value = v["value"]
             secret_prefix = "secret:"  # noqa: S105
             if value.startswith(secret_prefix):
@@ -57,4 +57,4 @@ class ServiceTaskService:
     @staticmethod
     def scripting_additions() -> Dict[str, Any]:
         """Allows the ServiceTaskDelegate to be available to script engine instances."""
-        return {"ServiceTaskDelegate", ServiceTaskDelegate}
+        return {"ServiceTaskDelegate": ServiceTaskDelegate}
