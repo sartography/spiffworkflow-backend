@@ -56,6 +56,7 @@ from spiffworkflow_backend.services.process_instance_service import (
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 from spiffworkflow_backend.services.secret_service import SecretService
 from spiffworkflow_backend.services.spec_file_service import SpecFileService
+from spiffworkflow_backend.services.user_service import UserService
 
 process_api_blueprint = Blueprint("process_api", __name__)
 
@@ -1066,9 +1067,10 @@ def update_secret(
     ...
 
 
-def delete_secret(service: str, client: str) -> None:
+def delete_secret(key: str) -> None:
     """Delete secret."""
-    ...
+    current_user = UserService.current_user()
+    SecretService.delete_secret(key, current_user.id)
 
 
 def get_allowed_process_paths(service: str, client: str) -> Any:

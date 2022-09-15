@@ -83,8 +83,10 @@ class SecretService:
             try:
                 db.session.commit()
             except Exception as e:
-                raise ApiError(code='update_secret_error',
-                               message=f"There was an error updating the secret with key: {key}, and value: {value}")
+                raise ApiError(
+                    code="update_secret_error",
+                    message=f"There was an error updating the secret with key: {key}, and value: {value}",
+                ) from e
         else:
             raise ApiError(
                 code="update_secret_error",
@@ -109,4 +111,3 @@ class SecretService:
                 code="delete_secret_error",
                 message=f"User: {user_id} cannot delete the secret with key : {key}",
             )
-
