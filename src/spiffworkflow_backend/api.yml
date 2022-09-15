@@ -1792,7 +1792,7 @@ components:
           description: The id of the logged in user that created this secret
           type: number
           example: 1
-          nullable: true
+          nullable: false
         allowed_processes:
           description: The processes allowed to access this secret
           type: array
