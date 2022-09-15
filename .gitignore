@@ -16,3 +16,5 @@ node_modules
 /tests/files/tickets.csv
 /log/*.log
 /tests/spiffworkflow_backend/files
+/bin/import_secrets.py
+/src/spiffworkflow_backend/config/secrets.py
