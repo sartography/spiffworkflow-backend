@@ -4,6 +4,12 @@ from typing import Any
 from typing import Dict
 
 import requests
+from flask import current_app
+
+
+def connector_proxy_url() -> str:
+    """Returns the connector proxy url."""
+    return current_app.config["CONNECTOR_PROXY_URL"]
 
 
 class ServiceTaskDelegate:
@@ -25,8 +31,7 @@ class ServiceTaskDelegate:
             return value
 
         params = {k: normalize_value(v) for k, v in bpmn_params.items()}
-        # TODO pull host/port from config
-        proxied_response = requests.get("http://localhost:7004/v1/do/" + name, params)
+        proxied_response = requests.get(f"{connector_proxy_url()}/v1/do/{name}", params)
         print("From: " + name)
         print(proxied_response.text)
 
@@ -38,8 +43,7 @@ class ServiceTaskService:
     def available_connectors() -> Any:
         """Returns a list of available connectors."""
         try:
-            # TODO pull url from config
-            response = requests.get("http://localhost:7004/v1/commands")
+            response = requests.get(connector_proxy_url())
 
             if response.status_code != 200:
                 return []
