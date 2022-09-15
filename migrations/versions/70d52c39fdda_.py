@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: d4922c5cd32d
+Revision ID: 70d52c39fdda
 Revises: 
-Create Date: 2022-09-15 11:08:25.133655
+Create Date: 2022-09-15 11:40:42.072748
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'd4922c5cd32d'
+revision = '70d52c39fdda'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -46,15 +46,6 @@ def upgrade():
     )
     op.create_index(op.f('ix_message_model_identifier'), 'message_model', ['identifier'], unique=True)
     op.create_index(op.f('ix_message_model_name'), 'message_model', ['name'], unique=True)
-    op.create_table('spiff_logging',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('process_instance_id', sa.Integer(), nullable=False),
-    sa.Column('bpmn_process_identifier', sa.String(length=50), nullable=False),
-    sa.Column('task', sa.String(length=50), nullable=False),
-    sa.Column('timestamp', sa.Float(), nullable=False),
-    sa.Column('message', sa.String(length=50), nullable=True),
-    sa.PrimaryKeyConstraint('id')
-    )
     op.create_table('user',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('username', sa.String(length=255), nullable=False),
@@ -230,6 +221,17 @@ def upgrade():
     sa.ForeignKeyConstraint(['secret_id'], ['secret.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_table('spiff_logging',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('process_instance_id', sa.Integer(), nullable=False),
+    sa.Column('bpmn_process_identifier', sa.String(length=50), nullable=False),
+    sa.Column('bpmn_task_identifier', sa.String(length=50), nullable=False),
+    sa.Column('spiff_task_guid', sa.String(length=50), nullable=False),
+    sa.Column('timestamp', sa.DECIMAL(precision=17, scale=6), nullable=False),
+    sa.Column('message', sa.String(length=50), nullable=True),
+    sa.ForeignKeyConstraint(['process_instance_id'], ['process_instance.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
     op.create_table('task_event',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
@@ -286,6 +288,7 @@ def downgrade():
     op.drop_table('message_correlation_message_instance')
     op.drop_table('data_store')
     op.drop_table('task_event')
+    op.drop_table('spiff_logging')
     op.drop_table('secret_allowed_process')
     op.drop_table('message_instance')
     op.drop_index(op.f('ix_message_correlation_value'), table_name='message_correlation')
@@ -311,7 +314,6 @@ def downgrade():
     op.drop_index(op.f('ix_message_correlation_property_identifier'), table_name='message_correlation_property')
     op.drop_table('message_correlation_property')
     op.drop_table('user')
-    op.drop_table('spiff_logging')
     op.drop_index(op.f('ix_message_model_name'), table_name='message_model')
     op.drop_index(op.f('ix_message_model_identifier'), table_name='message_model')
     op.drop_table('message_model')
