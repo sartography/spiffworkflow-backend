@@ -34,7 +34,7 @@ class ServiceTaskDelegate:
         proxied_response = requests.get(f"{connector_proxy_url()}/v1/do/{name}", params)
 
         if proxied_response.status_code != 200:
-            print('got error from connector proxy')
+            print("got error from connector proxy")
 
 
 class ServiceTaskService:
