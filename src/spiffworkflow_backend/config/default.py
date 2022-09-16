@@ -34,3 +34,8 @@ OPEN_ID_CLIENT_SECRET_KEY = environ.get(
 SPIFFWORKFLOW_BACKEND_LOG_TO_FILE = (
     environ.get("SPIFFWORKFLOW_BACKEND_LOG_TO_FILE", default="false") == "true"
 )
+
+# service task connector proxy
+CONNECTOR_PROXY_URL = environ.get(
+    "CONNECTOR_PROXY_URL", default="http://localhost:7004"
+)
