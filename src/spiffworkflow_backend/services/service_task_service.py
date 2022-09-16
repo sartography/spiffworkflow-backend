@@ -32,8 +32,9 @@ class ServiceTaskDelegate:
 
         params = {k: normalize_value(v) for k, v in bpmn_params.items()}
         proxied_response = requests.get(f"{connector_proxy_url()}/v1/do/{name}", params)
-        print("From: " + name)
-        print(proxied_response.text)
+
+        if proxied_response.status_code != 200:
+            print('got error from connector proxy')
 
 
 class ServiceTaskService:
