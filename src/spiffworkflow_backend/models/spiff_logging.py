@@ -7,6 +7,7 @@ from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from sqlalchemy import ForeignKey
 
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
+from spiffworkflow_backend.models.user import UserModel
 
 
 @dataclass
@@ -21,3 +22,4 @@ class SpiffLoggingModel(SpiffworkflowBaseDBModel):
     spiff_task_guid: str = db.Column(db.String(50), nullable=False)
     timestamp: float = db.Column(db.DECIMAL(17, 6), nullable=False)
     message: Optional[str] = db.Column(db.String(50), nullable=True)
+    current_user_id: int = db.Column(ForeignKey(UserModel.id), nullable=True)
