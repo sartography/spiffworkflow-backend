@@ -713,7 +713,7 @@ class TestProcessApi(BaseTest):
         assert response.json["updated_at_in_seconds"] > 0
         assert response.json["status"] == "complete"
         assert response.json["process_model_identifier"] == process_model_id
-        assert response.json["data"]["current_user"]["username"] == "test_user1"
+        assert response.json["data"]["current_user"]["username"] == user.username
         assert response.json["data"]["Mike"] == "Awesome"
         assert response.json["data"]["person"] == "Kevin"
 

@@ -32,7 +32,7 @@ class BaseTest:
     """BaseTest."""
 
     @staticmethod
-    def find_or_create_user(username: str = "test_user1") -> UserModel:
+    def find_or_create_user(username: str = "test_user_1") -> UserModel:
         """Find_or_create_user."""
         user = UserModel.query.filter_by(username=username).first()
         if isinstance(user, UserModel):

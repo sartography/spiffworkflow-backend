@@ -1,6 +1,7 @@
 """Secret_service."""
 from typing import Optional
 
+from flask import current_app
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
 
@@ -11,13 +12,21 @@ from spiffworkflow_backend.models.secret_model import SecretModel
 class SecretService:
     """SecretService."""
 
-    @staticmethod
+    def encrypt_key(self, plain_key: str) -> str:
+        flask_secret = current_app.secret_key
+        print("encrypt_key")
+
+    def decrypt_key(self, encrypted_key: str) -> str:
+        ...
+
     def add_secret(
+        self,
         key: str,
         value: str,
         creator_user_id: int,
     ) -> SecretModel:
         """Add_secret."""
+        encrypted_key = self.encrypt_key(key)
         secret_model = SecretModel(
             key=key, value=value, creator_user_id=creator_user_id
         )
@@ -77,37 +86,50 @@ class SecretService:
     ) -> None:
         """Does this pass pre commit?"""
         secret_model = SecretModel.query.filter(SecretModel.key == key).first()
-        if secret_model.creator_user_id == creator_user_id:
-            secret_model.value = value
-            db.session.add(secret_model)
-            try:
-                db.session.commit()
-            except Exception as e:
+        if secret_model:
+            if secret_model.creator_user_id == creator_user_id:
+                secret_model.value = value
+                db.session.add(secret_model)
+                try:
+                    db.session.commit()
+                except Exception as e:
+                    raise ApiError(
+                        code="update_secret_error",
+                        message=f"There was an error updating the secret with key: {key}, and value: {value}",
+                    ) from e
+            else:
                 raise ApiError(
                     code="update_secret_error",
-                    message=f"There was an error updating the secret with key: {key}, and value: {value}",
-                ) from e
+                    message=f"User: {creator_user_id} cannot update the secret with key : {key}",
+                    status_code=401
+                )
         else:
-            raise ApiError(
-                code="update_secret_error",
-                message=f"User: {creator_user_id} cannot update the secret with key : {key}",
-            )
+            raise ApiError(code="update_secret_error",
+                           message=f"Cannot update secret with key: {key}. Resource does not exist.",
+                           status_code=404)
+
 
     @staticmethod
     def delete_secret(key: str, user_id: int) -> None:
         """Delete secret."""
         secret_model = SecretModel.query.filter(SecretModel.key == key).first()
-        if secret_model.creator_user_id == user_id:
-            db.session.delete(secret_model)
-            try:
-                db.session.commit()
-            except Exception as e:
+        if secret_model:
+            if secret_model.creator_user_id == user_id:
+                db.session.delete(secret_model)
+                try:
+                    db.session.commit()
+                except Exception as e:
+                    raise ApiError(
+                        code="delete_secret_error",
+                        message=f"Could not delete secret with key: {key}. Original error is: {e}",
+                    ) from e
+            else:
                 raise ApiError(
                     code="delete_secret_error",
-                    message=f"Could not delete secret with key: {key}. Original error is: {e}",
-                ) from e
+                    message=f"User: {user_id} cannot delete the secret with key : {key}",
+                    status_code=401
+                )
         else:
-            raise ApiError(
-                code="delete_secret_error",
-                message=f"User: {user_id} cannot delete the secret with key : {key}",
-            )
+            raise ApiError(code="delete_secret_error",
+                           message=f"Cannot delete secret with key: {key}. Resource does not exist.",
+                           status_code=404)

@@ -1043,8 +1043,8 @@ def get_secret(key: str) -> str | None:
 
 def add_secret(body: Dict) -> Response:
     """Add secret."""
-    secret_model = SecretService.add_secret(
-        body["key"], body["service"], body["creator_user_id"]
+    secret_model = SecretService().add_secret(
+        body["key"], body["value"], body["creator_user_id"]
     )
     assert secret_model  # noqa: S101
     return Response(
@@ -1052,8 +1052,6 @@ def add_secret(body: Dict) -> Response:
         status=201,
         mimetype="application/json",
     )
-
-    # return secret_model
 
 
 def update_secret(

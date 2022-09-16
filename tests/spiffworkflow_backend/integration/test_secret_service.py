@@ -1,4 +1,5 @@
 """Test_secret_service."""
+import json
 import pytest
 from flask.app import Flask
 from flask.testing import FlaskClient
@@ -8,15 +9,14 @@ from tests.spiffworkflow_backend.helpers.base_test import BaseTest
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.secret_model import SecretAllowedProcessPathModel
 from spiffworkflow_backend.models.secret_model import SecretModel
+from spiffworkflow_backend.models.secret_model import SecretModelSchema
 from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.services.file_system_service import FileSystemService
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 from spiffworkflow_backend.services.secret_service import SecretService
 
 
-class TestSecretService(BaseTest):
-    """TestSecretService."""
-
+class SecretServiceTestHelpers:
     test_key = "test_key"
     test_value = "test_value"
     test_process_group_id = "test"
@@ -50,6 +50,10 @@ class TestSecretService(BaseTest):
             self.test_process_model_id, self.test_process_group_id
         )
         return process_model_info
+
+
+class TestSecretService(BaseTest, SecretServiceTestHelpers):
+    """TestSecretService."""
 
     def test_add_secret(self, app: Flask, with_db_and_bpmn_file_cleanup: None) -> None:
         """Test_add_secret."""
@@ -191,44 +195,81 @@ class TestSecretService(BaseTest):
         )
 
 
-# class TestSecretServiceApi(BaseTest):
-#     """TestSecretServiceApi."""
-#
-#     test_service = "test_service"
-#     test_client = "test_client"
-#     test_key = "1234567890"
-#
-#     def test_add_secret(
-#         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
-#     ) -> None:
-#         """Test_add_secret."""
-#         user = self.find_or_create_user()
-#         secret_model = SecretModel(
-#             service=self.test_service,
-#             client=self.test_client,
-#             key=self.test_key,
-#             creator_user_id=user.id,
-#         )
-#         # data = json.dumps({"service": self.test_service,
-#         #                    "client": self.test_client,
-#         #                    "key": self.test_key})
-#         data = json.dumps(SecretModelSchema().dump(secret_model))
-#         response = client.post(
-#             "/v1.0/secrets",
-#             headers=self.logged_in_headers(user),
-#             content_type="application/json",
-#             data=data,
-#         )
-#         print(response)
-#
-#     def test_get_secret(
-#         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
-#     ) -> None:
-#         """Test get secret."""
-#         ...
-#
-#     def test_delete_secret(
-#         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
-#     ) -> None:
-#         """Test delete secret."""
-#         ...
+class TestSecretServiceApi(BaseTest, SecretServiceTestHelpers):
+    """TestSecretServiceApi."""
+
+    def test_add_secret(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        """Test_add_secret."""
+        user = self.find_or_create_user()
+        secret_model = SecretModel(
+            key=self.test_key,
+            value=self.test_value,
+            creator_user_id=user.id,
+        )
+        data = json.dumps(SecretModelSchema().dump(secret_model))
+        response = client.post(
+            "/v1.0/secrets",
+            headers=self.logged_in_headers(user),
+            content_type="application/json",
+            data=data,
+        )
+        assert response.json["key"] == self.test_key
+        assert response.json["value"] == self.test_value
+        assert response.json["creator_user_id"] == user.id
+
+    def test_get_secret(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        """Test get secret."""
+        user = self.find_or_create_user()
+        self.add_test_secret(user)
+        secret_response = client.get(
+            f"/v1.0/secrets/{self.test_key}",
+            headers=self.logged_in_headers(user),
+        )
+        assert secret_response
+        assert secret_response.status_code == 200
+        assert secret_response.json == self.test_value
+        print("test_get_secret")
+
+    def test_delete_secret(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        """Test delete secret."""
+        user = self.find_or_create_user()
+        self.add_test_secret(user)
+        secret = SecretService.get_secret(self.test_key)
+        assert secret
+        assert secret == self.test_value
+        secret_response = client.delete(
+            f"/v1.0/secrets/{self.test_key}",
+            headers=self.logged_in_headers(user),
+        )
+        assert secret_response.status_code == 204
+        secret = SecretService.get_secret(self.test_key)
+        assert secret is None
+        print("test_delete_secret")
+
+    def test_delete_secret_bad_user(self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None) -> None:
+        user_1 = self.find_or_create_user()
+        user_2 = self.find_or_create_user("test_user_2")
+        self.add_test_secret(user_1)
+        secret_response = client.delete(
+            f"/v1.0/secrets/{self.test_key}",
+            headers=self.logged_in_headers(user_2),
+        )
+        assert secret_response.status_code == 401
+
+    def test_delete_secret_bad_key(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        """Test delete secret."""
+        user = self.find_or_create_user()
+        secret_response = client.delete(
+            f"/v1.0/secrets/bad_secret_key",
+            headers=self.logged_in_headers(user),
+        )
+        assert secret_response.status_code == 404
+        print("test_delete_secret_bad_key")

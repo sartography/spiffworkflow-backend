@@ -4,6 +4,7 @@ import logging
 from typing import Any
 from typing import Optional
 
+from flask import g
 from flask.app import Flask
 from flask_bpmn.models.db import db
 

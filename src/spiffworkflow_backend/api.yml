@@ -977,7 +977,7 @@ paths:
   /secrets:
     post:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.add_secret
-      summary: Create a secret for a service and client
+      summary: Create a secret for a key and value
       tags:
         - Secrets
       requestBody:
@@ -995,7 +995,7 @@ paths:
 
   /secrets/{key}:
     parameters:
-      - name: secret_id
+      - name: key
         in: path
         required: true
         description: The key we are using
@@ -1003,7 +1003,7 @@ paths:
           type: string
     get:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.get_secret
-      summary: Returns a secret value for a key
+      summary: Return a secret value for a key
       tags:
         - Secrets
       responses:
@@ -1015,15 +1015,19 @@ paths:
                 type: string
     delete:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.delete_secret
-      summary: Delete a client secret for a service
+      summary: Delete an existing secret
       tags:
         - Secrets
       responses:
         "204":
           description: The secret is deleted
+        "401":
+          description: Unauthorized to delete secret
+        "404":
+          description: Secret does not exist
     put:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.update_secret
-      summary: Modifies an existing client secret
+      summary: Modify an existing secret
       tags:
         - Secrets
       requestBody:
@@ -1038,6 +1042,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Secret"
+        "401":
+          description: Unauthorized to update secret
+        "404":
+          description: Secret does not exist
 
   /secrets/{service}/{client}/allowed_process_paths:
     parameters:
