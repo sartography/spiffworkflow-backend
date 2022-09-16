@@ -138,15 +138,13 @@ class MessageService:
             process_group_identifier=message_triggerable_process_model.process_group_identifier,
         )
         processor_receive = ProcessInstanceProcessor(process_instance_receive)
-        processor_receive.do_engine_steps()
+        processor_receive.do_engine_steps(save=False)
         processor_receive.bpmn_process_instance.catch_bpmn_message(
             message_model_name,
             message_payload,
             correlations={},
         )
-        processor_receive.save()
-        processor_receive.do_engine_steps()
-        processor_receive.save()
+        processor_receive.do_engine_steps(save=True)
 
         return process_instance_receive
 
@@ -174,8 +172,7 @@ class MessageService:
             message_payload,
             correlations={},
         )
-        processor_receive.do_engine_steps()
-        processor_receive.save()
+        processor_receive.do_engine_steps(save=True)
 
     @staticmethod
     def get_message_instance_receive(

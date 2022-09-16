@@ -11,6 +11,7 @@ import connexion  # type: ignore
 import flask.wrappers
 import jinja2
 from flask import Blueprint
+from flask import current_app
 from flask import g
 from flask import jsonify
 from flask import make_response
@@ -344,6 +345,9 @@ def process_instance_run(
             ) from e
         processor.save()
         ProcessInstanceService.update_task_assignments(processor)
+
+        if not current_app.config["PROCESS_WAITING_MESSAGES"]:
+            MessageService.process_message_instances()
 
     process_instance_api = ProcessInstanceService.processor_to_process_instance_api(
         processor

@@ -1,5 +1,6 @@
 """Process_instance_processor."""
 import json
+import logging
 import os
 import time
 from typing import Any
@@ -22,7 +23,6 @@ from SpiffWorkflow.bpmn.parser.ValidationException import ValidationException  #
 from SpiffWorkflow.bpmn.PythonScriptEngine import Box  # type: ignore
 from SpiffWorkflow.bpmn.PythonScriptEngine import PythonScriptEngine
 from SpiffWorkflow.bpmn.serializer import BpmnWorkflowSerializer  # type: ignore
-from SpiffWorkflow.bpmn.serializer.BpmnSerializer import BpmnSerializer  # type: ignore
 from SpiffWorkflow.bpmn.specs.BpmnProcessSpec import BpmnProcessSpec  # type: ignore
 from SpiffWorkflow.bpmn.specs.events import CancelEventDefinition  # type: ignore
 from SpiffWorkflow.bpmn.specs.events import EndEvent
@@ -164,7 +164,7 @@ class ProcessInstanceProcessor:
         ]
     )
     _serializer = BpmnWorkflowSerializer(wf_spec_converter, version=SERIALIZER_VERSION)
-    _old_serializer = BpmnSerializer()
+
     PROCESS_INSTANCE_ID_KEY = "process_instance_id"
     VALIDATION_PROCESS_KEY = "validate_only"
 
@@ -267,14 +267,6 @@ class ProcessInstanceProcessor:
                 self.bpmn_process_instance.data[
                     ProcessInstanceProcessor.PROCESS_INSTANCE_ID_KEY
                 ] = process_instance_model.id
-
-                # FIXME: This also seems to happen in the save method below
-                process_instance_model.bpmn_json = (
-                    ProcessInstanceProcessor._serializer.serialize_json(
-                        self.bpmn_process_instance
-                    )
-                )
-
                 self.save()
 
         except MissingSpecError as ke:
@@ -285,11 +277,21 @@ class ProcessInstanceProcessor:
                 % (self.process_model_identifier, str(ke)),
             ) from ke
 
-    @staticmethod
-    def add_user_info_to_process_instance(bpmn_process_instance: BpmnWorkflow) -> None:
+    def add_user_info_to_process_instance(
+        self, bpmn_process_instance: BpmnWorkflow
+    ) -> None:
         """Add_user_info_to_process_instance."""
+        current_user = None
         if UserService.has_user():
             current_user = UserService.current_user(allow_admin_impersonate=True)
+
+        # fall back to initiator if g.user is not set
+        # this is for background processes when there will not be a user
+        #   coming in from the api
+        elif self.process_instance_model.process_initiator_id:
+            current_user = self.process_instance_model.process_initiator
+
+        if current_user:
             current_user_data = UserModelSchema().dump(current_user)
             tasks = bpmn_process_instance.get_tasks(TaskState.READY)
             for task in tasks:
@@ -357,19 +359,17 @@ class ProcessInstanceProcessor:
     ) -> BpmnWorkflow:
         """__get_bpmn_process_instance."""
         if process_instance_model.bpmn_json:
-            version = ProcessInstanceProcessor._serializer.get_version(
-                process_instance_model.bpmn_json
+            # turn off logging to avoid duplicated spiff logs
+            spiff_logger = logging.getLogger("spiff")
+            original_spiff_logger_log_level = spiff_logger.level
+            spiff_logger.setLevel(logging.WARNING)
+
+            bpmn_process_instance = (
+                ProcessInstanceProcessor._serializer.deserialize_json(
+                    process_instance_model.bpmn_json
+                )
             )
-            if version == ProcessInstanceProcessor.SERIALIZER_VERSION:
-                bpmn_process_instance = (
-                    ProcessInstanceProcessor._serializer.deserialize_json(
-                        process_instance_model.bpmn_json
-                    )
-                )
-            else:
-                bpmn_process_instance = ProcessInstanceProcessor._old_serializer.deserialize_process_instance(
-                    process_instance_model.bpmn_json, process_model=spec
-                )
+            spiff_logger.setLevel(original_spiff_logger_log_level)
             bpmn_process_instance.script_engine = (
                 ProcessInstanceProcessor._script_engine
             )
@@ -422,7 +422,6 @@ class ProcessInstanceProcessor:
             if not self.bpmn_process_instance._is_engine_task(
                 ready_or_waiting_task.task_spec
             ):
-
                 user_id = ready_or_waiting_task.data["current_user"]["id"]
                 principal = PrincipalModel.query.filter_by(user_id=user_id).first()
                 if principal is None:
@@ -960,11 +959,11 @@ class ProcessInstanceProcessor:
         all_tasks = self.bpmn_process_instance.get_tasks(TaskState.ANY_MASK)
         return [t for t in all_tasks if t.state in [TaskState.WAITING, TaskState.READY]]
 
-    def get_task_by_id(self, task_id: str) -> SpiffTask:
+    def get_task_by_bpmn_identifier(self, bpmn_task_identifier: str) -> SpiffTask:
         """Get_task_by_id."""
         all_tasks = self.bpmn_process_instance.get_tasks(TaskState.ANY_MASK)
         for task in all_tasks:
-            if task.id == task_id:
+            if task.task_spec.name == bpmn_task_identifier:
                 return task
         return None
 
