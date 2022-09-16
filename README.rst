@@ -38,7 +38,7 @@ Running Locally
 
 .. code:: console
 
-   $ ./bin/recreate_db
+   $ ./bin/recreate_db clean
 
 * Run the server:
 
