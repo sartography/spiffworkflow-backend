@@ -22,6 +22,7 @@ class ServiceTaskDelegate:
         """Calls a connector via the configured proxy."""
 
         def normalize_value(v: Any) -> Any:
+            """Normalize_value."""
             value = v["value"]
             secret_prefix = "secret:"  # noqa: S105
             if value.startswith(secret_prefix):
