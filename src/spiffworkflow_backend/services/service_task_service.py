@@ -43,7 +43,8 @@ class ServiceTaskService:
     def available_connectors() -> Any:
         """Returns a list of available connectors."""
         try:
-            response = requests.get(connector_proxy_url())
+            print(connector_proxy_url)
+            response = requests.get(f"{connector_proxy_url()}/v1/commands")
 
             if response.status_code != 200:
                 return []

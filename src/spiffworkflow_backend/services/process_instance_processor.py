@@ -41,6 +41,7 @@ from SpiffWorkflow.spiff.serializer import ManualTaskConverter
 from SpiffWorkflow.spiff.serializer import NoneTaskConverter
 from SpiffWorkflow.spiff.serializer import ReceiveTaskConverter
 from SpiffWorkflow.spiff.serializer import SendTaskConverter
+from SpiffWorkflow.spiff.serializer import ServiceTaskConverter
 from SpiffWorkflow.spiff.serializer import StartEventConverter
 from SpiffWorkflow.spiff.serializer import SubWorkflowTaskConverter
 from SpiffWorkflow.spiff.serializer import TransactionSubprocessConverter
@@ -157,6 +158,7 @@ class ProcessInstanceProcessor:
             NoneTaskConverter,
             ReceiveTaskConverter,
             SendTaskConverter,
+            ServiceTaskConverter,
             StartEventConverter,
             SubWorkflowTaskConverter,
             TransactionSubprocessConverter,
