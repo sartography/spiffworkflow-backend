@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: ab77f4ccb4d6
+Revision ID: 097f52a3ec5d
 Revises: 
-Create Date: 2022-09-15 10:40:27.958824
+Create Date: 2022-09-16 10:44:23.258357
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'ab77f4ccb4d6'
+revision = '097f52a3ec5d'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -213,6 +213,8 @@ def upgrade():
     sa.Column('spiff_task_guid', sa.String(length=50), nullable=False),
     sa.Column('timestamp', sa.DECIMAL(precision=17, scale=6), nullable=False),
     sa.Column('message', sa.String(length=50), nullable=True),
+    sa.Column('current_user_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['current_user_id'], ['user.id'], ),
     sa.ForeignKeyConstraint(['process_instance_id'], ['process_instance.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
