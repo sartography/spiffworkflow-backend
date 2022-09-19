@@ -99,7 +99,9 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
     ) -> Any:
         """Evaluate the given expression, within the context of the given task and return the result."""
         try:
-            return super()._evaluate(expression, context, external_methods=external_methods)
+            return super()._evaluate(
+                expression, context, external_methods=external_methods
+            )
         except Exception as exception:
             if task is None:
                 raise ProcessInstanceProcessorError(

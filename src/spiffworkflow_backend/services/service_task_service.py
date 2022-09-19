@@ -16,9 +16,7 @@ class ServiceTaskDelegate:
     """ServiceTaskDelegate."""
 
     @staticmethod
-    def call_connector(
-        name: str, bpmn_params: Any
-    ) -> str:
+    def call_connector(name: str, bpmn_params: Any) -> str:
         """Calls a connector via the configured proxy."""
 
         def normalize_value(v: Any) -> Any:
