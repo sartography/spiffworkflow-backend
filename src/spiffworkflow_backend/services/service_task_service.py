@@ -16,9 +16,7 @@ class ServiceTaskDelegate:
     """ServiceTaskDelegate."""
 
     @staticmethod
-    def call_connector(
-        name: str, bpmn_params: Any
-    ) -> None:  # TODO what is the return/type
+    def call_connector(name: str, bpmn_params: Any) -> str:
         """Calls a connector via the configured proxy."""
 
         def normalize_value(v: Any) -> Any:
@@ -36,6 +34,8 @@ class ServiceTaskDelegate:
 
         if proxied_response.status_code != 200:
             print("got error from connector proxy")
+
+        return proxied_response.text
 
 
 class ServiceTaskService:

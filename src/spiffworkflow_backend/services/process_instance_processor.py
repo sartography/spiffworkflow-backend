@@ -95,11 +95,13 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
         expression: str,
         context: Dict[str, Union[Box, str]],
         task: Optional[SpiffTask] = None,
-        _external_methods: None = None,
+        external_methods: Optional[Dict[str, Any]] = None,
     ) -> Any:
         """Evaluate the given expression, within the context of the given task and return the result."""
         try:
-            return super()._evaluate(expression, context)
+            return super()._evaluate(
+                expression, context, external_methods=external_methods
+            )
         except Exception as exception:
             if task is None:
                 raise ProcessInstanceProcessorError(
