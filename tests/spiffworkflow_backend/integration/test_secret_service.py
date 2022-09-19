@@ -1,10 +1,12 @@
 """Test_secret_service."""
 import json
+
 import pytest
 from flask.app import Flask
 from flask.testing import FlaskClient
 from flask_bpmn.api.api_error import ApiError
 from tests.spiffworkflow_backend.helpers.base_test import BaseTest
+from werkzeug.test import TestResponse
 
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.secret_model import SecretAllowedProcessPathModel
@@ -15,10 +17,10 @@ from spiffworkflow_backend.services.file_system_service import FileSystemService
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 from spiffworkflow_backend.services.secret_service import SecretService
 
-from werkzeug.test import TestResponse
-
 
 class SecretServiceTestHelpers(BaseTest):
+    """SecretServiceTestHelpers."""
+
     test_key = "test_key"
     test_value = "test_value"
     test_process_group_id = "test"
@@ -53,7 +55,10 @@ class SecretServiceTestHelpers(BaseTest):
         )
         return process_model_info
 
-    def add_test_secret_allowed_process(self, client: FlaskClient, user: UserModel) -> SecretAllowedProcessPathModel:
+    def add_test_secret_allowed_process(
+        self, client: FlaskClient, user: UserModel
+    ) -> SecretAllowedProcessPathModel:
+        """Add_test_secret_allowed_process."""
         process_model_info = self.add_test_process(client, user)
         process_model_relative_path = FileSystemService.process_model_relative_path(
             process_model_info
@@ -138,12 +143,13 @@ class TestSecretService(SecretServiceTestHelpers):
         )
 
     def test_update_secret_bad_secret_fails(
-            self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
+        """Test_update_secret_bad_secret_fails."""
         user = self.find_or_create_user()
         secret = self.add_test_secret(user)
         with pytest.raises(ApiError) as ae:
-            SecretService.update_secret(secret.key+'x', 'some_new_value', user.id)
+            SecretService.update_secret(secret.key + "x", "some_new_value", user.id)
         assert "Resource does not exist" in ae.value.message
 
     def test_delete_secret(
@@ -167,15 +173,18 @@ class TestSecretService(SecretServiceTestHelpers):
         self.add_test_secret(user)
         with pytest.raises(ApiError) as ae:
             SecretService.delete_secret(self.test_key, user.id + 1)
-        assert f"User: {user.id+1} cannot delete the secret with key" in ae.value.message
+        assert (
+            f"User: {user.id+1} cannot delete the secret with key" in ae.value.message
+        )
 
     def test_delete_secret_bad_secret_fails(
-            self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
+        """Test_delete_secret_bad_secret_fails."""
         user = self.find_or_create_user()
         self.add_test_secret(user)
         with pytest.raises(ApiError) as ae:
-            SecretService.delete_secret(self.test_key+'x', user.id)
+            SecretService.delete_secret(self.test_key + "x", user.id)
         assert "Resource does not exist" in ae.value.message
 
     def test_secret_add_allowed_process(
@@ -209,8 +218,10 @@ class TestSecretService(SecretServiceTestHelpers):
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Do not allow duplicate entries for secret_id/allowed_relative_path pairs.
+
         We actually take care of this in the db model with a unique constraint
-        on the 2 columns"""
+        on the 2 columns.
+        """
         user = self.find_or_create_user()
         test_secret = self.add_test_secret(user)
         process_model_info = self.add_test_process(client, user)
@@ -258,8 +269,9 @@ class TestSecretService(SecretServiceTestHelpers):
         )
 
     def test_secret_add_allowed_process_bad_secret_fails(
-            self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
+        """Test_secret_add_allowed_process_bad_secret_fails."""
         user = self.find_or_create_user()
         process_model_info = self.add_test_process(client, user)
         process_model_relative_path = FileSystemService.process_model_relative_path(
@@ -269,14 +281,17 @@ class TestSecretService(SecretServiceTestHelpers):
 
         with pytest.raises(ApiError) as ae:
             SecretService().add_allowed_process(
-                key=test_secret.key+'x',
+                key=test_secret.key + "x",
                 user_id=user.id,
-                allowed_relative_path=process_model_relative_path
+                allowed_relative_path=process_model_relative_path,
             )
         assert "Resource does not exist" in ae.value.message
         print("test_secret_add_allowed_process_bad_secret")
 
-    def test_secret_delete_allowed_process(self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None) -> None:
+    def test_secret_delete_allowed_process(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        """Test_secret_delete_allowed_process."""
         user = self.find_or_create_user()
         allowed_process_model = self.add_test_secret_allowed_process(client, user)
 
@@ -289,22 +304,31 @@ class TestSecretService(SecretServiceTestHelpers):
         assert len(allowed_processes) == 0
 
     def test_secret_delete_allowed_process_bad_user_fails(
-            self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
+        """Test_secret_delete_allowed_process_bad_user_fails."""
         user = self.find_or_create_user()
         allowed_process_model = self.add_test_secret_allowed_process(client, user)
         with pytest.raises(ApiError) as ae:
-            SecretService().delete_allowed_process(allowed_process_model.id, user.id+1)
+            SecretService().delete_allowed_process(
+                allowed_process_model.id, user.id + 1
+            )
         message = ae.value.message
-        assert f"User: {user.id+1} cannot delete the allowed_process with id : {allowed_process_model.id}" in message
+        assert (
+            f"User: {user.id+1} cannot delete the allowed_process with id : {allowed_process_model.id}"
+            in message
+        )
 
     def test_secret_delete_allowed_process_bad_allowed_process_fails(
-            self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
+        """Test_secret_delete_allowed_process_bad_allowed_process_fails."""
         user = self.find_or_create_user()
         allowed_process_model = self.add_test_secret_allowed_process(client, user)
         with pytest.raises(ApiError) as ae:
-            SecretService().delete_allowed_process(allowed_process_model.id+1, user.id)
+            SecretService().delete_allowed_process(
+                allowed_process_model.id + 1, user.id
+            )
         assert "Resource does not exist" in ae.value.message
 
 
@@ -370,7 +394,10 @@ class TestSecretServiceApi(SecretServiceTestHelpers):
         assert secret is None
         print("test_delete_secret")
 
-    def test_delete_secret_bad_user(self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None) -> None:
+    def test_delete_secret_bad_user(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        """Test_delete_secret_bad_user."""
         user_1 = self.find_or_create_user()
         user_2 = self.find_or_create_user("test_user_2")
         self.add_test_secret(user_1)
@@ -386,7 +413,7 @@ class TestSecretServiceApi(SecretServiceTestHelpers):
         """Test delete secret."""
         user = self.find_or_create_user()
         secret_response = client.delete(
-            f"/v1.0/secrets/bad_secret_key",
+            "/v1.0/secrets/bad_secret_key",
             headers=self.logged_in_headers(user),
         )
         assert secret_response.status_code == 404

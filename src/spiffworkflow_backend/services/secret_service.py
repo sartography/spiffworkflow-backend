@@ -1,11 +1,9 @@
 """Secret_service."""
 from typing import Optional
 
-from sqlalchemy.exc import IntegrityError
-
-from flask import current_app
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
+from sqlalchemy.exc import IntegrityError
 
 from spiffworkflow_backend.models.secret_model import SecretAllowedProcessPathModel
 from spiffworkflow_backend.models.secret_model import SecretModel
@@ -15,11 +13,13 @@ class SecretService:
     """SecretService."""
 
     def encrypt_key(self, plain_key: str) -> str:
+        """Encrypt_key."""
         # flask_secret = current_app.secret_key
         # print("encrypt_key")
         ...
 
     def decrypt_key(self, encrypted_key: str) -> str:
+        """Decrypt key."""
         ...
 
     def add_secret(
@@ -76,12 +76,14 @@ class SecretService:
                 raise ApiError(
                     code="update_secret_error",
                     message=f"User: {creator_user_id} cannot update the secret with key : {key}",
-                    status_code=401
+                    status_code=401,
                 )
         else:
-            raise ApiError(code="update_secret_error",
-                           message=f"Cannot update secret with key: {key}. Resource does not exist.",
-                           status_code=404)
+            raise ApiError(
+                code="update_secret_error",
+                message=f"Cannot update secret with key: {key}. Resource does not exist.",
+                status_code=404,
+            )
 
     @staticmethod
     def delete_secret(key: str, user_id: int) -> None:
@@ -101,12 +103,14 @@ class SecretService:
                 raise ApiError(
                     code="delete_secret_error",
                     message=f"User: {user_id} cannot delete the secret with key : {key}",
-                    status_code=401
+                    status_code=401,
                 )
         else:
-            raise ApiError(code="delete_secret_error",
-                           message=f"Cannot delete secret with key: {key}. Resource does not exist.",
-                           status_code=404)
+            raise ApiError(
+                code="delete_secret_error",
+                message=f"Cannot delete secret with key: {key}. Resource does not exist.",
+                status_code=404,
+            )
 
     @staticmethod
     def add_allowed_process(
@@ -117,7 +121,8 @@ class SecretService:
         if secret_model:
             if secret_model.creator_user_id == user_id:
                 secret_process_model = SecretAllowedProcessPathModel(
-                    secret_id=secret_model.id, allowed_relative_path=allowed_relative_path
+                    secret_id=secret_model.id,
+                    allowed_relative_path=allowed_relative_path,
                 )
                 assert secret_process_model  # noqa: S101
                 db.session.add(secret_process_model)
@@ -125,11 +130,13 @@ class SecretService:
                     db.session.commit()
                 except IntegrityError as ie:
                     db.session.rollback()
-                    raise ApiError(code="add_allowed_process_error",
-                                   message=f"Error adding allowed_process with secret {secret_model.id}, "
-                                           f"and path: {allowed_relative_path}. Resource already exists. "
-                                           f"Original error is {ie}",
-                                   status_code=409) from ie
+                    raise ApiError(
+                        code="add_allowed_process_error",
+                        message=f"Error adding allowed_process with secret {secret_model.id}, "
+                        f"and path: {allowed_relative_path}. Resource already exists. "
+                        f"Original error is {ie}",
+                        status_code=409,
+                    ) from ie
                 except Exception as e:
                     # TODO: should we call db.session.rollback() here?
                     # db.session.rollback()
@@ -144,35 +151,44 @@ class SecretService:
                 raise ApiError(
                     code="add_allowed_process_error",
                     message=f"User: {user_id} cannot modify the secret with key : {key}",
-                    status_code=401
+                    status_code=401,
                 )
         else:
             raise ApiError(
                 code="add_allowed_process_error",
                 message=f"Cannot add allowed process to secret with key: {key}. Resource does not exist.",
-                status_code=404
+                status_code=404,
             )
 
     @staticmethod
     def delete_allowed_process(allowed_process_id: int, user_id: int) -> None:
-        allowed_process = SecretAllowedProcessPathModel.query.filter(SecretAllowedProcessPathModel.id == allowed_process_id).first()
+        """Delete_allowed_process."""
+        allowed_process = SecretAllowedProcessPathModel.query.filter(
+            SecretAllowedProcessPathModel.id == allowed_process_id
+        ).first()
         if allowed_process:
-            secret = SecretModel.query.filter(SecretModel.id == allowed_process.secret_id).first()
+            secret = SecretModel.query.filter(
+                SecretModel.id == allowed_process.secret_id
+            ).first()
             if secret.creator_user_id == user_id:
                 db.session.delete(allowed_process)
                 try:
                     db.session.commit()
                 except Exception as e:
-                    raise ApiError(code="delete_allowed_process_error",
-                                   message=f"There was an exception deleting allowed_process: {allowed_process_id}. "
-                                           f"Original error is: {e}") from e
+                    raise ApiError(
+                        code="delete_allowed_process_error",
+                        message=f"There was an exception deleting allowed_process: {allowed_process_id}. "
+                        f"Original error is: {e}",
+                    ) from e
             else:
                 raise ApiError(
                     code="delete_allowed_process_error",
                     message=f"User: {user_id} cannot delete the allowed_process with id : {allowed_process_id}",
-                    status_code=401
+                    status_code=401,
                 )
         else:
-            raise ApiError(code="delete_allowed_process_error",
-                           message=f"Cannot delete allowed_process: {allowed_process_id}. Resource does not exist.",
-                           status_code=404)
+            raise ApiError(
+                code="delete_allowed_process_error",
+                message=f"Cannot delete allowed_process: {allowed_process_id}. Resource does not exist.",
+                status_code=404,
+            )

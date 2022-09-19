@@ -32,9 +32,6 @@ from spiffworkflow_backend.models.secret_model import (
 )  # noqa: F401
 from spiffworkflow_backend.models.secret_model import SecretModel  # noqa: F401
 from spiffworkflow_backend.models.spiff_logging import SpiffLoggingModel  # noqa: F401
-from spiffworkflow_backend.models.spiff_logging import (
-    SpiffLoggingModel,
-)  # noqa: F401
 from spiffworkflow_backend.models.task_event import TaskEventModel  # noqa: F401
 from spiffworkflow_backend.models.user import UserModel  # noqa: F401
 from spiffworkflow_backend.models.user_group_assignment import (
