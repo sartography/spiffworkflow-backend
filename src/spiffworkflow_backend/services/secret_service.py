@@ -15,8 +15,9 @@ class SecretService:
     """SecretService."""
 
     def encrypt_key(self, plain_key: str) -> str:
-        flask_secret = current_app.secret_key
-        print("encrypt_key")
+        # flask_secret = current_app.secret_key
+        # print("encrypt_key")
+        ...
 
     def decrypt_key(self, encrypted_key: str) -> str:
         ...
@@ -28,7 +29,7 @@ class SecretService:
         creator_user_id: int,
     ) -> SecretModel:
         """Add_secret."""
-        encrypted_key = self.encrypt_key(key)
+        # encrypted_key = self.encrypt_key(key)
         secret_model = SecretModel(
             key=key, value=value, creator_user_id=creator_user_id
         )
@@ -153,7 +154,7 @@ class SecretService:
             )
 
     @staticmethod
-    def delete_allowed_process(allowed_process_id, user_id):
+    def delete_allowed_process(allowed_process_id: int, user_id: int) -> None:
         allowed_process = SecretAllowedProcessPathModel.query.filter(SecretAllowedProcessPathModel.id == allowed_process_id).first()
         if allowed_process:
             secret = SecretModel.query.filter(SecretModel.id == allowed_process.secret_id).first()

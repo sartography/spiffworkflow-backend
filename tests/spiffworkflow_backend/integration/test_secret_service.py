@@ -15,6 +15,8 @@ from spiffworkflow_backend.services.file_system_service import FileSystemService
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 from spiffworkflow_backend.services.secret_service import SecretService
 
+from werkzeug.test import TestResponse
+
 
 class SecretServiceTestHelpers(BaseTest):
     test_key = "test_key"
@@ -320,15 +322,20 @@ class TestSecretServiceApi(SecretServiceTestHelpers):
             creator_user_id=user.id,
         )
         data = json.dumps(SecretModelSchema().dump(secret_model))
-        response = client.post(
+        response: TestResponse = client.post(
             "/v1.0/secrets",
             headers=self.logged_in_headers(user),
             content_type="application/json",
             data=data,
         )
-        assert response.json["key"] == self.test_key
-        assert response.json["value"] == self.test_value
-        assert response.json["creator_user_id"] == user.id
+        assert response.json
+        secret: dict = response.json
+        for key in ["key", "value", "creator_user_id"]:
+            assert key in secret.keys()
+        assert secret["key"] == self.test_key
+        assert secret["value"] == self.test_value
+        assert secret["creator_user_id"] == user.id
+        print("test_add_secret")
 
     def test_get_secret(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
