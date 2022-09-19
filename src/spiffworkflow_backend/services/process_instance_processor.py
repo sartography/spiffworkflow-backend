@@ -95,7 +95,7 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
         expression: str,
         context: Dict[str, Union[Box, str]],
         task: Optional[SpiffTask] = None,
-        external_methods: Dict[str, Any] = None,
+        external_methods: Optional[Dict[str, Any]] = None,
     ) -> Any:
         """Evaluate the given expression, within the context of the given task and return the result."""
         try:
