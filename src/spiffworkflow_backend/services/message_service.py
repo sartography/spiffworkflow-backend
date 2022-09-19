@@ -24,7 +24,6 @@ from spiffworkflow_backend.services.process_instance_processor import (
 from spiffworkflow_backend.services.process_instance_service import (
     ProcessInstanceService,
 )
-from spiffworkflow_backend.services.user_service import UserService
 
 
 class MessageServiceWithAppContext:
@@ -82,16 +81,15 @@ class MessageService:
                         ).first()
                     )
                     if message_triggerable_process_model:
-                        system_user = UserService().find_or_create_user(
-                            service="internal",
-                            service_id="system_user",
-                            username="system_user",
-                        )
+                        process_instance_send = ProcessInstanceModel.query.filter_by(
+                            id=message_instance_send.process_instance_id,
+                        ).first()
+                        # TODO: use the correct swimlane user when that is set up
                         cls.process_message_triggerable_process_model(
                             message_triggerable_process_model,
                             message_instance_send.message_model.name,
                             message_instance_send.payload,
-                            system_user,
+                            process_instance_send.process_initiator,
                         )
                         message_instance_send.status = "completed"
                     else:
@@ -138,15 +136,13 @@ class MessageService:
             process_group_identifier=message_triggerable_process_model.process_group_identifier,
         )
         processor_receive = ProcessInstanceProcessor(process_instance_receive)
-        processor_receive.do_engine_steps()
+        processor_receive.do_engine_steps(save=False)
         processor_receive.bpmn_process_instance.catch_bpmn_message(
             message_model_name,
             message_payload,
             correlations={},
         )
-        processor_receive.save()
-        processor_receive.do_engine_steps()
-        processor_receive.save()
+        processor_receive.do_engine_steps(save=True)
 
         return process_instance_receive
 
@@ -174,8 +170,7 @@ class MessageService:
             message_payload,
             correlations={},
         )
-        processor_receive.do_engine_steps()
-        processor_receive.save()
+        processor_receive.do_engine_steps(save=True)
 
     @staticmethod
     def get_message_instance_receive(

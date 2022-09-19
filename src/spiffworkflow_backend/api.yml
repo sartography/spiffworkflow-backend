@@ -847,6 +847,20 @@ paths:
                 items:
                   $ref: "#/components/schemas/Task"
 
+  /service_tasks:
+    get:
+      tags:
+        - Service Tasks
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.service_tasks_show
+      summary: Gets all available service task connectors
+      responses:
+        "200":
+          description: All service task connectors
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceTask"
+
   /tasks/{process_instance_id}/{task_id}:
     parameters:
       - name: task_id
@@ -1764,6 +1778,32 @@ components:
           type: number
           format: integer
           example: 5
+    ServiceTask:
+      properties:
+        items:
+          type: array
+          $ref: "#/components/schemas/ServiceTaskConnector"
+          readOnly: true
+    ServiceTaskConnector:
+      properties:
+        id:
+          type: string
+          example: xero/CreateInvoice
+        parameters:
+          type: array
+          $ref: "#/components/schemas/ServiceTaskOperatorParameter"
+          readOnly: true
+    ServiceTaskOperatorParameter:
+      properties:
+        id:
+          type: string
+          example: client_id
+        type:
+          type: string
+          example: str
+        required:
+          type: boolean
+          example: false
     GitRepo:
       properties:
         #        remote:

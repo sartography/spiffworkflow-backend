@@ -251,9 +251,8 @@ class BaseTest:
         self, file_name: str, process_model_test_data_dir: str
     ) -> bytes:
         """Get_test_data_file_contents."""
-        current_app.root_path,
         file_full_path = os.path.join(
-            current_app.root_path,
+            current_app.instance_path,
             "..",
             "..",
             "tests",

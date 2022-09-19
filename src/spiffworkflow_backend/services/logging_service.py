@@ -100,12 +100,15 @@ class SpiffFilter(logging.Filter):
         if hasattr(tld, "process_instance_id"):
             process_instance_id = tld.process_instance_id
         setattr(record, "process_instance_id", process_instance_id)  # noqa: B010
+        if hasattr(g, "user") and g.user:
+            setattr(record, "current_user_id", g.user.id)  # noqa: B010
         return True
 
 
 def setup_logger(app: Flask) -> None:
     """Setup_logger."""
     log_level = logging.DEBUG
+    spiff_log_level = logging.DEBUG
     log_formatter = logging.Formatter(
         "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
@@ -130,7 +133,7 @@ def setup_logger(app: Flask) -> None:
     spiff_logger_filehandler = None
     if app.config["SPIFFWORKFLOW_BACKEND_LOG_TO_FILE"]:
         spiff_logger_filehandler = logging.FileHandler(f"log/{app.env}.log")
-        spiff_logger_filehandler.setLevel(logging.DEBUG)
+        spiff_logger_filehandler.setLevel(spiff_log_level)
         spiff_logger_filehandler.setFormatter(log_formatter)
 
     # make all loggers act the same
@@ -148,7 +151,7 @@ def setup_logger(app: Flask) -> None:
                     the_handler.setLevel(log_level)
 
     spiff_logger = logging.getLogger("spiff")
-    spiff_logger.setLevel(logging.DEBUG)
+    spiff_logger.setLevel(spiff_log_level)
     spiff_formatter = logging.Formatter(
         "%(asctime)s | %(levelname)s | %(message)s | %(action)s | %(task_type)s | %(process)s | %(processName)s | %(process_instance_id)s"
     )
@@ -157,7 +160,7 @@ def setup_logger(app: Flask) -> None:
     # if you add a filter to the spiff logger directly (and not the handler), it will NOT be inherited by spiff.metrics
     # so put filters on handlers.
     db_handler = DBHandler()
-    db_handler.setLevel(logging.DEBUG)
+    db_handler.setLevel(spiff_log_level)
     db_handler.setFormatter(spiff_formatter)
     db_handler.addFilter(SpiffFilter(app))
     spiff_logger.addHandler(db_handler)
@@ -175,6 +178,7 @@ class DBHandler(logging.Handler):
             bpmn_task_identifier = str(record.task_spec)  # type: ignore
             timestamp = record.created
             message = record.msg if hasattr(record, "msg") else None
+            current_user_id = record.current_user_id if hasattr(record, "current_user_id") else None  # type: ignore
             spiff_log = SpiffLoggingModel(
                 process_instance_id=record.process_instance_id,  # type: ignore
                 bpmn_process_identifier=bpmn_process_identifier,
@@ -182,6 +186,7 @@ class DBHandler(logging.Handler):
                 bpmn_task_identifier=bpmn_task_identifier,
                 message=message,
                 timestamp=timestamp,
+                current_user_id=current_user_id,
             )
             db.session.add(spiff_log)
             db.session.commit()

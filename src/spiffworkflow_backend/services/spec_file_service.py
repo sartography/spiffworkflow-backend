@@ -485,7 +485,6 @@ class SpecFileService(FileSystemService):
                             f"Could not find message model with identifier '{message_model_identifier}'"
                             f"specified by correlation property: {cpre}"
                         )
-
                     message_correlation_property = (
                         MessageCorrelationPropertyModel.query.filter_by(
                             identifier=correlation_identifier,

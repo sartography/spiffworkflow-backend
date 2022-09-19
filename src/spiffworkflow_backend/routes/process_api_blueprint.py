@@ -11,6 +11,7 @@ import connexion  # type: ignore
 import flask.wrappers
 import jinja2
 from flask import Blueprint
+from flask import current_app
 from flask import g
 from flask import jsonify
 from flask import make_response
@@ -55,6 +56,7 @@ from spiffworkflow_backend.services.process_instance_service import (
 )
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 from spiffworkflow_backend.services.secret_service import SecretService
+from spiffworkflow_backend.services.service_task_service import ServiceTaskService
 from spiffworkflow_backend.services.spec_file_service import SpecFileService
 from spiffworkflow_backend.services.user_service import UserService
 
@@ -345,6 +347,9 @@ def process_instance_run(
             ) from e
         processor.save()
         ProcessInstanceService.update_task_assignments(processor)
+
+        if not current_app.config["PROCESS_WAITING_MESSAGES"]:
+            MessageService.process_message_instances()
 
     process_instance_api = ProcessInstanceService.processor_to_process_instance_api(
         processor
@@ -648,6 +653,16 @@ def process_instance_report_delete(
     db.session.commit()
 
     return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
+
+
+def service_tasks_show() -> flask.wrappers.Response:
+    """Service_tasks_show."""
+    available_connectors = ServiceTaskService.available_connectors()
+    print(available_connectors)
+
+    return Response(
+        json.dumps(available_connectors), status=200, mimetype="application/json"
+    )
 
 
 def process_instance_report_show(

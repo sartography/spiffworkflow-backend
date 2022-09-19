@@ -72,7 +72,9 @@ class ProcessModelService(FileSystemService):
         os.makedirs(spec_path, exist_ok=True)
         json_path = os.path.join(spec_path, self.WF_JSON_FILE)
         with open(json_path, "w") as wf_json:
-            json.dump(self.WF_SCHEMA.dump(process_model), wf_json, indent=4)
+            json.dump(
+                self.WF_SCHEMA.dump(process_model), wf_json, indent=4, sort_keys=True
+            )
 
     def process_model_delete(self, process_model_id: str) -> None:
         """Delete Procecss Model."""

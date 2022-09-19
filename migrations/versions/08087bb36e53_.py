@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 70d52c39fdda
+Revision ID: 08087bb36e53
 Revises: 
-Create Date: 2022-09-15 11:40:42.072748
+Create Date: 2022-09-19 13:35:44.341498
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '70d52c39fdda'
+revision = '08087bb36e53'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -27,7 +27,7 @@ def upgrade():
     )
     op.create_table('bpmn_process_id_lookup',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('bpmn_process_identifier', sa.String(length=50), nullable=True),
+    sa.Column('bpmn_process_identifier', sa.String(length=255), nullable=True),
     sa.Column('bpmn_file_relative_path', sa.String(length=255), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
@@ -224,11 +224,13 @@ def upgrade():
     op.create_table('spiff_logging',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('process_instance_id', sa.Integer(), nullable=False),
-    sa.Column('bpmn_process_identifier', sa.String(length=50), nullable=False),
-    sa.Column('bpmn_task_identifier', sa.String(length=50), nullable=False),
+    sa.Column('bpmn_process_identifier', sa.String(length=255), nullable=False),
+    sa.Column('bpmn_task_identifier', sa.String(length=255), nullable=False),
     sa.Column('spiff_task_guid', sa.String(length=50), nullable=False),
     sa.Column('timestamp', sa.DECIMAL(precision=17, scale=6), nullable=False),
-    sa.Column('message', sa.String(length=50), nullable=True),
+    sa.Column('message', sa.String(length=255), nullable=True),
+    sa.Column('current_user_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['current_user_id'], ['user.id'], ),
     sa.ForeignKeyConstraint(['process_instance_id'], ['process_instance.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
