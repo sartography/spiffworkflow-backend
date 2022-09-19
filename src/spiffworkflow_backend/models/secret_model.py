@@ -37,6 +37,12 @@ class SecretAllowedProcessPathModel(SpiffworkflowBaseDBModel):
     """
 
     __tablename__ = "secret_allowed_process"
+    __table_args__ = (
+        db.UniqueConstraint(
+            "secret_id", "allowed_relative_path", name="unique_secret_path"
+        ),
+    )
+
     id: int = db.Column(db.Integer, primary_key=True)
     secret_id: int = db.Column(ForeignKey(SecretModel.id), nullable=False)  # type: ignore
     allowed_relative_path: str = db.Column(db.String(500), nullable=False)

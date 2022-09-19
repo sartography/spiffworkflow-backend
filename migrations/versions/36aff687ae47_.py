@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 08087bb36e53
+Revision ID: 36aff687ae47
 Revises: 
-Create Date: 2022-09-19 13:35:44.341498
+Create Date: 2022-09-19 16:16:26.667041
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '08087bb36e53'
+revision = '36aff687ae47'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -219,7 +219,8 @@ def upgrade():
     sa.Column('secret_id', sa.Integer(), nullable=False),
     sa.Column('allowed_relative_path', sa.String(length=500), nullable=False),
     sa.ForeignKeyConstraint(['secret_id'], ['secret.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('secret_id', 'allowed_relative_path', name='unique_secret_path')
     )
     op.create_table('spiff_logging',
     sa.Column('id', sa.Integer(), nullable=False),

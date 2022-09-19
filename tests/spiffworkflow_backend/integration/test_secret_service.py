@@ -16,7 +16,7 @@ from spiffworkflow_backend.services.process_model_service import ProcessModelSer
 from spiffworkflow_backend.services.secret_service import SecretService
 
 
-class SecretServiceTestHelpers:
+class SecretServiceTestHelpers(BaseTest):
     test_key = "test_key"
     test_value = "test_value"
     test_process_group_id = "test"
@@ -51,8 +51,22 @@ class SecretServiceTestHelpers:
         )
         return process_model_info
 
+    def add_test_secret_allowed_process(self, client: FlaskClient, user: UserModel) -> SecretAllowedProcessPathModel:
+        process_model_info = self.add_test_process(client, user)
+        process_model_relative_path = FileSystemService.process_model_relative_path(
+            process_model_info
+        )
 
-class TestSecretService(BaseTest, SecretServiceTestHelpers):
+        test_secret = self.add_test_secret(user)
+        allowed_process_model = SecretService().add_allowed_process(
+            key=test_secret.key,
+            user_id=user.id,
+            allowed_relative_path=process_model_relative_path,
+        )
+        return allowed_process_model
+
+
+class TestSecretService(SecretServiceTestHelpers):
     """TestSecretService."""
 
     def test_add_secret(self, app: Flask, with_db_and_bpmn_file_cleanup: None) -> None:
@@ -84,7 +98,7 @@ class TestSecretService(BaseTest, SecretServiceTestHelpers):
         assert secret is not None
         assert secret == self.test_value
 
-    def test_get_secret_bad_key(
+    def test_get_secret_bad_key_fails(
         self, app: Flask, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_get_secret_bad_service."""
@@ -94,22 +108,91 @@ class TestSecretService(BaseTest, SecretServiceTestHelpers):
         bad_secret = SecretService().get_secret("bad_key")
         assert bad_secret is None
 
+    def test_update_secret(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        """Test update secret."""
+        user = self.find_or_create_user()
+        self.add_test_secret(user)
+        secret = SecretService.get_secret(self.test_key)
+        assert secret == self.test_value
+        SecretService.update_secret(self.test_key, "new_secret_value", user.id)
+        new_secret = SecretService.get_secret(self.test_key)
+        assert new_secret == "new_secret_value"  # noqa: S105
+
+    def test_update_secret_bad_user_fails(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        """Test_update_secret_bad_user."""
+        user = self.find_or_create_user()
+        self.add_test_secret(user)
+        with pytest.raises(ApiError) as ae:
+            SecretService.update_secret(
+                self.test_key, "new_secret_value", user.id + 1
+            )  # noqa: S105
+        assert (
+            ae.value.message
+            == f"User: {user.id+1} cannot update the secret with key : test_key"
+        )
+
+    def test_update_secret_bad_secret_fails(
+            self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        user = self.find_or_create_user()
+        secret = self.add_test_secret(user)
+        with pytest.raises(ApiError) as ae:
+            SecretService.update_secret(secret.key+'x', 'some_new_value', user.id)
+        assert "Resource does not exist" in ae.value.message
+
+    def test_delete_secret(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        """Test delete secret."""
+        user = self.find_or_create_user()
+        self.add_test_secret(user)
+        secrets = SecretModel.query.all()
+        assert len(secrets) == 1
+        assert secrets[0].creator_user_id == user.id
+        SecretService.delete_secret(self.test_key, user.id)
+        secrets = SecretModel.query.all()
+        assert len(secrets) == 0
+
+    def test_delete_secret_bad_user_fails(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        """Test_delete_secret_bad_user."""
+        user = self.find_or_create_user()
+        self.add_test_secret(user)
+        with pytest.raises(ApiError) as ae:
+            SecretService.delete_secret(self.test_key, user.id + 1)
+        assert f"User: {user.id+1} cannot delete the secret with key" in ae.value.message
+
+    def test_delete_secret_bad_secret_fails(
+            self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        user = self.find_or_create_user()
+        self.add_test_secret(user)
+        with pytest.raises(ApiError) as ae:
+            SecretService.delete_secret(self.test_key+'x', user.id)
+        assert "Resource does not exist" in ae.value.message
+
     def test_secret_add_allowed_process(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_secret_add_allowed_process."""
         user = self.find_or_create_user()
+        test_secret = self.add_test_secret(user)
         process_model_info = self.add_test_process(client, user)
+
         process_model_relative_path = FileSystemService.process_model_relative_path(
             process_model_info
         )
-
-        test_secret = self.add_test_secret(user)
         allowed_process_model = SecretService().add_allowed_process(
             key=test_secret.key,
             user_id=user.id,
             allowed_relative_path=process_model_relative_path,
         )
+
         assert allowed_process_model is not None
         assert isinstance(allowed_process_model, SecretAllowedProcessPathModel)
         assert allowed_process_model.secret_id == test_secret.id
@@ -120,7 +203,38 @@ class TestSecretService(BaseTest, SecretServiceTestHelpers):
         assert len(test_secret.allowed_processes) == 1
         assert test_secret.allowed_processes[0] == allowed_process_model
 
-    def test_secret_add_allowed_process_bad_user(
+    def test_secret_add_allowed_process_same_process_fails(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        """Do not allow duplicate entries for secret_id/allowed_relative_path pairs.
+        We actually take care of this in the db model with a unique constraint
+        on the 2 columns"""
+        user = self.find_or_create_user()
+        test_secret = self.add_test_secret(user)
+        process_model_info = self.add_test_process(client, user)
+
+        process_model_relative_path = FileSystemService.process_model_relative_path(
+            process_model_info
+        )
+        SecretService().add_allowed_process(
+            key=test_secret.key,
+            user_id=user.id,
+            allowed_relative_path=process_model_relative_path,
+        )
+        allowed_processes = SecretAllowedProcessPathModel.query.all()
+        assert len(allowed_processes) == 1
+
+        with pytest.raises(ApiError) as ae:
+            SecretService().add_allowed_process(
+                key=test_secret.key,
+                user_id=user.id,
+                allowed_relative_path=process_model_relative_path,
+            )
+        assert "Resource already exists" in ae.value.message
+        assert "IntegrityError" in ae.value.message
+        assert "Duplicate entry" in ae.value.message
+
+    def test_secret_add_allowed_process_bad_user_fails(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
         """Test_secret_add_allowed_process_bad_user."""
@@ -141,61 +255,58 @@ class TestSecretService(BaseTest, SecretServiceTestHelpers):
             == f"User: {user.id+1} cannot modify the secret with key : test_key"
         )
 
-    def test_update_secret(
-        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    def test_secret_add_allowed_process_bad_secret_fails(
+            self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
-        """Test update secret."""
         user = self.find_or_create_user()
-        self.add_test_secret(user)
-        secret = SecretService.get_secret(self.test_key)
-        assert secret == self.test_value
-        SecretService.update_secret(self.test_key, "new_secret_value", user.id)
-        new_secret = SecretService.get_secret(self.test_key)
-        assert new_secret == "new_secret_value"  # noqa: S105
-
-    def test_update_secret_bad_user(
-        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
-    ) -> None:
-        """Test_update_secret_bad_user."""
-        user = self.find_or_create_user()
-        self.add_test_secret(user)
-        with pytest.raises(ApiError) as ae:
-            SecretService.update_secret(
-                self.test_key, "new_secret_value", user.id + 1
-            )  # noqa: S105
-        assert (
-            ae.value.message
-            == f"User: {user.id+1} cannot update the secret with key : test_key"
+        process_model_info = self.add_test_process(client, user)
+        process_model_relative_path = FileSystemService.process_model_relative_path(
+            process_model_info
         )
+        test_secret = self.add_test_secret(user)
 
-    def test_delete_secret(
-        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
-    ) -> None:
-        """Test delete secret."""
-        user = self.find_or_create_user()
-        self.add_test_secret(user)
-        secrets = SecretModel.query.all()
-        assert len(secrets) == 1
-        assert secrets[0].creator_user_id == user.id
-        SecretService.delete_secret(self.test_key, user.id)
-        secrets = SecretModel.query.all()
-        assert len(secrets) == 0
-
-    def test_delete_secret_bad_user(
-        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
-    ) -> None:
-        """Test_delete_secret_bad_user."""
-        user = self.find_or_create_user()
-        self.add_test_secret(user)
         with pytest.raises(ApiError) as ae:
-            SecretService.delete_secret(self.test_key, user.id + 1)
-        assert (
-            ae.value.message
-            == f"User: {user.id+1} cannot delete the secret with key : test_key"
-        )
+            SecretService().add_allowed_process(
+                key=test_secret.key+'x',
+                user_id=user.id,
+                allowed_relative_path=process_model_relative_path
+            )
+        assert "Resource does not exist" in ae.value.message
+        print("test_secret_add_allowed_process_bad_secret")
+
+    def test_secret_delete_allowed_process(self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None) -> None:
+        user = self.find_or_create_user()
+        allowed_process_model = self.add_test_secret_allowed_process(client, user)
+
+        allowed_processes = SecretAllowedProcessPathModel.query.all()
+        assert len(allowed_processes) == 1
+
+        SecretService().delete_allowed_process(allowed_process_model.id, user.id)
+
+        allowed_processes = SecretAllowedProcessPathModel.query.all()
+        assert len(allowed_processes) == 0
+
+    def test_secret_delete_allowed_process_bad_user_fails(
+            self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        user = self.find_or_create_user()
+        allowed_process_model = self.add_test_secret_allowed_process(client, user)
+        with pytest.raises(ApiError) as ae:
+            SecretService().delete_allowed_process(allowed_process_model.id, user.id+1)
+        message = ae.value.message
+        assert f"User: {user.id+1} cannot delete the allowed_process with id : {allowed_process_model.id}" in message
+
+    def test_secret_delete_allowed_process_bad_allowed_process_fails(
+            self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        user = self.find_or_create_user()
+        allowed_process_model = self.add_test_secret_allowed_process(client, user)
+        with pytest.raises(ApiError) as ae:
+            SecretService().delete_allowed_process(allowed_process_model.id+1, user.id)
+        assert "Resource does not exist" in ae.value.message
 
 
-class TestSecretServiceApi(BaseTest, SecretServiceTestHelpers):
+class TestSecretServiceApi(SecretServiceTestHelpers):
     """TestSecretServiceApi."""
 
     def test_add_secret(
