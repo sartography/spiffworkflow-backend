@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 8aae66f8bba5
+Revision ID: 00a59d952198
 Revises: 
-Create Date: 2022-09-16 13:46:31.330999
+Create Date: 2022-09-19 09:01:56.805355
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '8aae66f8bba5'
+revision = '00a59d952198'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -208,11 +208,11 @@ def upgrade():
     op.create_table('spiff_logging',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('process_instance_id', sa.Integer(), nullable=False),
-    sa.Column('bpmn_process_identifier', sa.String(length=50), nullable=False),
-    sa.Column('bpmn_task_identifier', sa.String(length=50), nullable=False),
+    sa.Column('bpmn_process_identifier', sa.String(length=255), nullable=False),
+    sa.Column('bpmn_task_identifier', sa.String(length=255), nullable=False),
     sa.Column('spiff_task_guid', sa.String(length=50), nullable=False),
     sa.Column('timestamp', sa.DECIMAL(precision=17, scale=6), nullable=False),
-    sa.Column('message', sa.String(length=50), nullable=True),
+    sa.Column('message', sa.String(length=255), nullable=True),
     sa.Column('current_user_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['current_user_id'], ['user.id'], ),
     sa.ForeignKeyConstraint(['process_instance_id'], ['process_instance.id'], ),
