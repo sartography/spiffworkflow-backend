@@ -13,11 +13,13 @@ def main():
     os.environ["FLASK_ENV"] = "development"
     flask_env_key = "FLASK_SESSION_SECRET_KEY"
     os.environ[flask_env_key] = "whatevs"
-    if os.environ['BPMN_SPEC_ABSOLUTE_DIR'] is None:
+    if os.environ["BPMN_SPEC_ABSOLUTE_DIR"] is None:
         home = os.environ["HOME"]
-        full_process_model_path = f"{home}/projects/github/sartography/sample-process-models"
+        full_process_model_path = (
+            f"{home}/projects/github/sartography/sample-process-models"
+        )
         if os.path.isdir(full_process_model_path):
-            os.environ['BPMN_SPEC_ABSOLUTE_DIR'] = full_process_model_path
+            os.environ["BPMN_SPEC_ABSOLUTE_DIR"] = full_process_model_path
         else:
             raise Exception(f"Could not find {full_process_model_path}")
     app = create_app()
