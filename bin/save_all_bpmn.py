@@ -13,7 +13,7 @@ def main():
     os.environ["FLASK_ENV"] = "development"
     flask_env_key = "FLASK_SESSION_SECRET_KEY"
     os.environ[flask_env_key] = "whatevs"
-    if os.environ["BPMN_SPEC_ABSOLUTE_DIR"] is None:
+    if "BPMN_SPEC_ABSOLUTE_DIR" not in os.environ:
         home = os.environ["HOME"]
         full_process_model_path = (
             f"{home}/projects/github/sartography/sample-process-models"
