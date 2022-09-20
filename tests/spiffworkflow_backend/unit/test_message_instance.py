@@ -34,7 +34,7 @@ class TestMessageInstance(BaseTest):
         assert queued_message.status == "ready"
         assert queued_message.failure_cause is None
 
-        queued_message_from_query = MessageInstanceModel.query.filter_by(
+        queued_message_from_query = MessageInstanceModel.query.filter_by(  # type: ignore
             id=queued_message.id
         ).first()
         assert queued_message_from_query is not None
@@ -137,7 +137,7 @@ class TestMessageInstance(BaseTest):
             == "MessageInstanceModel: failure_cause must be set if status is failed"
         )
         assert queued_message.id is None
-        db.session.remove()
+        db.session.remove()  # type: ignore
 
         queued_message = MessageInstanceModel(
             process_instance_id=process_instance.id,
