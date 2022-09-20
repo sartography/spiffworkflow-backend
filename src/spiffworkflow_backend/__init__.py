@@ -17,7 +17,9 @@ from spiffworkflow_backend.config import setup_config
 from spiffworkflow_backend.routes.admin_blueprint.admin_blueprint import admin_blueprint
 from spiffworkflow_backend.routes.process_api_blueprint import process_api_blueprint
 from spiffworkflow_backend.routes.user_blueprint import user_blueprint
-from spiffworkflow_backend.services.message_service import MessageServiceWithAppContext
+from spiffworkflow_backend.services.background_processing_service import (
+    BackgroundProcessingService,
+)
 
 
 class MyJSONEncoder(flask.json.JSONEncoder):
@@ -34,9 +36,14 @@ def start_scheduler(app: flask.app.Flask) -> None:
     """Start_scheduler."""
     scheduler = BackgroundScheduler()
     scheduler.add_job(
-        MessageServiceWithAppContext(app).process_message_instances_with_app_context,
+        BackgroundProcessingService(app).process_message_instances_with_app_context,
         "interval",
         seconds=10,
+    )
+    scheduler.add_job(
+        BackgroundProcessingService(app).run,
+        "interval",
+        seconds=30,
     )
     scheduler.start()
 
