@@ -25,7 +25,7 @@ class MessageCorrelationMessageInstanceModel(SpiffworkflowBaseDBModel):
 
     id = db.Column(db.Integer, primary_key=True)
     message_instance_id = db.Column(
-        ForeignKey(MessageInstanceModel.id), nullable=False, index=True
+        ForeignKey(MessageInstanceModel.id), nullable=False, index=True  # type: ignore
     )
     message_correlation_id = db.Column(
         ForeignKey(MessageCorrelationModel.id), nullable=False, index=True

@@ -61,7 +61,6 @@ class ProcessInstanceService:
     @staticmethod
     def do_waiting() -> None:
         """Do_waiting."""
-        current_app.logger.info("ProcessInstanceService: do_waiting()")
         records = (
             db.session.query(ProcessInstanceModel)
             .filter(ProcessInstanceModel.status == ProcessInstanceStatus.waiting.value)
