@@ -17,6 +17,9 @@ from spiffworkflow_backend.config import setup_config
 from spiffworkflow_backend.routes.admin_blueprint.admin_blueprint import admin_blueprint
 from spiffworkflow_backend.routes.process_api_blueprint import process_api_blueprint
 from spiffworkflow_backend.routes.user_blueprint import user_blueprint
+from spiffworkflow_backend.services.background_processing_service import (
+    BackgroundProcessingService,
+)
 from spiffworkflow_backend.services.message_service import MessageServiceWithAppContext
 
 
@@ -37,6 +40,11 @@ def start_scheduler(app: flask.app.Flask) -> None:
         MessageServiceWithAppContext(app).process_message_instances_with_app_context,
         "interval",
         seconds=10,
+    )
+    scheduler.add_job(
+        BackgroundProcessingService(app).run,
+        "interval",
+        seconds=5,
     )
     scheduler.start()
 
