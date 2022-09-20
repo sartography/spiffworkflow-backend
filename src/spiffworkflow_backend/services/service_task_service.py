@@ -16,20 +16,20 @@ class ServiceTaskDelegate:
     """ServiceTaskDelegate."""
 
     @staticmethod
-    def call_connector(name: str, bpmn_params: Any) -> str:
+    def normalize_value(v: Any) -> Any:
+        """Normalize_value."""
+        value = v["value"]
+        secret_prefix = "secret:"  # noqa: S105
+        if value.startswith(secret_prefix):
+            key = value.removeprefix(secret_prefix)
+            # TODO replace with call to secret store
+            value = key
+        return value
+
+    @classmethod
+    def call_connector(cls, name: str, bpmn_params: Any) -> str:
         """Calls a connector via the configured proxy."""
-
-        def normalize_value(v: Any) -> Any:
-            """Normalize_value."""
-            value = v["value"]
-            secret_prefix = "secret:"  # noqa: S105
-            if value.startswith(secret_prefix):
-                key = value.removeprefix(secret_prefix)
-                # TODO replace with call to secret store
-                value = key
-            return value
-
-        params = {k: normalize_value(v) for k, v in bpmn_params.items()}
+        params = {k: cls.normalize_value(v) for k, v in bpmn_params.items()}
         proxied_response = requests.get(f"{connector_proxy_url()}/v1/do/{name}", params)
 
         if proxied_response.status_code != 200:

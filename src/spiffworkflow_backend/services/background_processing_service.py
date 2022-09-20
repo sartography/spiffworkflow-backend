@@ -1,6 +1,9 @@
 """Background_processing_service."""
 import flask
-from spiffworkflow_backend.services.process_instance_service import ProcessInstanceService
+
+from spiffworkflow_backend.services.process_instance_service import (
+    ProcessInstanceService,
+)
 
 
 class BackgroundProcessingService:
