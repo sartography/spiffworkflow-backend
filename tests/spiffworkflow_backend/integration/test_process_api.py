@@ -1400,6 +1400,74 @@ class TestProcessApi(BaseTest):
         assert result["name"] == file_name
         assert bytes(str(result["file_contents"]), "utf-8") == file_data
 
+    def test_can_get_message_instances_by_process_instance_id_and_without(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        """Test_can_get_message_instances_by_process_instance_id."""
+        load_test_spec(
+            "message_receiver",
+            process_model_source_directory="message_send_one_conversation",
+            bpmn_file_name="message_receiver",
+        )
+        user = self.find_or_create_user()
+        message_model_identifier = "message_send"
+        payload = {
+            "topica": "the_topica_string",
+            "topicb": "the_topicb_string",
+            "andThis": "another_item_non_key",
+        }
+        response = client.post(
+            f"/v1.0/messages/{message_model_identifier}",
+            content_type="application/json",
+            headers=logged_in_headers(user),
+            data=json.dumps({"payload": payload}),
+        )
+        assert response.status_code == 200
+        assert response.json is not None
+        process_instance_id_one = response.json["id"]
+
+        response = client.post(
+            f"/v1.0/messages/{message_model_identifier}",
+            content_type="application/json",
+            headers=logged_in_headers(user),
+            data=json.dumps({"payload": payload}),
+        )
+        assert response.status_code == 200
+        assert response.json is not None
+        process_instance_id_two = response.json["id"]
+
+        response = client.get(
+            f"/v1.0/messages?process_instance_id={process_instance_id_one}",
+            headers=logged_in_headers(user),
+        )
+        assert response.status_code == 200
+        assert response.json is not None
+        assert len(response.json["results"]) == 1
+        assert (
+            response.json["results"][0]["process_instance_id"]
+            == process_instance_id_one
+        )
+
+        response = client.get(
+            f"/v1.0/messages?process_instance_id={process_instance_id_two}",
+            headers=logged_in_headers(user),
+        )
+        assert response.status_code == 200
+        assert response.json is not None
+        assert len(response.json["results"]) == 1
+        assert (
+            response.json["results"][0]["process_instance_id"]
+            == process_instance_id_two
+        )
+
+        response = client.get(
+            "/v1.0/messages",
+            headers=logged_in_headers(user),
+        )
+        assert response.status_code == 200
+        assert response.json is not None
+        assert len(response.json["results"]) == 2
+
     # def test_get_process_model(self):
     #
     #     load_test_spec('random_fact')
