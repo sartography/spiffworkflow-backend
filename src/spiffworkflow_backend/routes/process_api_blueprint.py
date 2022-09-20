@@ -406,6 +406,37 @@ def process_instance_log_list(
     return make_response(jsonify(response_json), 200)
 
 
+def message_instance_list(
+    process_instance_id: Optional[int] = None,
+    page: int = 1,
+    per_page: int = 100,
+) -> flask.wrappers.Response:
+    """Message_instance_list."""
+    # to make sure the process instance exists
+    message_instances_query = MessageInstanceModel.query
+
+    if process_instance_id:
+        message_instances_query = message_instances_query.filter_by(
+            process_instance_id=process_instance_id
+        )
+
+    message_instances = message_instances_query.order_by(
+        MessageInstanceModel.created_at_in_seconds.desc(),  # type: ignore
+        MessageInstanceModel.id.desc(),  # type: ignore
+    ).paginate(page, per_page, False)
+
+    response_json = {
+        "results": message_instances.items,
+        "pagination": {
+            "count": len(message_instances.items),
+            "total": message_instances.total,
+            "pages": message_instances.pages,
+        },
+    }
+
+    return make_response(jsonify(response_json), 200)
+
+
 # body: {
 #   payload: dict,
 #   process_instance_id: Optional[int],
