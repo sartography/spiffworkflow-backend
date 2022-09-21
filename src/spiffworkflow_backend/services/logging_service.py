@@ -176,7 +176,7 @@ class DBHandler(logging.Handler):
             bpmn_process_identifier = record.workflow  # type: ignore
             spiff_task_guid = str(record.task_id)  # type: ignore
             bpmn_task_identifier = str(record.task_spec)  # type: ignore
-            bpmn_task_type = record.task_type if hasattr(record, 'task_type') else None # type: ignore
+            bpmn_task_type = record.task_type if hasattr(record, "task_type") else None  # type: ignore
             timestamp = record.created
             message = record.msg if hasattr(record, "msg") else None
             current_user_id = record.current_user_id if hasattr(record, "current_user_id") else None  # type: ignore

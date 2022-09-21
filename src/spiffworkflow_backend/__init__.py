@@ -2,11 +2,10 @@
 import os
 from typing import Any
 
-import sqlalchemy
-
 import connexion  # type: ignore
 import flask.app
 import flask.json
+import sqlalchemy
 from apscheduler.schedulers.background import BackgroundScheduler  # type: ignore
 from flask_bpmn.api.api_error import api_error_blueprint
 from flask_bpmn.models.db import db
@@ -31,15 +30,15 @@ class MyJSONEncoder(flask.json.JSONEncoder):
         """Default."""
         if hasattr(obj, "serialized"):
             return obj.serialized
-        elif isinstance(obj, sqlalchemy.engine.row.Row):
+        elif isinstance(obj, sqlalchemy.engine.row.Row):  # type: ignore
             return_dict = {}
             for row_key in obj.keys():
                 row_value = obj[row_key]
-                if (hasattr(row_value, '__dict__')):
+                if hasattr(row_value, "__dict__"):
                     return_dict.update(row_value.__dict__)
                 else:
-                    return_dict.update({ row_key: row_value })
-            return_dict.pop('_sa_instance_state')
+                    return_dict.update({row_key: row_value})
+            return_dict.pop("_sa_instance_state")
             return return_dict
         return super().default(obj)
 
@@ -55,7 +54,7 @@ def start_scheduler(app: flask.app.Flask) -> None:
     scheduler.add_job(
         BackgroundProcessingService(app).run,
         "interval",
-        seconds=30,
+        seconds=5,
     )
     scheduler.start()
 
