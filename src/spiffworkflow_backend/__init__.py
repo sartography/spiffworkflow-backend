@@ -2,6 +2,8 @@
 import os
 from typing import Any
 
+import sqlalchemy
+
 import connexion  # type: ignore
 import flask.app
 import flask.json
@@ -29,6 +31,16 @@ class MyJSONEncoder(flask.json.JSONEncoder):
         """Default."""
         if hasattr(obj, "serialized"):
             return obj.serialized
+        elif isinstance(obj, sqlalchemy.engine.row.Row):
+            return_dict = {}
+            for row_key in obj.keys():
+                row_value = obj[row_key]
+                if (hasattr(row_value, '__dict__')):
+                    return_dict.update(row_value.__dict__)
+                else:
+                    return_dict.update({ row_key: row_value })
+            return_dict.pop('_sa_instance_state')
+            return return_dict
         return super().default(obj)
 
 

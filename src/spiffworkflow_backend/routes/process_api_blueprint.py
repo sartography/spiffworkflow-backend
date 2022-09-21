@@ -44,6 +44,7 @@ from spiffworkflow_backend.models.process_instance_report import (
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
 from spiffworkflow_backend.models.spiff_logging import SpiffLoggingModel
+from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.services.error_handling_service import ErrorHandlingService
 from spiffworkflow_backend.services.file_system_service import FileSystemService
 from spiffworkflow_backend.services.message_service import MessageService
@@ -391,6 +392,10 @@ def process_instance_log_list(
             SpiffLoggingModel.process_instance_id == process_instance.id
         )
         .order_by(SpiffLoggingModel.timestamp.desc())  # type: ignore
+        .join(UserModel)
+        .add_columns(
+            UserModel.username,
+        )
         .paginate(page, per_page, False)
     )
 
