@@ -719,52 +719,59 @@ class ProcessInstanceProcessor:
         """Queue_waiting_receive_messages."""
         waiting_tasks = self.get_all_waiting_tasks()
         for waiting_task in waiting_tasks:
-            if waiting_task.task_spec.__class__.__name__ in [
+            # if it's not something that can wait for a message, skip it
+            if waiting_task.task_spec.__class__.__name__ not in [
                 "IntermediateCatchEvent",
                 "ReceiveTask",
             ]:
-                message_model = MessageModel.query.filter_by(
-                    name=waiting_task.task_spec.event_definition.name
-                ).first()
-                if message_model is None:
-                    raise ApiError(
-                        "invalid_message_name",
-                        f"Invalid message name: {waiting_task.task_spec.event_definition.name}.",
-                    )
+                continue
 
-                message_instance = MessageInstanceModel(
-                    process_instance_id=self.process_instance_model.id,
-                    message_type="receive",
-                    message_model_id=message_model.id,
+            # timer events are not related to messaging, so ignore them for these purposes
+            if waiting_task.task_spec.event_definition.__class__.__name__ in [
+                "TimerEventDefinition",
+            ]:
+                continue
+
+            message_model = MessageModel.query.filter_by(
+                name=waiting_task.task_spec.event_definition.name
+            ).first()
+            if message_model is None:
+                raise ApiError(
+                    "invalid_message_name",
+                    f"Invalid message name: {waiting_task.task_spec.event_definition.name}.",
                 )
-                db.session.add(message_instance)
 
-                for (
-                    spiff_correlation_property
-                ) in waiting_task.task_spec.event_definition.correlation_properties:
-                    # NOTE: we may have to cycle through keys here
-                    # not sure yet if it's valid for a property to be associated with multiple keys
-                    correlation_key_name = spiff_correlation_property.correlation_keys[
-                        0
-                    ]
-                    message_correlation = (
-                        MessageCorrelationModel.query.filter_by(
-                            process_instance_id=self.process_instance_model.id,
-                            name=correlation_key_name,
-                        )
-                        .join(MessageCorrelationPropertyModel)
-                        .filter_by(identifier=spiff_correlation_property.name)
-                        .first()
-                    )
-                    message_correlation_message_instance = (
-                        MessageCorrelationMessageInstanceModel(
-                            message_instance_id=message_instance.id,
-                            message_correlation_id=message_correlation.id,
-                        )
-                    )
-                    db.session.add(message_correlation_message_instance)
+            message_instance = MessageInstanceModel(
+                process_instance_id=self.process_instance_model.id,
+                message_type="receive",
+                message_model_id=message_model.id,
+            )
+            db.session.add(message_instance)
 
-                db.session.commit()
+            for (
+                spiff_correlation_property
+            ) in waiting_task.task_spec.event_definition.correlation_properties:
+                # NOTE: we may have to cycle through keys here
+                # not sure yet if it's valid for a property to be associated with multiple keys
+                correlation_key_name = spiff_correlation_property.correlation_keys[0]
+                message_correlation = (
+                    MessageCorrelationModel.query.filter_by(
+                        process_instance_id=self.process_instance_model.id,
+                        name=correlation_key_name,
+                    )
+                    .join(MessageCorrelationPropertyModel)
+                    .filter_by(identifier=spiff_correlation_property.name)
+                    .first()
+                )
+                message_correlation_message_instance = (
+                    MessageCorrelationMessageInstanceModel(
+                        message_instance_id=message_instance.id,
+                        message_correlation_id=message_correlation.id,
+                    )
+                )
+                db.session.add(message_correlation_message_instance)
+
+            db.session.commit()
 
     def do_engine_steps(self, exit_at: None = None, save: bool = False) -> None:
         """Do_engine_steps."""

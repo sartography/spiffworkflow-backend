@@ -19,6 +19,7 @@ class SpiffLoggingModel(SpiffworkflowBaseDBModel):
     process_instance_id: int = db.Column(ForeignKey(ProcessInstanceModel.id), nullable=False)  # type: ignore
     bpmn_process_identifier: str = db.Column(db.String(255), nullable=False)
     bpmn_task_identifier: str = db.Column(db.String(255), nullable=False)
+    bpmn_task_type: str = db.Column(db.String(255), nullable=True)
     spiff_task_guid: str = db.Column(db.String(50), nullable=False)
     timestamp: float = db.Column(db.DECIMAL(17, 6), nullable=False)
     message: Optional[str] = db.Column(db.String(255), nullable=True)

@@ -59,6 +59,30 @@ class ProcessInstanceService:
         return process_instance_model
 
     @staticmethod
+    def do_waiting() -> None:
+        """Do_waiting."""
+        records = (
+            db.session.query(ProcessInstanceModel)
+            .filter(ProcessInstanceModel.status == ProcessInstanceStatus.waiting.value)
+            .all()
+        )
+        for process_instance in records:
+            try:
+                current_app.logger.info(
+                    f"Processing process_instance {process_instance.id}"
+                )
+                processor = ProcessInstanceProcessor(process_instance)
+                processor.do_engine_steps(save=True)
+            except Exception:
+                db.session.rollback()  # in case the above left the database with a bad transaction
+                process_instance.status = ProcessInstanceStatus.erroring.value
+                db.session.add(process_instance)
+                db.session.commit()
+                error_message = f"Error running waiting task for process_instance {process_instance.id}"
+                "({process_instance.process_model_identifier}). {str(e)}"
+                current_app.logger.error(error_message)
+
+    @staticmethod
     def processor_to_process_instance_api(
         processor: ProcessInstanceProcessor, next_task: None = None
     ) -> ProcessInstanceApi:

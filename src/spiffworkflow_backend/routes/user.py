@@ -215,6 +215,8 @@ def login_return(code: str, state: str, session_state: str) -> Optional[Response
                     name = user_info["name"]
                 if "username" in user_info:
                     username = user_info["username"]
+                elif "preferred_username" in user_info:
+                    username = user_info["preferred_username"]
                 if "email" in user_info:
                     email = user_info["email"]
                 user_model = UserService().create_user(

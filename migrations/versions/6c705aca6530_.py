@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 36aff687ae47
+Revision ID: 6c705aca6530
 Revises: 
-Create Date: 2022-09-19 16:16:26.667041
+Create Date: 2022-09-22 08:16:09.094932
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '36aff687ae47'
+revision = '6c705aca6530'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -227,6 +227,7 @@ def upgrade():
     sa.Column('process_instance_id', sa.Integer(), nullable=False),
     sa.Column('bpmn_process_identifier', sa.String(length=255), nullable=False),
     sa.Column('bpmn_task_identifier', sa.String(length=255), nullable=False),
+    sa.Column('bpmn_task_type', sa.String(length=255), nullable=True),
     sa.Column('spiff_task_guid', sa.String(length=50), nullable=False),
     sa.Column('timestamp', sa.DECIMAL(precision=17, scale=6), nullable=False),
     sa.Column('message', sa.String(length=255), nullable=True),

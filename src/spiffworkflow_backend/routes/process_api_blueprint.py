@@ -45,6 +45,7 @@ from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
 from spiffworkflow_backend.models.secret_model import SecretModelSchema
 from spiffworkflow_backend.models.spiff_logging import SpiffLoggingModel
+from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.services.error_handling_service import ErrorHandlingService
 from spiffworkflow_backend.services.file_system_service import FileSystemService
 from spiffworkflow_backend.services.message_service import MessageService
@@ -393,6 +394,10 @@ def process_instance_log_list(
             SpiffLoggingModel.process_instance_id == process_instance.id
         )
         .order_by(SpiffLoggingModel.timestamp.desc())  # type: ignore
+        .join(UserModel)
+        .add_columns(
+            UserModel.username,
+        )
         .paginate(page, per_page, False)
     )
 
@@ -402,6 +407,37 @@ def process_instance_log_list(
             "count": len(logs.items),
             "total": logs.total,
             "pages": logs.pages,
+        },
+    }
+
+    return make_response(jsonify(response_json), 200)
+
+
+def message_instance_list(
+    process_instance_id: Optional[int] = None,
+    page: int = 1,
+    per_page: int = 100,
+) -> flask.wrappers.Response:
+    """Message_instance_list."""
+    # to make sure the process instance exists
+    message_instances_query = MessageInstanceModel.query
+
+    if process_instance_id:
+        message_instances_query = message_instances_query.filter_by(
+            process_instance_id=process_instance_id
+        )
+
+    message_instances = message_instances_query.order_by(
+        MessageInstanceModel.created_at_in_seconds.desc(),  # type: ignore
+        MessageInstanceModel.id.desc(),  # type: ignore
+    ).paginate(page, per_page, False)
+
+    response_json = {
+        "results": message_instances.items,
+        "pagination": {
+            "count": len(message_instances.items),
+            "total": message_instances.total,
+            "pages": message_instances.pages,
         },
     }
 

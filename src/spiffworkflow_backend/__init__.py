@@ -5,6 +5,7 @@ from typing import Any
 import connexion  # type: ignore
 import flask.app
 import flask.json
+import sqlalchemy
 from apscheduler.schedulers.background import BackgroundScheduler  # type: ignore
 from flask_bpmn.api.api_error import api_error_blueprint
 from flask_bpmn.models.db import db
@@ -17,7 +18,9 @@ from spiffworkflow_backend.config import setup_config
 from spiffworkflow_backend.routes.admin_blueprint.admin_blueprint import admin_blueprint
 from spiffworkflow_backend.routes.process_api_blueprint import process_api_blueprint
 from spiffworkflow_backend.routes.user_blueprint import user_blueprint
-from spiffworkflow_backend.services.message_service import MessageServiceWithAppContext
+from spiffworkflow_backend.services.background_processing_service import (
+    BackgroundProcessingService,
+)
 
 
 class MyJSONEncoder(flask.json.JSONEncoder):
@@ -27,6 +30,16 @@ class MyJSONEncoder(flask.json.JSONEncoder):
         """Default."""
         if hasattr(obj, "serialized"):
             return obj.serialized
+        elif isinstance(obj, sqlalchemy.engine.row.Row):  # type: ignore
+            return_dict = {}
+            for row_key in obj.keys():
+                row_value = obj[row_key]
+                if hasattr(row_value, "__dict__"):
+                    return_dict.update(row_value.__dict__)
+                else:
+                    return_dict.update({row_key: row_value})
+            return_dict.pop("_sa_instance_state")
+            return return_dict
         return super().default(obj)
 
 
@@ -34,9 +47,14 @@ def start_scheduler(app: flask.app.Flask) -> None:
     """Start_scheduler."""
     scheduler = BackgroundScheduler()
     scheduler.add_job(
-        MessageServiceWithAppContext(app).process_message_instances_with_app_context,
+        BackgroundProcessingService(app).process_message_instances_with_app_context,
         "interval",
         seconds=10,
+    )
+    scheduler.add_job(
+        BackgroundProcessingService(app).run,
+        "interval",
+        seconds=5,
     )
     scheduler.start()
 

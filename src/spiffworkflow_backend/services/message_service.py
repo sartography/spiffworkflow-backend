@@ -2,7 +2,6 @@
 from typing import Any
 from typing import Optional
 
-import flask
 from flask_bpmn.models.db import db
 from sqlalchemy import and_
 from sqlalchemy import or_
@@ -24,23 +23,6 @@ from spiffworkflow_backend.services.process_instance_processor import (
 from spiffworkflow_backend.services.process_instance_service import (
     ProcessInstanceService,
 )
-
-
-class MessageServiceWithAppContext:
-    """Wrapper for Message Service.
-
-    This wrappers is to facilitate running the MessageService from the scheduler
-    since we need to specify the app context then.
-    """
-
-    def __init__(self, app: flask.app.Flask):
-        """__init__."""
-        self.app = app
-
-    def process_message_instances_with_app_context(self) -> None:
-        """Since this runs in a scheduler, we need to specify the app context as well."""
-        with self.app.app_context():
-            MessageService.process_message_instances()
 
 
 class MessageServiceError(Exception):

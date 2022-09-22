@@ -79,6 +79,7 @@ class ProcessInstanceStatus(SpiffEnum):
     faulted = "faulted"
     suspended = "suspended"
     terminated = "terminated"
+    erroring = "erroring"
 
 
 class ProcessInstanceModel(SpiffworkflowBaseDBModel):
