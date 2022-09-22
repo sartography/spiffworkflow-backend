@@ -46,3 +46,12 @@ class SecretAllowedProcessPathModel(SpiffworkflowBaseDBModel):
     id: int = db.Column(db.Integer, primary_key=True)
     secret_id: int = db.Column(ForeignKey(SecretModel.id), nullable=False)  # type: ignore
     allowed_relative_path: str = db.Column(db.String(500), nullable=False)
+
+
+class SecretAllowedProcessSchema(Schema):
+
+    class Meta:
+        """Meta."""
+
+        model = SecretAllowedProcessPathModel
+        fields = ["secret_id", "allowed_relative_path"]

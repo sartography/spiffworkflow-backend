@@ -43,6 +43,7 @@ from spiffworkflow_backend.models.process_instance_report import (
 )
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
+from spiffworkflow_backend.models.secret_model import SecretAllowedProcessSchema
 from spiffworkflow_backend.models.secret_model import SecretModelSchema
 from spiffworkflow_backend.models.spiff_logging import SpiffLoggingModel
 from spiffworkflow_backend.models.user import UserModel
@@ -1105,15 +1106,9 @@ def add_secret(body: Dict) -> Response:
     )
 
 
-def update_secret(
-    service: str,
-    client: str,
-    secret: Optional[str] = None,
-    creator_user_id: Optional[int] = None,
-    allowed_process: Optional[str] = None,
-) -> None:
+def update_secret(key: str, body: dict) -> Response:
     """Update secret."""
-    ...
+    SecretService().update_secret(key, body['value'], body['creator_user_id'])
 
 
 def delete_secret(key: str) -> None:
@@ -1122,6 +1117,15 @@ def delete_secret(key: str) -> None:
     SecretService.delete_secret(key, current_user.id)
 
 
-def get_allowed_process_paths(service: str, client: str) -> Any:
+def add_allowed_process_path(body: dict) -> Any:
     """Get allowed process paths."""
-    ...
+    allowed_process_path = SecretService.add_allowed_process(
+        body['secret_id'], g.user.id, body["allowed_relative_path"]
+    )
+    return Response(json.dumps(SecretAllowedProcessSchema().dump(allowed_process_path)),
+                    status=201, mimetype="application/json")
+
+
+def delete_allowed_process_path(allowed_process_path_id: int) -> Any:
+    """Get allowed process paths."""
+    SecretService().delete_allowed_process(allowed_process_path_id, g.user.id)

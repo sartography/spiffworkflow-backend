@@ -1,12 +1,23 @@
 """Secret_service."""
+import logging
 from typing import Optional
 
+from flask import current_app
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
 from sqlalchemy.exc import IntegrityError
 
 from spiffworkflow_backend.models.secret_model import SecretAllowedProcessPathModel
 from spiffworkflow_backend.models.secret_model import SecretModel
+
+# from cryptography.fernet import Fernet
+#
+#
+# class EncryptionService:
+#     key = Fernet.generate_key()  # this is your "password"
+#     cipher_suite = Fernet(key)
+#     encoded_text = cipher_suite.encrypt(b"Hello stackoverflow!")
+#     decoded_text = cipher_suite.decrypt(encoded_text)
 
 
 class SecretService:
@@ -22,8 +33,8 @@ class SecretService:
         """Decrypt key."""
         ...
 
+    @staticmethod
     def add_secret(
-        self,
         key: str,
         value: str,
         creator_user_id: int,
@@ -114,10 +125,10 @@ class SecretService:
 
     @staticmethod
     def add_allowed_process(
-        key: str, user_id: str, allowed_relative_path: str
+        secret_id: str, user_id: str, allowed_relative_path: str
     ) -> SecretAllowedProcessPathModel:
         """Add_allowed_process."""
-        secret_model = SecretModel.query.filter(SecretModel.key == key).first()
+        secret_model = SecretModel.query.filter(SecretModel.id == secret_id).first()
         if secret_model:
             if secret_model.creator_user_id == user_id:
                 secret_process_model = SecretAllowedProcessPathModel(
@@ -142,7 +153,7 @@ class SecretService:
                     # db.session.rollback()
                     raise ApiError(
                         code="add_allowed_process_error",
-                        message=f"Could not create an allowed process for secret with key: {key} "
+                        message=f"Could not create an allowed process for secret with key: {secret_model.key} "
                         f"with path: {allowed_relative_path}. "
                         f"Original error is {e}",
                     ) from e
@@ -150,13 +161,13 @@ class SecretService:
             else:
                 raise ApiError(
                     code="add_allowed_process_error",
-                    message=f"User: {user_id} cannot modify the secret with key : {key}",
+                    message=f"User: {user_id} cannot modify the secret with key : {secret_model.key}",
                     status_code=401,
                 )
         else:
             raise ApiError(
                 code="add_allowed_process_error",
-                message=f"Cannot add allowed process to secret with key: {key}. Resource does not exist.",
+                message=f"Cannot add allowed process to secret with key: {secret_id}. Resource does not exist.",
                 status_code=404,
             )
 
@@ -170,6 +181,7 @@ class SecretService:
             secret = SecretModel.query.filter(
                 SecretModel.id == allowed_process.secret_id
             ).first()
+            assert secret
             if secret.creator_user_id == user_id:
                 db.session.delete(allowed_process)
                 try:
