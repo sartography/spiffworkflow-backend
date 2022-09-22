@@ -40,7 +40,6 @@ class BaseTest:
 
         user = UserService().create_user("internal", username, username=username)
         if isinstance(user, UserModel):
-            UserService().create_principal(user_id=user.id)
             return user
 
         raise ApiError(
