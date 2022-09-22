@@ -375,7 +375,7 @@ class ProcessInstanceProcessor:
                     )
                 )
             except Exception as err:
-                raise(err)
+                raise (err)
             finally:
                 spiff_logger.setLevel(original_spiff_logger_log_level)
 
