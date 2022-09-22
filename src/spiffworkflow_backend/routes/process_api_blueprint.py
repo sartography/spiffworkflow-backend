@@ -1106,7 +1106,7 @@ def add_secret(body: Dict) -> Response:
     )
 
 
-def update_secret(key: str, body: dict) -> Response:
+def update_secret(key: str, body: dict) -> None:
     """Update secret."""
     SecretService().update_secret(key, body['value'], body['creator_user_id'])
 

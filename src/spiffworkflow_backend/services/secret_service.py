@@ -125,7 +125,7 @@ class SecretService:
 
     @staticmethod
     def add_allowed_process(
-        secret_id: str, user_id: str, allowed_relative_path: str
+        secret_id: int, user_id: str, allowed_relative_path: str
     ) -> SecretAllowedProcessPathModel:
         """Add_allowed_process."""
         secret_model = SecretModel.query.filter(SecretModel.id == secret_id).first()
