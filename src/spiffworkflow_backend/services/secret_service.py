@@ -1,8 +1,6 @@
 """Secret_service."""
-import logging
 from typing import Optional
 
-from flask import current_app
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
 from sqlalchemy.exc import IntegrityError
@@ -181,7 +179,7 @@ class SecretService:
             secret = SecretModel.query.filter(
                 SecretModel.id == allowed_process.secret_id
             ).first()
-            assert secret
+            assert secret  # noqa: S101
             if secret.creator_user_id == user_id:
                 db.session.delete(allowed_process)
                 try:

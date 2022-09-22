@@ -49,6 +49,7 @@ class SecretAllowedProcessPathModel(SpiffworkflowBaseDBModel):
 
 
 class SecretAllowedProcessSchema(Schema):
+    """SecretAllowedProcessSchema."""
 
     class Meta:
         """Meta."""

@@ -1108,7 +1108,7 @@ def add_secret(body: Dict) -> Response:
 
 def update_secret(key: str, body: dict) -> None:
     """Update secret."""
-    SecretService().update_secret(key, body['value'], body['creator_user_id'])
+    SecretService().update_secret(key, body["value"], body["creator_user_id"])
 
 
 def delete_secret(key: str) -> None:
@@ -1120,10 +1120,13 @@ def delete_secret(key: str) -> None:
 def add_allowed_process_path(body: dict) -> Any:
     """Get allowed process paths."""
     allowed_process_path = SecretService.add_allowed_process(
-        body['secret_id'], g.user.id, body["allowed_relative_path"]
+        body["secret_id"], g.user.id, body["allowed_relative_path"]
     )
-    return Response(json.dumps(SecretAllowedProcessSchema().dump(allowed_process_path)),
-                    status=201, mimetype="application/json")
+    return Response(
+        json.dumps(SecretAllowedProcessSchema().dump(allowed_process_path)),
+        status=201,
+        mimetype="application/json",
+    )
 
 
 def delete_allowed_process_path(allowed_process_path_id: int) -> Any:

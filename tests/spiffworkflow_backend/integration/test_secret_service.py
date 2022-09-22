@@ -374,14 +374,17 @@ class TestSecretServiceApi(SecretServiceTestHelpers):
         assert secret_response.status_code == 200
         assert secret_response.json == self.test_value
 
-    def test_update_secret(self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None) -> None:
+    def test_update_secret(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        """Test_update_secret."""
         user = self.find_or_create_user()
         self.add_test_secret(user)
         secret = SecretService.get_secret(self.test_key)
         assert secret == self.test_value
-        secret_model = SecretModel(key=self.test_key,
-                                   value="new_secret_value",
-                                   creator_user_id=user.id)
+        secret_model = SecretModel(
+            key=self.test_key, value="new_secret_value", creator_user_id=user.id
+        )
         response = client.put(
             f"/v1.0/secrets/{self.test_key}",
             headers=self.logged_in_headers(user),
@@ -390,7 +393,9 @@ class TestSecretServiceApi(SecretServiceTestHelpers):
         )
         assert response.status_code == 204
 
-        secret_model = SecretModel.query.filter(SecretModel.key == self.test_key).first()
+        secret_model = SecretModel.query.filter(
+            SecretModel.key == self.test_key
+        ).first()
         assert secret_model.value == "new_secret_value"
 
     def test_delete_secret(
@@ -435,22 +440,25 @@ class TestSecretServiceApi(SecretServiceTestHelpers):
         assert secret_response.status_code == 404
         print("test_delete_secret_bad_key")
 
-    def test_add_secret_allowed_process(self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None) -> None:
-        """Test add secret allowed process"""
+    def test_add_secret_allowed_process(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        """Test add secret allowed process."""
         user = self.find_or_create_user()
         test_secret = self.add_test_secret(user)
         process_model_info = self.add_test_process(client, user)
         process_model_relative_path = FileSystemService.process_model_relative_path(
             process_model_info
         )
-        data = {"secret_id": test_secret.id,
-                "allowed_relative_path": process_model_relative_path
-                }
+        data = {
+            "secret_id": test_secret.id,
+            "allowed_relative_path": process_model_relative_path,
+        }
         response: TestResponse = client.post(
             "/v1.0/secrets/allowed_process_paths",
             headers=self.logged_in_headers(user),
-            content_type='application/json',
-            data=json.dumps(data)
+            content_type="application/json",
+            data=json.dumps(data),
         )
         assert response.status_code == 201
         allowed_processes = SecretAllowedProcessPathModel.query.all()
@@ -458,15 +466,19 @@ class TestSecretServiceApi(SecretServiceTestHelpers):
         assert allowed_processes[0].allowed_relative_path == process_model_relative_path
         assert allowed_processes[0].secret_id == test_secret.id
 
-    def test_delete_secret_allowed_process(self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None) -> None:
-        """Test delete secret allowed process"""
+    def test_delete_secret_allowed_process(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        """Test delete secret allowed process."""
         user = self.find_or_create_user()
         test_secret = self.add_test_secret(user)
         process_model_info = self.add_test_process(client, user)
         process_model_relative_path = FileSystemService.process_model_relative_path(
             process_model_info
         )
-        allowed_process = SecretService.add_allowed_process(test_secret.id, user.id, process_model_relative_path)
+        allowed_process = SecretService.add_allowed_process(
+            test_secret.id, user.id, process_model_relative_path
+        )
         allowed_processes = SecretAllowedProcessPathModel.query.all()
         assert len(allowed_processes) == 1
         assert allowed_processes[0].secret_id == test_secret.id

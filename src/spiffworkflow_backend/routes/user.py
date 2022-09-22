@@ -184,8 +184,8 @@ def encode_auth_token(sub: str, token_type: Optional[str] = None) -> str:
     """
     payload = {"sub": sub}
     if token_type is None:
-        token_type = 'internal'
-    payload['token_type'] = token_type
+        token_type = "internal"  # noqa: S105
+    payload["token_type"] = token_type
     if "SECRET_KEY" in current_app.config:
         secret_key = current_app.config.get("SECRET_KEY")
     else:
@@ -326,10 +326,12 @@ def get_user_from_decoded_internal_token(decoded_token: dict) -> Optional[UserMo
     # user: UserModel = UserModel.query.filter()
     if user:
         return user
-    user = UserModel(username=service_id,
-                                uid=service_id,
-                                service=service,
-                                service_id=service_id,
-                                name="API User")
+    user = UserModel(
+        username=service_id,
+        uid=service_id,
+        service=service,
+        service_id=service_id,
+        name="API User",
+    )
 
     return user
