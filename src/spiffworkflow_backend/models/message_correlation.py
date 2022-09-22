@@ -1,6 +1,8 @@
 """Message_correlation."""
 from dataclasses import dataclass
 
+from sqlalchemy.orm import relationship
+
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from sqlalchemy import ForeignKey
@@ -36,3 +38,5 @@ class MessageCorrelationModel(SpiffworkflowBaseDBModel):
     value = db.Column(db.String(255), nullable=False, index=True)
     updated_at_in_seconds: int = db.Column(db.Integer)
     created_at_in_seconds: int = db.Column(db.Integer)
+
+    message_correlations_message_instances = relationship("MessageCorrelationMessageInstanceModel", cascade="delete")

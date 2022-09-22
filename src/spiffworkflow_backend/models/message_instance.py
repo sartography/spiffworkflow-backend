@@ -42,6 +42,7 @@ class MessageInstanceModel(SpiffworkflowBaseDBModel):
     process_instance_id: int = db.Column(ForeignKey(ProcessInstanceModel.id), nullable=False)  # type: ignore
     message_model_id: int = db.Column(ForeignKey(MessageModel.id), nullable=False)
     message_model = relationship("MessageModel")
+    message_correlations_message_instances = relationship("MessageCorrelationMessageInstanceModel", cascade="delete")
 
     message_type: str = db.Column(db.String(20), nullable=False)
     payload: str = db.Column(db.JSON)
