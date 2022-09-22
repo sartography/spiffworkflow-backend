@@ -368,12 +368,17 @@ class ProcessInstanceProcessor:
             original_spiff_logger_log_level = spiff_logger.level
             spiff_logger.setLevel(logging.WARNING)
 
-            bpmn_process_instance = (
-                ProcessInstanceProcessor._serializer.deserialize_json(
-                    process_instance_model.bpmn_json
+            try:
+                bpmn_process_instance = (
+                    ProcessInstanceProcessor._serializer.deserialize_json(
+                        process_instance_model.bpmn_json
+                    )
                 )
-            )
-            spiff_logger.setLevel(original_spiff_logger_log_level)
+            except Exception as err:
+                raise(err)
+            finally:
+                spiff_logger.setLevel(original_spiff_logger_log_level)
+
             bpmn_process_instance.script_engine = (
                 ProcessInstanceProcessor._script_engine
             )

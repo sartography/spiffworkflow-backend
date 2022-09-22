@@ -1866,7 +1866,7 @@ pytz = "*"
 type = "git"
 url = "https://github.com/sartography/SpiffWorkflow"
 reference = "main"
-resolved_reference = "082d116990fcada49c3287f585cfd3a46c55de0f"
+resolved_reference = "8d79389816db6d70dfde34c2f83a2872cdf1148f"
 
 [[package]]
 name = "sqlalchemy"
