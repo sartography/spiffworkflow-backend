@@ -1423,7 +1423,7 @@ class TestProcessApi(BaseTest):
         response = client.post(
             f"/v1.0/messages/{message_model_identifier}",
             content_type="application/json",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
             data=json.dumps({"payload": payload}),
         )
         assert response.status_code == 200
@@ -1433,7 +1433,7 @@ class TestProcessApi(BaseTest):
         response = client.post(
             f"/v1.0/messages/{message_model_identifier}",
             content_type="application/json",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
             data=json.dumps({"payload": payload}),
         )
         assert response.status_code == 200
@@ -1442,7 +1442,7 @@ class TestProcessApi(BaseTest):
 
         response = client.get(
             f"/v1.0/messages?process_instance_id={process_instance_id_one}",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.status_code == 200
         assert response.json is not None
@@ -1454,7 +1454,7 @@ class TestProcessApi(BaseTest):
 
         response = client.get(
             f"/v1.0/messages?process_instance_id={process_instance_id_two}",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.status_code == 200
         assert response.json is not None
@@ -1466,7 +1466,7 @@ class TestProcessApi(BaseTest):
 
         response = client.get(
             "/v1.0/messages",
-            headers=logged_in_headers(user),
+            headers=self.logged_in_headers(user),
         )
         assert response.status_code == 200
         assert response.json is not None
@@ -1475,7 +1475,7 @@ class TestProcessApi(BaseTest):
     # def test_get_process_model(self):
     #
     #     load_test_spec('random_fact')
-    #     response = client.get('/v1.0/workflow-specification/random_fact', headers=logged_in_headers())
+    #     response = client.get('/v1.0/workflow-specification/random_fact', headers=self.logged_in_headers())
     #     assert_success(response)
     #     json_data = json.loads(response.get_data(as_text=True))
     #     api_spec = WorkflowSpecInfoSchema().load(json_data)
