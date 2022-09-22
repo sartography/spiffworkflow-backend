@@ -54,7 +54,7 @@ def start_scheduler(app: flask.app.Flask) -> None:
     scheduler.add_job(
         BackgroundProcessingService(app).run,
         "interval",
-        seconds=5,
+        seconds=30,
     )
     scheduler.start()
 
