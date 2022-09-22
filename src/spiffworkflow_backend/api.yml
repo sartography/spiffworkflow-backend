@@ -226,7 +226,7 @@ paths:
 
   /process-models:
     parameters:
-      - name: process_group_id
+      - name: process_group_identifier
         in: query
         required: false
         description: The group containing the models we want to return
@@ -259,8 +259,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/WorkflowSpec"
-
-  /process-models:
     # process_model_add
     post:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.process_model_add

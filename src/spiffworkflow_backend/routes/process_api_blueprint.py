@@ -198,10 +198,12 @@ def process_model_show(process_group_id: str, process_model_id: str) -> Any:
 
 
 def process_model_list(
-    process_group_id: str, page: int = 1, per_page: int = 100
+    process_group_identifier: Optional[str] = None, page: int = 1, per_page: int = 100
 ) -> flask.wrappers.Response:
     """Process model list!"""
-    process_models = ProcessModelService().get_process_models(process_group_id)
+    process_models = ProcessModelService().get_process_models(
+        process_group_id=process_group_identifier
+    )
     batch = ProcessModelService().get_batch(
         process_models, page=page, per_page=per_page
     )
@@ -538,10 +540,11 @@ def process_instance_list(
     process_status: Optional[str] = None,
 ) -> flask.wrappers.Response:
     """Process_instance_list."""
-
     process_instance_query = ProcessInstanceModel.query
     if process_model_identifier is not None and process_group_identifier is not None:
-        process_model = get_process_model(process_model_identifier, process_group_identifier)
+        process_model = get_process_model(
+            process_model_identifier, process_group_identifier
+        )
 
         process_instance_query = process_instance_query.filter_by(
             process_model_identifier=process_model.id
@@ -561,15 +564,25 @@ def process_instance_list(
         )
 
     if start_from is not None:
-        process_instance_query = process_instance_query.filter(ProcessInstanceModel.start_in_seconds >= start_from)
+        process_instance_query = process_instance_query.filter(
+            ProcessInstanceModel.start_in_seconds >= start_from
+        )
     if start_till is not None:
-        process_instance_query = process_instance_query.filter(ProcessInstanceModel.start_in_seconds <= start_till)
+        process_instance_query = process_instance_query.filter(
+            ProcessInstanceModel.start_in_seconds <= start_till
+        )
     if end_from is not None:
-        process_instance_query = process_instance_query.filter(ProcessInstanceModel.end_in_seconds >= end_from)
+        process_instance_query = process_instance_query.filter(
+            ProcessInstanceModel.end_in_seconds >= end_from
+        )
     if end_till is not None:
-        process_instance_query = process_instance_query.filter(ProcessInstanceModel.end_in_seconds <= end_till)
+        process_instance_query = process_instance_query.filter(
+            ProcessInstanceModel.end_in_seconds <= end_till
+        )
     if process_status is not None:
-        process_instance_query = process_instance_query.filter(ProcessInstanceModel.status == process_status)
+        process_instance_query = process_instance_query.filter(
+            ProcessInstanceModel.status == process_status
+        )
 
     process_instances = process_instance_query.order_by(
         ProcessInstanceModel.start_in_seconds.desc(), ProcessInstanceModel.id.desc()  # type: ignore
