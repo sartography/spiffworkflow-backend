@@ -1,5 +1,4 @@
 """User."""
-from typing import Dict
 from typing import Optional
 
 from tests.spiffworkflow_backend.helpers.example_data import ExampleDataLoader
@@ -9,7 +8,6 @@ from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
 )
 from spiffworkflow_backend.models.process_group import ProcessGroup
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
-from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 
 
@@ -81,29 +79,3 @@ def load_test_spec(
 #     query_string_list.append('redirect_url=%s' % redirect_url)
 #
 #     return '?%s' % '&'.join(query_string_list)
-
-
-def logged_in_headers(
-    user: UserModel, _redirect_url: str = "http://some/frontend/url"
-) -> Dict[str, str]:
-    """Logged_in_headers."""
-    # if user is None:
-    #     uid = 'test_user'
-    #     user_info = {'uid': 'test_user'}
-    # else:
-    #     uid = user.uid
-    #     user_info = {'uid': user.uid}
-
-    # query_string = user_info_to_query_string(user_info, redirect_url)
-    # rv = self.app.get("/v1.0/login%s" % query_string, follow_redirects=False)
-    # self.assertTrue(rv.status_code == 302)
-    # self.assertTrue(str.startswith(rv.location, redirect_url))
-    #
-    # user_model = session.query(UserModel).filter_by(uid=uid).first()
-    # self.assertIsNotNone(user_model.ldap_info.display_name)
-    # self.assertEqual(user_model.uid, uid)
-    # self.assertTrue('user' in g, 'User should be in Flask globals')
-    # user = UserService.current_user(allow_admin_impersonate=True)
-    # self.assertEqual(uid, user.uid, 'Logged in user should match given user uid')
-
-    return dict(Authorization="Bearer " + user.encode_auth_token())

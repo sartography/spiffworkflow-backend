@@ -43,6 +43,8 @@ from spiffworkflow_backend.models.process_instance_report import (
 )
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
+from spiffworkflow_backend.models.secret_model import SecretAllowedProcessSchema
+from spiffworkflow_backend.models.secret_model import SecretModelSchema
 from spiffworkflow_backend.models.spiff_logging import SpiffLoggingModel
 from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.services.error_handling_service import ErrorHandlingService
@@ -55,8 +57,10 @@ from spiffworkflow_backend.services.process_instance_service import (
     ProcessInstanceService,
 )
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
+from spiffworkflow_backend.services.secret_service import SecretService
 from spiffworkflow_backend.services.service_task_service import ServiceTaskService
 from spiffworkflow_backend.services.spec_file_service import SpecFileService
+from spiffworkflow_backend.services.user_service import UserService
 
 process_api_blueprint = Blueprint("process_api", __name__)
 
@@ -283,7 +287,6 @@ def process_model_file_delete(
 
 def add_file(process_group_id: str, process_model_id: str) -> flask.wrappers.Response:
     """Add_file."""
-    ProcessModelService()
     process_model = get_process_model(process_model_id, process_group_id)
     request_file = get_file_from_request()
     if not request_file.filename:
@@ -1096,3 +1099,52 @@ def get_spiff_task_from_process_instance(
             )
         )
     return spiff_task
+
+
+#
+# Methods for secrets CRUD - maybe move somewhere else:
+#
+def get_secret(key: str) -> str | None:
+    """Get_secret."""
+    return SecretService.get_secret(key)
+
+
+def add_secret(body: Dict) -> Response:
+    """Add secret."""
+    secret_model = SecretService().add_secret(
+        body["key"], body["value"], body["creator_user_id"]
+    )
+    assert secret_model  # noqa: S101
+    return Response(
+        json.dumps(SecretModelSchema().dump(secret_model)),
+        status=201,
+        mimetype="application/json",
+    )
+
+
+def update_secret(key: str, body: dict) -> None:
+    """Update secret."""
+    SecretService().update_secret(key, body["value"], body["creator_user_id"])
+
+
+def delete_secret(key: str) -> None:
+    """Delete secret."""
+    current_user = UserService.current_user()
+    SecretService.delete_secret(key, current_user.id)
+
+
+def add_allowed_process_path(body: dict) -> Any:
+    """Get allowed process paths."""
+    allowed_process_path = SecretService.add_allowed_process(
+        body["secret_id"], g.user.id, body["allowed_relative_path"]
+    )
+    return Response(
+        json.dumps(SecretAllowedProcessSchema().dump(allowed_process_path)),
+        status=201,
+        mimetype="application/json",
+    )
+
+
+def delete_allowed_process_path(allowed_process_path_id: int) -> Any:
+    """Get allowed process paths."""
+    SecretService().delete_allowed_process(allowed_process_path_id, g.user.id)

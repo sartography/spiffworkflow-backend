@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: e9763012b98b
+Revision ID: 86bdc3330645
 Revises: 
-Create Date: 2022-09-22 16:15:16.490215
+Create Date: 2022-09-22 18:01:10.013335
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'e9763012b98b'
+revision = '86bdc3330645'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -126,6 +126,15 @@ def upgrade():
     op.create_index(op.f('ix_process_instance_report_identifier'), 'process_instance_report', ['identifier'], unique=False)
     op.create_index(op.f('ix_process_instance_report_process_group_identifier'), 'process_instance_report', ['process_group_identifier'], unique=False)
     op.create_index(op.f('ix_process_instance_report_process_model_identifier'), 'process_instance_report', ['process_model_identifier'], unique=False)
+    op.create_table('secret',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('key', sa.String(length=50), nullable=False),
+    sa.Column('value', sa.String(length=255), nullable=False),
+    sa.Column('creator_user_id', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['creator_user_id'], ['user.id'], ),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('key')
+    )
     op.create_table('user_group_assignment',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
@@ -205,6 +214,14 @@ def upgrade():
     sa.ForeignKeyConstraint(['process_instance_id'], ['process_instance.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_table('secret_allowed_process',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('secret_id', sa.Integer(), nullable=False),
+    sa.Column('allowed_relative_path', sa.String(length=500), nullable=False),
+    sa.ForeignKeyConstraint(['secret_id'], ['secret.id'], ),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('secret_id', 'allowed_relative_path', name='unique_secret_path')
+    )
     op.create_table('spiff_logging',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('process_instance_id', sa.Integer(), nullable=False),
@@ -277,6 +294,7 @@ def downgrade():
     op.drop_table('data_store')
     op.drop_table('task_event')
     op.drop_table('spiff_logging')
+    op.drop_table('secret_allowed_process')
     op.drop_table('message_instance')
     op.drop_index(op.f('ix_message_correlation_value'), table_name='message_correlation')
     op.drop_index(op.f('ix_message_correlation_process_instance_id'), table_name='message_correlation')
@@ -286,6 +304,7 @@ def downgrade():
     op.drop_table('file')
     op.drop_table('active_task')
     op.drop_table('user_group_assignment')
+    op.drop_table('secret')
     op.drop_index(op.f('ix_process_instance_report_process_model_identifier'), table_name='process_instance_report')
     op.drop_index(op.f('ix_process_instance_report_process_group_identifier'), table_name='process_instance_report')
     op.drop_index(op.f('ix_process_instance_report_identifier'), table_name='process_instance_report')
