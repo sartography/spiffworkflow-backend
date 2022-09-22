@@ -527,8 +527,8 @@ def message_start(
 
 
 def process_instance_list(
-    process_group_id: str,
-    process_model_id: str,
+    process_group_identifier: Optional[str] = None,
+    process_model_identifier: Optional[str] = None,
     page: int = 1,
     per_page: int = 100,
     start_from: Optional[int] = None,
@@ -538,11 +538,14 @@ def process_instance_list(
     process_status: Optional[str] = None,
 ) -> flask.wrappers.Response:
     """Process_instance_list."""
-    process_model = get_process_model(process_model_id, process_group_id)
 
-    results = ProcessInstanceModel.query.filter_by(
-        process_model_identifier=process_model.id
-    )
+    process_instance_query = ProcessInstanceModel.query
+    if process_model_identifier is not None and process_group_identifier is not None:
+        process_model = get_process_model(process_model_identifier, process_group_identifier)
+
+        process_instance_query = process_instance_query.filter_by(
+            process_model_identifier=process_model.id
+        )
 
     # this can never happen. obviously the class has the columns it defines. this is just to appease mypy.
     if (
@@ -558,17 +561,17 @@ def process_instance_list(
         )
 
     if start_from is not None:
-        results = results.filter(ProcessInstanceModel.start_in_seconds >= start_from)
+        process_instance_query = process_instance_query.filter(ProcessInstanceModel.start_in_seconds >= start_from)
     if start_till is not None:
-        results = results.filter(ProcessInstanceModel.start_in_seconds <= start_till)
+        process_instance_query = process_instance_query.filter(ProcessInstanceModel.start_in_seconds <= start_till)
     if end_from is not None:
-        results = results.filter(ProcessInstanceModel.end_in_seconds >= end_from)
+        process_instance_query = process_instance_query.filter(ProcessInstanceModel.end_in_seconds >= end_from)
     if end_till is not None:
-        results = results.filter(ProcessInstanceModel.end_in_seconds <= end_till)
+        process_instance_query = process_instance_query.filter(ProcessInstanceModel.end_in_seconds <= end_till)
     if process_status is not None:
-        results = results.filter(ProcessInstanceModel.status == process_status)
+        process_instance_query = process_instance_query.filter(ProcessInstanceModel.status == process_status)
 
-    process_instances = results.order_by(
+    process_instances = process_instance_query.order_by(
         ProcessInstanceModel.start_in_seconds.desc(), ProcessInstanceModel.id.desc()  # type: ignore
     ).paginate(page, per_page, False)
 

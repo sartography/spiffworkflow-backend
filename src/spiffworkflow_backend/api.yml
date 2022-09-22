@@ -224,11 +224,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/WorkflowSpecCategory"
 
-  /process-groups/{process_group_id}/process-models:
+  /process-models:
     parameters:
       - name: process_group_id
-        in: path
-        required: true
+        in: query
+        required: false
         description: The group containing the models we want to return
         schema:
           type: string
@@ -390,17 +390,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/WorkflowSpec"
 
-  /process-models/{process_group_id}/{process_model_id}/process-instances:
+  /process-instances:
     parameters:
-      - name: process_group_id
-        in: path
-        required: true
+      - name: process_group_identifier
+        in: query
+        required: false
         description: The unique id of an existing process group
         schema:
           type: string
-      - name: process_model_id
-        in: path
-        required: true
+      - name: process_model_identifier
+        in: query
+        required: false
         description: The unique id of an existing workflow specification.
         schema:
           type: string
@@ -461,6 +461,20 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Workflow"
+  /process-models/{process_group_id}/{process_model_id}/process-instances:
+    parameters:
+      - name: process_group_id
+        in: path
+        required: true
+        description: The unique id of an existing process group
+        schema:
+          type: string
+      - name: process_model_id
+        in: path
+        required: true
+        description: The unique id of an existing workflow specification.
+        schema:
+          type: string
     # process_instance_create
     post:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.process_instance_create
