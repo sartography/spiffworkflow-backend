@@ -1050,6 +1050,16 @@ class TestProcessApi(BaseTest):
             assert len(results) == 1
             assert results[0]["status"] == ProcessInstanceStatus[statuses[i]].value
 
+        response = client.get(
+            f"/v1.0/process-instances?process_status=not_started,complete&process_group_identifier={test_process_group_id}&process_model_identifier={test_process_model_id}",
+            headers=self.logged_in_headers(user),
+        )
+        assert response.json is not None
+        results = response.json["results"]
+        assert len(results) == 2
+        assert results[0]["status"] in ['complete', 'not_started']
+        assert results[1]["status"] in ['complete', 'not_started']
+
         # filter by start/end seconds
         # start > 1000 - this should eliminate the first
         response = client.get(

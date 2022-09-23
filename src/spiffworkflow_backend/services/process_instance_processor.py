@@ -357,7 +357,7 @@ class ProcessInstanceProcessor:
     @staticmethod
     def __get_bpmn_process_instance(
         process_instance_model: ProcessInstanceModel,
-        spec: WorkflowSpec = None,
+        spec: Optional[WorkflowSpec] = None,
         validate_only: bool = False,
         subprocesses: Optional[IdToBpmnProcessSpecMapping] = None,
     ) -> BpmnWorkflow:

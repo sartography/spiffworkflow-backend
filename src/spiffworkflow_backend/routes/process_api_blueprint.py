@@ -583,8 +583,9 @@ def process_instance_list(
             ProcessInstanceModel.end_in_seconds <= end_till
         )
     if process_status is not None:
+        process_status_array = process_status.split(",")
         process_instance_query = process_instance_query.filter(
-            ProcessInstanceModel.status == process_status
+            ProcessInstanceModel.status.in_(process_status_array)  # type: ignore
         )
 
     process_instances = process_instance_query.order_by(
