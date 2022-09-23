@@ -1057,8 +1057,8 @@ class TestProcessApi(BaseTest):
         assert response.json is not None
         results = response.json["results"]
         assert len(results) == 2
-        assert results[0]["status"] in ['complete', 'not_started']
-        assert results[1]["status"] in ['complete', 'not_started']
+        assert results[0]["status"] in ["complete", "not_started"]
+        assert results[1]["status"] in ["complete", "not_started"]
 
         # filter by start/end seconds
         # start > 1000 - this should eliminate the first
