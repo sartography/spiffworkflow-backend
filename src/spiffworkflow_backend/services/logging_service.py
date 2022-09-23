@@ -1,6 +1,7 @@
 """Logging_service."""
 import json
 import logging
+import re
 from typing import Any
 from typing import Optional
 
@@ -113,6 +114,8 @@ def setup_logger(app: Flask) -> None:
         "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
 
+    app.logger.debug("Printing log to create app logger")
+
     # the json formatter is nice for real environments but makes
     # debugging locally a little more difficult
     if app.env != "development":
@@ -140,7 +143,8 @@ def setup_logger(app: Flask) -> None:
 
     # make all loggers act the same
     for name in logging.root.manager.loggerDict:
-        if "spiff" not in name:
+        # use a regex so spiffworkflow_backend isn't filtered out
+        if not re.match(r"^spiff\b", name):
             the_logger = logging.getLogger(name)
             the_logger.setLevel(log_level)
             if spiff_logger_filehandler:
