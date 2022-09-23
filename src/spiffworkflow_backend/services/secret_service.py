@@ -1,7 +1,6 @@
 """Secret_service."""
 from typing import Optional
 
-from flask import current_app
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
 from sqlalchemy.exc import IntegrityError
@@ -47,14 +46,11 @@ class SecretService:
         try:
             db.session.commit()
         except Exception as e:
-            ae = ApiError(
+            raise ApiError(
                 code="create_secret_error",
                 message=f"There was an error creating a secret with key: {key} and value ending with: {value[:-4]}. "
                 f"Original error is {e}",
-            )
-            # log the error so we can see what postgres is doing
-            current_app.logger.error(ae)
-            raise ae from e
+            ) from e
         return secret_model
 
     @staticmethod

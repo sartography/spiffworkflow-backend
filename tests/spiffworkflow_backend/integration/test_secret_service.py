@@ -94,7 +94,7 @@ class TestSecretService(SecretServiceTestHelpers):
         self.add_test_secret(user)
         with pytest.raises(ApiError) as ae:
             self.add_test_secret(user)
-        assert "IntegrityError" in ae.value.message
+        assert ae.value.code == "create_secret_error"
 
     def test_get_secret(self, app: Flask, with_db_and_bpmn_file_cleanup: None) -> None:
         """Test_get_secret."""
@@ -151,6 +151,7 @@ class TestSecretService(SecretServiceTestHelpers):
         with pytest.raises(ApiError) as ae:
             SecretService.update_secret(secret.key + "x", "some_new_value", user.id)
         assert "Resource does not exist" in ae.value.message
+        assert ae.value.code == "update_secret_error"
 
     def test_delete_secret(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
@@ -244,7 +245,6 @@ class TestSecretService(SecretServiceTestHelpers):
                 allowed_relative_path=process_model_relative_path,
             )
         assert "Resource already exists" in ae.value.message
-        assert "IntegrityError" in ae.value.message
 
     def test_secret_add_allowed_process_bad_user_fails(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
