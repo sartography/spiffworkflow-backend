@@ -133,7 +133,7 @@ def setup_logger(app: Flask) -> None:
     spiff_logger_filehandler = None
     if app.config["SPIFFWORKFLOW_BACKEND_LOG_TO_FILE"]:
         spiff_logger_filehandler = logging.FileHandler(
-            f"{app.root_path}/../../log/{app.env}.log"
+            f"{app.instance_path}/../../log/{app.env}.log"
         )
         spiff_logger_filehandler.setLevel(spiff_log_level)
         spiff_logger_filehandler.setFormatter(log_formatter)
