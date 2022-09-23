@@ -1,14 +1,21 @@
 """Message_correlation."""
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from sqlalchemy import ForeignKey
+from sqlalchemy.orm import relationship
 
 from spiffworkflow_backend.models.message_correlation_property import (
     MessageCorrelationPropertyModel,
 )
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
+
+if TYPE_CHECKING:
+    from spiffworkflow_backend.models.message_correlation_message_instance import (  # noqa: F401
+        MessageCorrelationMessageInstanceModel,
+    )
 
 
 @dataclass
@@ -36,3 +43,7 @@ class MessageCorrelationModel(SpiffworkflowBaseDBModel):
     value = db.Column(db.String(255), nullable=False, index=True)
     updated_at_in_seconds: int = db.Column(db.Integer)
     created_at_in_seconds: int = db.Column(db.Integer)
+
+    message_correlations_message_instances = relationship(
+        "MessageCorrelationMessageInstanceModel", cascade="delete"
+    )
