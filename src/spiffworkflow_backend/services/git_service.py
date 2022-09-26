@@ -37,4 +37,4 @@ class GitService:
         # git show 78ae5eb:category_number_one/script-task/script-task.bpmn
         file_contents: str = os.popen(shell_command).read()[:-1]  # noqa: S605
         assert file_contents  # noqa: S101
-        return file_contents.encode('utf-8')
+        return file_contents.encode("utf-8")
