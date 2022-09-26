@@ -1,5 +1,4 @@
 """Process_instance_service."""
-import os
 import time
 from typing import Any
 from typing import Dict
@@ -56,7 +55,7 @@ class ProcessInstanceService:
             process_model_identifier=process_model_identifier,
             process_group_identifier=process_group_identifier,
             start_in_seconds=round(time.time()),
-            bpmn_version_control_type='git',
+            bpmn_version_control_type="git",
             bpmn_version_control_identifier=current_git_revision,
         )
         db.session.add(process_instance_model)

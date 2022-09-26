@@ -25,11 +25,11 @@ from spiffworkflow_backend.models.process_model import NotificationType
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
 from spiffworkflow_backend.models.task_event import TaskEventModel
 from spiffworkflow_backend.models.user import UserModel
-from spiffworkflow_backend.services.git_service import GitService
 from spiffworkflow_backend.services.process_instance_processor import (
     ProcessInstanceProcessor,
 )
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
+# from spiffworkflow_backend.services.git_service import GitService
 
 
 class TestProcessApi(BaseTest):

@@ -161,7 +161,7 @@ class ProcessInstanceModelSchema(Schema):
             "updated_at_in_seconds",
             "created_at_in_seconds",
             "status",
-            "bpmn_version_control_identifier"
+            "bpmn_version_control_identifier",
         ]
 
     status = marshmallow.fields.Method("get_status", dump_only=True)
