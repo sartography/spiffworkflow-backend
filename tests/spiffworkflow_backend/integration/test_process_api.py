@@ -25,6 +25,7 @@ from spiffworkflow_backend.models.process_model import NotificationType
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
 from spiffworkflow_backend.models.task_event import TaskEventModel
 from spiffworkflow_backend.models.user import UserModel
+from spiffworkflow_backend.services.git_service import GitService
 from spiffworkflow_backend.services.process_instance_processor import (
     ProcessInstanceProcessor,
 )
@@ -689,6 +690,9 @@ class TestProcessApi(BaseTest):
         assert response.json["updated_at_in_seconds"] is not None
         assert response.json["status"] == "not_started"
         assert response.json["process_model_identifier"] == test_process_model_id
+        # TODO: mock out the responses for the git service so we can do something like this
+        # current_revision = GitService.get_current_revision()
+        # assert response.json["bpmn_version_control_identifier"] == current_revision
 
     def test_process_instance_run(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None

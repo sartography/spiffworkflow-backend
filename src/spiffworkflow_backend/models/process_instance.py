@@ -106,6 +106,8 @@ class ProcessInstanceModel(SpiffworkflowBaseDBModel):
     status: str = db.Column(db.String(50))
 
     bpmn_xml_file_contents: bytes | None = None
+    bpmn_version_control_type: str = db.Column(db.String(50))
+    bpmn_version_control_identifier: str = db.Column(db.String(255))
 
     @property
     def serialized(self) -> dict[str, Any]:
@@ -159,6 +161,7 @@ class ProcessInstanceModelSchema(Schema):
             "updated_at_in_seconds",
             "created_at_in_seconds",
             "status",
+            "bpmn_version_control_identifier"
         ]
 
     status = marshmallow.fields.Method("get_status", dump_only=True)

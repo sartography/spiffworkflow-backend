@@ -1,4 +1,5 @@
 """Process_instance_service."""
+import os
 import time
 from typing import Any
 from typing import Dict
@@ -27,6 +28,7 @@ from spiffworkflow_backend.models.task import Task
 from spiffworkflow_backend.models.task_event import TaskAction
 from spiffworkflow_backend.models.task_event import TaskEventModel
 from spiffworkflow_backend.models.user import UserModel
+from spiffworkflow_backend.services.git_service import GitService
 from spiffworkflow_backend.services.process_instance_processor import (
     ProcessInstanceProcessor,
 )
@@ -47,12 +49,15 @@ class ProcessInstanceService:
         process_group_identifier: Optional[str] = None,
     ) -> ProcessInstanceModel:
         """Get_process_instance_from_spec."""
+        current_git_revision = GitService.get_current_revision()
         process_instance_model = ProcessInstanceModel(
             status=ProcessInstanceStatus.not_started.value,
             process_initiator=user,
             process_model_identifier=process_model_identifier,
             process_group_identifier=process_group_identifier,
             start_in_seconds=round(time.time()),
+            bpmn_version_control_type='git',
+            bpmn_version_control_identifier=current_git_revision,
         )
         db.session.add(process_instance_model)
         db.session.commit()
