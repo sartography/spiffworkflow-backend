@@ -5,6 +5,7 @@ from typing import Dict
 
 import requests
 from flask import current_app
+from spiffworkflow_backend.services.secret_service import SecretService
 
 
 def connector_proxy_url() -> Any:
@@ -21,8 +22,7 @@ class ServiceTaskDelegate:
         secret_prefix = "secret:"  # noqa: S105
         if value.startswith(secret_prefix):
             key = value.removeprefix(secret_prefix)
-            # TODO replace with call to secret store
-            value = key
+            value = SecretService().get_secret(key)
         return value
 
     @staticmethod
