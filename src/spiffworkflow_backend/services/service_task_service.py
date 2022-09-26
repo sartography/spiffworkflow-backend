@@ -5,6 +5,7 @@ from typing import Dict
 
 import requests
 from flask import current_app
+
 from spiffworkflow_backend.services.secret_service import SecretService
 
 
