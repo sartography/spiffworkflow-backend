@@ -357,7 +357,7 @@ class ProcessInstanceProcessor:
     @staticmethod
     def __get_bpmn_process_instance(
         process_instance_model: ProcessInstanceModel,
-        spec: WorkflowSpec = None,
+        spec: Optional[WorkflowSpec] = None,
         validate_only: bool = False,
         subprocesses: Optional[IdToBpmnProcessSpecMapping] = None,
     ) -> BpmnWorkflow:
@@ -368,12 +368,17 @@ class ProcessInstanceProcessor:
             original_spiff_logger_log_level = spiff_logger.level
             spiff_logger.setLevel(logging.WARNING)
 
-            bpmn_process_instance = (
-                ProcessInstanceProcessor._serializer.deserialize_json(
-                    process_instance_model.bpmn_json
+            try:
+                bpmn_process_instance = (
+                    ProcessInstanceProcessor._serializer.deserialize_json(
+                        process_instance_model.bpmn_json
+                    )
                 )
-            )
-            spiff_logger.setLevel(original_spiff_logger_log_level)
+            except Exception as err:
+                raise (err)
+            finally:
+                spiff_logger.setLevel(original_spiff_logger_log_level)
+
             bpmn_process_instance.script_engine = (
                 ProcessInstanceProcessor._script_engine
             )
@@ -563,10 +568,14 @@ class ProcessInstanceProcessor:
                 bpmn_process_identifier
             )
             new_bpmn_files.add(new_bpmn_file_full_path)
+            dmn_file_glob = os.path.join(
+                os.path.dirname(new_bpmn_file_full_path), "*.dmn"
+            )
+            parser.add_dmn_files_by_glob(dmn_file_glob)
             processed_identifiers.add(bpmn_process_identifier)
 
-        for new_bpmn_file_full_path in new_bpmn_files:
-            parser.add_bpmn_file(new_bpmn_file_full_path)
+        if new_bpmn_files:
+            parser.add_bpmn_files(new_bpmn_files)
             ProcessInstanceProcessor.update_spiff_parser_with_all_process_dependency_files(
                 parser, processed_identifiers
             )
