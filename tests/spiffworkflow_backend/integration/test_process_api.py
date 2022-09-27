@@ -8,8 +8,6 @@ import pytest
 from flask.app import Flask
 from flask.testing import FlaskClient
 from flask_bpmn.models.db import db
-
-from spiffworkflow_backend.services.file_system_service import FileSystemService
 from tests.spiffworkflow_backend.helpers.base_test import BaseTest
 from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
 
@@ -27,6 +25,7 @@ from spiffworkflow_backend.models.process_model import NotificationType
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
 from spiffworkflow_backend.models.task_event import TaskEventModel
 from spiffworkflow_backend.models.user import UserModel
+from spiffworkflow_backend.services.file_system_service import FileSystemService
 from spiffworkflow_backend.services.process_instance_processor import (
     ProcessInstanceProcessor,
 )
@@ -724,7 +723,10 @@ class TestProcessApi(BaseTest):
         assert response.json["data"]["Mike"] == "Awesome"
         assert response.json["data"]["person"] == "Kevin"
 
-    def test_process_instance_show(self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None) -> None:
+    def test_process_instance_show(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        """Test_process_instance_show."""
         process_group_id = "simple_script"
         process_model_id = "simple_script"
         user = self.find_or_create_user()
@@ -732,20 +734,22 @@ class TestProcessApi(BaseTest):
         create_response = self.create_process_instance(
             client, process_group_id, process_model_id, headers
         )
+        assert create_response.json is not None
         process_instance_id = create_response.json["id"]
-        run_response = client.post(
+        client.post(
             f"/v1.0/process-models/{process_group_id}/{process_model_id}/process-instances/{process_instance_id}/run",
             headers=self.logged_in_headers(user),
         )
         show_response = client.get(
             f"/v1.0/process-models/{process_group_id}/{process_model_id}/process-instances/{process_instance_id}",
-            headers=self.logged_in_headers(user)
+            headers=self.logged_in_headers(user),
         )
+        assert show_response.json is not None
         file_system_root = FileSystemService.root_path()
         file_path = f"{file_system_root}/{process_group_id}/{process_model_id}/{process_model_id}.bpmn"
         with open(file_path) as f_open:
             xml_file_contents = f_open.read()
-            assert show_response.json['bpmn_xml_file_contents'] == xml_file_contents
+            assert show_response.json["bpmn_xml_file_contents"] == xml_file_contents
 
     def test_message_start_when_starting_process_instance(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
