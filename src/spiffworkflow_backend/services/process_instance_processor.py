@@ -95,11 +95,13 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
         expression: str,
         context: Dict[str, Union[Box, str]],
         task: Optional[SpiffTask] = None,
-        _external_methods: None = None,
+        external_methods: Optional[Dict[str, Any]] = None,
     ) -> Any:
         """Evaluate the given expression, within the context of the given task and return the result."""
         try:
-            return super()._evaluate(expression, context)
+            return super()._evaluate(
+                expression, context, external_methods=external_methods
+            )
         except Exception as exception:
             if task is None:
                 raise ProcessInstanceProcessorError(
@@ -355,7 +357,7 @@ class ProcessInstanceProcessor:
     @staticmethod
     def __get_bpmn_process_instance(
         process_instance_model: ProcessInstanceModel,
-        spec: WorkflowSpec = None,
+        spec: Optional[WorkflowSpec] = None,
         validate_only: bool = False,
         subprocesses: Optional[IdToBpmnProcessSpecMapping] = None,
     ) -> BpmnWorkflow:
@@ -366,12 +368,17 @@ class ProcessInstanceProcessor:
             original_spiff_logger_log_level = spiff_logger.level
             spiff_logger.setLevel(logging.WARNING)
 
-            bpmn_process_instance = (
-                ProcessInstanceProcessor._serializer.deserialize_json(
-                    process_instance_model.bpmn_json
+            try:
+                bpmn_process_instance = (
+                    ProcessInstanceProcessor._serializer.deserialize_json(
+                        process_instance_model.bpmn_json
+                    )
                 )
-            )
-            spiff_logger.setLevel(original_spiff_logger_log_level)
+            except Exception as err:
+                raise (err)
+            finally:
+                spiff_logger.setLevel(original_spiff_logger_log_level)
+
             bpmn_process_instance.script_engine = (
                 ProcessInstanceProcessor._script_engine
             )
@@ -561,10 +568,14 @@ class ProcessInstanceProcessor:
                 bpmn_process_identifier
             )
             new_bpmn_files.add(new_bpmn_file_full_path)
+            dmn_file_glob = os.path.join(
+                os.path.dirname(new_bpmn_file_full_path), "*.dmn"
+            )
+            parser.add_dmn_files_by_glob(dmn_file_glob)
             processed_identifiers.add(bpmn_process_identifier)
 
-        for new_bpmn_file_full_path in new_bpmn_files:
-            parser.add_bpmn_file(new_bpmn_file_full_path)
+        if new_bpmn_files:
+            parser.add_bpmn_files(new_bpmn_files)
             ProcessInstanceProcessor.update_spiff_parser_with_all_process_dependency_files(
                 parser, processed_identifiers
             )
@@ -717,52 +728,59 @@ class ProcessInstanceProcessor:
         """Queue_waiting_receive_messages."""
         waiting_tasks = self.get_all_waiting_tasks()
         for waiting_task in waiting_tasks:
-            if waiting_task.task_spec.__class__.__name__ in [
+            # if it's not something that can wait for a message, skip it
+            if waiting_task.task_spec.__class__.__name__ not in [
                 "IntermediateCatchEvent",
                 "ReceiveTask",
             ]:
-                message_model = MessageModel.query.filter_by(
-                    name=waiting_task.task_spec.event_definition.name
-                ).first()
-                if message_model is None:
-                    raise ApiError(
-                        "invalid_message_name",
-                        f"Invalid message name: {waiting_task.task_spec.event_definition.name}.",
-                    )
+                continue
 
-                message_instance = MessageInstanceModel(
-                    process_instance_id=self.process_instance_model.id,
-                    message_type="receive",
-                    message_model_id=message_model.id,
+            # timer events are not related to messaging, so ignore them for these purposes
+            if waiting_task.task_spec.event_definition.__class__.__name__ in [
+                "TimerEventDefinition",
+            ]:
+                continue
+
+            message_model = MessageModel.query.filter_by(
+                name=waiting_task.task_spec.event_definition.name
+            ).first()
+            if message_model is None:
+                raise ApiError(
+                    "invalid_message_name",
+                    f"Invalid message name: {waiting_task.task_spec.event_definition.name}.",
                 )
-                db.session.add(message_instance)
 
-                for (
-                    spiff_correlation_property
-                ) in waiting_task.task_spec.event_definition.correlation_properties:
-                    # NOTE: we may have to cycle through keys here
-                    # not sure yet if it's valid for a property to be associated with multiple keys
-                    correlation_key_name = spiff_correlation_property.correlation_keys[
-                        0
-                    ]
-                    message_correlation = (
-                        MessageCorrelationModel.query.filter_by(
-                            process_instance_id=self.process_instance_model.id,
-                            name=correlation_key_name,
-                        )
-                        .join(MessageCorrelationPropertyModel)
-                        .filter_by(identifier=spiff_correlation_property.name)
-                        .first()
-                    )
-                    message_correlation_message_instance = (
-                        MessageCorrelationMessageInstanceModel(
-                            message_instance_id=message_instance.id,
-                            message_correlation_id=message_correlation.id,
-                        )
-                    )
-                    db.session.add(message_correlation_message_instance)
+            message_instance = MessageInstanceModel(
+                process_instance_id=self.process_instance_model.id,
+                message_type="receive",
+                message_model_id=message_model.id,
+            )
+            db.session.add(message_instance)
 
-                db.session.commit()
+            for (
+                spiff_correlation_property
+            ) in waiting_task.task_spec.event_definition.correlation_properties:
+                # NOTE: we may have to cycle through keys here
+                # not sure yet if it's valid for a property to be associated with multiple keys
+                correlation_key_name = spiff_correlation_property.correlation_keys[0]
+                message_correlation = (
+                    MessageCorrelationModel.query.filter_by(
+                        process_instance_id=self.process_instance_model.id,
+                        name=correlation_key_name,
+                    )
+                    .join(MessageCorrelationPropertyModel)
+                    .filter_by(identifier=spiff_correlation_property.name)
+                    .first()
+                )
+                message_correlation_message_instance = (
+                    MessageCorrelationMessageInstanceModel(
+                        message_instance_id=message_instance.id,
+                        message_correlation_id=message_correlation.id,
+                    )
+                )
+                db.session.add(message_correlation_message_instance)
+
+            db.session.commit()
 
     def do_engine_steps(self, exit_at: None = None, save: bool = False) -> None:
         """Do_engine_steps."""

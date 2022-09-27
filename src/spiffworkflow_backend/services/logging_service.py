@@ -1,6 +1,7 @@
 """Logging_service."""
 import json
 import logging
+import re
 from typing import Any
 from typing import Optional
 
@@ -113,6 +114,8 @@ def setup_logger(app: Flask) -> None:
         "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
 
+    app.logger.debug("Printing log to create app logger")
+
     # the json formatter is nice for real environments but makes
     # debugging locally a little more difficult
     if app.env != "development":
@@ -132,13 +135,16 @@ def setup_logger(app: Flask) -> None:
 
     spiff_logger_filehandler = None
     if app.config["SPIFFWORKFLOW_BACKEND_LOG_TO_FILE"]:
-        spiff_logger_filehandler = logging.FileHandler(f"log/{app.env}.log")
+        spiff_logger_filehandler = logging.FileHandler(
+            f"{app.instance_path}/../../log/{app.env}.log"
+        )
         spiff_logger_filehandler.setLevel(spiff_log_level)
         spiff_logger_filehandler.setFormatter(log_formatter)
 
     # make all loggers act the same
     for name in logging.root.manager.loggerDict:
-        if "spiff" not in name:
+        # use a regex so spiffworkflow_backend isn't filtered out
+        if not re.match(r"^spiff\b", name):
             the_logger = logging.getLogger(name)
             the_logger.setLevel(log_level)
             if spiff_logger_filehandler:
@@ -176,6 +182,8 @@ class DBHandler(logging.Handler):
             bpmn_process_identifier = record.workflow  # type: ignore
             spiff_task_guid = str(record.task_id)  # type: ignore
             bpmn_task_identifier = str(record.task_spec)  # type: ignore
+            bpmn_task_name = record.task_name if hasattr(record, "task_name") else None  # type: ignore
+            bpmn_task_type = record.task_type if hasattr(record, "task_type") else None  # type: ignore
             timestamp = record.created
             message = record.msg if hasattr(record, "msg") else None
             current_user_id = record.current_user_id if hasattr(record, "current_user_id") else None  # type: ignore
@@ -183,7 +191,9 @@ class DBHandler(logging.Handler):
                 process_instance_id=record.process_instance_id,  # type: ignore
                 bpmn_process_identifier=bpmn_process_identifier,
                 spiff_task_guid=spiff_task_guid,
+                bpmn_task_name=bpmn_task_name,
                 bpmn_task_identifier=bpmn_task_identifier,
+                bpmn_task_type=bpmn_task_type,
                 message=message,
                 timestamp=timestamp,
                 current_user_id=current_user_id,

@@ -29,10 +29,10 @@ if [[ "${1:-}" == "clean" ]]; then
   if [[ "${SPIFF_DATABASE_TYPE:-}" == "postgres" ]]; then
     if ! docker exec -it postgres-spiff psql -U spiffworkflow_backend spiffworkflow_backend_testing -c "select 1"; then
       docker run --name postgres-spiff -p 5432:5432 -e POSTGRES_PASSWORD=spiffworkflow_backend -e POSTGRES_USER=spiffworkflow_backend -e POSTGRES_DB=spiffworkflow_backend_testing -d postgres
-
       sleep 4 # classy
-
-      # create other db
+    fi
+    if ! docker exec -it postgres-spiff psql -U spiffworkflow_backend spiffworkflow_backend_development -c "select 1"; then
+      # create other db. spiffworkflow_backend_testing came with the docker run.
       docker exec -it postgres-spiff psql -U spiffworkflow_backend spiffworkflow_backend_testing -c "create database spiffworkflow_backend_development;"
     fi
   fi

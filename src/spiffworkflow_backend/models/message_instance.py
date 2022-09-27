@@ -3,6 +3,7 @@ import enum
 from dataclasses import dataclass
 from typing import Any
 from typing import Optional
+from typing import TYPE_CHECKING
 
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import SpiffworkflowBaseDBModel
@@ -14,6 +15,11 @@ from sqlalchemy.orm.events import event
 
 from spiffworkflow_backend.models.message_model import MessageModel
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
+
+if TYPE_CHECKING:
+    from spiffworkflow_backend.models.message_correlation_message_instance import (  # noqa: F401
+        MessageCorrelationMessageInstanceModel,
+    )
 
 
 class MessageTypes(enum.Enum):
@@ -38,15 +44,18 @@ class MessageInstanceModel(SpiffworkflowBaseDBModel):
 
     __tablename__ = "message_instance"
 
-    id = db.Column(db.Integer, primary_key=True)
+    id: int = db.Column(db.Integer, primary_key=True)
     process_instance_id: int = db.Column(ForeignKey(ProcessInstanceModel.id), nullable=False)  # type: ignore
     message_model_id: int = db.Column(ForeignKey(MessageModel.id), nullable=False)
     message_model = relationship("MessageModel")
+    message_correlations_message_instances = relationship(
+        "MessageCorrelationMessageInstanceModel", cascade="delete"
+    )
 
-    message_type = db.Column(db.String(20), nullable=False)
-    payload = db.Column(db.JSON)
-    status = db.Column(db.String(20), nullable=False, default="ready")
-    failure_cause = db.Column(db.Text())
+    message_type: str = db.Column(db.String(20), nullable=False)
+    payload: str = db.Column(db.JSON)
+    status: str = db.Column(db.String(20), nullable=False, default="ready")
+    failure_cause: str = db.Column(db.Text())
     updated_at_in_seconds: int = db.Column(db.Integer)
     created_at_in_seconds: int = db.Column(db.Integer)
 

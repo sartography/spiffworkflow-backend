@@ -79,6 +79,7 @@ class ProcessInstanceStatus(SpiffEnum):
     faulted = "faulted"
     suspended = "suspended"
     terminated = "terminated"
+    erroring = "erroring"
 
 
 class ProcessInstanceModel(SpiffworkflowBaseDBModel):
@@ -94,6 +95,8 @@ class ProcessInstanceModel(SpiffworkflowBaseDBModel):
     active_tasks = relationship("ActiveTaskModel", cascade="delete")  # type: ignore
     task_events = relationship("TaskEventModel", cascade="delete")  # type: ignore
     spiff_logs = relationship("SpiffLoggingModel", cascade="delete")  # type: ignore
+    message_instances = relationship("MessageInstanceModel", cascade="delete")  # type: ignore
+    message_correlations = relationship("MessageCorrelationModel", cascade="delete")  # type: ignore
 
     bpmn_json: str | None = deferred(db.Column(db.JSON))  # type: ignore
     start_in_seconds: int | None = db.Column(db.Integer)

@@ -188,8 +188,14 @@ class TestMessageService(BaseTest):
         process_instance_result = ProcessInstanceModel.query.all()
 
         assert len(process_instance_result) == 3
-        process_instance_receiver_one = process_instance_result[1]
-        process_instance_receiver_two = process_instance_result[2]
+        process_instance_receiver_one = ProcessInstanceModel.query.filter_by(
+            process_model_identifier="message_receiver_one"
+        ).first()
+        assert process_instance_receiver_one is not None
+        process_instance_receiver_two = ProcessInstanceModel.query.filter_by(
+            process_model_identifier="message_receiver_two"
+        ).first()
+        assert process_instance_receiver_two is not None
 
         # just make sure it's a different process instance
         assert (

@@ -1,4 +1,4 @@
-FROM ghcr.io/sartography/python:3.9
+FROM ghcr.io/sartography/python:3.10
 
 RUN pip install poetry
 RUN useradd _gunicorn --no-create-home --user-group

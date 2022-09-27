@@ -43,7 +43,10 @@ from spiffworkflow_backend.models.process_instance_report import (
 )
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
+from spiffworkflow_backend.models.secret_model import SecretAllowedProcessSchema
+from spiffworkflow_backend.models.secret_model import SecretModelSchema
 from spiffworkflow_backend.models.spiff_logging import SpiffLoggingModel
+from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.services.error_handling_service import ErrorHandlingService
 from spiffworkflow_backend.services.file_system_service import FileSystemService
 from spiffworkflow_backend.services.message_service import MessageService
@@ -54,8 +57,10 @@ from spiffworkflow_backend.services.process_instance_service import (
     ProcessInstanceService,
 )
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
+from spiffworkflow_backend.services.secret_service import SecretService
 from spiffworkflow_backend.services.service_task_service import ServiceTaskService
 from spiffworkflow_backend.services.spec_file_service import SpecFileService
+from spiffworkflow_backend.services.user_service import UserService
 
 process_api_blueprint = Blueprint("process_api", __name__)
 
@@ -197,10 +202,12 @@ def process_model_show(process_group_id: str, process_model_id: str) -> Any:
 
 
 def process_model_list(
-    process_group_id: str, page: int = 1, per_page: int = 100
+    process_group_identifier: Optional[str] = None, page: int = 1, per_page: int = 100
 ) -> flask.wrappers.Response:
     """Process model list!"""
-    process_models = ProcessModelService().get_process_models(process_group_id)
+    process_models = ProcessModelService().get_process_models(
+        process_group_id=process_group_identifier
+    )
     batch = ProcessModelService().get_batch(
         process_models, page=page, per_page=per_page
     )
@@ -280,7 +287,6 @@ def process_model_file_delete(
 
 def add_file(process_group_id: str, process_model_id: str) -> flask.wrappers.Response:
     """Add_file."""
-    ProcessModelService()
     process_model = get_process_model(process_model_id, process_group_id)
     request_file = get_file_from_request()
     if not request_file.filename:
@@ -391,6 +397,10 @@ def process_instance_log_list(
             SpiffLoggingModel.process_instance_id == process_instance.id
         )
         .order_by(SpiffLoggingModel.timestamp.desc())  # type: ignore
+        .join(UserModel)
+        .add_columns(
+            UserModel.username,
+        )
         .paginate(page, per_page, False)
     )
 
@@ -400,6 +410,37 @@ def process_instance_log_list(
             "count": len(logs.items),
             "total": logs.total,
             "pages": logs.pages,
+        },
+    }
+
+    return make_response(jsonify(response_json), 200)
+
+
+def message_instance_list(
+    process_instance_id: Optional[int] = None,
+    page: int = 1,
+    per_page: int = 100,
+) -> flask.wrappers.Response:
+    """Message_instance_list."""
+    # to make sure the process instance exists
+    message_instances_query = MessageInstanceModel.query
+
+    if process_instance_id:
+        message_instances_query = message_instances_query.filter_by(
+            process_instance_id=process_instance_id
+        )
+
+    message_instances = message_instances_query.order_by(
+        MessageInstanceModel.created_at_in_seconds.desc(),  # type: ignore
+        MessageInstanceModel.id.desc(),  # type: ignore
+    ).paginate(page, per_page, False)
+
+    response_json = {
+        "results": message_instances.items,
+        "pagination": {
+            "count": len(message_instances.items),
+            "total": message_instances.total,
+            "pages": message_instances.pages,
         },
     }
 
@@ -491,8 +532,8 @@ def message_start(
 
 
 def process_instance_list(
-    process_group_id: str,
-    process_model_id: str,
+    process_group_identifier: Optional[str] = None,
+    process_model_identifier: Optional[str] = None,
     page: int = 1,
     per_page: int = 100,
     start_from: Optional[int] = None,
@@ -502,11 +543,15 @@ def process_instance_list(
     process_status: Optional[str] = None,
 ) -> flask.wrappers.Response:
     """Process_instance_list."""
-    process_model = get_process_model(process_model_id, process_group_id)
+    process_instance_query = ProcessInstanceModel.query
+    if process_model_identifier is not None and process_group_identifier is not None:
+        process_model = get_process_model(
+            process_model_identifier, process_group_identifier
+        )
 
-    results = ProcessInstanceModel.query.filter_by(
-        process_model_identifier=process_model.id
-    )
+        process_instance_query = process_instance_query.filter_by(
+            process_model_identifier=process_model.id
+        )
 
     # this can never happen. obviously the class has the columns it defines. this is just to appease mypy.
     if (
@@ -522,17 +567,28 @@ def process_instance_list(
         )
 
     if start_from is not None:
-        results = results.filter(ProcessInstanceModel.start_in_seconds >= start_from)
+        process_instance_query = process_instance_query.filter(
+            ProcessInstanceModel.start_in_seconds >= start_from
+        )
     if start_till is not None:
-        results = results.filter(ProcessInstanceModel.start_in_seconds <= start_till)
+        process_instance_query = process_instance_query.filter(
+            ProcessInstanceModel.start_in_seconds <= start_till
+        )
     if end_from is not None:
-        results = results.filter(ProcessInstanceModel.end_in_seconds >= end_from)
+        process_instance_query = process_instance_query.filter(
+            ProcessInstanceModel.end_in_seconds >= end_from
+        )
     if end_till is not None:
-        results = results.filter(ProcessInstanceModel.end_in_seconds <= end_till)
+        process_instance_query = process_instance_query.filter(
+            ProcessInstanceModel.end_in_seconds <= end_till
+        )
     if process_status is not None:
-        results = results.filter(ProcessInstanceModel.status == process_status)
+        process_status_array = process_status.split(",")
+        process_instance_query = process_instance_query.filter(
+            ProcessInstanceModel.status.in_(process_status_array)  # type: ignore
+        )
 
-    process_instances = results.order_by(
+    process_instances = process_instance_query.order_by(
         ProcessInstanceModel.start_in_seconds.desc(), ProcessInstanceModel.id.desc()  # type: ignore
     ).paginate(page, per_page, False)
 
@@ -1044,3 +1100,52 @@ def get_spiff_task_from_process_instance(
             )
         )
     return spiff_task
+
+
+#
+# Methods for secrets CRUD - maybe move somewhere else:
+#
+def get_secret(key: str) -> Optional[str]:
+    """Get_secret."""
+    return SecretService.get_secret(key)
+
+
+def add_secret(body: Dict) -> Response:
+    """Add secret."""
+    secret_model = SecretService().add_secret(
+        body["key"], body["value"], body["creator_user_id"]
+    )
+    assert secret_model  # noqa: S101
+    return Response(
+        json.dumps(SecretModelSchema().dump(secret_model)),
+        status=201,
+        mimetype="application/json",
+    )
+
+
+def update_secret(key: str, body: dict) -> None:
+    """Update secret."""
+    SecretService().update_secret(key, body["value"], body["creator_user_id"])
+
+
+def delete_secret(key: str) -> None:
+    """Delete secret."""
+    current_user = UserService.current_user()
+    SecretService.delete_secret(key, current_user.id)
+
+
+def add_allowed_process_path(body: dict) -> Any:
+    """Get allowed process paths."""
+    allowed_process_path = SecretService.add_allowed_process(
+        body["secret_id"], g.user.id, body["allowed_relative_path"]
+    )
+    return Response(
+        json.dumps(SecretAllowedProcessSchema().dump(allowed_process_path)),
+        status=201,
+        mimetype="application/json",
+    )
+
+
+def delete_allowed_process_path(allowed_process_path_id: int) -> Any:
+    """Get allowed process paths."""
+    SecretService().delete_allowed_process(allowed_process_path_id, g.user.id)

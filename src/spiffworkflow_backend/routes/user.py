@@ -151,22 +151,41 @@ def validate_scope(token: Any) -> bool:
     return True
 
 
-def api_login(uid: str, password: str, redirect_url: Optional[str] = None) -> dict:
-    """Api_login."""
-    # TODO: Fix this! mac 20220801
-    # token:dict = PublicAuthenticationService().get_public_access_token(uid, password)
-    # g.token = token
-    #
-    # return token
-    return {}
+# def login_api(redirect_url: str = "/v1.0/ui") -> Response:
+#     """Api_login."""
+#     # TODO: Fix this! mac 20220801
+#     # token:dict = PublicAuthenticationService().get_public_access_token(uid, password)
+#     #
+#     # return token
+#     # if uid:
+#     #     sub = f"service:internal::service_id:{uid}"
+#     #     token = encode_auth_token(sub)
+#     #     user_model = UserModel(username=uid,
+#     #                            uid=uid,
+#     #                            service='internal',
+#     #                            name="API User")
+#     #     g.user = user_model
+#     #
+#     #     g.token = token
+#     #     scope = get_scope(token)
+#     #     return token
+#     #     return {"uid": uid, "sub": uid, "scope": scope}
+#     return login(redirect_url)
 
 
-def encode_auth_token(uid: str) -> str:
+# def login_api_return(code: str, state: str, session_state: str) -> Optional[Response]:
+#     print("login_api_return")
+
+
+def encode_auth_token(sub: str, token_type: Optional[str] = None) -> str:
     """Generates the Auth Token.
 
     :return: string
     """
-    payload = {"sub": uid}
+    payload = {"sub": sub}
+    if token_type is None:
+        token_type = "internal"  # noqa: S105
+    payload["token_type"] = token_type
     if "SECRET_KEY" in current_app.config:
         secret_key = current_app.config.get("SECRET_KEY")
     else:
@@ -215,6 +234,8 @@ def login_return(code: str, state: str, session_state: str) -> Optional[Response
                     name = user_info["name"]
                 if "username" in user_info:
                     username = user_info["username"]
+                elif "preferred_username" in user_info:
+                    username = user_info["preferred_username"]
                 if "email" in user_info:
                     email = user_info["email"]
                 user_model = UserService().create_user(
@@ -302,4 +323,15 @@ def get_user_from_decoded_internal_token(decoded_token: dict) -> Optional[UserMo
         .filter(UserModel.service_id == service_id)
         .first()
     )
+    # user: UserModel = UserModel.query.filter()
+    if user:
+        return user
+    user = UserModel(
+        username=service_id,
+        uid=service_id,
+        service=service,
+        service_id=service_id,
+        name="API User",
+    )
+
     return user
