@@ -30,7 +30,6 @@ from SpiffWorkflow.bpmn.workflow import BpmnWorkflow  # type: ignore
 from SpiffWorkflow.dmn.parser.BpmnDmnParser import BpmnDmnParser  # type: ignore
 from SpiffWorkflow.dmn.serializer import BusinessRuleTaskConverter  # type: ignore
 from SpiffWorkflow.serializer.exceptions import MissingSpecError  # type: ignore
-from SpiffWorkflow.specs import WorkflowSpec  # type: ignore
 from SpiffWorkflow.spiff.parser.process import SpiffBpmnParser  # type: ignore
 from SpiffWorkflow.spiff.serializer import BoundaryEventConverter  # type: ignore
 from SpiffWorkflow.spiff.serializer import CallActivityTaskConverter
@@ -174,22 +173,6 @@ class ProcessInstanceProcessor:
     PROCESS_INSTANCE_ID_KEY = "process_instance_id"
     VALIDATION_PROCESS_KEY = "validate_only"
 
-    # def create_bpmn_process_instance_from_process_model():
-    #     spec_info = self.process_model_service.get_process_model(
-    #         process_instance_model.process_model_identifier, process_instance_model.process_group_identifier
-    #     )
-    #     if spec_info is None:
-    #         raise (
-    #             ApiError(
-    #                 "missing_spec",
-    #                 "The spec this process_instance references does not currently exist.",
-    #             )
-    #         )
-    #     self.spec_files = SpecFileService.get_files(
-    #         spec_info, include_libraries=True
-    #     )
-    #     (spec, subprocesses) = self.get_spec(self.spec_files, spec_info)
-
     # __init__ calls these helpers:
     #   * get_spec, which returns a spec and any subprocesses (as IdToBpmnProcessSpecMapping dict)
     #   * __get_bpmn_process_instance, which takes spec and subprocesses and instantiates and returns a BpmnWorkflow
@@ -203,24 +186,16 @@ class ProcessInstanceProcessor:
 
         self.process_instance_model = process_instance_model
         self.process_model_service = ProcessModelService()
-        spec = None
+        bpmn_process_spec = None
         subprocesses: Optional[IdToBpmnProcessSpecMapping] = None
         if process_instance_model.bpmn_json is None:
-            spec_info = self.process_model_service.get_process_model(
+            (
+                bpmn_process_spec,
+                subprocesses,
+            ) = ProcessInstanceProcessor.get_process_model_and_subprocesses(
                 process_instance_model.process_model_identifier,
                 process_instance_model.process_group_identifier,
             )
-            if spec_info is None:
-                raise (
-                    ApiError(
-                        "missing_spec",
-                        "The spec this process_instance references does not currently exist.",
-                    )
-                )
-            self.spec_files = SpecFileService.get_files(
-                spec_info, include_libraries=True
-            )
-            (spec, subprocesses) = self.get_spec(self.spec_files, spec_info)
         else:
             bpmn_json_length = len(process_instance_model.bpmn_json.encode("utf-8"))
             megabyte = float(1024**2)
@@ -274,7 +249,10 @@ class ProcessInstanceProcessor:
 
         try:
             self.bpmn_process_instance = self.__get_bpmn_process_instance(
-                process_instance_model, spec, validate_only, subprocesses=subprocesses
+                process_instance_model,
+                bpmn_process_spec,
+                validate_only,
+                subprocesses=subprocesses,
             )
             self.bpmn_process_instance.script_engine = self._script_engine
 
@@ -299,6 +277,39 @@ class ProcessInstanceProcessor:
                 " '%s'  due to a mis-placed or missing task '%s'"
                 % (self.process_model_identifier, str(ke)),
             ) from ke
+
+    @classmethod
+    def get_process_model_and_subprocesses(
+        cls, process_model_identifier: str, process_group_identifier: str
+    ) -> Tuple[BpmnProcessSpec, IdToBpmnProcessSpecMapping]:
+        """Get_process_model_and_subprocesses."""
+        process_model_info = ProcessModelService().get_process_model(
+            process_model_identifier, process_group_identifier
+        )
+        if process_model_info is None:
+            raise (
+                ApiError(
+                    "process_model_not_found",
+                    f"The given process model was not found: {process_group_identifier}/{process_model_identifier}.",
+                )
+            )
+        spec_files = SpecFileService.get_files(
+            process_model_info, include_libraries=True
+        )
+        return cls.get_spec(spec_files, process_model_info)
+
+    @classmethod
+    def get_bpmn_process_instance_from_process_model(
+        cls, process_model_identifier: str, process_group_identifier: str
+    ) -> BpmnWorkflow:
+        """Get_all_bpmn_process_identifiers_for_process_model."""
+        (bpmn_process_spec, subprocesses) = cls.get_process_model_and_subprocesses(
+            process_model_identifier,
+            process_group_identifier,
+        )
+        return cls.get_bpmn_process_instance_from_workflow_spec(
+            bpmn_process_spec, subprocesses
+        )
 
     def add_user_info_to_process_instance(
         self, bpmn_process_instance: BpmnWorkflow
@@ -374,9 +385,21 @@ class ProcessInstanceProcessor:
         db.session.commit()
 
     @staticmethod
+    def get_bpmn_process_instance_from_workflow_spec(
+        spec: BpmnProcessSpec,
+        subprocesses: Optional[IdToBpmnProcessSpecMapping] = None,
+    ) -> BpmnWorkflow:
+        """Get_bpmn_process_instance_from_workflow_spec."""
+        return BpmnWorkflow(
+            spec,
+            script_engine=ProcessInstanceProcessor._script_engine,
+            subprocess_specs=subprocesses,
+        )
+
+    @staticmethod
     def __get_bpmn_process_instance(
         process_instance_model: ProcessInstanceModel,
-        spec: Optional[WorkflowSpec] = None,
+        spec: Optional[BpmnProcessSpec] = None,
         validate_only: bool = False,
         subprocesses: Optional[IdToBpmnProcessSpecMapping] = None,
     ) -> BpmnWorkflow:
@@ -402,10 +425,10 @@ class ProcessInstanceProcessor:
                 ProcessInstanceProcessor._script_engine
             )
         else:
-            bpmn_process_instance = BpmnWorkflow(
-                spec,
-                script_engine=ProcessInstanceProcessor._script_engine,
-                subprocess_specs=subprocesses,
+            bpmn_process_instance = (
+                ProcessInstanceProcessor.get_bpmn_process_instance_from_workflow_spec(
+                    spec, subprocesses
+                )
             )
             bpmn_process_instance.data[
                 ProcessInstanceProcessor.VALIDATION_PROCESS_KEY
@@ -630,9 +653,9 @@ class ProcessInstanceProcessor:
         )
 
         try:
-            spec = parser.get_spec(process_model_info.primary_process_id)
+            bpmn_process_spec = parser.get_spec(process_model_info.primary_process_id)
 
-            # returns a dict of {process_id: spec}, otherwise known as an IdToBpmnProcessSpecMapping
+            # returns a dict of {process_id: bpmn_process_spec}, otherwise known as an IdToBpmnProcessSpecMapping
             subprocesses = parser.get_subprocess_specs(
                 process_model_info.primary_process_id
             )
@@ -645,7 +668,7 @@ class ProcessInstanceProcessor:
                 task_id=ve.id,
                 tag=ve.tag,
             ) from ve
-        return (spec, subprocesses)
+        return (bpmn_process_spec, subprocesses)
 
     @staticmethod
     def status_of(bpmn_process_instance: BpmnWorkflow) -> ProcessInstanceStatus:
@@ -998,9 +1021,12 @@ class ProcessInstanceProcessor:
         all_tasks = self.bpmn_process_instance.get_tasks(TaskState.ANY_MASK)
         return [t for t in all_tasks if t.state in [TaskState.WAITING, TaskState.READY]]
 
-    def get_task_by_bpmn_identifier(self, bpmn_task_identifier: str) -> SpiffTask:
+    @classmethod
+    def get_task_by_bpmn_identifier(
+        cls, bpmn_task_identifier: str, bpmn_process_instance: BpmnWorkflow
+    ) -> Optional[SpiffTask]:
         """Get_task_by_id."""
-        all_tasks = self.bpmn_process_instance.get_tasks(TaskState.ANY_MASK)
+        all_tasks = bpmn_process_instance.get_tasks(TaskState.ANY_MASK)
         for task in all_tasks:
             if task.task_spec.name == bpmn_task_identifier:
                 return task

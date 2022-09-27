@@ -57,6 +57,7 @@ from spiffworkflow_backend.services.process_instance_service import (
     ProcessInstanceService,
 )
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
+from spiffworkflow_backend.services.script_unit_test_runner import ScriptUnitTestRunner
 from spiffworkflow_backend.services.secret_service import SecretService
 from spiffworkflow_backend.services.service_task_service import ServiceTaskService
 from spiffworkflow_backend.services.spec_file_service import SpecFileService
@@ -964,20 +965,38 @@ def task_submit(
     return Response(json.dumps({"ok": True}), status=202, mimetype="application/json")
 
 
-# def script_unit_test_run(
-#     process_group_id: str, process_model_id: str, body: Dict[str, Union[str, bool, int]]
-# ) -> flask.wrappers.Response:
-#
-#     process_model = get_process_model(process_model_id, process_group_id)
-#
-#     # process_model_service = ProcessModelService()
-#     # process_group = ProcessGroupSchema().load(body)
-#     # process_model_service.add_process_group(process_group)
-#     # return Response(
-#     #     json.dumps(ProcessGroupSchema().dump(process_group)),
-#     #     status=201,
-#     #     mimetype="application/json",
-#     # )
+def script_unit_test_run(
+    process_group_id: str, process_model_id: str, body: Dict[str, Union[str, bool, int]]
+) -> flask.wrappers.Response:
+    """Script_unit_test_run."""
+    # FIXME: We should probably clear this somewhere else but this works
+    current_app.config["THREAD_LOCAL_DATA"].process_instance_id = None
+
+    bpmn_task_identifier = get_required_parameter_or_raise("bpmn_task_identifier", body)
+    script_unit_test_identifier = get_required_parameter_or_raise(
+        "script_unit_test_identifier", body
+    )
+
+    bpmn_process_instance = (
+        ProcessInstanceProcessor.get_bpmn_process_instance_from_process_model(
+            process_model_id, process_group_id
+        )
+    )
+    spiff_task = ProcessInstanceProcessor.get_task_by_bpmn_identifier(
+        bpmn_task_identifier, bpmn_process_instance
+    )
+
+    if spiff_task is None:
+        raise (
+            ApiError(
+                code="task_not_found",
+                message=f"Could not find task with identifier: {bpmn_task_identifier}",
+                status_code=400,
+            )
+        )
+
+    result = ScriptUnitTestRunner.run_test(spiff_task, script_unit_test_identifier)
+    return Response(json.dumps(result), status=200, mimetype="application/json")
 
 
 def get_file_from_request() -> Any:
@@ -1165,3 +1184,21 @@ def add_allowed_process_path(body: dict) -> Any:
 def delete_allowed_process_path(allowed_process_path_id: int) -> Any:
     """Get allowed process paths."""
     SecretService().delete_allowed_process(allowed_process_path_id, g.user.id)
+
+
+def get_required_parameter_or_raise(parameter: str, post_body: dict[str, Any]) -> Any:
+    """Get_required_parameter_or_raise."""
+    return_value = None
+    if parameter in post_body:
+        return_value = post_body[parameter]
+
+    if return_value is None or return_value == "":
+        raise (
+            ApiError(
+                code="missing_required_parameter",
+                message=f"Parameter is missing from json request body: {parameter}",
+                status_code=400,
+            )
+        )
+
+    return return_value

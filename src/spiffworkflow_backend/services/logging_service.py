@@ -178,7 +178,9 @@ class DBHandler(logging.Handler):
 
     def emit(self, record: logging.LogRecord) -> None:
         """Emit."""
-        if record:
+        # if we do not have a process instance id then do not log and assume we are running a script unit test
+        # that initializes a BpmnWorkflow without a process instance
+        if record and record.process_instance_id:  # type: ignore
             bpmn_process_identifier = record.workflow  # type: ignore
             spiff_task_guid = str(record.task_id)  # type: ignore
             bpmn_task_identifier = str(record.task_spec)  # type: ignore

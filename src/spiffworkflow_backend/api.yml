@@ -474,32 +474,32 @@ paths:
                 items:
                   $ref: "#/components/schemas/Workflow"
 
-  # /process-models/{process_group_id}/{process_model_id}/script-unit-tests/run:
-  #   parameters:
-  #     - name: process_group_id
-  #       in: path
-  #       required: true
-  #       description: The unique id of an existing process group
-  #       schema:
-  #         type: string
-  #     - name: process_model_id
-  #       in: path
-  #       required: true
-  #       description: The unique id of an existing process model.
-  #       schema:
-  #         type: string
-  #   post:
-  #     operationId: spiffworkflow_backend.routes.process_api_blueprint.script_unit_test_run
-  #     summary: Run a given script unit test.
-  #     tags:
-  #       - Script Unit Test
-  #     responses:
-  #       "200":
-  #         description: Script Unit Test Result
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: "#/components/schemas/Workflow"
+  /process-models/{process_group_id}/{process_model_id}/script-unit-tests/run:
+    parameters:
+      - name: process_group_id
+        in: path
+        required: true
+        description: The unique id of an existing process group
+        schema:
+          type: string
+      - name: process_model_id
+        in: path
+        required: true
+        description: The unique id of an existing process model.
+        schema:
+          type: string
+    post:
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.script_unit_test_run
+      summary: Run a given script unit test.
+      tags:
+        - Script Unit Test
+      responses:
+        "200":
+          description: Script Unit Test Result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Workflow"
 
   /process-models/{process_group_id}/{process_model_id}/process-instances:
     parameters:
