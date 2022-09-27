@@ -34,7 +34,7 @@ Running Locally
 
    $ poetry install
 
-* Setup the database - currently requires mysql:
+* Setup the database - uses mysql and assumes server is running by default:
 
 .. code:: console
 
