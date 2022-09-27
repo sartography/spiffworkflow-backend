@@ -996,7 +996,7 @@ def script_unit_test_run(
         )
 
     result = ScriptUnitTestRunner.run_test(spiff_task, script_unit_test_identifier)
-    return Response(json.dumps(result), status=200, mimetype="application/json")
+    return make_response(jsonify(result), 200)
 
 
 def get_file_from_request() -> Any:
