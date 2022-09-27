@@ -1300,7 +1300,7 @@ class TestProcessApi(BaseTest):
         api_error = json.loads(response.get_data(as_text=True))
         assert api_error["code"] == "task_error"
         assert (
-            'Activity_CauseError: TypeError:can only concatenate str (not "int") to str'
+            'Activity_CauseError: TypeError: can only concatenate str (not "int") to str'
             in api_error["message"]
         )
 
@@ -1382,7 +1382,7 @@ class TestProcessApi(BaseTest):
             assert message.subject == "Unexpected error in app"
             assert (
                 message.body
-                == 'Activity_CauseError: TypeError:can only concatenate str (not "int") to str'
+                == 'Activity_CauseError: TypeError: can only concatenate str (not "int") to str'
             )
             assert message.recipients == process_model.exception_notification_addresses
 

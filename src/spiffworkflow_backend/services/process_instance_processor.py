@@ -40,6 +40,7 @@ from SpiffWorkflow.spiff.serializer import IntermediateThrowEventConverter
 from SpiffWorkflow.spiff.serializer import ManualTaskConverter
 from SpiffWorkflow.spiff.serializer import NoneTaskConverter
 from SpiffWorkflow.spiff.serializer import ReceiveTaskConverter
+from SpiffWorkflow.spiff.serializer import ScriptTaskConverter
 from SpiffWorkflow.spiff.serializer import SendTaskConverter
 from SpiffWorkflow.spiff.serializer import ServiceTaskConverter
 from SpiffWorkflow.spiff.serializer import StartEventConverter
@@ -159,6 +160,7 @@ class ProcessInstanceProcessor:
             ManualTaskConverter,
             NoneTaskConverter,
             ReceiveTaskConverter,
+            ScriptTaskConverter,
             SendTaskConverter,
             ServiceTaskConverter,
             StartEventConverter,
@@ -171,6 +173,22 @@ class ProcessInstanceProcessor:
 
     PROCESS_INSTANCE_ID_KEY = "process_instance_id"
     VALIDATION_PROCESS_KEY = "validate_only"
+
+    # def create_bpmn_process_instance_from_process_model():
+    #     spec_info = self.process_model_service.get_process_model(
+    #         process_instance_model.process_model_identifier, process_instance_model.process_group_identifier
+    #     )
+    #     if spec_info is None:
+    #         raise (
+    #             ApiError(
+    #                 "missing_spec",
+    #                 "The spec this process_instance references does not currently exist.",
+    #             )
+    #         )
+    #     self.spec_files = SpecFileService.get_files(
+    #         spec_info, include_libraries=True
+    #     )
+    #     (spec, subprocesses) = self.get_spec(self.spec_files, spec_info)
 
     # __init__ calls these helpers:
     #   * get_spec, which returns a spec and any subprocesses (as IdToBpmnProcessSpecMapping dict)
@@ -189,7 +207,8 @@ class ProcessInstanceProcessor:
         subprocesses: Optional[IdToBpmnProcessSpecMapping] = None
         if process_instance_model.bpmn_json is None:
             spec_info = self.process_model_service.get_process_model(
-                process_instance_model.process_model_identifier
+                process_instance_model.process_model_identifier,
+                process_instance_model.process_group_identifier,
             )
             if spec_info is None:
                 raise (
