@@ -307,7 +307,8 @@ class ProcessInstanceService:
         Abstracted here because we need to do it multiple times when completing all tasks in
         a multi-instance task.
         """
-        spiff_task.update_data(data)
+        dot_dct = ProcessInstanceService.create_dot_dict(data)
+        spiff_task.update_data(dot_dct)
         # ProcessInstanceService.post_process_form(spiff_task)  # some properties may update the data store.
         processor.complete_task(spiff_task)
         # Log the action before doing the engine steps, as doing so could effect the state of the task
@@ -373,6 +374,13 @@ class ProcessInstanceService:
                     if value is not None:
                         ProcessInstanceService.set_dot_value(field.id, value, data)
         return data
+
+    @staticmethod
+    def create_dot_dict(data: dict) -> Any:
+        dot_dict = {}
+        for key, value in data.items():
+            ProcessInstanceService.set_dot_value(key, value, dot_dict)
+        return dot_dict
 
     @staticmethod
     def get_dot_value(path: str, source: dict) -> Any:
