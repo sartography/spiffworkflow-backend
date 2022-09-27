@@ -1853,7 +1853,7 @@ description = "A workflow framework and BPMN/DMN Processor"
 category = "main"
 optional = false
 python-versions = "*"
-develop = true
+develop = false
 
 [package.dependencies]
 celery = "*"
@@ -1863,8 +1863,10 @@ lxml = "*"
 pytz = "*"
 
 [package.source]
-type = "directory"
-url = "../SpiffWorkflow"
+type = "git"
+url = "https://github.com/sartography/SpiffWorkflow"
+reference = "feature/script-unit-test-extensions"
+resolved_reference = "056ecc786fe400c7e6ca4f7ee1905d34a0f261b8"
 
 [[package]]
 name = "sqlalchemy"
@@ -2174,7 +2176,7 @@ testing = ["func-timeout", "jaraco.itertools", "pytest (>=6)", "pytest-black (>=
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "645cb811651af21330bcd61e27d293ff280f5fd68997b4f42e3237289ef14212"
+content-hash = "f362f53c3a5a15701751dc2b7c3984db8e85086b7759ffe109ffca74c252a516"
 
 [metadata.files]
 alabaster = [
