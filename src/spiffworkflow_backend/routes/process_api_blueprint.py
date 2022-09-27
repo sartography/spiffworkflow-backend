@@ -625,9 +625,6 @@ def process_instance_show(
             bpmn_xml_file_contents = GitService.get_instance_file_contents_for_revision(
                 process_model, process_instance.bpmn_version_control_identifier
             )
-        # dummy_var = GitService.get_instance_file_contents_for_revision(
-        #         process_model, process_instance.bpmn_version_control_identifier
-        #     )
         process_instance.bpmn_xml_file_contents = bpmn_xml_file_contents
 
     return make_response(jsonify(process_instance), 200)
