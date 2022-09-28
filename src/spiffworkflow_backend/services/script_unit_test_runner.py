@@ -37,7 +37,14 @@ class ScriptUnitTestRunner:
     ) -> ScriptUnitTestResult:
         """Run_task."""
         task.data = input_context
-        cls._script_engine.execute(task, script)
+
+        try:
+            cls._script_engine.execute(task, script)
+        except Exception as ex:
+            return ScriptUnitTestResult(
+                result=False,
+                error=f"Failed to execute script: {str(ex)}",
+            )
 
         result_as_boolean = task.data == expected_output_context
         script_unit_test_result = ScriptUnitTestResult(
