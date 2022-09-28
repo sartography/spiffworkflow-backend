@@ -1,6 +1,8 @@
 """APIs for dealing with process groups, process models, and process instances."""
 import json
 import os
+import random
+import string
 import uuid
 from typing import Any
 from typing import Dict
@@ -19,6 +21,8 @@ from flask import request
 from flask.wrappers import Response
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
+from lxml import etree  # type: ignore
+from lxml.builder import ElementMaker  # type: ignore
 from SpiffWorkflow import Task as SpiffTask  # type: ignore
 from SpiffWorkflow import TaskState
 from sqlalchemy import desc
@@ -63,11 +67,6 @@ from spiffworkflow_backend.services.secret_service import SecretService
 from spiffworkflow_backend.services.service_task_service import ServiceTaskService
 from spiffworkflow_backend.services.spec_file_service import SpecFileService
 from spiffworkflow_backend.services.user_service import UserService
-
-from lxml import etree
-from lxml.builder import ElementMaker
-import random
-import string
 
 process_api_blueprint = Blueprint("process_api", __name__)
 
@@ -1003,7 +1002,9 @@ def script_unit_test_create(
     )
 
     nsmap = bpmn_etree_element.nsmap
-    spiffElementMaker = ElementMaker(namespace="http://spiffworkflow.org/bpmn/schema/1.0/core", nsmap=nsmap)
+    spiff_element_maker = ElementMaker(
+        namespace="http://spiffworkflow.org/bpmn/schema/1.0/core", nsmap=nsmap
+    )
 
     script_task_elements = bpmn_etree_element.xpath(
         f"//bpmn:scriptTask[@id='{bpmn_task_identifier}']",
@@ -1012,47 +1013,55 @@ def script_unit_test_create(
     if len(script_task_elements) == 0:
         raise ApiError(
             code="missing_script_task",
-            message=f"Cannot find a script task with id: {bpmn_process_identifier}",
+            message=f"Cannot find a script task with id: {bpmn_task_identifier}",
             status_code=404,
         )
     script_task_element = script_task_elements[0]
 
     extension_elements = None
     extension_elements_array = script_task_element.xpath(
-        f"//bpmn:extensionElements",
+        "//bpmn:extensionElements",
         namespaces={"bpmn": "http://www.omg.org/spec/BPMN/20100524/MODEL"},
     )
     if len(extension_elements_array) == 0:
-        bpmnElementMaker = ElementMaker(namespace="http://www.omg.org/spec/BPMN/20100524/MODEL", nsmap=nsmap)
-        extension_elements = bpmnElementMaker('extensionElements')
+        bpmn_element_maker = ElementMaker(
+            namespace="http://www.omg.org/spec/BPMN/20100524/MODEL", nsmap=nsmap
+        )
+        extension_elements = bpmn_element_maker("extensionElements")
         script_task_element.append(extension_elements)
     else:
         extension_elements = extension_elements_array[0]
 
     unit_test_elements = None
     unit_test_elements_array = extension_elements.xpath(
-        f"//spiffworkflow:unitTests",
+        "//spiffworkflow:unitTests",
         namespaces={"spiffworkflow": "http://spiffworkflow.org/bpmn/schema/1.0/core"},
     )
     if len(unit_test_elements_array) == 0:
-        unit_test_elements = spiffElementMaker('unitTests')
+        unit_test_elements = spiff_element_maker("unitTests")
         extension_elements.append(unit_test_elements)
     else:
         unit_test_elements = unit_test_elements_array[0]
 
-    fuzz = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(7))
+    fuzz = "".join(
+        random.choice(string.ascii_uppercase + string.digits)  # noqa: S311
+        for _ in range(7)
+    )
     unit_test_id = f"unit_test_{fuzz}"
 
-    input_json_element = spiffElementMaker('inputJson', json.dumps(input_json))
-    expected_output_json_element = spiffElementMaker('expectedOutputJson', json.dumps(expected_output_json))
-    unit_test_element = spiffElementMaker('unitTest', id=unit_test_id)
+    input_json_element = spiff_element_maker("inputJson", json.dumps(input_json))
+    expected_output_json_element = spiff_element_maker(
+        "expectedOutputJson", json.dumps(expected_output_json)
+    )
+    unit_test_element = spiff_element_maker("unitTest", id=unit_test_id)
     unit_test_element.append(input_json_element)
     unit_test_element.append(expected_output_json_element)
     unit_test_elements.append(unit_test_element)
-    SpecFileService.update_file(process_model, file.name, etree.tostring(bpmn_etree_element))
+    SpecFileService.update_file(
+        process_model, file.name, etree.tostring(bpmn_etree_element)
+    )
 
     return Response(json.dumps({"ok": True}), status=202, mimetype="application/json")
-
 
 
 def script_unit_test_run(

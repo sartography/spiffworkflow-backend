@@ -1,6 +1,7 @@
 """Task."""
 import enum
-from typing import Any, Optional
+from typing import Any
+from typing import Optional
 from typing import Union
 
 import marshmallow
