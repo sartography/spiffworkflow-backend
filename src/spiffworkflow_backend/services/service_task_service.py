@@ -23,7 +23,7 @@ class ServiceTaskDelegate:
         secret_prefix = "secret:"  # noqa: S105
         if value.startswith(secret_prefix):
             key = value.removeprefix(secret_prefix)
-            value = SecretService().get_secret(key)
+            value = SecretService().get_secret_value(key)
         return value
 
     @staticmethod

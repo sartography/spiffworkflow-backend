@@ -1123,7 +1123,7 @@ def get_secret_value(key: str) -> Optional[str]:
 def secret_list(
     page: int = 1,
     per_page: int = 100,
-) -> list:
+) -> Response:
     secrets = SecretModel.query\
         .order_by(SecretModel.key)\
         .join(UserModel)\
