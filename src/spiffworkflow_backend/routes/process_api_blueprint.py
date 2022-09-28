@@ -43,7 +43,7 @@ from spiffworkflow_backend.models.process_instance_report import (
 )
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
-from spiffworkflow_backend.models.secret_model import SecretAllowedProcessSchema
+from spiffworkflow_backend.models.secret_model import SecretAllowedProcessSchema, SecretModel
 from spiffworkflow_backend.models.secret_model import SecretModelSchema
 from spiffworkflow_backend.models.spiff_logging import SpiffLoggingModel
 from spiffworkflow_backend.models.user import UserModel
@@ -1115,15 +1115,37 @@ def get_spiff_task_from_process_instance(
 #
 # Methods for secrets CRUD - maybe move somewhere else:
 #
-def get_secret(key: str) -> Optional[str]:
+def get_secret_value(key: str) -> Optional[str]:
     """Get_secret."""
-    return SecretService.get_secret(key)
+    return SecretService.get_secret_value(key)
+
+
+def secret_list(
+    page: int = 1,
+    per_page: int = 100,
+) -> list:
+    secrets = SecretModel.query\
+        .order_by(SecretModel.key)\
+        .join(UserModel)\
+        .add_columns(
+            UserModel.username,
+        )\
+        .paginate(page, per_page, False)
+    response_json = {
+        "results": secrets.items,
+        "pagination": {
+            "count": len(secrets.items),
+            "total": secrets.total,
+            "pages": secrets.pages,
+        },
+    }
+    return make_response(jsonify(response_json), 200)
 
 
 def add_secret(body: Dict) -> Response:
     """Add secret."""
     secret_model = SecretService().add_secret(
-        body["key"], body["value"], body["creator_user_id"]
+        body["key"], body["value"], g.user.id
     )
     assert secret_model  # noqa: S101
     return Response(

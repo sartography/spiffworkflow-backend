@@ -101,7 +101,7 @@ class TestSecretService(SecretServiceTestHelpers):
         user = self.find_or_create_user()
         self.add_test_secret(user)
 
-        secret = SecretService().get_secret(self.test_key)
+        secret = SecretService().get_secret_value(self.test_key)
         assert secret is not None
         assert secret == self.test_value
 
@@ -112,7 +112,7 @@ class TestSecretService(SecretServiceTestHelpers):
         user = self.find_or_create_user()
         self.add_test_secret(user)
 
-        bad_secret = SecretService().get_secret("bad_key")
+        bad_secret = SecretService().get_secret_value("bad_key")
         assert bad_secret is None
 
     def test_update_secret(
@@ -121,10 +121,10 @@ class TestSecretService(SecretServiceTestHelpers):
         """Test update secret."""
         user = self.find_or_create_user()
         self.add_test_secret(user)
-        secret = SecretService.get_secret(self.test_key)
+        secret = SecretService.get_secret_value(self.test_key)
         assert secret == self.test_value
         SecretService.update_secret(self.test_key, "new_secret_value", user.id)
-        new_secret = SecretService.get_secret(self.test_key)
+        new_secret = SecretService.get_secret_value(self.test_key)
         assert new_secret == "new_secret_value"  # noqa: S105
 
     def test_update_secret_bad_user_fails(
@@ -378,7 +378,7 @@ class TestSecretServiceApi(SecretServiceTestHelpers):
         """Test_update_secret."""
         user = self.find_or_create_user()
         self.add_test_secret(user)
-        secret = SecretService.get_secret(self.test_key)
+        secret = SecretService.get_secret_value(self.test_key)
         assert secret == self.test_value
         secret_model = SecretModel(
             key=self.test_key, value="new_secret_value", creator_user_id=user.id
@@ -402,7 +402,7 @@ class TestSecretServiceApi(SecretServiceTestHelpers):
         """Test delete secret."""
         user = self.find_or_create_user()
         self.add_test_secret(user)
-        secret = SecretService.get_secret(self.test_key)
+        secret = SecretService.get_secret_value(self.test_key)
         assert secret
         assert secret == self.test_value
         secret_response = client.delete(
@@ -410,7 +410,7 @@ class TestSecretServiceApi(SecretServiceTestHelpers):
             headers=self.logged_in_headers(user),
         )
         assert secret_response.status_code == 204
-        secret = SecretService.get_secret(self.test_key)
+        secret = SecretService.get_secret_value(self.test_key)
         assert secret is None
 
     def test_delete_secret_bad_user(

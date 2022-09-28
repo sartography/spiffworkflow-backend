@@ -6,8 +6,10 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship
 
 from spiffworkflow_backend.models.user import UserModel
+from dataclasses import dataclass
 
 
+@dataclass()
 class SecretModel(SpiffworkflowBaseDBModel):
     """SecretModel."""
 
