@@ -4,7 +4,8 @@ from dataclasses import dataclass
 from typing import Any
 from typing import Optional
 
-from SpiffWorkflow import Task as SpiffTask  # type: ignore
+from SpiffWorkflow import Task as SpiffTask
+from SpiffWorkflow.bpmn.exceptions import WorkflowTaskExecException  # type: ignore
 
 from spiffworkflow_backend.services.process_instance_processor import (
     CustomBpmnScriptEngine,
@@ -20,6 +21,8 @@ class ScriptUnitTestResult:
     result: bool
     context: Optional[PythonScriptContext] = None
     error: Optional[str] = None
+    line_number: Optional[int] = None
+    offset: Optional[int] = None
 
 
 class ScriptUnitTestRunner:
@@ -28,7 +31,7 @@ class ScriptUnitTestRunner:
     _script_engine = CustomBpmnScriptEngine()
 
     @classmethod
-    def _run_with_task_and_script_and_pre_post_contexts(
+    def run_with_task_and_script_and_pre_post_contexts(
         cls,
         task: SpiffTask,
         script: str,
@@ -40,6 +43,13 @@ class ScriptUnitTestRunner:
 
         try:
             cls._script_engine.execute(task, script)
+        except WorkflowTaskExecException as ex:
+            return ScriptUnitTestResult(
+                result=False,
+                error=f"Failed to execute script: {str(ex)}",
+                line_number=ex.line_number,
+                offset=ex.offset
+            )
         except Exception as ex:
             return ScriptUnitTestResult(
                 result=False,
@@ -84,6 +94,6 @@ class ScriptUnitTestRunner:
             )
 
         script = task.task_spec.script
-        return cls._run_with_task_and_script_and_pre_post_contexts(
+        return cls.run_with_task_and_script_and_pre_post_contexts(
             task, script, input_context, expected_output_context
         )
