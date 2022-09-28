@@ -1,8 +1,8 @@
 """Test_secret_service."""
 import json
-import pytest
-
 from typing import Optional
+
+import pytest
 from flask.app import Flask
 from flask.testing import FlaskClient
 from flask_bpmn.api.api_error import ApiError
@@ -374,7 +374,7 @@ class TestSecretServiceApi(SecretServiceTestHelpers):
         assert secret_response
         assert secret_response.status_code == 200
         assert secret_response.json
-        assert secret_response.json['value'] == self.test_value
+        assert secret_response.json["value"] == self.test_value
 
     def test_update_secret(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None

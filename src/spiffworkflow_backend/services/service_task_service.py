@@ -24,7 +24,7 @@ class ServiceTaskDelegate:
         if value.startswith(secret_prefix):
             key = value.removeprefix(secret_prefix)
             secret = SecretService().get_secret(key)
-            assert secret
+            assert secret  # noqa: S101
             value = secret.value
         return value
 

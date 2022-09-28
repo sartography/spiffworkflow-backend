@@ -57,8 +57,7 @@ class SecretService:
     def get_secret(key: str) -> Optional[SecretModel]:
         """Get_secret."""
         secret: SecretModel = (
-            db.session.query(SecretModel).filter(SecretModel.key == key)
-            .first()
+            db.session.query(SecretModel).filter(SecretModel.key == key).first()
         )
         if secret is not None:
             return secret
