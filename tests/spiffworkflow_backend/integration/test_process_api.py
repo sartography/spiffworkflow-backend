@@ -25,10 +25,13 @@ from spiffworkflow_backend.models.process_model import NotificationType
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
 from spiffworkflow_backend.models.task_event import TaskEventModel
 from spiffworkflow_backend.models.user import UserModel
+from spiffworkflow_backend.services.file_system_service import FileSystemService
 from spiffworkflow_backend.services.process_instance_processor import (
     ProcessInstanceProcessor,
 )
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
+
+# from spiffworkflow_backend.services.git_service import GitService
 
 
 class TestProcessApi(BaseTest):
@@ -689,6 +692,9 @@ class TestProcessApi(BaseTest):
         assert response.json["updated_at_in_seconds"] is not None
         assert response.json["status"] == "not_started"
         assert response.json["process_model_identifier"] == test_process_model_id
+        # TODO: mock out the responses for the git service so we can do something like this
+        # current_revision = GitService.get_current_revision()
+        # assert response.json["bpmn_version_control_identifier"] == current_revision
 
     def test_process_instance_run(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
@@ -716,6 +722,34 @@ class TestProcessApi(BaseTest):
         assert response.json["data"]["current_user"]["username"] == user.username
         assert response.json["data"]["Mike"] == "Awesome"
         assert response.json["data"]["person"] == "Kevin"
+
+    def test_process_instance_show(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        """Test_process_instance_show."""
+        process_group_id = "simple_script"
+        process_model_id = "simple_script"
+        user = self.find_or_create_user()
+        headers = self.logged_in_headers(user)
+        create_response = self.create_process_instance(
+            client, process_group_id, process_model_id, headers
+        )
+        assert create_response.json is not None
+        process_instance_id = create_response.json["id"]
+        client.post(
+            f"/v1.0/process-models/{process_group_id}/{process_model_id}/process-instances/{process_instance_id}/run",
+            headers=self.logged_in_headers(user),
+        )
+        show_response = client.get(
+            f"/v1.0/process-models/{process_group_id}/{process_model_id}/process-instances/{process_instance_id}",
+            headers=self.logged_in_headers(user),
+        )
+        assert show_response.json is not None
+        file_system_root = FileSystemService.root_path()
+        file_path = f"{file_system_root}/{process_group_id}/{process_model_id}/{process_model_id}.bpmn"
+        with open(file_path) as f_open:
+            xml_file_contents = f_open.read()
+            assert show_response.json["bpmn_xml_file_contents"] == xml_file_contents
 
     def test_message_start_when_starting_process_instance(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None

@@ -49,6 +49,7 @@ from spiffworkflow_backend.models.spiff_logging import SpiffLoggingModel
 from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.services.error_handling_service import ErrorHandlingService
 from spiffworkflow_backend.services.file_system_service import FileSystemService
+from spiffworkflow_backend.services.git_service import GitService
 from spiffworkflow_backend.services.message_service import MessageService
 from spiffworkflow_backend.services.process_instance_processor import (
     ProcessInstanceProcessor,
@@ -610,12 +611,21 @@ def process_instance_show(
 ) -> flask.wrappers.Response:
     """Create_process_instance."""
     process_instance = find_process_instance_by_id_or_raise(process_instance_id)
+    current_version_control_revision = GitService.get_current_revision()
     process_model = get_process_model(process_model_id, process_group_id)
 
     if process_model.primary_file_name:
-        bpmn_xml_file_contents = SpecFileService.get_data(
-            process_model, process_model.primary_file_name
-        )
+        if (
+            process_instance.bpmn_version_control_identifier
+            == current_version_control_revision
+        ):
+            bpmn_xml_file_contents = SpecFileService.get_data(
+                process_model, process_model.primary_file_name
+            )
+        else:
+            bpmn_xml_file_contents = GitService.get_instance_file_contents_for_revision(
+                process_model, process_instance.bpmn_version_control_identifier
+            )
         process_instance.bpmn_xml_file_contents = bpmn_xml_file_contents
 
     return make_response(jsonify(process_instance), 200)
