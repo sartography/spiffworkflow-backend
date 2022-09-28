@@ -406,6 +406,10 @@ class ProcessInstanceService:
         else:
             lane = None
 
+        parent_id = None
+        if spiff_task.parent:
+            parent_id = spiff_task.parent.id
+
         task = Task(
             spiff_task.id,
             spiff_task.task_spec.name,
@@ -418,6 +422,7 @@ class ProcessInstanceService:
             multi_instance_index=info["mi_index"],
             process_name=spiff_task.task_spec._wf_spec.description,
             properties=props,
+            parent=parent_id,
         )
 
         return task

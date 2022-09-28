@@ -64,6 +64,11 @@ from spiffworkflow_backend.services.service_task_service import ServiceTaskServi
 from spiffworkflow_backend.services.spec_file_service import SpecFileService
 from spiffworkflow_backend.services.user_service import UserService
 
+from lxml import etree
+from lxml.builder import ElementMaker
+import random
+import string
+
 process_api_blueprint = Blueprint("process_api", __name__)
 
 
@@ -909,7 +914,6 @@ def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response
                 task.properties["instructionsForEndUser"] = render_jinja_template(
                     task.properties["instructionsForEndUser"], task.data
                 )
-
     return make_response(jsonify(task), 200)
 
 
@@ -973,6 +977,82 @@ def task_submit(
         )
 
     return Response(json.dumps({"ok": True}), status=202, mimetype="application/json")
+
+
+def script_unit_test_create(
+    process_group_id: str, process_model_id: str, body: Dict[str, Union[str, bool, int]]
+) -> flask.wrappers.Response:
+    """Script_unit_test_run."""
+    bpmn_task_identifier = get_required_parameter_or_raise("bpmn_task_identifier", body)
+    input_json = get_required_parameter_or_raise("input_json", body)
+    expected_output_json = get_required_parameter_or_raise("expected_output_json", body)
+
+    process_model = get_process_model(process_model_id, process_group_id)
+    file = SpecFileService.get_files(process_model, process_model.primary_file_name)[0]
+    if file is None:
+        raise ApiError(
+            code="cannot_find_file",
+            message=f"Could not find the primary bpmn file for process_model: {process_model.id}",
+            status_code=404,
+        )
+
+    # TODO: move this to an xml service or something
+    file_contents = SpecFileService.get_data(process_model, file.name)
+    bpmn_etree_element = SpecFileService.get_etree_element_from_binary_data(
+        file_contents, file.name
+    )
+
+    nsmap = bpmn_etree_element.nsmap
+    spiffElementMaker = ElementMaker(namespace="http://spiffworkflow.org/bpmn/schema/1.0/core", nsmap=nsmap)
+
+    script_task_elements = bpmn_etree_element.xpath(
+        f"//bpmn:scriptTask[@id='{bpmn_task_identifier}']",
+        namespaces={"bpmn": "http://www.omg.org/spec/BPMN/20100524/MODEL"},
+    )
+    if len(script_task_elements) == 0:
+        raise ApiError(
+            code="missing_script_task",
+            message=f"Cannot find a script task with id: {bpmn_process_identifier}",
+            status_code=404,
+        )
+    script_task_element = script_task_elements[0]
+
+    extension_elements = None
+    extension_elements_array = script_task_element.xpath(
+        f"//bpmn:extensionElements",
+        namespaces={"bpmn": "http://www.omg.org/spec/BPMN/20100524/MODEL"},
+    )
+    if len(extension_elements_array) == 0:
+        bpmnElementMaker = ElementMaker(namespace="http://www.omg.org/spec/BPMN/20100524/MODEL", nsmap=nsmap)
+        extension_elements = bpmnElementMaker('extensionElements')
+        script_task_element.append(extension_elements)
+    else:
+        extension_elements = extension_elements_array[0]
+
+    unit_test_elements = None
+    unit_test_elements_array = extension_elements.xpath(
+        f"//spiffworkflow:unitTests",
+        namespaces={"spiffworkflow": "http://spiffworkflow.org/bpmn/schema/1.0/core"},
+    )
+    if len(unit_test_elements_array) == 0:
+        unit_test_elements = spiffElementMaker('unitTests')
+        extension_elements.append(unit_test_elements)
+    else:
+        unit_test_elements = unit_test_elements_array[0]
+
+    fuzz = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(7))
+    unit_test_id = f"unit_test_{fuzz}"
+
+    input_json_element = spiffElementMaker('inputJson', json.dumps(input_json))
+    expected_output_json_element = spiffElementMaker('expectedOutputJson', json.dumps(expected_output_json))
+    unit_test_element = spiffElementMaker('unitTest', id=unit_test_id)
+    unit_test_element.append(input_json_element)
+    unit_test_element.append(expected_output_json_element)
+    unit_test_elements.append(unit_test_element)
+    SpecFileService.update_file(process_model, file.name, etree.tostring(bpmn_etree_element))
+
+    return Response(json.dumps({"ok": True}), status=202, mimetype="application/json")
+
 
 
 def script_unit_test_run(
