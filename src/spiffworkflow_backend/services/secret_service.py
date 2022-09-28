@@ -54,13 +54,14 @@ class SecretService:
         return secret_model
 
     @staticmethod
-    def get_secret_value(key: str) -> Optional[str]:
+    def get_secret(key: str) -> Optional[str]:
         """Get_secret."""
         secret: SecretModel = (
-            db.session.query(SecretModel).filter(SecretModel.key == key).first()
+            db.session.query(SecretModel).filter(SecretModel.key == key)
+            .first()
         )
         if secret is not None:
-            return secret.value
+            return secret
 
     @staticmethod
     def update_secret(

@@ -1116,9 +1116,9 @@ def get_spiff_task_from_process_instance(
 #
 # Methods for secrets CRUD - maybe move somewhere else:
 #
-def get_secret_value(key: str) -> Optional[str]:
+def get_secret(key: str) -> Optional[str]:
     """Get_secret."""
-    return SecretService.get_secret_value(key)
+    return SecretService.get_secret(key)
 
 
 def secret_list(

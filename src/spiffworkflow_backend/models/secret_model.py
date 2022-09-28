@@ -20,19 +20,10 @@ class SecretModel(SpiffworkflowBaseDBModel):
     value: str = db.Column(db.String(255), nullable=False)
     creator_user_id: int = db.Column(ForeignKey(UserModel.id), nullable=False)
 
-    allowed_processes = relationship("SecretAllowedProcessPathModel", cascade="delete")
+    allowed_processes: list["SecretAllowedProcessPathModel"] = relationship("SecretAllowedProcessPathModel", cascade="delete")
 
 
-class SecretModelSchema(Schema):
-    """SecretModelSchema."""
-
-    class Meta:
-        """Meta."""
-
-        model = SecretModel
-        fields = ["key", "value", "creator_user_id"]
-
-
+@dataclass()
 class SecretAllowedProcessPathModel(SpiffworkflowBaseDBModel):
     """Allowed processes can be Process Groups or Process Models.
 
@@ -49,6 +40,16 @@ class SecretAllowedProcessPathModel(SpiffworkflowBaseDBModel):
     id: int = db.Column(db.Integer, primary_key=True)
     secret_id: int = db.Column(ForeignKey(SecretModel.id), nullable=False)  # type: ignore
     allowed_relative_path: str = db.Column(db.String(500), nullable=False)
+
+
+class SecretModelSchema(Schema):
+    """SecretModelSchema."""
+
+    class Meta:
+        """Meta."""
+
+        model = SecretModel
+        fields = ["key", "value", "creator_user_id", "allowed_processes"]
 
 
 class SecretAllowedProcessSchema(Schema):
