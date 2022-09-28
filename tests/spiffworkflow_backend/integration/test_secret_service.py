@@ -1,7 +1,8 @@
 """Test_secret_service."""
 import json
-
 import pytest
+
+from typing import Optional
 from flask.app import Flask
 from flask.testing import FlaskClient
 from flask_bpmn.api.api_error import ApiError
@@ -122,9 +123,11 @@ class TestSecretService(SecretServiceTestHelpers):
         user = self.find_or_create_user()
         self.add_test_secret(user)
         secret = SecretService.get_secret(self.test_key)
+        assert secret
         assert secret.value == self.test_value
         SecretService.update_secret(self.test_key, "new_secret_value", user.id)
         new_secret = SecretService.get_secret(self.test_key)
+        assert new_secret
         assert new_secret.value == "new_secret_value"  # noqa: S105
 
     def test_update_secret_bad_user_fails(
@@ -370,6 +373,7 @@ class TestSecretServiceApi(SecretServiceTestHelpers):
         )
         assert secret_response
         assert secret_response.status_code == 200
+        assert secret_response.json
         assert secret_response.json['value'] == self.test_value
 
     def test_update_secret(
@@ -378,7 +382,8 @@ class TestSecretServiceApi(SecretServiceTestHelpers):
         """Test_update_secret."""
         user = self.find_or_create_user()
         self.add_test_secret(user)
-        secret = SecretService.get_secret(self.test_key)
+        secret: Optional[SecretModel] = SecretService.get_secret(self.test_key)
+        assert secret
         assert secret.value == self.test_value
         secret_model = SecretModel(
             key=self.test_key, value="new_secret_value", creator_user_id=user.id

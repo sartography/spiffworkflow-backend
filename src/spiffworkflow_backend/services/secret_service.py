@@ -54,7 +54,7 @@ class SecretService:
         return secret_model
 
     @staticmethod
-    def get_secret(key: str) -> Optional[str]:
+    def get_secret(key: str) -> Optional[SecretModel]:
         """Get_secret."""
         secret: SecretModel = (
             db.session.query(SecretModel).filter(SecretModel.key == key)
