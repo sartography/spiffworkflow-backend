@@ -1089,7 +1089,7 @@ paths:
           content:
             application/json:
               schema:
-                  $ref: "#/components/schemas/Secret"
+                $ref: "#/components/schemas/Secret"
 
   /secrets/{key}:
     parameters:
