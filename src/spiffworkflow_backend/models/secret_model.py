@@ -6,6 +6,7 @@ from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from marshmallow import Schema
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship
+from sqlalchemy.orm import RelationshipProperty
 
 from spiffworkflow_backend.models.user import UserModel
 
@@ -20,7 +21,9 @@ class SecretModel(SpiffworkflowBaseDBModel):
     value: str = db.Column(db.String(255), nullable=False)
     creator_user_id: int = db.Column(ForeignKey(UserModel.id), nullable=False)
 
-    allowed_processes = relationship("SecretAllowedProcessPathModel", cascade="delete")
+    allowed_processes: RelationshipProperty = relationship(
+        "SecretAllowedProcessPathModel", cascade="delete"
+    )
 
 
 @dataclass()
