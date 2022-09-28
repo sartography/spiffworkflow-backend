@@ -50,7 +50,9 @@ def main():
                         bpmn_xml_file_contents,
                     )
                 except Exception as ex:
-                    failing_process_models.append((process_model.primary_file_name, str(ex)))
+                    failing_process_models.append(
+                        (process_model.primary_file_name, str(ex))
+                    )
                 # files = SpecFileService.get_files(
                 #     process_model, extension_filter="bpmn"
                 # )

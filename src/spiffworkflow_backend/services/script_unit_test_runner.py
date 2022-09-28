@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Any
 from typing import Optional
 
-from SpiffWorkflow import Task as SpiffTask
+from SpiffWorkflow import Task as SpiffTask  # type: ignore
 from SpiffWorkflow.bpmn.exceptions import WorkflowTaskExecException  # type: ignore
 
 from spiffworkflow_backend.services.process_instance_processor import (
@@ -48,7 +48,7 @@ class ScriptUnitTestRunner:
                 result=False,
                 error=f"Failed to execute script: {str(ex)}",
                 line_number=ex.line_number,
-                offset=ex.offset
+                offset=ex.offset,
             )
         except Exception as ex:
             return ScriptUnitTestResult(

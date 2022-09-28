@@ -983,9 +983,9 @@ def script_unit_test_run(
     current_app.config["THREAD_LOCAL_DATA"].process_instance_id = None
 
     bpmn_task_identifier = get_required_parameter_or_raise("bpmn_task_identifier", body)
-    script_unit_test_identifier = get_required_parameter_or_raise(
-        "script_unit_test_identifier", body
-    )
+    python_script = get_required_parameter_or_raise("python_script", body)
+    input_json = get_required_parameter_or_raise("input_json", body)
+    expected_output_json = get_required_parameter_or_raise("expected_output_json", body)
 
     bpmn_process_instance = (
         ProcessInstanceProcessor.get_bpmn_process_instance_from_process_model(
@@ -1005,7 +1005,9 @@ def script_unit_test_run(
             )
         )
 
-    result = ScriptUnitTestRunner.run_test(spiff_task, script_unit_test_identifier)
+    result = ScriptUnitTestRunner.run_with_task_and_script_and_pre_post_contexts(
+        spiff_task, python_script, input_json, expected_output_json
+    )
     return make_response(jsonify(result), 200)
 
 
