@@ -1291,6 +1291,7 @@ def delete_secret(key: str) -> None:
     """Delete secret."""
     current_user = UserService.current_user()
     SecretService.delete_secret(key, current_user.id)
+    return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
 
 
 def add_allowed_process_path(body: dict) -> Any:
