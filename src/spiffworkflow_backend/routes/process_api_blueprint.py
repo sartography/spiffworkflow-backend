@@ -437,10 +437,20 @@ def message_instance_list(
             process_instance_id=process_instance_id
         )
 
-    message_instances = message_instances_query.order_by(
-        MessageInstanceModel.created_at_in_seconds.desc(),  # type: ignore
-        MessageInstanceModel.id.desc(),  # type: ignore
-    ).paginate(page, per_page, False)
+    message_instances = (
+        message_instances_query.order_by(
+            MessageInstanceModel.created_at_in_seconds.desc(),  # type: ignore
+            MessageInstanceModel.id.desc(),  # type: ignore
+        )
+        .join(MessageModel)
+        .join(ProcessInstanceModel)
+        .add_columns(
+            MessageModel.identifier.label("message_identifier"),
+            ProcessInstanceModel.process_model_identifier,
+            ProcessInstanceModel.process_group_identifier,
+        )
+        .paginate(page, per_page, False)
+    )
 
     response_json = {
         "results": message_instances.items,

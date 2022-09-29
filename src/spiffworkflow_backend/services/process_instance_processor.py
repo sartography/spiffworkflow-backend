@@ -695,7 +695,6 @@ class ProcessInstanceProcessor:
         bpmn_messages = self.bpmn_process_instance.get_bpmn_messages()
         for bpmn_message in bpmn_messages:
             # only message sends are in get_bpmn_messages
-            message_type = "send"
             message_model = MessageModel.query.filter_by(name=bpmn_message.name).first()
             if message_model is None:
                 raise ApiError(
@@ -736,10 +735,9 @@ class ProcessInstanceProcessor:
                             "value": message_correlation_property_value,
                         }
                     )
-
             message_instance = MessageInstanceModel(
                 process_instance_id=self.process_instance_model.id,
-                message_type=message_type,
+                message_type="send",
                 message_model_id=message_model.id,
                 payload=bpmn_message.payload,
             )
@@ -791,6 +789,15 @@ class ProcessInstanceProcessor:
                     "invalid_message_name",
                     f"Invalid message name: {waiting_task.task_spec.event_definition.name}.",
                 )
+
+            # Ensure we are only creating one message instance for each waiting message
+            message_instance = MessageInstanceModel.query.filter_by(
+                process_instance_id=self.process_instance_model.id,
+                message_type="receive",
+                message_model_id=message_model.id,
+            ).first()
+            if message_instance:
+                continue
 
             message_instance = MessageInstanceModel(
                 process_instance_id=self.process_instance_model.id,
