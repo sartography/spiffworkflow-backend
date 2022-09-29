@@ -789,6 +789,7 @@ def task_list_my_tasks(page: int = 1, per_page: int = 100) -> flask.wrappers.Res
         # just need this add_columns to add the process_model_identifier. Then add everything back that was removed.
         .add_columns(
             ProcessInstanceModel.process_model_identifier,
+            ProcessInstanceModel.process_group_identifier,
             ActiveTaskModel.task_data,
             ActiveTaskModel.task_name,
             ActiveTaskModel.task_title,
