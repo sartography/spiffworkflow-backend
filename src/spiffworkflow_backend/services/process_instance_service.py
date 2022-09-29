@@ -8,14 +8,6 @@ from typing import Optional
 from flask import current_app
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
-from SpiffWorkflow.bpmn.specs.events import EndEvent  # type: ignore
-from SpiffWorkflow.bpmn.specs.events import StartEvent
-from SpiffWorkflow.bpmn.specs.ScriptTask import ScriptTask  # type: ignore
-from SpiffWorkflow.dmn.specs.BusinessRuleTask import BusinessRuleTask  # type: ignore
-from SpiffWorkflow.specs import CancelTask  # type: ignore
-from SpiffWorkflow.specs import StartTask
-from SpiffWorkflow.spiff.specs.manual_task import ManualTask  # type: ignore
-from SpiffWorkflow.spiff.specs.user_task import UserTask  # type: ignore
 from SpiffWorkflow.task import Task as SpiffTask  # type: ignore
 from SpiffWorkflow.util.deep_merge import DeepMerge  # type: ignore
 
@@ -271,30 +263,6 @@ class ProcessInstanceService:
 
             return lane_uids
 
-    # @staticmethod
-    # def get_task_type(spiff_task: SpiffTask):
-    #     """Get_task_type."""
-    #     task_type = spiff_task.task_spec.__class__.__name__
-    #
-    #     task_types = [
-    #         UserTask,
-    #         ManualTask,
-    #         BusinessRuleTask,
-    #         CancelTask,
-    #         ScriptTask,
-    #         StartTask,
-    #         EndEvent,
-    #         StartEvent,
-    #     ]
-    #
-    #     for t in task_types:
-    #         if isinstance(spiff_task.task_spec, t):
-    #             task_type = t.__name__
-    #             break
-    #         else:
-    #             task_type = "NoneTask"
-    #     return task_type
-
     @staticmethod
     def complete_form_task(
         processor: ProcessInstanceProcessor,
@@ -425,25 +393,7 @@ class ProcessInstanceService:
         spiff_task: SpiffTask, add_docs_and_forms: bool = False
     ) -> Task:
         """Spiff_task_to_api_task."""
-        task_type = spiff_task.task_spec.__class__.__name__
-
-        task_types = [
-            UserTask,
-            ManualTask,
-            BusinessRuleTask,
-            CancelTask,
-            ScriptTask,
-            StartTask,
-            EndEvent,
-            StartEvent,
-        ]
-
-        for t in task_types:
-            if isinstance(spiff_task.task_spec, t):
-                task_type = t.__name__
-                break
-            else:
-                task_type = "NoneTask"
+        task_type = spiff_task.task_spec.spec_type
 
         info = spiff_task.task_info()
         if info["is_looping"]:
@@ -465,6 +415,10 @@ class ProcessInstanceService:
         else:
             lane = None
 
+        parent_id = None
+        if spiff_task.parent:
+            parent_id = spiff_task.parent.id
+
         task = Task(
             spiff_task.id,
             spiff_task.task_spec.name,
@@ -477,6 +431,7 @@ class ProcessInstanceService:
             multi_instance_index=info["mi_index"],
             process_name=spiff_task.task_spec._wf_spec.description,
             properties=props,
+            parent=parent_id,
         )
 
         return task

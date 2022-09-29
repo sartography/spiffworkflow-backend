@@ -1846,8 +1846,8 @@ pytz = "*"
 [package.source]
 type = "git"
 url = "https://github.com/sartography/SpiffWorkflow"
-reference = "main"
-resolved_reference = "dec9b4b942378d030ae73f1365dfbf108e6f7f8c"
+reference = "feature/script-unit-test-extensions"
+resolved_reference = "056ecc786fe400c7e6ca4f7ee1905d34a0f261b8"
 
 [[package]]
 name = "sqlalchemy"
@@ -2157,7 +2157,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "7a3c07a2eef00685adbf44b6e26b740e20fc52bf85e916b6c171b13d4fcc6dc9"
+content-hash = "f362f53c3a5a15701751dc2b7c3984db8e85086b7759ffe109ffca74c252a516"
 
 [metadata.files]
 alabaster = [

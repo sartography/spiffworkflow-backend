@@ -25,6 +25,7 @@ def main():
     app = create_app()
     with app.app_context():
         no_primary = []
+        failing_process_models = []
         process_models = ProcessModelService().get_process_models()
         for process_model in process_models:
             if process_model.primary_file_name:
@@ -42,11 +43,16 @@ def main():
                 if process_model.primary_file_name in bad_files:
                     continue
                 print(f"primary_file_name: {process_model.primary_file_name}")
-                SpecFileService.update_file(
-                    process_model,
-                    process_model.primary_file_name,
-                    bpmn_xml_file_contents,
-                )
+                try:
+                    SpecFileService.update_file(
+                        process_model,
+                        process_model.primary_file_name,
+                        bpmn_xml_file_contents,
+                    )
+                except Exception as ex:
+                    failing_process_models.append(
+                        (process_model.primary_file_name, str(ex))
+                    )
                 # files = SpecFileService.get_files(
                 #     process_model, extension_filter="bpmn"
                 # )
@@ -83,6 +89,10 @@ def main():
                 no_primary.append(process_model)
         # for bpmn in no_primary:
         #     print(bpmn)
+        for bpmn_errors in failing_process_models:
+            print(bpmn_errors)
+        if len(failing_process_models) > 0:
+            exit(1)
 
 
 if __name__ == "__main__":

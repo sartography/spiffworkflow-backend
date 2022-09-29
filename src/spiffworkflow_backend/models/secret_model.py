@@ -1,13 +1,17 @@
 """Secret_model."""
+from dataclasses import dataclass
+
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from marshmallow import Schema
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship
+from sqlalchemy.orm import RelationshipProperty
 
 from spiffworkflow_backend.models.user import UserModel
 
 
+@dataclass()
 class SecretModel(SpiffworkflowBaseDBModel):
     """SecretModel."""
 
@@ -17,19 +21,12 @@ class SecretModel(SpiffworkflowBaseDBModel):
     value: str = db.Column(db.String(255), nullable=False)
     creator_user_id: int = db.Column(ForeignKey(UserModel.id), nullable=False)
 
-    allowed_processes = relationship("SecretAllowedProcessPathModel", cascade="delete")
+    allowed_processes: RelationshipProperty = relationship(
+        "SecretAllowedProcessPathModel", cascade="delete"
+    )
 
 
-class SecretModelSchema(Schema):
-    """SecretModelSchema."""
-
-    class Meta:
-        """Meta."""
-
-        model = SecretModel
-        fields = ["key", "value", "creator_user_id"]
-
-
+@dataclass()
 class SecretAllowedProcessPathModel(SpiffworkflowBaseDBModel):
     """Allowed processes can be Process Groups or Process Models.
 
@@ -46,6 +43,16 @@ class SecretAllowedProcessPathModel(SpiffworkflowBaseDBModel):
     id: int = db.Column(db.Integer, primary_key=True)
     secret_id: int = db.Column(ForeignKey(SecretModel.id), nullable=False)  # type: ignore
     allowed_relative_path: str = db.Column(db.String(500), nullable=False)
+
+
+class SecretModelSchema(Schema):
+    """SecretModelSchema."""
+
+    class Meta:
+        """Meta."""
+
+        model = SecretModel
+        fields = ["key", "value", "creator_user_id", "allowed_processes"]
 
 
 class SecretAllowedProcessSchema(Schema):

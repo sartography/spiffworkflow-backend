@@ -1,6 +1,7 @@
 """Task."""
 import enum
 from typing import Any
+from typing import Optional
 from typing import Union
 
 import marshmallow
@@ -113,6 +114,7 @@ class Task:
         process_model_display_name: Union[str, None] = None,
         form_schema: Union[str, None] = None,
         form_ui_schema: Union[str, None] = None,
+        parent: Optional[str] = None,
     ):
         """__init__."""
         self.id = id
@@ -123,6 +125,7 @@ class Task:
         self.form = form
         self.documentation = documentation
         self.lane = lane
+        self.parent = parent
 
         self.data = data
         if self.data is None:
@@ -174,6 +177,7 @@ class Task:
             "process_model_display_name": self.process_model_display_name,
             "form_schema": self.form_schema,
             "form_ui_schema": self.form_ui_schema,
+            "parent": self.parent,
         }
 
     @classmethod

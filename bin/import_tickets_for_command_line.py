@@ -56,7 +56,7 @@ def main():
         }
         columns_to_header_index_mappings = {}
 
-        user = UserModel.query.filter_by(username="test_user1").first()
+        user = UserModel.query.first()
 
         with open("tests/files/tickets.csv") as infile:
             reader = csv.reader(infile, delimiter=",")
