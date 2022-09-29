@@ -881,7 +881,7 @@ def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response
             )
         )
 
-    if task.type == "UserTask":
+    if task.type == "User Task":
         if not form_schema_file_name:
             raise (
                 ApiError(
@@ -908,7 +908,7 @@ def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response
             )
             if ui_form_contents:
                 task.form_ui_schema = ui_form_contents
-    elif task.type == "ManualTask":
+    elif task.type == "Manual Task":
         if task.properties and task.data:
             if task.properties["instructionsForEndUser"]:
                 task.properties["instructionsForEndUser"] = render_jinja_template(
