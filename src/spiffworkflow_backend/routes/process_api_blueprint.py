@@ -1282,19 +1282,20 @@ def add_secret(body: Dict) -> Response:
     )
 
 
-def update_secret(key: str, body: dict) -> None:
+def update_secret(key: str, body: dict) -> Response:
     """Update secret."""
     SecretService().update_secret(key, body["value"], body["creator_user_id"])
+    return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
 
 
-def delete_secret(key: str) -> None:
+def delete_secret(key: str) -> Response:
     """Delete secret."""
     current_user = UserService.current_user()
     SecretService.delete_secret(key, current_user.id)
     return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
 
 
-def add_allowed_process_path(body: dict) -> Any:
+def add_allowed_process_path(body: dict) -> Response:
     """Get allowed process paths."""
     allowed_process_path = SecretService.add_allowed_process(
         body["secret_id"], g.user.id, body["allowed_relative_path"]
@@ -1306,9 +1307,10 @@ def add_allowed_process_path(body: dict) -> Any:
     )
 
 
-def delete_allowed_process_path(allowed_process_path_id: int) -> Any:
+def delete_allowed_process_path(allowed_process_path_id: int) -> Response:
     """Get allowed process paths."""
     SecretService().delete_allowed_process(allowed_process_path_id, g.user.id)
+    return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
 
 
 def get_required_parameter_or_raise(parameter: str, post_body: dict[str, Any]) -> Any:

@@ -394,7 +394,7 @@ class TestSecretServiceApi(SecretServiceTestHelpers):
             content_type="application/json",
             data=json.dumps(SecretModelSchema().dump(secret_model)),
         )
-        assert response.status_code == 204
+        assert response.status_code == 200
 
         secret_model = SecretModel.query.filter(
             SecretModel.key == self.test_key
@@ -414,7 +414,7 @@ class TestSecretServiceApi(SecretServiceTestHelpers):
             f"/v1.0/secrets/{self.test_key}",
             headers=self.logged_in_headers(user),
         )
-        assert secret_response.status_code == 204
+        assert secret_response.status_code == 200
         secret = SecretService.get_secret(self.test_key)
         assert secret is None
 
@@ -489,6 +489,6 @@ class TestSecretServiceApi(SecretServiceTestHelpers):
             f"/v1.0/secrets/allowed_process_paths/{allowed_process.id}",
             headers=self.logged_in_headers(user),
         )
-        assert response.status_code == 204
+        assert response.status_code == 200
         allowed_processes = SecretAllowedProcessPathModel.query.all()
         assert len(allowed_processes) == 0
