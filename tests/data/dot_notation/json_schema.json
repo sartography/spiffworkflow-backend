@@ -5,9 +5,9 @@
   "required": [
     "invoice.contributorName",
     "invoice.contributorId",
-  	"invoice.invoiceId",
-  	"invoice.invoiceAmount",
-  	"invoice.dueDate"
+    "invoice.invoiceId",
+    "invoice.invoiceAmount",
+    "invoice.dueDate"
   ],
   "properties": {
     "invoice.contributorName": {
@@ -17,7 +17,7 @@
     "invoice.contributorId": {
       "type": "integer",
       "title": "Contributor Id",
-      "minLength": 2	  
+      "minLength": 2
     },
     "invoice.invoiceId": {
       "type": "integer",

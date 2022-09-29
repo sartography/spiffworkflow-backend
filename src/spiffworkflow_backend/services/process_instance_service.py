@@ -376,8 +376,9 @@ class ProcessInstanceService:
         return data
 
     @staticmethod
-    def create_dot_dict(data: dict) -> Any:
-        dot_dict = {}
+    def create_dot_dict(data: dict) -> dict[str, Any]:
+        """Create_dot_dict."""
+        dot_dict: dict[str, Any] = {}
         for key, value in data.items():
             ProcessInstanceService.set_dot_value(key, value, dot_dict)
         return dot_dict
