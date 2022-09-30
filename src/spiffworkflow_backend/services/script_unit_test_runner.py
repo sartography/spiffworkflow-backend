@@ -1,5 +1,7 @@
 """Process_instance_processor."""
 import json
+import sys
+import traceback
 from dataclasses import dataclass
 from typing import Any
 from typing import Optional
@@ -38,24 +40,38 @@ class ScriptUnitTestRunner:
         expected_output_context: PythonScriptContext,
     ) -> ScriptUnitTestResult:
         """Run_task."""
-
         # make a new variable just for clarity, since we are going to update this dict in place
         # with the output variables from the script.
         context = input_context.copy()
 
         try:
             cls._script_engine._execute(context=context, script=script)
-        except WorkflowTaskExecException as ex:
+        except SyntaxError as ex:
             return ScriptUnitTestResult(
                 result=False,
-                error=f"Failed to execute script: {str(ex)}",
-                line_number=ex.line_number,
+                error=f"Syntax error: {str(ex)}",
+                line_number=ex.lineno,
                 offset=ex.offset,
             )
         except Exception as ex:
+            if isinstance(ex, WorkflowTaskExecException):
+                # we never expect this to happen, so we want to know about it
+                raise ex
+            error_message = f"{ex.__class__.__name__}: {str(ex)}"
+            line_number = 0
+            _cl, _exc, tb = sys.exc_info()
+            # Loop back through the stack trace to find the file called
+            # 'string' - which is the script we are executing, then use that
+            # to parse and pull out the offending line.
+            for frame_summary in traceback.extract_tb(tb):
+                if frame_summary.filename == "<string>":
+                    if frame_summary.lineno is not None:
+                        line_number = frame_summary.lineno
+
             return ScriptUnitTestResult(
                 result=False,
-                error=f"Failed to execute script: {str(ex)}",
+                line_number=line_number,
+                error=f"Failed to execute script: {error_message}",
             )
 
         result_as_boolean = context == expected_output_context
