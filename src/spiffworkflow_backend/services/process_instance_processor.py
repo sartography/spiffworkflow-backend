@@ -4,6 +4,7 @@ import logging
 import os
 import time
 from typing import Any
+from typing import Callable
 from typing import Dict
 from typing import List
 from typing import NewType
@@ -87,9 +88,9 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
     scripts directory available for execution.
     """
 
-    def __get_augment_methods(self, task):
+    def __get_augment_methods(self, task: SpiffTask) -> Dict[str, Callable]:
+        """__get_augment_methods."""
         return Script.generate_augmented_list(task, current_app.env)
-
 
     def evaluate(self, task: SpiffTask, expression: str) -> Any:
         """Evaluate."""
@@ -102,16 +103,14 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
         task: Optional[SpiffTask] = None,
         external_methods: Optional[Dict[str, Any]] = None,
     ) -> Any:
-
+        """_evaluate."""
         methods = self.__get_augment_methods(task)
         if external_methods:
             methods.update(external_methods)
 
         """Evaluate the given expression, within the context of the given task and return the result."""
         try:
-            return super()._evaluate(
-                expression, context, external_methods=methods
-            )
+            return super()._evaluate(expression, context, external_methods=methods)
         except Exception as exception:
             if task is None:
                 raise ProcessInstanceProcessorError(

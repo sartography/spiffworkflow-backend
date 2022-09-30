@@ -43,7 +43,10 @@ def test_get_bpmn_process_instance_from_process_model_can_acccess_tasks_from_sub
     # task_ids = [t.task_spec.name for t in tasks]
     # print(f"task_ids: {task_ids}")
 
+
 # it's not totally obvious we want to keep this test/file
+
+
 def test_script_engine_can_use_custom_scripts(
     app: Flask,
     with_db_and_bpmn_file_cleanup: None,
@@ -51,4 +54,7 @@ def test_script_engine_can_use_custom_scripts(
     """Test_script_engine_takes_data_and_returns_expected_results."""
     script_engine = ProcessInstanceProcessor._script_engine
     result = script_engine._evaluate("fact_service(type='norris')", {})
-    assert result == "Chuck Norris doesn’t read books. He stares them down until he gets the information he wants."
+    assert (
+        result
+        == "Chuck Norris doesn’t read books. He stares them down until he gets the information he wants."
+    )

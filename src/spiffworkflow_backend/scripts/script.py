@@ -7,12 +7,9 @@ import pkgutil
 from abc import abstractmethod
 from typing import Any
 from typing import Callable
-from SpiffWorkflow import Task as SpiffTask  # type: ignore
 
 from flask_bpmn.api.api_error import ApiError
-
-from spiffworkflow_backend.models.task import Task
-
+from SpiffWorkflow import Task as SpiffTask  # type: ignore
 
 # Generally speaking, having some global in a flask app is TERRIBLE.
 # This is here, because after loading the application this will never change under
@@ -23,15 +20,20 @@ SCRIPT_SUB_CLASSES = None
 class Script:
     """Provides an abstract class that defines how scripts should work, this must be extended in all Script Tasks."""
 
-    def get_description(self) -> None:
+    @abstractmethod
+    def get_description(self) -> str:
         """Get_description."""
         raise ApiError("invalid_script", "This script does not supply a description.")
 
     @abstractmethod
     def run(
-        self, task: Task, environment_identifier: str, *args: list[Any], **kwargs: dict[Any, Any]
-    ) -> None:
-        """run."""
+        self,
+        task: SpiffTask,
+        environment_identifier: str,
+        *args: Any,
+        **kwargs: Any,
+    ) -> Any:
+        """Run."""
         raise ApiError(
             "invalid_script",
             "This is an internal error. The script you are trying to execute '%s' "
@@ -40,7 +42,9 @@ class Script:
         )
 
     @staticmethod
-    def generate_augmented_list(task: SpiffTask, environment_identifier: str) -> dict[str, Callable]:
+    def generate_augmented_list(
+        task: SpiffTask, environment_identifier: str
+    ) -> dict[str, Callable]:
         """This makes a dictionary of lambda functions that are closed over the class instance that they represent.
 
         This is passed into PythonScriptParser as a list of helper functions that are
@@ -52,7 +56,7 @@ class Script:
         """
 
         def make_closure(
-            subclass: type[Script], task: Task, environment_identifier: str
+            subclass: type[Script], task: SpiffTask, environment_identifier: str
         ) -> Callable:
             """Yes - this is black magic.
 
@@ -65,7 +69,11 @@ class Script:
             """
             instance = subclass()
             return lambda *ar, **kw: subclass.run(
-                instance, task=task, environment_identifier=environment_identifier, *ar, **kw
+                instance,
+                task,
+                environment_identifier,
+                *ar,
+                **kw,
             )
 
         execlist = {}
@@ -73,9 +81,9 @@ class Script:
         for x in range(len(subclasses)):
             subclass = subclasses[x]
             execlist[subclass.__module__.split(".")[-1]] = make_closure(
-                subclass, task=task, environment_identifier=environment_identifier)
+                subclass, task=task, environment_identifier=environment_identifier
+            )
         return execlist
-
 
     @classmethod
     def get_all_subclasses(cls) -> list[type[Script]]:
