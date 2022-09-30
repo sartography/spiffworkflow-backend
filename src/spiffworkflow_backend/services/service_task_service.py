@@ -21,6 +21,8 @@ class ServiceTaskDelegate:
     def normalize_value(value: Any) -> Any:
         """Normalize_value."""
         secret_prefix = "secret:"  # noqa: S105
+        if isinstance(value, dict):
+            value = json.dumps(value)
         if value.startswith(secret_prefix):
             key = value.removeprefix(secret_prefix)
             value = SecretService().get_secret(key)
