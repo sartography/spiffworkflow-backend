@@ -55,7 +55,10 @@ class ScriptUnitTestRunner:
             )
         except Exception as ex:
             if isinstance(ex, WorkflowTaskExecException):
-                # we never expect this to happen, so we want to know about it
+                # we never expect this to happen, so we want to know about it.
+                # if indeed we are always getting WorkflowTaskExecException,
+                # we can simplify this error handling and replace it with the
+                # except block from revision cccd523ea39499c10f7f3c2e3f061852970973ac
                 raise ex
             error_message = f"{ex.__class__.__name__}: {str(ex)}"
             line_number = 0
