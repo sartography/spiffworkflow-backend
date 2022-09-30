@@ -5,12 +5,12 @@
     <bpmn:startEvent id="StartEvent_1">
       <bpmn:outgoing>SequenceFlow_0qyd2b7</bpmn:outgoing>
     </bpmn:startEvent>
-    <bpmn:sequenceFlow id="SequenceFlow_0qyd2b7" sourceRef="StartEvent_1" targetRef="Activity_10l590e" />
+    <bpmn:sequenceFlow id="SequenceFlow_0qyd2b7" sourceRef="StartEvent_1" targetRef="Activity_subprocess" />
     <bpmn:endEvent id="EndEvent_1l03lqw">
       <bpmn:incoming>Flow_1d27j6f</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:subProcess id="Activity_subprocess" name="Hot Subprocess">
-      <bpmn:incoming>Flow_06uueri</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0qyd2b7</bpmn:incoming>
       <bpmn:outgoing>Flow_1d27j6f</bpmn:outgoing>
       <bpmn:startEvent id="Event_0jubmia">
         <bpmn:outgoing>Flow_1s17tt0</bpmn:outgoing>
@@ -32,11 +32,6 @@
       </bpmn:userTask>
     </bpmn:subProcess>
     <bpmn:sequenceFlow id="Flow_1d27j6f" sourceRef="Activity_subprocess" targetRef="EndEvent_1l03lqw" />
-    <bpmn:manualTask id="Activity_10l590e">
-      <bpmn:incoming>SequenceFlow_0qyd2b7</bpmn:incoming>
-      <bpmn:outgoing>Flow_06uueri</bpmn:outgoing>
-    </bpmn:manualTask>
-    <bpmn:sequenceFlow id="Flow_06uueri" sourceRef="Activity_10l590e" targetRef="Activity_subprocess" />
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_HelloWorld">
@@ -46,24 +41,17 @@
       <bpmndi:BPMNShape id="EndEvent_1l03lqw_di" bpmnElement="EndEvent_1l03lqw">
         <dc:Bounds x="752" y="99" width="36" height="36" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0ewyvhj_di" bpmnElement="Activity_10l590e">
-        <dc:Bounds x="260" y="77" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_subprocess_di" bpmnElement="Activity_subprocess" isExpanded="false">
         <dc:Bounds x="410" y="77" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0qyd2b7_di" bpmnElement="SequenceFlow_0qyd2b7">
         <di:waypoint x="215" y="117" />
-        <di:waypoint x="260" y="117" />
+        <di:waypoint x="410" y="117" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1d27j6f_di" bpmnElement="Flow_1d27j6f">
         <di:waypoint x="510" y="117" />
         <di:waypoint x="752" y="117" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_06uueri_di" bpmnElement="Flow_06uueri">
-        <di:waypoint x="360" y="117" />
-        <di:waypoint x="410" y="117" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

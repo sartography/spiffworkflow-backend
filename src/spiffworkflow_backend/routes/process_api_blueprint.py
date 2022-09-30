@@ -1083,31 +1083,12 @@ def script_unit_test_run(
     # FIXME: We should probably clear this somewhere else but this works
     current_app.config["THREAD_LOCAL_DATA"].process_instance_id = None
 
-    bpmn_task_identifier = get_required_parameter_or_raise("bpmn_task_identifier", body)
     python_script = get_required_parameter_or_raise("python_script", body)
     input_json = get_required_parameter_or_raise("input_json", body)
     expected_output_json = get_required_parameter_or_raise("expected_output_json", body)
 
-    bpmn_process_instance = (
-        ProcessInstanceProcessor.get_bpmn_process_instance_from_process_model(
-            process_model_id, process_group_id
-        )
-    )
-    spiff_task = ProcessInstanceProcessor.get_task_by_bpmn_identifier(
-        bpmn_task_identifier, bpmn_process_instance
-    )
-
-    if spiff_task is None:
-        raise (
-            ApiError(
-                code="task_not_found",
-                message=f"Could not find task with identifier: {bpmn_task_identifier}",
-                status_code=400,
-            )
-        )
-
     result = ScriptUnitTestRunner.run_with_task_and_script_and_pre_post_contexts(
-        spiff_task, python_script, input_json, expected_output_json
+        python_script, input_json, expected_output_json
     )
     return make_response(jsonify(result), 200)
 

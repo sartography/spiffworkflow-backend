@@ -33,16 +33,18 @@ class ScriptUnitTestRunner:
     @classmethod
     def run_with_task_and_script_and_pre_post_contexts(
         cls,
-        task: SpiffTask,
         script: str,
         input_context: PythonScriptContext,
         expected_output_context: PythonScriptContext,
     ) -> ScriptUnitTestResult:
         """Run_task."""
-        task.data = input_context
+
+        # make a new variable just for clarity, since we are going to update this dict in place
+        # with the output variables from the script.
+        context = input_context.copy()
 
         try:
-            cls._script_engine.execute(task, script)
+            cls._script_engine._execute(context=context, script=script)
         except WorkflowTaskExecException as ex:
             return ScriptUnitTestResult(
                 result=False,
@@ -56,9 +58,10 @@ class ScriptUnitTestRunner:
                 error=f"Failed to execute script: {str(ex)}",
             )
 
-        result_as_boolean = task.data == expected_output_context
+        result_as_boolean = context == expected_output_context
+
         script_unit_test_result = ScriptUnitTestResult(
-            result=result_as_boolean, context=task.data
+            result=result_as_boolean, context=context
         )
         return script_unit_test_result
 
@@ -95,5 +98,5 @@ class ScriptUnitTestRunner:
 
         script = task.task_spec.script
         return cls.run_with_task_and_script_and_pre_post_contexts(
-            task, script, input_context, expected_output_context
+            script, input_context, expected_output_context
         )

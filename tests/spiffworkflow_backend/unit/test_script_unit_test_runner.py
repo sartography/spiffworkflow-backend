@@ -40,7 +40,7 @@ class TestScriptUnitTestRunner(BaseTest):
 
         unit_test_result = (
             ScriptUnitTestRunner.run_with_task_and_script_and_pre_post_contexts(
-                task, script, input_context, expected_output_context
+                script, input_context, expected_output_context
             )
         )
 
@@ -74,7 +74,7 @@ class TestScriptUnitTestRunner(BaseTest):
 
         unit_test_result = (
             ScriptUnitTestRunner.run_with_task_and_script_and_pre_post_contexts(
-                task, script, input_context, expected_output_context
+                script, input_context, expected_output_context
             )
         )
 
