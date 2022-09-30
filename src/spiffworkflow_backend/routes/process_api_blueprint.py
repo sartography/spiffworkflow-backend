@@ -1309,6 +1309,7 @@ def delete_secret(key: str) -> Response:
 def add_allowed_process_path(body: dict) -> Response:
     """Get allowed process paths."""
     secret = SecretService().get_secret(body["secret_key"])
+    assert secret
     allowed_process_path = SecretService.add_allowed_process(
         secret.id, g.user.id, body["allowed_relative_path"]
     )
