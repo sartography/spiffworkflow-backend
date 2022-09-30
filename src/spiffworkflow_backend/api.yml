@@ -2034,10 +2034,16 @@ components:
           type: number
           example: 1
           nullable: true
+        secret_key:
+          description: The key of the secret associated with this allowed process path
+          type: string
+          example: 2
+          nullable: true
         secret_id:
           description: The id of the secret associated with this allowed process path
           type: number
           example: 2
+          nullable: true
         allowed_relative_path:
           description: The allowed process path
           type: string

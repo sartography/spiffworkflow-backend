@@ -453,7 +453,7 @@ class TestSecretServiceApi(SecretServiceTestHelpers):
             process_model_info
         )
         data = {
-            "secret_id": test_secret.id,
+            "secret_key": test_secret.key,
             "allowed_relative_path": process_model_relative_path,
         }
         response: TestResponse = client.post(
