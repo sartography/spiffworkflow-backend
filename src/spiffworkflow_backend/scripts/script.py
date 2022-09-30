@@ -7,6 +7,7 @@ import pkgutil
 from abc import abstractmethod
 from typing import Any
 from typing import Callable
+from SpiffWorkflow import Task as SpiffTask  # type: ignore
 
 from flask_bpmn.api.api_error import ApiError
 
@@ -27,32 +28,19 @@ class Script:
         raise ApiError("invalid_script", "This script does not supply a description.")
 
     @abstractmethod
-    def do_task(
-        self, task: Task, workflow_id: int, *args: list[Any], **kwargs: dict[Any, Any]
+    def run(
+        self, task: Task, environment_identifier: str, *args: list[Any], **kwargs: dict[Any, Any]
     ) -> None:
-        """Do_task."""
+        """run."""
         raise ApiError(
             "invalid_script",
             "This is an internal error. The script you are trying to execute '%s' "
             % self.__class__.__name__
-            + "does not properly implement the do_task function.",
-        )
-
-    @abstractmethod
-    def do_task_validate_only(
-        self, task: Task, workflow_id: int, *args: list[Any], **kwargs: dict[Any, Any]
-    ) -> None:
-        """Do_task_validate_only."""
-        raise ApiError(
-            "invalid_script",
-            "This is an internal error. The script you are trying to execute '%s' "
-            % self.__class__.__name__
-            + "does must provide a validate_only option that mimics the do_task, "
-            + "but does not make external calls or database updates.",
+            + "does not properly implement the run function.",
         )
 
     @staticmethod
-    def generate_augmented_list(task: Task, workflow_id: int) -> dict[str, Callable]:
+    def generate_augmented_list(task: SpiffTask, environment_identifier: str) -> dict[str, Callable]:
         """This makes a dictionary of lambda functions that are closed over the class instance that they represent.
 
         This is passed into PythonScriptParser as a list of helper functions that are
@@ -64,7 +52,7 @@ class Script:
         """
 
         def make_closure(
-            subclass: type[Script], task: Task, workflow_id: int
+            subclass: type[Script], task: Task, environment_identifier: str
         ) -> Callable:
             """Yes - this is black magic.
 
@@ -76,8 +64,8 @@ class Script:
             that we created.
             """
             instance = subclass()
-            return lambda *ar, **kw: subclass.do_task(
-                instance, task, workflow_id, *ar, **kw
+            return lambda *ar, **kw: subclass.run(
+                instance, task=task, environment_identifier=environment_identifier, *ar, **kw
             )
 
         execlist = {}
@@ -85,41 +73,9 @@ class Script:
         for x in range(len(subclasses)):
             subclass = subclasses[x]
             execlist[subclass.__module__.split(".")[-1]] = make_closure(
-                subclass, task, workflow_id
-            )
+                subclass, task=task, environment_identifier=environment_identifier)
         return execlist
 
-    @staticmethod
-    def generate_augmented_validate_list(
-        task: Task, workflow_id: int
-    ) -> dict[str, Callable]:
-        """This makes a dictionary of lambda functions that are closed over the class instance that they represent.
-
-        This is passed into PythonScriptParser as a list of helper functions that are
-        available for running.  In general, they maintain the do_task call structure that they had, but
-        they always return a value rather than updating the task data.
-
-        We may be able to remove the task for each of these calls if we are not using it other than potentially
-        updating the task data.
-        """
-
-        def make_closure_validate(
-            subclass: type[Script], task: Task, workflow_id: int
-        ) -> Callable:
-            """Make_closure_validate."""
-            instance = subclass()
-            return lambda *a, **b: subclass.do_task_validate_only(
-                instance, task, workflow_id, *a, **b
-            )
-
-        execlist = {}
-        subclasses = Script.get_all_subclasses()
-        for x in range(len(subclasses)):
-            subclass = subclasses[x]
-            execlist[subclass.__module__.split(".")[-1]] = make_closure_validate(
-                subclass, task, workflow_id
-            )
-        return execlist
 
     @classmethod
     def get_all_subclasses(cls) -> list[type[Script]]:
@@ -146,29 +102,3 @@ class Script:
             all_subclasses.extend(Script._get_all_subclasses(subclass))
 
         return all_subclasses
-
-    def add_data_to_task(self, task: Task, data: Any) -> None:
-        """Add_data_to_task."""
-        key = self.__class__.__name__
-
-        if task.data is None:
-            task.data = {}
-
-        if key in task.data:
-            task.data[key].update(data)
-        else:
-            task.data[key] = data
-
-
-class ScriptValidationError:
-    """ScriptValidationError."""
-
-    def __init__(self, code: str, message: str):
-        """__init__."""
-        self.code = code
-        self.message = message
-
-    @classmethod
-    def from_api_error(cls, api_error: ApiError) -> ScriptValidationError:
-        """From_api_error."""
-        return cls(api_error.code, api_error.message)
