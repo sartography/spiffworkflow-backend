@@ -1,6 +1,8 @@
 """APIs for dealing with process groups, process models, and process instances."""
 import json
 import os
+import random
+import string
 import uuid
 from typing import Any
 from typing import Dict
@@ -19,6 +21,8 @@ from flask import request
 from flask.wrappers import Response
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
+from lxml import etree  # type: ignore
+from lxml.builder import ElementMaker  # type: ignore
 from SpiffWorkflow import Task as SpiffTask  # type: ignore
 from SpiffWorkflow import TaskState
 from sqlalchemy import desc
@@ -44,6 +48,7 @@ from spiffworkflow_backend.models.process_instance_report import (
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.process_model import ProcessModelInfoSchema
 from spiffworkflow_backend.models.secret_model import SecretAllowedProcessSchema
+from spiffworkflow_backend.models.secret_model import SecretModel
 from spiffworkflow_backend.models.secret_model import SecretModelSchema
 from spiffworkflow_backend.models.spiff_logging import SpiffLoggingModel
 from spiffworkflow_backend.models.user import UserModel
@@ -58,6 +63,7 @@ from spiffworkflow_backend.services.process_instance_service import (
     ProcessInstanceService,
 )
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
+from spiffworkflow_backend.services.script_unit_test_runner import ScriptUnitTestRunner
 from spiffworkflow_backend.services.secret_service import SecretService
 from spiffworkflow_backend.services.service_task_service import ServiceTaskService
 from spiffworkflow_backend.services.spec_file_service import SpecFileService
@@ -431,10 +437,20 @@ def message_instance_list(
             process_instance_id=process_instance_id
         )
 
-    message_instances = message_instances_query.order_by(
-        MessageInstanceModel.created_at_in_seconds.desc(),  # type: ignore
-        MessageInstanceModel.id.desc(),  # type: ignore
-    ).paginate(page, per_page, False)
+    message_instances = (
+        message_instances_query.order_by(
+            MessageInstanceModel.created_at_in_seconds.desc(),  # type: ignore
+            MessageInstanceModel.id.desc(),  # type: ignore
+        )
+        .join(MessageModel)
+        .join(ProcessInstanceModel)
+        .add_columns(
+            MessageModel.identifier.label("message_identifier"),
+            ProcessInstanceModel.process_model_identifier,
+            ProcessInstanceModel.process_group_identifier,
+        )
+        .paginate(page, per_page, False)
+    )
 
     response_json = {
         "results": message_instances.items,
@@ -783,6 +799,7 @@ def task_list_my_tasks(page: int = 1, per_page: int = 100) -> flask.wrappers.Res
         # just need this add_columns to add the process_model_identifier. Then add everything back that was removed.
         .add_columns(
             ProcessInstanceModel.process_model_identifier,
+            ProcessInstanceModel.process_group_identifier,
             ActiveTaskModel.task_data,
             ActiveTaskModel.task_name,
             ActiveTaskModel.task_title,
@@ -875,7 +892,7 @@ def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response
             )
         )
 
-    if task.type == "UserTask":
+    if task.type == "User Task":
         if not form_schema_file_name:
             raise (
                 ApiError(
@@ -902,13 +919,12 @@ def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response
             )
             if ui_form_contents:
                 task.form_ui_schema = ui_form_contents
-    elif task.type == "ManualTask":
+    elif task.type == "Manual Task":
         if task.properties and task.data:
             if task.properties["instructionsForEndUser"]:
                 task.properties["instructionsForEndUser"] = render_jinja_template(
                     task.properties["instructionsForEndUser"], task.data
                 )
-
     return make_response(jsonify(task), 200)
 
 
@@ -972,6 +988,128 @@ def task_submit(
         )
 
     return Response(json.dumps({"ok": True}), status=202, mimetype="application/json")
+
+
+def script_unit_test_create(
+    process_group_id: str, process_model_id: str, body: Dict[str, Union[str, bool, int]]
+) -> flask.wrappers.Response:
+    """Script_unit_test_run."""
+    bpmn_task_identifier = get_required_parameter_or_raise("bpmn_task_identifier", body)
+    input_json = get_required_parameter_or_raise("input_json", body)
+    expected_output_json = get_required_parameter_or_raise("expected_output_json", body)
+
+    process_model = get_process_model(process_model_id, process_group_id)
+    file = SpecFileService.get_files(process_model, process_model.primary_file_name)[0]
+    if file is None:
+        raise ApiError(
+            code="cannot_find_file",
+            message=f"Could not find the primary bpmn file for process_model: {process_model.id}",
+            status_code=404,
+        )
+
+    # TODO: move this to an xml service or something
+    file_contents = SpecFileService.get_data(process_model, file.name)
+    bpmn_etree_element = SpecFileService.get_etree_element_from_binary_data(
+        file_contents, file.name
+    )
+
+    nsmap = bpmn_etree_element.nsmap
+    spiff_element_maker = ElementMaker(
+        namespace="http://spiffworkflow.org/bpmn/schema/1.0/core", nsmap=nsmap
+    )
+
+    script_task_elements = bpmn_etree_element.xpath(
+        f"//bpmn:scriptTask[@id='{bpmn_task_identifier}']",
+        namespaces={"bpmn": "http://www.omg.org/spec/BPMN/20100524/MODEL"},
+    )
+    if len(script_task_elements) == 0:
+        raise ApiError(
+            code="missing_script_task",
+            message=f"Cannot find a script task with id: {bpmn_task_identifier}",
+            status_code=404,
+        )
+    script_task_element = script_task_elements[0]
+
+    extension_elements = None
+    extension_elements_array = script_task_element.xpath(
+        "//bpmn:extensionElements",
+        namespaces={"bpmn": "http://www.omg.org/spec/BPMN/20100524/MODEL"},
+    )
+    if len(extension_elements_array) == 0:
+        bpmn_element_maker = ElementMaker(
+            namespace="http://www.omg.org/spec/BPMN/20100524/MODEL", nsmap=nsmap
+        )
+        extension_elements = bpmn_element_maker("extensionElements")
+        script_task_element.append(extension_elements)
+    else:
+        extension_elements = extension_elements_array[0]
+
+    unit_test_elements = None
+    unit_test_elements_array = extension_elements.xpath(
+        "//spiffworkflow:unitTests",
+        namespaces={"spiffworkflow": "http://spiffworkflow.org/bpmn/schema/1.0/core"},
+    )
+    if len(unit_test_elements_array) == 0:
+        unit_test_elements = spiff_element_maker("unitTests")
+        extension_elements.append(unit_test_elements)
+    else:
+        unit_test_elements = unit_test_elements_array[0]
+
+    fuzz = "".join(
+        random.choice(string.ascii_uppercase + string.digits)  # noqa: S311
+        for _ in range(7)
+    )
+    unit_test_id = f"unit_test_{fuzz}"
+
+    input_json_element = spiff_element_maker("inputJson", json.dumps(input_json))
+    expected_output_json_element = spiff_element_maker(
+        "expectedOutputJson", json.dumps(expected_output_json)
+    )
+    unit_test_element = spiff_element_maker("unitTest", id=unit_test_id)
+    unit_test_element.append(input_json_element)
+    unit_test_element.append(expected_output_json_element)
+    unit_test_elements.append(unit_test_element)
+    SpecFileService.update_file(
+        process_model, file.name, etree.tostring(bpmn_etree_element)
+    )
+
+    return Response(json.dumps({"ok": True}), status=202, mimetype="application/json")
+
+
+def script_unit_test_run(
+    process_group_id: str, process_model_id: str, body: Dict[str, Union[str, bool, int]]
+) -> flask.wrappers.Response:
+    """Script_unit_test_run."""
+    # FIXME: We should probably clear this somewhere else but this works
+    current_app.config["THREAD_LOCAL_DATA"].process_instance_id = None
+
+    bpmn_task_identifier = get_required_parameter_or_raise("bpmn_task_identifier", body)
+    python_script = get_required_parameter_or_raise("python_script", body)
+    input_json = get_required_parameter_or_raise("input_json", body)
+    expected_output_json = get_required_parameter_or_raise("expected_output_json", body)
+
+    bpmn_process_instance = (
+        ProcessInstanceProcessor.get_bpmn_process_instance_from_process_model(
+            process_model_id, process_group_id
+        )
+    )
+    spiff_task = ProcessInstanceProcessor.get_task_by_bpmn_identifier(
+        bpmn_task_identifier, bpmn_process_instance
+    )
+
+    if spiff_task is None:
+        raise (
+            ApiError(
+                code="task_not_found",
+                message=f"Could not find task with identifier: {bpmn_task_identifier}",
+                status_code=400,
+            )
+        )
+
+    result = ScriptUnitTestRunner.run_with_task_and_script_and_pre_post_contexts(
+        spiff_task, python_script, input_json, expected_output_json
+    )
+    return make_response(jsonify(result), 200)
 
 
 def get_file_from_request() -> Any:
@@ -1120,11 +1258,33 @@ def get_secret(key: str) -> Optional[str]:
     return SecretService.get_secret(key)
 
 
+def secret_list(
+    page: int = 1,
+    per_page: int = 100,
+) -> Response:
+    """Secret_list."""
+    secrets = (
+        SecretModel.query.order_by(SecretModel.key)
+        .join(UserModel)
+        .add_columns(
+            UserModel.username,
+        )
+        .paginate(page, per_page, False)
+    )
+    response_json = {
+        "results": secrets.items,
+        "pagination": {
+            "count": len(secrets.items),
+            "total": secrets.total,
+            "pages": secrets.pages,
+        },
+    }
+    return make_response(jsonify(response_json), 200)
+
+
 def add_secret(body: Dict) -> Response:
     """Add secret."""
-    secret_model = SecretService().add_secret(
-        body["key"], body["value"], body["creator_user_id"]
-    )
+    secret_model = SecretService().add_secret(body["key"], body["value"], g.user.id)
     assert secret_model  # noqa: S101
     return Response(
         json.dumps(SecretModelSchema().dump(secret_model)),
@@ -1133,18 +1293,20 @@ def add_secret(body: Dict) -> Response:
     )
 
 
-def update_secret(key: str, body: dict) -> None:
+def update_secret(key: str, body: dict) -> Response:
     """Update secret."""
     SecretService().update_secret(key, body["value"], body["creator_user_id"])
+    return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
 
 
-def delete_secret(key: str) -> None:
+def delete_secret(key: str) -> Response:
     """Delete secret."""
     current_user = UserService.current_user()
     SecretService.delete_secret(key, current_user.id)
+    return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
 
 
-def add_allowed_process_path(body: dict) -> Any:
+def add_allowed_process_path(body: dict) -> Response:
     """Get allowed process paths."""
     allowed_process_path = SecretService.add_allowed_process(
         body["secret_id"], g.user.id, body["allowed_relative_path"]
@@ -1156,6 +1318,25 @@ def add_allowed_process_path(body: dict) -> Any:
     )
 
 
-def delete_allowed_process_path(allowed_process_path_id: int) -> Any:
+def delete_allowed_process_path(allowed_process_path_id: int) -> Response:
     """Get allowed process paths."""
     SecretService().delete_allowed_process(allowed_process_path_id, g.user.id)
+    return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
+
+
+def get_required_parameter_or_raise(parameter: str, post_body: dict[str, Any]) -> Any:
+    """Get_required_parameter_or_raise."""
+    return_value = None
+    if parameter in post_body:
+        return_value = post_body[parameter]
+
+    if return_value is None or return_value == "":
+        raise (
+            ApiError(
+                code="missing_required_parameter",
+                message=f"Parameter is missing from json request body: {parameter}",
+                status_code=400,
+            )
+        )
+
+    return return_value

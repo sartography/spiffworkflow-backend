@@ -11,7 +11,6 @@ from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from marshmallow import INCLUDE
 from marshmallow import Schema
 from marshmallow_enum import EnumField  # type: ignore
-from SpiffWorkflow.navigation import NavItem  # type: ignore
 from SpiffWorkflow.util.deep_merge import DeepMerge  # type: ignore
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import deferred
@@ -53,20 +52,6 @@ class NavigationItemSchema(Schema):
     children = marshmallow.fields.List(
         marshmallow.fields.Nested(lambda: NavigationItemSchema())
     )
-
-    @marshmallow.post_load
-    def make_nav(self, data: dict[str, Any], **kwargs: dict) -> NavItem:
-        """Make_nav."""
-        state = data.pop("state", None)
-        task_id = data.pop("task_id", None)
-        children = data.pop("children", [])
-        spec_type = data.pop("spec_type", None)
-        item = NavItem(**data)
-        item.state = state
-        item.task_id = task_id
-        item.children = children
-        item.spec_type = spec_type
-        return item
 
 
 class ProcessInstanceStatus(SpiffEnum):

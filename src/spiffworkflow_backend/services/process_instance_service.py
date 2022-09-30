@@ -8,14 +8,6 @@ from typing import Optional
 from flask import current_app
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
-from SpiffWorkflow.bpmn.specs.events import EndEvent  # type: ignore
-from SpiffWorkflow.bpmn.specs.events import StartEvent
-from SpiffWorkflow.bpmn.specs.ScriptTask import ScriptTask  # type: ignore
-from SpiffWorkflow.dmn.specs.BusinessRuleTask import BusinessRuleTask  # type: ignore
-from SpiffWorkflow.specs import CancelTask  # type: ignore
-from SpiffWorkflow.specs import StartTask
-from SpiffWorkflow.spiff.specs.manual_task import ManualTask  # type: ignore
-from SpiffWorkflow.spiff.specs.user_task import UserTask  # type: ignore
 from SpiffWorkflow.task import Task as SpiffTask  # type: ignore
 from SpiffWorkflow.util.deep_merge import DeepMerge  # type: ignore
 
@@ -271,30 +263,6 @@ class ProcessInstanceService:
 
             return lane_uids
 
-    # @staticmethod
-    # def get_task_type(spiff_task: SpiffTask):
-    #     """Get_task_type."""
-    #     task_type = spiff_task.task_spec.__class__.__name__
-    #
-    #     task_types = [
-    #         UserTask,
-    #         ManualTask,
-    #         BusinessRuleTask,
-    #         CancelTask,
-    #         ScriptTask,
-    #         StartTask,
-    #         EndEvent,
-    #         StartEvent,
-    #     ]
-    #
-    #     for t in task_types:
-    #         if isinstance(spiff_task.task_spec, t):
-    #             task_type = t.__name__
-    #             break
-    #         else:
-    #             task_type = "NoneTask"
-    #     return task_type
-
     @staticmethod
     def complete_form_task(
         processor: ProcessInstanceProcessor,
@@ -307,7 +275,8 @@ class ProcessInstanceService:
         Abstracted here because we need to do it multiple times when completing all tasks in
         a multi-instance task.
         """
-        spiff_task.update_data(data)
+        dot_dct = ProcessInstanceService.create_dot_dict(data)
+        spiff_task.update_data(dot_dct)
         # ProcessInstanceService.post_process_form(spiff_task)  # some properties may update the data store.
         processor.complete_task(spiff_task)
         # Log the action before doing the engine steps, as doing so could effect the state of the task
@@ -375,6 +344,14 @@ class ProcessInstanceService:
         return data
 
     @staticmethod
+    def create_dot_dict(data: dict) -> dict[str, Any]:
+        """Create_dot_dict."""
+        dot_dict: dict[str, Any] = {}
+        for key, value in data.items():
+            ProcessInstanceService.set_dot_value(key, value, dot_dict)
+        return dot_dict
+
+    @staticmethod
     def get_dot_value(path: str, source: dict) -> Any:
         """Get_dot_value."""
         # Given a path in dot notation, uas as 'fruit.type' tries to find that value in
@@ -416,25 +393,7 @@ class ProcessInstanceService:
         spiff_task: SpiffTask, add_docs_and_forms: bool = False
     ) -> Task:
         """Spiff_task_to_api_task."""
-        task_type = spiff_task.task_spec.__class__.__name__
-
-        task_types = [
-            UserTask,
-            ManualTask,
-            BusinessRuleTask,
-            CancelTask,
-            ScriptTask,
-            StartTask,
-            EndEvent,
-            StartEvent,
-        ]
-
-        for t in task_types:
-            if isinstance(spiff_task.task_spec, t):
-                task_type = t.__name__
-                break
-            else:
-                task_type = "NoneTask"
+        task_type = spiff_task.task_spec.spec_type
 
         info = spiff_task.task_info()
         if info["is_looping"]:
@@ -456,6 +415,10 @@ class ProcessInstanceService:
         else:
             lane = None
 
+        parent_id = None
+        if spiff_task.parent:
+            parent_id = spiff_task.parent.id
+
         task = Task(
             spiff_task.id,
             spiff_task.task_spec.name,
@@ -468,6 +431,7 @@ class ProcessInstanceService:
             multi_instance_index=info["mi_index"],
             process_name=spiff_task.task_spec._wf_spec.description,
             properties=props,
+            parent=parent_id,
         )
 
         return task

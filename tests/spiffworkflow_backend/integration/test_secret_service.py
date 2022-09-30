@@ -1,5 +1,6 @@
 """Test_secret_service."""
 import json
+from typing import Optional
 
 import pytest
 from flask.app import Flask
@@ -103,7 +104,7 @@ class TestSecretService(SecretServiceTestHelpers):
 
         secret = SecretService().get_secret(self.test_key)
         assert secret is not None
-        assert secret == self.test_value
+        assert secret.value == self.test_value
 
     def test_get_secret_bad_key_fails(
         self, app: Flask, with_db_and_bpmn_file_cleanup: None
@@ -122,10 +123,12 @@ class TestSecretService(SecretServiceTestHelpers):
         user = self.find_or_create_user()
         self.add_test_secret(user)
         secret = SecretService.get_secret(self.test_key)
-        assert secret == self.test_value
+        assert secret
+        assert secret.value == self.test_value
         SecretService.update_secret(self.test_key, "new_secret_value", user.id)
         new_secret = SecretService.get_secret(self.test_key)
-        assert new_secret == "new_secret_value"  # noqa: S105
+        assert new_secret
+        assert new_secret.value == "new_secret_value"  # noqa: S105
 
     def test_update_secret_bad_user_fails(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
@@ -370,7 +373,8 @@ class TestSecretServiceApi(SecretServiceTestHelpers):
         )
         assert secret_response
         assert secret_response.status_code == 200
-        assert secret_response.json == self.test_value
+        assert secret_response.json
+        assert secret_response.json["value"] == self.test_value
 
     def test_update_secret(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
@@ -378,8 +382,9 @@ class TestSecretServiceApi(SecretServiceTestHelpers):
         """Test_update_secret."""
         user = self.find_or_create_user()
         self.add_test_secret(user)
-        secret = SecretService.get_secret(self.test_key)
-        assert secret == self.test_value
+        secret: Optional[SecretModel] = SecretService.get_secret(self.test_key)
+        assert secret
+        assert secret.value == self.test_value
         secret_model = SecretModel(
             key=self.test_key, value="new_secret_value", creator_user_id=user.id
         )
@@ -389,7 +394,7 @@ class TestSecretServiceApi(SecretServiceTestHelpers):
             content_type="application/json",
             data=json.dumps(SecretModelSchema().dump(secret_model)),
         )
-        assert response.status_code == 204
+        assert response.status_code == 200
 
         secret_model = SecretModel.query.filter(
             SecretModel.key == self.test_key
@@ -404,12 +409,12 @@ class TestSecretServiceApi(SecretServiceTestHelpers):
         self.add_test_secret(user)
         secret = SecretService.get_secret(self.test_key)
         assert secret
-        assert secret == self.test_value
+        assert secret.value == self.test_value
         secret_response = client.delete(
             f"/v1.0/secrets/{self.test_key}",
             headers=self.logged_in_headers(user),
         )
-        assert secret_response.status_code == 204
+        assert secret_response.status_code == 200
         with pytest.raises(ApiError):
             secret = SecretService.get_secret(self.test_key)
 
@@ -484,6 +489,6 @@ class TestSecretServiceApi(SecretServiceTestHelpers):
             f"/v1.0/secrets/allowed_process_paths/{allowed_process.id}",
             headers=self.logged_in_headers(user),
         )
-        assert response.status_code == 204
+        assert response.status_code == 200
         allowed_processes = SecretAllowedProcessPathModel.query.all()
         assert len(allowed_processes) == 0

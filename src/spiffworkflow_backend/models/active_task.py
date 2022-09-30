@@ -64,5 +64,9 @@ class ActiveTaskModel(SpiffworkflowBaseDBModel):
         )
         if hasattr(task, "process_model_display_name"):
             new_task.process_model_display_name = task.process_model_display_name
+        if hasattr(task, "process_group_identifier"):
+            new_task.process_group_identifier = task.process_group_identifier
+        if hasattr(task, "process_model_identifier"):
+            new_task.process_model_identifier = task.process_model_identifier
 
         return new_task

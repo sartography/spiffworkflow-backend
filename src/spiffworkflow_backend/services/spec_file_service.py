@@ -468,7 +468,7 @@ class SpecFileService(FileSystemService):
                 )
                 if not correlation_property_retrieval_expressions:
                     raise ValidationException(
-                        "Correlation is missing correlation property retrieval expressions: {correlation_identifier}"
+                        f"Correlation is missing correlation property retrieval expressions: {correlation_identifier}"
                     )
 
                 for cpre in correlation_property_retrieval_expressions:

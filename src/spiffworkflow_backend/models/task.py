@@ -1,6 +1,7 @@
 """Task."""
 import enum
 from typing import Any
+from typing import Optional
 from typing import Union
 
 import marshmallow
@@ -111,8 +112,11 @@ class Task:
         properties: Union[dict, None] = None,
         process_instance_id: Union[int, None] = None,
         process_model_display_name: Union[str, None] = None,
+        process_group_identifier: Union[str, None] = None,
+        process_model_identifier: Union[str, None] = None,
         form_schema: Union[str, None] = None,
         form_ui_schema: Union[str, None] = None,
+        parent: Optional[str] = None,
     ):
         """__init__."""
         self.id = id
@@ -123,12 +127,15 @@ class Task:
         self.form = form
         self.documentation = documentation
         self.lane = lane
+        self.parent = parent
 
         self.data = data
         if self.data is None:
             self.data = {}
 
         self.process_instance_id = process_instance_id
+        self.process_group_identifier = process_group_identifier
+        self.process_model_identifier = process_model_identifier
         self.process_model_display_name = process_model_display_name
         self.form_schema = form_schema
         self.form_ui_schema = form_ui_schema
@@ -172,8 +179,11 @@ class Task:
             "properties": self.properties,
             "process_instance_id": self.process_instance_id,
             "process_model_display_name": self.process_model_display_name,
+            "process_group_identifier": self.process_group_identifier,
+            "process_model_identifier": self.process_model_identifier,
             "form_schema": self.form_schema,
             "form_ui_schema": self.form_ui_schema,
+            "parent": self.parent,
         }
 
     @classmethod
