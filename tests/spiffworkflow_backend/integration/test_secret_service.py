@@ -114,7 +114,7 @@ class TestSecretService(SecretServiceTestHelpers):
         self.add_test_secret(user)
 
         with pytest.raises(ApiError):
-            bad_secret = SecretService().get_secret("bad_key")
+            SecretService().get_secret("bad_key")
 
     def test_update_secret(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None

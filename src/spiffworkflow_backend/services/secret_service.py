@@ -64,7 +64,7 @@ class SecretService:
         else:
             raise ApiError(
                 code="missing_secret_error",
-                message=f"Unable to locate a secret with the name: {key}. "
+                message=f"Unable to locate a secret with the name: {key}. ",
             )
 
     @staticmethod
