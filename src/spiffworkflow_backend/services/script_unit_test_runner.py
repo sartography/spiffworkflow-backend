@@ -1,5 +1,7 @@
 """Process_instance_processor."""
 import json
+import sys
+import traceback
 from dataclasses import dataclass
 from typing import Any
 from typing import Optional
@@ -31,34 +33,54 @@ class ScriptUnitTestRunner:
     _script_engine = CustomBpmnScriptEngine()
 
     @classmethod
-    def run_with_task_and_script_and_pre_post_contexts(
+    def run_with_script_and_pre_post_contexts(
         cls,
-        task: SpiffTask,
         script: str,
         input_context: PythonScriptContext,
         expected_output_context: PythonScriptContext,
     ) -> ScriptUnitTestResult:
         """Run_task."""
-        task.data = input_context
+        # make a new variable just for clarity, since we are going to update this dict in place
+        # with the output variables from the script.
+        context = input_context.copy()
 
         try:
-            cls._script_engine.execute(task, script)
-        except WorkflowTaskExecException as ex:
+            cls._script_engine._execute(context=context, script=script)
+        except SyntaxError as ex:
             return ScriptUnitTestResult(
                 result=False,
-                error=f"Failed to execute script: {str(ex)}",
-                line_number=ex.line_number,
+                error=f"Syntax error: {str(ex)}",
+                line_number=ex.lineno,
                 offset=ex.offset,
             )
         except Exception as ex:
+            if isinstance(ex, WorkflowTaskExecException):
+                # we never expect this to happen, so we want to know about it.
+                # if indeed we are always getting WorkflowTaskExecException,
+                # we can simplify this error handling and replace it with the
+                # except block from revision cccd523ea39499c10f7f3c2e3f061852970973ac
+                raise ex
+            error_message = f"{ex.__class__.__name__}: {str(ex)}"
+            line_number = 0
+            _cl, _exc, tb = sys.exc_info()
+            # Loop back through the stack trace to find the file called
+            # 'string' - which is the script we are executing, then use that
+            # to parse and pull out the offending line.
+            for frame_summary in traceback.extract_tb(tb):
+                if frame_summary.filename == "<string>":
+                    if frame_summary.lineno is not None:
+                        line_number = frame_summary.lineno
+
             return ScriptUnitTestResult(
                 result=False,
-                error=f"Failed to execute script: {str(ex)}",
+                line_number=line_number,
+                error=f"Failed to execute script: {error_message}",
             )
 
-        result_as_boolean = task.data == expected_output_context
+        result_as_boolean = context == expected_output_context
+
         script_unit_test_result = ScriptUnitTestResult(
-            result=result_as_boolean, context=task.data
+            result=result_as_boolean, context=context
         )
         return script_unit_test_result
 
@@ -94,6 +116,6 @@ class ScriptUnitTestRunner:
             )
 
         script = task.task_spec.script
-        return cls.run_with_task_and_script_and_pre_post_contexts(
-            task, script, input_context, expected_output_context
+        return cls.run_with_script_and_pre_post_contexts(
+            script, input_context, expected_output_context
         )
