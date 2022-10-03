@@ -4,6 +4,7 @@ import logging
 import os
 import time
 from typing import Any
+from typing import Callable
 from typing import Dict
 from typing import List
 from typing import NewType
@@ -68,6 +69,7 @@ from spiffworkflow_backend.models.process_model import ProcessModelInfo
 from spiffworkflow_backend.models.task_event import TaskAction
 from spiffworkflow_backend.models.task_event import TaskEventModel
 from spiffworkflow_backend.models.user import UserModelSchema
+from spiffworkflow_backend.scripts.script import Script
 from spiffworkflow_backend.services.file_system_service import FileSystemService
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 from spiffworkflow_backend.services.service_task_service import ServiceTaskService
@@ -86,6 +88,10 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
     scripts directory available for execution.
     """
 
+    def __get_augment_methods(self, task: SpiffTask) -> Dict[str, Callable]:
+        """__get_augment_methods."""
+        return Script.generate_augmented_list(task, current_app.env)
+
     def evaluate(self, task: SpiffTask, expression: str) -> Any:
         """Evaluate."""
         return self._evaluate(expression, task.data, task)
@@ -97,11 +103,14 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
         task: Optional[SpiffTask] = None,
         external_methods: Optional[Dict[str, Any]] = None,
     ) -> Any:
+        """_evaluate."""
+        methods = self.__get_augment_methods(task)
+        if external_methods:
+            methods.update(external_methods)
+
         """Evaluate the given expression, within the context of the given task and return the result."""
         try:
-            return super()._evaluate(
-                expression, context, external_methods=external_methods
-            )
+            return super()._evaluate(expression, context, external_methods=methods)
         except Exception as exception:
             if task is None:
                 raise ProcessInstanceProcessorError(
@@ -120,7 +129,10 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
     ) -> None:
         """Execute."""
         try:
-            super().execute(task, script, external_methods)
+            methods = self.__get_augment_methods(task)
+            if external_methods:
+                methods.update(external_methods)
+            super().execute(task, script, methods)
         except WorkflowException as e:
             raise e
         except Exception as e:
