@@ -33,7 +33,7 @@ class ScriptUnitTestRunner:
     _script_engine = CustomBpmnScriptEngine()
 
     @classmethod
-    def run_with_task_and_script_and_pre_post_contexts(
+    def run_with_script_and_pre_post_contexts(
         cls,
         script: str,
         input_context: PythonScriptContext,
@@ -116,6 +116,6 @@ class ScriptUnitTestRunner:
             )
 
         script = task.task_spec.script
-        return cls.run_with_task_and_script_and_pre_post_contexts(
+        return cls.run_with_script_and_pre_post_contexts(
             script, input_context, expected_output_context
         )

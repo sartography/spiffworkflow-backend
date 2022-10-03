@@ -1087,7 +1087,7 @@ def script_unit_test_run(
     input_json = get_required_parameter_or_raise("input_json", body)
     expected_output_json = get_required_parameter_or_raise("expected_output_json", body)
 
-    result = ScriptUnitTestRunner.run_with_task_and_script_and_pre_post_contexts(
+    result = ScriptUnitTestRunner.run_with_script_and_pre_post_contexts(
         python_script, input_json, expected_output_json
     )
     return make_response(jsonify(result), 200)

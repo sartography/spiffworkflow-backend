@@ -38,10 +38,8 @@ class TestScriptUnitTestRunner(BaseTest):
         expected_output_context: PythonScriptContext = {"a": 2}
         script = "a = 2"
 
-        unit_test_result = (
-            ScriptUnitTestRunner.run_with_task_and_script_and_pre_post_contexts(
-                script, input_context, expected_output_context
-            )
+        unit_test_result = ScriptUnitTestRunner.run_with_script_and_pre_post_contexts(
+            script, input_context, expected_output_context
         )
 
         assert unit_test_result.result
@@ -72,10 +70,8 @@ class TestScriptUnitTestRunner(BaseTest):
         expected_output_context: PythonScriptContext = {"a": 2, "b": 3}
         script = "a = 2"
 
-        unit_test_result = (
-            ScriptUnitTestRunner.run_with_task_and_script_and_pre_post_contexts(
-                script, input_context, expected_output_context
-            )
+        unit_test_result = ScriptUnitTestRunner.run_with_script_and_pre_post_contexts(
+            script, input_context, expected_output_context
         )
 
         assert unit_test_result.result is not True
