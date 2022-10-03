@@ -1,5 +1,6 @@
 """Fact_service."""
-from typing import Any, Optional
+from typing import Any
+from typing import Optional
 
 from SpiffWorkflow import Task as SpiffTask  # type: ignore
 
@@ -15,7 +16,11 @@ class FactService(Script):
         do a basic task."""
 
     def run(
-        self, task: Optional[SpiffTask], environment_identifier: str, *args: Any, **kwargs: Any
+        self,
+        task: Optional[SpiffTask],
+        environment_identifier: str,
+        *args: Any,
+        **kwargs: Any
     ) -> Any:
         """Run."""
         if "type" not in kwargs:
