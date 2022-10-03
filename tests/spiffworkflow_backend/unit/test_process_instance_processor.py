@@ -23,6 +23,7 @@ class TestProcessInstanceProcessor(BaseTest):
         assert result == 1
 
     def test_script_engine_can_use_custom_scripts(
+        self,
         app: Flask,
         with_db_and_bpmn_file_cleanup: None,
     ) -> None:
