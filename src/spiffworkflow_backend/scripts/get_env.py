@@ -1,5 +1,5 @@
 """Get_env."""
-from typing import Any
+from typing import Any, Optional
 
 from SpiffWorkflow import Task as SpiffTask  # type: ignore
 
@@ -14,7 +14,7 @@ class GetEnv(Script):
         return """Returns the current environment - ie testing, staging, production."""
 
     def run(
-        self, task: SpiffTask, environment_identifier: str, *_args: Any, **kwargs: Any
+        self, task: Optional[SpiffTask], environment_identifier: str, *_args: Any, **kwargs: Any
     ) -> Any:
         """Run."""
         return environment_identifier
