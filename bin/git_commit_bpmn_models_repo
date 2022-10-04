@@ -11,6 +11,8 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 bpmn_models_absolute_dir="$1"
 git_commit_message="$2"
+git_commit_username="$3"
+git_commit_email="$4"
 
 if [[ -z "${2:-}" ]]; then
   >&2 echo "usage: $(basename "$0") [bpmn_models_absolute_dir] [git_commit_message]"
@@ -24,5 +26,11 @@ git add .
 if [ -z "$(git status --porcelain)" ]; then
   echo "No changes to commit"
 else
+  if [[ -n "$git_commit_username" ]]; then
+    git config --local user.name "$git_commit_username"
+  fi
+  if [[ -n "$git_commit_email" ]]; then
+    git config --local user.email "$git_commit_email"
+  fi
   git commit -m "$git_commit_message"
 fi
