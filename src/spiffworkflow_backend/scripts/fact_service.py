@@ -2,7 +2,7 @@
 from typing import Any
 from typing import Optional
 
-from SpiffWorkflow import Task as SpiffTask  # type: ignore
+from SpiffWorkflow.task import Task as SpiffTask  # type: ignore
 
 from spiffworkflow_backend.scripts.script import Script
 
