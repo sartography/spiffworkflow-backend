@@ -32,9 +32,8 @@ werkzeug = "*"
 SpiffWorkflow = {develop = true, path = "../SpiffWorkflow"}
 sentry-sdk = "1.9.0"
 sphinx-autoapi = "^1.8.4"
-# flask-bpmn = {develop = true, path = "/home/jason/projects/github/sartography/flask-bpmn"}
-# flask-bpmn = {develop = true, path = "/Users/kevin/projects/github/sartography/flask-bpmn"}
-flask-bpmn = {git = "https://github.com/sartography/flask-bpmn", rev = "main"}
+flask-bpmn = {develop = true, path = "../flask-bpmn"}
+# flask-bpmn = {git = "https://github.com/sartography/flask-bpmn", rev = "main"}
 mysql-connector-python = "^8.0.29"
 pytest-flask = "^1.2.0"
 pytest-flask-sqlalchemy = "^1.1.0"
