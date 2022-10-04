@@ -404,7 +404,9 @@ def process_instance_log_list(
             SpiffLoggingModel.process_instance_id == process_instance.id
         )
         .order_by(SpiffLoggingModel.timestamp.desc())  # type: ignore
-        .join(UserModel, isouter=True)  # isouter since if we don't have a user, we still want the log
+        .join(
+            UserModel, isouter=True
+        )  # isouter since if we don't have a user, we still want the log
         .add_columns(
             UserModel.username,
         )
