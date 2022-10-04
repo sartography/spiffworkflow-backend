@@ -28,9 +28,8 @@ flask-migrate = "*"
 flask-restful = "*"
 werkzeug = "*"
 # go back to main once https://github.com/sartography/SpiffWorkflow/pull/241 is merged
-SpiffWorkflow = {git = "https://github.com/sartography/SpiffWorkflow", rev = "feature/get-description-when-parsing-service-task"}
-# SpiffWorkflow = {develop = true, path = "/Users/kevin/projects/github/sartography/SpiffWorkflow"}
-# SpiffWorkflow = {develop = true, path = "/home/jason/projects/github/sartography/SpiffWorkflow"}
+# SpiffWorkflow = {git = "https://github.com/sartography/SpiffWorkflow", rev = "feature/get-description-when-parsing-service-task"}
+SpiffWorkflow = {develop = true, path = "../SpiffWorkflow"}
 sentry-sdk = "1.9.0"
 sphinx-autoapi = "^1.8.4"
 # flask-bpmn = {develop = true, path = "/home/jason/projects/github/sartography/flask-bpmn"}
