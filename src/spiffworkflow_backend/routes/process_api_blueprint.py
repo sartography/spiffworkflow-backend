@@ -270,6 +270,10 @@ def process_model_file_update(
         )
 
     SpecFileService.update_file(process_model, file_name, request_file_contents)
+    git_output = GitService.commit(
+        message=f"User: {g.user.username} clicked save for {process_group_id}/{process_model_id}/{file_name}"
+    )
+    current_app.logger.info(f"git output: {git_output}")
     return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
 
 

@@ -38,3 +38,13 @@ class GitService:
         file_contents: str = os.popen(shell_command).read()[:-1]  # noqa: S605
         assert file_contents  # noqa: S101
         return file_contents.encode("utf-8")
+
+    @staticmethod
+    def commit(message: str) -> str:
+        """Commit."""
+        bpmn_spec_absolute_dir = current_app.config["BPMN_SPEC_ABSOLUTE_DIR"]
+        shell_command = (
+            f"./bin/git_commit_bpmn_models_repo '{bpmn_spec_absolute_dir}' '{message}'"
+        )
+        output = os.popen(shell_command).read()  # noqa: S605
+        return output
