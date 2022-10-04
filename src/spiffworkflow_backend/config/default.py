@@ -23,9 +23,7 @@ SPIFFWORKFLOW_BACKEND_URL = environ.get(
     "SPIFFWORKFLOW_BACKEND_URL", default="http://localhost:7000"
 )
 
-GIT_COMMIT_ON_SAVE = (
-    environ.get("GIT_COMMIT_ON_SAVE", default="false") == "true"
-)
+GIT_COMMIT_ON_SAVE = environ.get("GIT_COMMIT_ON_SAVE", default="false") == "true"
 
 # Open ID server
 OPEN_ID_SERVER_URL = environ.get("OPEN_ID_SERVER_URL", default="http://localhost:7002")
