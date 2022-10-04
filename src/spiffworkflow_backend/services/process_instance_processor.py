@@ -16,9 +16,6 @@ from flask import current_app
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
 from lxml import etree  # type: ignore
-from SpiffWorkflow.task import Task as SpiffTask  # type: ignore
-from SpiffWorkflow.task import TaskState
-from SpiffWorkflow.exceptions import WorkflowException
 from SpiffWorkflow.bpmn.exceptions import WorkflowTaskExecException  # type: ignore
 from SpiffWorkflow.bpmn.parser.ValidationException import ValidationException  # type: ignore
 from SpiffWorkflow.bpmn.PythonScriptEngine import Box  # type: ignore
@@ -30,6 +27,7 @@ from SpiffWorkflow.bpmn.specs.events import EndEvent
 from SpiffWorkflow.bpmn.workflow import BpmnWorkflow  # type: ignore
 from SpiffWorkflow.dmn.parser.BpmnDmnParser import BpmnDmnParser  # type: ignore
 from SpiffWorkflow.dmn.serializer import BusinessRuleTaskConverter  # type: ignore
+from SpiffWorkflow.exceptions import WorkflowException  # type: ignore
 from SpiffWorkflow.serializer.exceptions import MissingSpecError  # type: ignore
 from SpiffWorkflow.spiff.parser.process import SpiffBpmnParser  # type: ignore
 from SpiffWorkflow.spiff.serializer import BoundaryEventConverter  # type: ignore
@@ -47,6 +45,8 @@ from SpiffWorkflow.spiff.serializer import StartEventConverter
 from SpiffWorkflow.spiff.serializer import SubWorkflowTaskConverter
 from SpiffWorkflow.spiff.serializer import TransactionSubprocessConverter
 from SpiffWorkflow.spiff.serializer import UserTaskConverter
+from SpiffWorkflow.task import Task as SpiffTask  # type: ignore
+from SpiffWorkflow.task import TaskState
 from SpiffWorkflow.util.deep_merge import DeepMerge  # type: ignore
 
 from spiffworkflow_backend.models.active_task import ActiveTaskModel

@@ -6,8 +6,8 @@ from dataclasses import dataclass
 from typing import Any
 from typing import Optional
 
-from SpiffWorkflow.task import Task as SpiffTask  # type: ignore
 from SpiffWorkflow.bpmn.exceptions import WorkflowTaskExecException  # type: ignore
+from SpiffWorkflow.task import Task as SpiffTask  # type: ignore
 
 from spiffworkflow_backend.services.process_instance_processor import (
     CustomBpmnScriptEngine,
