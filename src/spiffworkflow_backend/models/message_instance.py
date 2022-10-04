@@ -8,10 +8,10 @@ from typing import TYPE_CHECKING
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from sqlalchemy import ForeignKey
+from sqlalchemy.event import listens_for
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import validates
-from sqlalchemy.orm.events import event
 
 from spiffworkflow_backend.models.message_model import MessageModel
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
@@ -75,7 +75,7 @@ class MessageInstanceModel(SpiffworkflowBaseDBModel):
 #
 # https://stackoverflow.com/questions/32555829/flask-validates-decorator-multiple-fields-simultaneously/33025472#33025472
 # https://docs.sqlalchemy.org/en/14/orm/session_events.html#before-flush
-@event.listens_for(Session, "before_flush")  # type: ignore
+@listens_for(Session, "before_flush")  # type: ignore
 def ensure_failure_cause_is_set_if_message_instance_failed(
     session: Any, _flush_context: Optional[Any], _instances: Optional[Any]
 ) -> None:

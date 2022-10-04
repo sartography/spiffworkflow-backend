@@ -61,6 +61,11 @@ class SecretService:
         )
         if secret is not None:
             return secret
+        else:
+            raise ApiError(
+                code="missing_secret_error",
+                message=f"Unable to locate a secret with the name: {key}. ",
+            )
 
     @staticmethod
     def update_secret(

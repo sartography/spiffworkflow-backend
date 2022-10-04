@@ -113,8 +113,8 @@ class TestSecretService(SecretServiceTestHelpers):
         user = self.find_or_create_user()
         self.add_test_secret(user)
 
-        bad_secret = SecretService().get_secret("bad_key")
-        assert bad_secret is None
+        with pytest.raises(ApiError):
+            SecretService().get_secret("bad_key")
 
     def test_update_secret(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
@@ -415,8 +415,8 @@ class TestSecretServiceApi(SecretServiceTestHelpers):
             headers=self.logged_in_headers(user),
         )
         assert secret_response.status_code == 200
-        secret = SecretService.get_secret(self.test_key)
-        assert secret is None
+        with pytest.raises(ApiError):
+            secret = SecretService.get_secret(self.test_key)
 
     def test_delete_secret_bad_user(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
