@@ -23,8 +23,8 @@ from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
 from lxml import etree  # type: ignore
 from lxml.builder import ElementMaker  # type: ignore
-from SpiffWorkflow import Task as SpiffTask  # type: ignore
-from SpiffWorkflow import TaskState
+from SpiffWorkflow.task import Task as SpiffTask  # type: ignore
+from SpiffWorkflow.task import TaskState
 from sqlalchemy import desc
 
 from spiffworkflow_backend.exceptions.process_entity_not_found_error import (

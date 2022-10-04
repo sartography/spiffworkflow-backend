@@ -9,7 +9,7 @@ from typing import Any
 from typing import Callable
 
 from flask_bpmn.api.api_error import ApiError
-from SpiffWorkflow import Task as SpiffTask  # type: ignore
+from SpiffWorkflow.task import Task as SpiffTask  # type: ignore
 
 # Generally speaking, having some global in a flask app is TERRIBLE.
 # This is here, because after loading the application this will never change under
