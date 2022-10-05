@@ -62,4 +62,5 @@ class SecretAllowedProcessSchema(Schema):
         """Meta."""
 
         model = SecretAllowedProcessPathModel
-        fields = ["secret_id", "allowed_relative_path"]
+        fields = ["id", "secret_id", "allowed_relative_path"]
+

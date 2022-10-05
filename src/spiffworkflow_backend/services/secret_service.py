@@ -175,6 +175,44 @@ class SecretService:
             )
 
     @staticmethod
+    def get_secret_allowed_process(id: str) -> SecretAllowedProcessPathModel:
+        secret_allowed_process = SecretAllowedProcessPathModel.\
+            query.\
+            filter(SecretAllowedProcessPathModel.id == id).\
+            first()
+        assert secret_allowed_process
+        return secret_allowed_process
+
+    @staticmethod
+    def update_allowed_process_path(
+        allowed_process_id: int, secret_id: int, allowed_relative_path: str, user_id: int
+    ) -> SecretAllowedProcessPathModel:
+        secret = SecretModel.query.filter(SecretModel.id == secret_id).first()
+        if secret.creator_user_id == user_id:
+            allowed_process: SecretAllowedProcessPathModel = SecretAllowedProcessPathModel.query.filter(
+                SecretAllowedProcessPathModel.id == allowed_process_id
+            ).first()
+            if allowed_process:
+                allowed_process.allowed_relative_path = allowed_relative_path
+                db.session.add(allowed_process)
+                try:
+                    db.session.commit()
+                except Exception as e:
+                    db.session.rollback()
+                    message = f"Could not find an allowed process with id {allowed_process_id}"\
+                              f"Original error is {e}"
+                    raise ApiError(code='update_allowed_process_error',
+                                   message=message)
+                return allowed_process
+            else:
+                message = f"Could not find an allowed process with id: {allowed_process_id}"
+                raise ApiError(code='update_allowed_process_error',
+                               message=message)
+        else:
+            raise ApiError(code='update_allowed_process_error',
+                           message=f"User: {user_id} cannot modify the allowed processes for secret: {secret.key}")
+
+    @staticmethod
     def delete_allowed_process(allowed_process_id: int, user_id: int) -> None:
         """Delete_allowed_process."""
         allowed_process = SecretAllowedProcessPathModel.query.filter(

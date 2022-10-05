@@ -289,6 +289,19 @@ class TestSecretService(SecretServiceTestHelpers):
             )
         assert "Resource does not exist" in ae.value.message
 
+    def test_get_secret_allowed_process(
+            self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        user = self.find_or_create_user()
+        test_secret = self.add_test_secret(user)
+        process_model_info = self.add_test_process(client, user)
+        process_model_relative_path = FileSystemService.process_model_relative_path(
+            process_model_info
+        )
+        created_allowed_process = SecretService.add_allowed_process(test_secret.id, user.id, process_model_relative_path)
+        get_allowed_process = SecretService.get_secret_allowed_process(created_allowed_process.id)
+        assert created_allowed_process == get_allowed_process
+
     def test_secret_delete_allowed_process(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
     ) -> None:
@@ -467,6 +480,27 @@ class TestSecretServiceApi(SecretServiceTestHelpers):
         assert len(allowed_processes) == 1
         assert allowed_processes[0].allowed_relative_path == process_model_relative_path
         assert allowed_processes[0].secret_id == test_secret.id
+
+    def test_get_secret_allowed_process(
+            self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        user = self.find_or_create_user()
+        test_secret = self.add_test_secret(user)
+        process_model_info = self.add_test_process(client, user)
+        process_model_relative_path = FileSystemService.process_model_relative_path(
+            process_model_info
+        )
+        created_allowed_process = SecretService.add_allowed_process(test_secret.id, user.id, process_model_relative_path)
+        # allowed_process = SecretService.get_secret_allowed_process(created_allowed_process.id)
+        response = client.get(
+            f"/v1.0/secrets/allowed_process_paths/{created_allowed_process.id}",
+            headers=self.logged_in_headers(user),
+        )
+        assert response.status_code == 200
+        response_allowed_process = response.json
+        assert response_allowed_process['id'] == created_allowed_process.id
+        assert response_allowed_process['secret_id'] == created_allowed_process.secret_id
+        assert response_allowed_process['allowed_relative_path'] == created_allowed_process.allowed_relative_path
 
     def test_delete_secret_allowed_process(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None

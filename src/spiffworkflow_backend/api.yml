@@ -1226,6 +1226,35 @@ paths:
         description: The id of the allowed process path to delete
         schema:
           type: integer
+    get:
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.allowed_process_path_get
+      summary: Get an existing allowed process for a secret, by id
+      tags:
+        - Secrets
+      responses:
+        "200":
+          description: Return a secret allowed process
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SecretAllowedProcessPath"
+    put:
+      operationId: spiffworkflow_backend.routes.process_api_blueprint.allowed_process_path_update
+      summary: Update an existing allowed process for a secret
+      tags:
+        - Secrets
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SecretAllowedProcessPath"
+      responses:
+        "200":
+          description: Secret allowed process updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SecretAllowedProcessPath"
     delete:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.delete_allowed_process_path
       summary: Delete an existing allowed process for a secret
