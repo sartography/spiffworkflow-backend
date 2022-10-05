@@ -271,7 +271,6 @@ class ProcessInstanceProcessor:
             self.add_user_info_to_process_instance(self.bpmn_process_instance)
 
             if self.PROCESS_INSTANCE_ID_KEY not in self.bpmn_process_instance.data:
-
                 if not process_instance_model.id:
                     db.session.add(process_instance_model)
                     # If the model is new, and has no id, save it, write it into the process_instance model
@@ -419,20 +418,20 @@ class ProcessInstanceProcessor:
         """__get_bpmn_process_instance."""
         if process_instance_model.bpmn_json:
             # turn off logging to avoid duplicated spiff logs
-            # spiff_logger = logging.getLogger("spiff")
-            # original_spiff_logger_log_level = spiff_logger.level
-            # spiff_logger.setLevel(logging.WARNING)
+            spiff_logger = logging.getLogger("spiff")
+            original_spiff_logger_log_level = spiff_logger.level
+            spiff_logger.setLevel(logging.WARNING)
 
-            # try:
-            bpmn_process_instance = (
-                ProcessInstanceProcessor._serializer.deserialize_json(
-                    process_instance_model.bpmn_json
+            try:
+                bpmn_process_instance = (
+                    ProcessInstanceProcessor._serializer.deserialize_json(
+                        process_instance_model.bpmn_json
+                    )
                 )
-            )
-            # except Exception as err:
-            #     raise (err)
-            # finally:
-            #     spiff_logger.setLevel(original_spiff_logger_log_level)
+            except Exception as err:
+                raise (err)
+            finally:
+                spiff_logger.setLevel(original_spiff_logger_log_level)
 
             bpmn_process_instance.script_engine = (
                 ProcessInstanceProcessor._script_engine
