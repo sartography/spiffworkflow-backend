@@ -23,8 +23,8 @@ from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
 from lxml import etree  # type: ignore
 from lxml.builder import ElementMaker  # type: ignore
-from SpiffWorkflow import Task as SpiffTask  # type: ignore
-from SpiffWorkflow import TaskState
+from SpiffWorkflow.task import Task as SpiffTask  # type: ignore
+from SpiffWorkflow.task import TaskState
 from sqlalchemy import desc
 
 from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
@@ -270,6 +270,15 @@ def process_model_file_update(
         )
 
     SpecFileService.update_file(process_model, file_name, request_file_contents)
+
+    if current_app.config["GIT_COMMIT_ON_SAVE"]:
+        git_output = GitService.commit(
+            message=f"User: {g.user.username} clicked save for {process_group_id}/{process_model_id}/{file_name}"
+        )
+        current_app.logger.info(f"git output: {git_output}")
+    else:
+        current_app.logger.info("Git commit on save is disabled")
+
     return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
 
 

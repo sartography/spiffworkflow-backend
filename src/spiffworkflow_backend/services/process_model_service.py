@@ -206,7 +206,12 @@ class ProcessModelService(FileSystemService):
         os.makedirs(cat_path, exist_ok=True)
         json_path = os.path.join(cat_path, self.CAT_JSON_FILE)
         with open(json_path, "w") as cat_json:
-            json.dump(self.GROUP_SCHEMA.dump(process_group), cat_json, indent=4)
+            json.dump(
+                self.GROUP_SCHEMA.dump(process_group),
+                cat_json,
+                indent=4,
+                sort_keys=True,
+            )
         return process_group
 
     def process_group_delete(self, process_group_id: str) -> None:
