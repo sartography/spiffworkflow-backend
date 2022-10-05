@@ -845,17 +845,17 @@ def process_instance_task_list(
     process_instance = find_process_instance_by_id_or_raise(process_instance_id)
     processor = ProcessInstanceProcessor(process_instance)
 
-    spiff_tasks = None
-    if all_tasks:
-        spiff_tasks = processor.bpmn_process_instance.get_tasks(TaskState.ANY_MASK)
-    else:
-        spiff_tasks = processor.get_all_user_tasks()
+    # spiff_tasks = None
+    # if all_tasks:
+    #     spiff_tasks = processor.bpmn_process_instance.get_tasks(TaskState.ANY_MASK)
+    # else:
+    #     spiff_tasks = processor.get_all_user_tasks()
 
     tasks = []
-    for spiff_task in spiff_tasks:
-        task = ProcessInstanceService.spiff_task_to_api_task(spiff_task)
-        task.data = spiff_task.data
-        tasks.append(task)
+    # for spiff_task in spiff_tasks:
+    #     task = ProcessInstanceService.spiff_task_to_api_task(spiff_task)
+    #     task.data = spiff_task.data
+    #     tasks.append(task)
 
     return make_response(jsonify(tasks), 200)
 

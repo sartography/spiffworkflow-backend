@@ -1827,25 +1827,22 @@ test = ["pytest"]
 [[package]]
 name = "SpiffWorkflow"
 version = "1.1.7"
-description = ""
+description = "A workflow framework and BPMN/DMN Processor"
 category = "main"
 optional = false
 python-versions = "*"
-develop = false
+develop = true
 
 [package.dependencies]
 celery = "*"
 configparser = "*"
 dateparser = "*"
-importlib-metadata = "<5.0"
 lxml = "*"
 pytz = "*"
 
 [package.source]
-type = "git"
-url = "https://github.com/sartography/SpiffWorkflow"
-reference = "main"
-resolved_reference = "76947aa98d81826b88b2eefd05ebae4427b00e02"
+type = "directory"
+url = "../SpiffWorkflow"
 
 [[package]]
 name = "SQLAlchemy"
@@ -2157,7 +2154,7 @@ testing = ["func-timeout", "jaraco.itertools", "pytest (>=6)", "pytest-black (>=
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "7a3c07a2eef00685adbf44b6e26b740e20fc52bf85e916b6c171b13d4fcc6dc9"
+content-hash = "5288d4bb2291fc469014bda00cf8da705423a050a20d526a8a089df35c746042"
 
 [metadata.files]
 alabaster = [
