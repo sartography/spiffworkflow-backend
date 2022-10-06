@@ -59,7 +59,7 @@ Flask-SQLAlchemy = "^2.5.1"
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
 coverage = {extras = ["toml"], version = "^6.1"}
-safety = "^2.0.0"
+safety = "^2.3.1"
 mypy = ">=0.961"
 typeguard = "^2.13.2"
 xdoctest = {extras = ["colors"], version = "^1.0.1"}
