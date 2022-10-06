@@ -4,7 +4,7 @@ import os
 import random
 import string
 import uuid
-from typing import Any
+from typing import Any, TypedDict
 from typing import Dict
 from typing import Optional
 from typing import Union
@@ -68,6 +68,18 @@ from spiffworkflow_backend.services.secret_service import SecretService
 from spiffworkflow_backend.services.service_task_service import ServiceTaskService
 from spiffworkflow_backend.services.spec_file_service import SpecFileService
 from spiffworkflow_backend.services.user_service import UserService
+
+
+class TaskDataSelectOption(TypedDict):
+    value: str
+    label: str
+
+
+class ReactJsonSchemaSelectOption(TypedDict):
+    type: str
+    title: str
+    enum: list[str]
+
 
 process_api_blueprint = Blueprint("process_api", __name__)
 
@@ -920,25 +932,27 @@ def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response
         )
         # form_contents is a str
         form_dict = json.loads(form_contents)
-        task_data_key_for_select_options = form_dict["definitions"]["Color"]["anyOf"][0]
-        select_options_from_task_data = task.data.get(
-            task_data_key_for_select_options, []
-        )
 
-        def map_function(x):
-            """Map_function."""
-            return {"type": "string", "enum": [x["value"]], "title": x["label"]}
+        if task.data:
+            task_data_key_for_select_options = form_dict["definitions"]["Color"]["anyOf"][0]
+            select_options_from_task_data = task.data.get(
+                task_data_key_for_select_options, []
+            )
 
-        options_for_react_json_schema_form = list(
-            map(map_function, select_options_from_task_data)
-        )
-        form_dict["definitions"]["Color"]["anyOf"] = options_for_react_json_schema_form
-        task.form = form_dict
-        # form_dict["definitions"]["Color"]["anyOf"] = [
-        #     {"type": "string", "enum": ["blue"], "title": "Blue"},
-        #     {"type": "string", "enum": ["orange"], "title": "Orange"},
-        #     {"type": "string", "enum": ["green"], "title": "Green"},
-        # ]
+            def map_function(task_data_select_option: TaskDataSelectOption) -> ReactJsonSchemaSelectOption:
+                """Map_function."""
+                return {"type": "string", "enum": [task_data_select_option["value"]], "title": task_data_select_option["label"]}
+
+            options_for_react_json_schema_form = list(
+                map(map_function, select_options_from_task_data)
+            )
+            form_dict["definitions"]["Color"]["anyOf"] = options_for_react_json_schema_form
+            # task.form = form_dict
+            # form_dict["definitions"]["Color"]["anyOf"] = [
+            #     {"type": "string", "enum": ["blue"], "title": "Blue"},
+            #     {"type": "string", "enum": ["orange"], "title": "Orange"},
+            #     {"type": "string", "enum": ["green"], "title": "Green"},
+            # ]
 
         if form_contents:
             # task.form_schema = form_contents
