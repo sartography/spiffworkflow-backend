@@ -1390,25 +1390,28 @@ def _update_form_schema_with_task_data_as_needed(
                                     )
                                 )
 
-                            select_options_from_task_data = task_data.get(
-                                task_data_var
-                            )
+                            select_options_from_task_data = task_data.get(task_data_var)
+                            if isinstance(select_options_from_task_data, list):
+                                if all(
+                                    "value" in d and "label" in d
+                                    for d in select_options_from_task_data
+                                ):
 
-                            def map_function(
-                                task_data_select_option: TaskDataSelectOption,
-                            ) -> ReactJsonSchemaSelectOption:
-                                """Map_function."""
-                                return {
-                                    "type": "string",
-                                    "enum": [task_data_select_option["value"]],
-                                    "title": task_data_select_option["label"],
-                                }
+                                    def map_function(
+                                        task_data_select_option: TaskDataSelectOption,
+                                    ) -> ReactJsonSchemaSelectOption:
+                                        """Map_function."""
+                                        return {
+                                            "type": "string",
+                                            "enum": [task_data_select_option["value"]],
+                                            "title": task_data_select_option["label"],
+                                        }
 
-                            options_for_react_json_schema_form = list(
-                                map(map_function, select_options_from_task_data)
-                            )
+                                    options_for_react_json_schema_form = list(
+                                        map(map_function, select_options_from_task_data)
+                                    )
 
-                            in_dict[k] = options_for_react_json_schema_form
+                                    in_dict[k] = options_for_react_json_schema_form
         elif isinstance(value, dict):
             _update_form_schema_with_task_data_as_needed(value, task_data)
         elif isinstance(value, list):
