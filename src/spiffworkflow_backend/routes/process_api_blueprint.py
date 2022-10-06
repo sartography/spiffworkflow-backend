@@ -1027,9 +1027,13 @@ def script_unit_test_create(
     process_group_id: str, process_model_id: str, body: Dict[str, Union[str, bool, int]]
 ) -> flask.wrappers.Response:
     """Script_unit_test_run."""
-    bpmn_task_identifier = _get_required_parameter_or_raise("bpmn_task_identifier", body)
+    bpmn_task_identifier = _get_required_parameter_or_raise(
+        "bpmn_task_identifier", body
+    )
     input_json = _get_required_parameter_or_raise("input_json", body)
-    expected_output_json = _get_required_parameter_or_raise("expected_output_json", body)
+    expected_output_json = _get_required_parameter_or_raise(
+        "expected_output_json", body
+    )
 
     process_model = get_process_model(process_model_id, process_group_id)
     file = SpecFileService.get_files(process_model, process_model.primary_file_name)[0]
@@ -1118,7 +1122,9 @@ def script_unit_test_run(
 
     python_script = _get_required_parameter_or_raise("python_script", body)
     input_json = _get_required_parameter_or_raise("input_json", body)
-    expected_output_json = _get_required_parameter_or_raise("expected_output_json", body)
+    expected_output_json = _get_required_parameter_or_raise(
+        "expected_output_json", body
+    )
 
     result = ScriptUnitTestRunner.run_with_script_and_pre_post_contexts(
         python_script, input_json, expected_output_json
@@ -1355,8 +1361,11 @@ def _get_required_parameter_or_raise(parameter: str, post_body: dict[str, Any]) 
 
     return return_value
 
+
 # originally from: https://bitcoden.com/answers/python-nested-dictionary-update-value-where-any-nested-key-matches
-def _update_form_schema_with_task_data_as_needed(in_dict: dict, task_data: dict) -> None:
+def _update_form_schema_with_task_data_as_needed(
+    in_dict: dict, task_data: dict
+) -> None:
     """Update_nested."""
     for k, value in in_dict.items():
         if "anyOf" == k:
