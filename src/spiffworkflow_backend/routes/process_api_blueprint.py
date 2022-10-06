@@ -877,50 +877,6 @@ def process_instance_task_list(
     return make_response(jsonify(tasks), 200)
 
 
-# originally from: https://bitcoden.com/answers/python-nested-dictionary-update-value-where-any-nested-key-matches
-def update_form_schema_with_task_data_as_needed(in_dict: dict, task_data: dict) -> None:
-    """Update_nested."""
-    for k, value in in_dict.items():
-        if "anyOf" == k:
-            # value will look like the array on the right of "anyOf": ["options_from_task_data_var:awesome_options"]
-            if value.__class__.__name__ == "list":
-                if len(value) == 1:
-                    first_element_in_value_list = value[0]
-                    if first_element_in_value_list.__class__.__name__ == "str":
-                        if first_element_in_value_list.startswith(
-                            "options_from_task_data_var:"
-                        ):
-                            task_data_var = first_element_in_value_list.replace(
-                                "options_from_task_data_var:", ""
-                            )
-
-                            select_options_from_task_data = task_data.get(
-                                task_data_var, []
-                            )
-
-                            def map_function(
-                                task_data_select_option: TaskDataSelectOption,
-                            ) -> ReactJsonSchemaSelectOption:
-                                """Map_function."""
-                                return {
-                                    "type": "string",
-                                    "enum": [task_data_select_option["value"]],
-                                    "title": task_data_select_option["label"],
-                                }
-
-                            options_for_react_json_schema_form = list(
-                                map(map_function, select_options_from_task_data)
-                            )
-
-                            in_dict[k] = options_for_react_json_schema_form
-        elif isinstance(value, dict):
-            update_form_schema_with_task_data_as_needed(value, task_data)
-        elif isinstance(value, list):
-            for o in value:
-                if isinstance(o, dict):
-                    update_form_schema_with_task_data_as_needed(o, task_data)
-
-
 def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response:
     """Task_show."""
     process_instance = find_process_instance_by_id_or_raise(process_instance_id)
@@ -983,7 +939,7 @@ def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response
         form_dict = json.loads(form_contents)
 
         if task.data:
-            update_form_schema_with_task_data_as_needed(form_dict, task.data)
+            _update_form_schema_with_task_data_as_needed(form_dict, task.data)
 
         if form_contents:
             task.form_schema = form_dict
@@ -1071,9 +1027,9 @@ def script_unit_test_create(
     process_group_id: str, process_model_id: str, body: Dict[str, Union[str, bool, int]]
 ) -> flask.wrappers.Response:
     """Script_unit_test_run."""
-    bpmn_task_identifier = get_required_parameter_or_raise("bpmn_task_identifier", body)
-    input_json = get_required_parameter_or_raise("input_json", body)
-    expected_output_json = get_required_parameter_or_raise("expected_output_json", body)
+    bpmn_task_identifier = _get_required_parameter_or_raise("bpmn_task_identifier", body)
+    input_json = _get_required_parameter_or_raise("input_json", body)
+    expected_output_json = _get_required_parameter_or_raise("expected_output_json", body)
 
     process_model = get_process_model(process_model_id, process_group_id)
     file = SpecFileService.get_files(process_model, process_model.primary_file_name)[0]
@@ -1160,9 +1116,9 @@ def script_unit_test_run(
     # FIXME: We should probably clear this somewhere else but this works
     current_app.config["THREAD_LOCAL_DATA"].process_instance_id = None
 
-    python_script = get_required_parameter_or_raise("python_script", body)
-    input_json = get_required_parameter_or_raise("input_json", body)
-    expected_output_json = get_required_parameter_or_raise("expected_output_json", body)
+    python_script = _get_required_parameter_or_raise("python_script", body)
+    input_json = _get_required_parameter_or_raise("input_json", body)
+    expected_output_json = _get_required_parameter_or_raise("expected_output_json", body)
 
     result = ScriptUnitTestRunner.run_with_script_and_pre_post_contexts(
         python_script, input_json, expected_output_json
@@ -1382,7 +1338,7 @@ def delete_allowed_process_path(allowed_process_path_id: int) -> Response:
     return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
 
 
-def get_required_parameter_or_raise(parameter: str, post_body: dict[str, Any]) -> Any:
+def _get_required_parameter_or_raise(parameter: str, post_body: dict[str, Any]) -> Any:
     """Get_required_parameter_or_raise."""
     return_value = None
     if parameter in post_body:
@@ -1398,3 +1354,46 @@ def get_required_parameter_or_raise(parameter: str, post_body: dict[str, Any]) -
         )
 
     return return_value
+
+# originally from: https://bitcoden.com/answers/python-nested-dictionary-update-value-where-any-nested-key-matches
+def _update_form_schema_with_task_data_as_needed(in_dict: dict, task_data: dict) -> None:
+    """Update_nested."""
+    for k, value in in_dict.items():
+        if "anyOf" == k:
+            # value will look like the array on the right of "anyOf": ["options_from_task_data_var:awesome_options"]
+            if value.__class__.__name__ == "list":
+                if len(value) == 1:
+                    first_element_in_value_list = value[0]
+                    if first_element_in_value_list.__class__.__name__ == "str":
+                        if first_element_in_value_list.startswith(
+                            "options_from_task_data_var:"
+                        ):
+                            task_data_var = first_element_in_value_list.replace(
+                                "options_from_task_data_var:", ""
+                            )
+
+                            select_options_from_task_data = task_data.get(
+                                task_data_var, []
+                            )
+
+                            def map_function(
+                                task_data_select_option: TaskDataSelectOption,
+                            ) -> ReactJsonSchemaSelectOption:
+                                """Map_function."""
+                                return {
+                                    "type": "string",
+                                    "enum": [task_data_select_option["value"]],
+                                    "title": task_data_select_option["label"],
+                                }
+
+                            options_for_react_json_schema_form = list(
+                                map(map_function, select_options_from_task_data)
+                            )
+
+                            in_dict[k] = options_for_react_json_schema_form
+        elif isinstance(value, dict):
+            _update_form_schema_with_task_data_as_needed(value, task_data)
+        elif isinstance(value, list):
+            for o in value:
+                if isinstance(o, dict):
+                    _update_form_schema_with_task_data_as_needed(o, task_data)
