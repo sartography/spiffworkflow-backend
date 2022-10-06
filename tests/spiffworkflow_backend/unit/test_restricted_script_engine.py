@@ -1,19 +1,14 @@
 """Test_various_bpmn_constructs."""
-
 import pytest
-
 from flask.app import Flask
+from flask_bpmn.api.api_error import ApiError
 from tests.spiffworkflow_backend.helpers.base_test import BaseTest
 from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
 
 from spiffworkflow_backend.services.process_instance_processor import (
     ProcessInstanceProcessor,
 )
-from spiffworkflow_backend.services.process_instance_service import (
-    ProcessInstanceService,
-)
 
-from flask_bpmn.api.api_error import ApiError
 
 class TestOpenFile(BaseTest):
     """TestVariousBpmnConstructs."""
@@ -27,7 +22,7 @@ class TestOpenFile(BaseTest):
             bpmn_file_name="read_etc_passwd.bpmn",
             process_model_source_directory="dangerous-scripts",
         )
-        current_user = self.find_or_create_user()
+        self.find_or_create_user()
 
         process_instance = self.create_process_instance_from_process_model(
             process_model
@@ -36,9 +31,8 @@ class TestOpenFile(BaseTest):
 
         with pytest.raises(ApiError) as exception:
             processor.do_engine_steps(save=True)
-        assert f"name 'open' is not defined" in str(
-            exception.value
-        )
+        assert "name 'open' is not defined" in str(exception.value)
+
 
 class TestImportModule(BaseTest):
     """TestVariousBpmnConstructs."""
@@ -52,7 +46,7 @@ class TestImportModule(BaseTest):
             bpmn_file_name="read_env.bpmn",
             process_model_source_directory="dangerous-scripts",
         )
-        current_user = self.find_or_create_user()
+        self.find_or_create_user()
 
         process_instance = self.create_process_instance_from_process_model(
             process_model
@@ -61,7 +55,4 @@ class TestImportModule(BaseTest):
 
         with pytest.raises(ApiError) as exception:
             processor.do_engine_steps(save=True)
-        assert f"ImportError:__import__ not found" in str(
-            exception.value
-        )
-
+        assert "ImportError:__import__ not found" in str(exception.value)

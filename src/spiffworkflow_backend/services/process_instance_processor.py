@@ -1,9 +1,10 @@
 """Process_instance_processor."""
+import decimal
 import json
 import logging
 import os
 import time
-
+from datetime import datetime
 from typing import Any
 from typing import Callable
 from typing import Dict
@@ -17,9 +18,12 @@ from flask import current_app
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
 from lxml import etree  # type: ignore
+from RestrictedPython import safe_globals  # type: ignore
 from SpiffWorkflow.bpmn.exceptions import WorkflowTaskExecException  # type: ignore
-from SpiffWorkflow.exceptions import WorkflowException  # type: ignore
 from SpiffWorkflow.bpmn.parser.ValidationException import ValidationException  # type: ignore
+from SpiffWorkflow.bpmn.PythonScriptEngine import Box  # type: ignore
+from SpiffWorkflow.bpmn.PythonScriptEngine import DEFAULT_GLOBALS
+from SpiffWorkflow.bpmn.PythonScriptEngine import PythonScriptEngine
 from SpiffWorkflow.bpmn.serializer import BpmnWorkflowSerializer  # type: ignore
 from SpiffWorkflow.bpmn.specs.BpmnProcessSpec import BpmnProcessSpec  # type: ignore
 from SpiffWorkflow.bpmn.specs.events import CancelEventDefinition  # type: ignore
@@ -27,6 +31,7 @@ from SpiffWorkflow.bpmn.specs.events import EndEvent
 from SpiffWorkflow.bpmn.workflow import BpmnWorkflow  # type: ignore
 from SpiffWorkflow.dmn.parser.BpmnDmnParser import BpmnDmnParser  # type: ignore
 from SpiffWorkflow.dmn.serializer import BusinessRuleTaskConverter  # type: ignore
+from SpiffWorkflow.exceptions import WorkflowException  # type: ignore
 from SpiffWorkflow.serializer.exceptions import MissingSpecError  # type: ignore
 from SpiffWorkflow.spiff.parser.process import SpiffBpmnParser  # type: ignore
 from SpiffWorkflow.spiff.serializer import BoundaryEventConverter  # type: ignore
@@ -74,29 +79,20 @@ from spiffworkflow_backend.services.process_model_service import ProcessModelSer
 from spiffworkflow_backend.services.service_task_service import ServiceTaskService
 from spiffworkflow_backend.services.spec_file_service import SpecFileService
 from spiffworkflow_backend.services.user_service import UserService
-from spiffworkflow_backend.services.service_task_service import ServiceTaskService
-from spiffworkflow_backend.scripts.script import Script
 
 # Sorry about all this crap.  I wanted to move this thing to another file, but
 # importing a bunch of types causes circular imports.
 
-from RestrictedPython import safe_globals # type: ignore
-
-from datetime import datetime
-import time
-import decimal
-
-from SpiffWorkflow.bpmn.PythonScriptEngine import PythonScriptEngine # type: ignore
-from SpiffWorkflow.bpmn.PythonScriptEngine import Box 
-from SpiffWorkflow.bpmn.PythonScriptEngine import DEFAULT_GLOBALS
-
-DEFAULT_GLOBALS.update({
-    "datetime": datetime,
-    "time": time,
-    "decimal": decimal,
-})
+DEFAULT_GLOBALS.update(
+    {
+        "datetime": datetime,
+        "time": time,
+        "decimal": decimal,
+    }
+)
 # This will overwrite the standard builtins
 DEFAULT_GLOBALS.update(safe_globals)
+
 
 class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
     """This is a custom script processor that can be easily injected into Spiff Workflow.
@@ -104,7 +100,9 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
     It will execute python code read in from the bpmn.  It will also make any scripts in the
     scripts directory available for execution.
     """
+
     def __init__(self) -> None:
+        """__init__."""
         super().__init__(default_globals=DEFAULT_GLOBALS)
 
     def __get_augment_methods(self, task: SpiffTask) -> Dict[str, Callable]:
