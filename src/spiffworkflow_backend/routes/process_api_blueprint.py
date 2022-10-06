@@ -1361,10 +1361,10 @@ def _update_form_schema_with_task_data_as_needed(in_dict: dict, task_data: dict)
     for k, value in in_dict.items():
         if "anyOf" == k:
             # value will look like the array on the right of "anyOf": ["options_from_task_data_var:awesome_options"]
-            if value.__class__.__name__ == "list":
+            if isinstance(value, list):
                 if len(value) == 1:
                     first_element_in_value_list = value[0]
-                    if first_element_in_value_list.__class__.__name__ == "str":
+                    if isinstance(first_element_in_value_list, str):
                         if first_element_in_value_list.startswith(
                             "options_from_task_data_var:"
                         ):
