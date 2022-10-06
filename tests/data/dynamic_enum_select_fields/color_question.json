@@ -1,0 +1,28 @@
+{
+  "definitions": {
+    "Color": {
+      "title": "Color",
+      "type": "string",
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "#0000ff"
+          ],
+          "title": "Blue"
+        }
+      ]
+    }
+  },
+  "title": "Select Color",
+  "type": "object",
+  "required": [
+    "selectedColor"
+  ],
+  "properties": {
+    "selectedColor": {
+      "$ref": "#/definitions/Color",
+      "title": "Select color"
+    }
+  }
+}
