@@ -918,9 +918,17 @@ def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response
             task.data,
             process_model_with_form,
         )
+        # form_contents is a str
+        form_dict = json.loads(form_contents)
+        form_dict["definitions"]["Color"]["anyOf"] = [
+            {"type": "string", "enum": ["blue"], "title": "Blue"},
+            {"type": "string", "enum": ["green"], "title": "Green"},
+            {"type": "string", "enum": ["orange"], "title": "Orange"},
+        ]
 
         if form_contents:
-            task.form_schema = form_contents
+            # task.form_schema = form_contents
+            task.form_schema = json.dumps(form_dict)
 
         if form_ui_schema_file_name:
             ui_form_contents = prepare_form_data(

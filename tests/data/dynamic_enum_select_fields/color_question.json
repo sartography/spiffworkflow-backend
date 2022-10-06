@@ -6,9 +6,7 @@
       "anyOf": [
         {
           "type": "string",
-          "enum": [
-            "#0000ff"
-          ],
+          "enum": ["#0000ff"],
           "title": "Blue"
         }
       ]
@@ -16,9 +14,7 @@
   },
   "title": "Select Color",
   "type": "object",
-  "required": [
-    "selectedColor"
-  ],
+  "required": ["selectedColor"],
   "properties": {
     "selectedColor": {
       "$ref": "#/definitions/Color",
