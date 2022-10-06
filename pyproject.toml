@@ -53,7 +53,7 @@ APScheduler = "^3.9.1"
 types-requests = "^2.28.6"
 Jinja2 = "^3.1.2"
 RestrictedPython = "^5.2"
-Flask-SQLAlchemy = "^2.5.1"
+Flask-SQLAlchemy = "^3.0.0"
 
 
 [tool.poetry.dev-dependencies]
