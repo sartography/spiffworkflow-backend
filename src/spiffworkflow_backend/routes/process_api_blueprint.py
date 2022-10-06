@@ -920,15 +920,30 @@ def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response
         )
         # form_contents is a str
         form_dict = json.loads(form_contents)
-        form_dict["definitions"]["Color"]["anyOf"] = [
-            {"type": "string", "enum": ["blue"], "title": "Blue"},
-            {"type": "string", "enum": ["green"], "title": "Green"},
-            {"type": "string", "enum": ["orange"], "title": "Orange"},
-        ]
+        task_data_key_for_select_options = form_dict["definitions"]["Color"]["anyOf"][0]
+        select_options_from_task_data = task.data.get(
+            task_data_key_for_select_options, []
+        )
+
+        def map_function(x):
+            """Map_function."""
+            return {"type": "string", "enum": [x["value"]], "title": x["label"]}
+
+        options_for_react_json_schema_form = list(
+            map(map_function, select_options_from_task_data)
+        )
+        form_dict["definitions"]["Color"]["anyOf"] = options_for_react_json_schema_form
+        task.form = form_dict
+        # form_dict["definitions"]["Color"]["anyOf"] = [
+        #     {"type": "string", "enum": ["blue"], "title": "Blue"},
+        #     {"type": "string", "enum": ["orange"], "title": "Orange"},
+        #     {"type": "string", "enum": ["green"], "title": "Green"},
+        # ]
 
         if form_contents:
             # task.form_schema = form_contents
-            task.form_schema = json.dumps(form_dict)
+            # task.form_schema = json.dumps(form_dict)
+            task.form_schema = form_dict
 
         if form_ui_schema_file_name:
             ui_form_contents = prepare_form_data(

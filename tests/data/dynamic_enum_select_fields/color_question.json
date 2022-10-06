@@ -3,13 +3,7 @@
     "Color": {
       "title": "Color",
       "type": "string",
-      "anyOf": [
-        {
-          "type": "string",
-          "enum": ["#0000ff"],
-          "title": "Blue"
-        }
-      ]
+      "anyOf": ["awesome_color_options"]
     }
   },
   "title": "Select Color",

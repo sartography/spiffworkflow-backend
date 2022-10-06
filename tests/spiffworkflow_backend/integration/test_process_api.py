@@ -991,6 +991,10 @@ class TestProcessApi(BaseTest):
             headers=self.logged_in_headers(user),
         )
         assert response.json is not None
+        assert (
+            response.json["form_schema"]["definitions"]["Color"]["anyOf"][1]["title"]
+            == "Green"
+        )
         print(f"response.json: {response.json}")
 
     def test_process_instance_list_with_default_list(
