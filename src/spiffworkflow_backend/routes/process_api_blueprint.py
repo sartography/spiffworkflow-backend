@@ -878,10 +878,10 @@ def process_instance_task_list(
 
 
 # originally from: https://bitcoden.com/answers/python-nested-dictionary-update-value-where-any-nested-key-matches
-def update_nested(task_data: dict, in_dict: dict, key: str) -> None:
+def update_form_schema_with_task_data_as_needed(in_dict: dict, task_data: dict) -> None:
     """Update_nested."""
     for k, value in in_dict.items():
-        if key == k:
+        if "anyOf" == k:
             # value will look like the array on the right of "anyOf": ["options_from_task_data_var:awesome_options"]
             if value.__class__.__name__ == "list":
                 if len(value) == 1:
@@ -914,11 +914,11 @@ def update_nested(task_data: dict, in_dict: dict, key: str) -> None:
 
                             in_dict[k] = options_for_react_json_schema_form
         elif isinstance(value, dict):
-            update_nested(task_data, value, key)
+            update_form_schema_with_task_data_as_needed(value, task_data)
         elif isinstance(value, list):
             for o in value:
                 if isinstance(o, dict):
-                    update_nested(task_data, o, key)
+                    update_form_schema_with_task_data_as_needed(o, task_data)
 
 
 def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response:
@@ -983,11 +983,9 @@ def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response
         form_dict = json.loads(form_contents)
 
         if task.data:
-            update_nested(task.data, form_dict, "anyOf")
+            update_form_schema_with_task_data_as_needed(form_dict, task.data)
 
         if form_contents:
-            # task.form_schema = form_contents
-            # task.form_schema = json.dumps(form_dict)
             task.form_schema = form_dict
 
         if form_ui_schema_file_name:

@@ -985,7 +985,6 @@ class TestProcessApi(BaseTest):
         )
         assert len(active_tasks) == 1
         active_task = active_tasks[0]
-        print(f"active_task.task_id: {active_task.task_id}")
         response = client.get(
             f"/v1.0/tasks/{process_instance_id}/{active_task.task_id}",
             headers=self.logged_in_headers(user),
@@ -995,7 +994,6 @@ class TestProcessApi(BaseTest):
             response.json["form_schema"]["definitions"]["Color"]["anyOf"][1]["title"]
             == "Green"
         )
-        print(f"response.json: {response.json}")
 
     def test_process_instance_list_with_default_list(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
