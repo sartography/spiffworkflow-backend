@@ -1,8 +1,10 @@
 """Process_instance_processor."""
+import decimal
 import json
 import logging
 import os
 import time
+from datetime import datetime
 from typing import Any
 from typing import Callable
 from typing import Dict
@@ -16,9 +18,11 @@ from flask import current_app
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
 from lxml import etree  # type: ignore
+from RestrictedPython import safe_globals  # type: ignore
 from SpiffWorkflow.bpmn.exceptions import WorkflowTaskExecException  # type: ignore
 from SpiffWorkflow.bpmn.parser.ValidationException import ValidationException  # type: ignore
 from SpiffWorkflow.bpmn.PythonScriptEngine import Box  # type: ignore
+from SpiffWorkflow.bpmn.PythonScriptEngine import DEFAULT_GLOBALS
 from SpiffWorkflow.bpmn.PythonScriptEngine import PythonScriptEngine
 from SpiffWorkflow.bpmn.serializer import BpmnWorkflowSerializer  # type: ignore
 from SpiffWorkflow.bpmn.specs.BpmnProcessSpec import BpmnProcessSpec  # type: ignore
@@ -76,9 +80,18 @@ from spiffworkflow_backend.services.service_task_service import ServiceTaskServi
 from spiffworkflow_backend.services.spec_file_service import SpecFileService
 from spiffworkflow_backend.services.user_service import UserService
 
+# Sorry about all this crap.  I wanted to move this thing to another file, but
+# importing a bunch of types causes circular imports.
 
-class ProcessInstanceProcessorError(Exception):
-    """ProcessInstanceProcessorError."""
+DEFAULT_GLOBALS.update(
+    {
+        "datetime": datetime,
+        "time": time,
+        "decimal": decimal,
+    }
+)
+# This will overwrite the standard builtins
+DEFAULT_GLOBALS.update(safe_globals)
 
 
 class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
@@ -87,6 +100,10 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
     It will execute python code read in from the bpmn.  It will also make any scripts in the
     scripts directory available for execution.
     """
+
+    def __init__(self) -> None:
+        """__init__."""
+        super().__init__(default_globals=DEFAULT_GLOBALS)
 
     def __get_augment_methods(self, task: SpiffTask) -> Dict[str, Callable]:
         """__get_augment_methods."""
@@ -141,6 +158,10 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
     def available_service_task_external_methods(self) -> Dict[str, Any]:
         """Returns available service task external methods."""
         return ServiceTaskService.scripting_additions()
+
+
+class ProcessInstanceProcessorError(Exception):
+    """ProcessInstanceProcessorError."""
 
 
 class MyCustomParser(BpmnDmnParser):  # type: ignore
