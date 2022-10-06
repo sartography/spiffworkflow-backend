@@ -52,7 +52,7 @@
     <bpmn:scriptTask id="set_topic" name="Set Topic" scriptFormat="python">
       <bpmn:incoming>Flow_10conab</bpmn:incoming>
       <bpmn:outgoing>Flow_1ihr88m</bpmn:outgoing>
-      <bpmn:script>import time
+      <bpmn:script>
 timestamp = time.time()
 the_topica = f"first_conversation_a_{timestamp}"
 the_topicb = f"first_conversation_b_{timestamp}"

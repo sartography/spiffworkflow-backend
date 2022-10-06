@@ -24,10 +24,11 @@
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_0niwe1y</bpmn:incoming>
       <bpmn:outgoing>Flow_0htxke7</bpmn:outgoing>
-      <bpmn:script>if 'hey' in locals():
-  hey = True
-else:
-  something_else = True</bpmn:script>
+      <bpmn:script>try:
+    if not hey:
+        hey = True
+except:
+    something_else = True</bpmn:script>
     </bpmn:scriptTask>
     <bpmn:sequenceFlow id="Flow_0niwe1y" sourceRef="Activity_03fldr6" targetRef="script_with_unit_test_id" />
     <bpmn:scriptTask id="Activity_03fldr6" name="Set var">

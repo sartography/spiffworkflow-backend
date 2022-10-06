@@ -58,7 +58,7 @@
     <bpmn:scriptTask id="set_topic_one" name="Set Topic One" scriptFormat="python">
       <bpmn:incoming>Flow_10conab</bpmn:incoming>
       <bpmn:outgoing>Flow_1ihr88m</bpmn:outgoing>
-      <bpmn:script>import time
+      <bpmn:script>
 timestamp = time.time()
 topic_one_a = f"topic_one_a_conversation_{timestamp}"
 topic_one_b = f"topic_one_b_conversation_{timestamp}"
@@ -80,7 +80,7 @@ del time</bpmn:script>
     <bpmn:scriptTask id="set_topic_two" name="Set Topic Two">
       <bpmn:incoming>Flow_0n4m9ti</bpmn:incoming>
       <bpmn:outgoing>Flow_0q3clix</bpmn:outgoing>
-      <bpmn:script>import time
+      <bpmn:script>
 timestamp = time.time()
 topic_two_a = f"topic_two_a_conversation_{timestamp}"
 topic_two_b = f"topic_two_b_conversation_{timestamp}"

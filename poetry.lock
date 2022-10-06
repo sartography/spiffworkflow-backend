@@ -81,10 +81,7 @@ python-versions = ">=3.7.2"
 [package.dependencies]
 lazy-object-proxy = ">=1.4.0"
 typing-extensions = {version = ">=3.10", markers = "python_version < \"3.10\""}
-wrapt = [
-    {version = ">=1.11,<2", markers = "python_version < \"3.11\""},
-    {version = ">=1.14,<2", markers = "python_version >= \"3.11\""},
-]
+wrapt = {version = ">=1.11,<2", markers = "python_version < \"3.11\""}
 
 [[package]]
 name = "attrs"
@@ -719,7 +716,7 @@ six = ">=1.3.0"
 docs = ["sphinx"]
 
 [[package]]
-name = "Flask-SQLAlchemy"
+name = "flask-sqlalchemy"
 version = "2.5.1"
 description = "Adds SQLAlchemy support to your Flask application."
 category = "main"
@@ -796,7 +793,7 @@ tornado = ["tornado (>=0.2)"]
 
 [[package]]
 name = "identify"
-version = "2.5.5"
+version = "2.5.6"
 description = "File identification library for Python"
 category = "dev"
 optional = false
@@ -1419,7 +1416,7 @@ pycryptodome = ["pyasn1", "pycryptodome (>=3.3.1,<4.0.0)"]
 
 [[package]]
 name = "python-keycloak"
-version = "2.5.0"
+version = "2.6.0"
 description = "python-keycloak is a Python package providing access to the Keycloak API."
 category = "main"
 optional = false
@@ -1455,14 +1452,14 @@ tzdata = {version = "*", markers = "python_version >= \"3.6\""}
 
 [[package]]
 name = "pyupgrade"
-version = "2.38.2"
+version = "2.38.4"
 description = "A tool to automatically upgrade syntax for newer versions."
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 
 [package.dependencies]
-tokenize-rt = ">=3.2.0"
+tokenize-rt = "<5"
 
 [[package]]
 name = "PyYAML"
@@ -1521,6 +1518,18 @@ python-versions = "*"
 requests = ">=2.0.1,<3.0.0"
 
 [[package]]
+name = "RestrictedPython"
+version = "5.2"
+description = "RestrictedPython is a defined subset of the Python language which allows to provide a program input into a trusted environment."
+category = "main"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <3.11"
+
+[package.extras]
+docs = ["Sphinx", "sphinx-rtd-theme"]
+test = ["pytest", "pytest-mock"]
+
+[[package]]
 name = "restructuredtext-lint"
 version = "1.4.0"
 description = "reStructuredText linter"
@@ -1567,7 +1576,7 @@ python-versions = ">=3.5"
 
 [[package]]
 name = "safety"
-version = "2.2.0"
+version = "2.2.1"
 description = "Checks installed dependencies for known vulnerabilities and licenses."
 category = "dev"
 optional = false
@@ -1827,7 +1836,7 @@ test = ["pytest"]
 [[package]]
 name = "SpiffWorkflow"
 version = "1.1.7"
-description = ""
+description = "A workflow framework and BPMN/DMN Processor"
 category = "main"
 optional = false
 python-versions = "*"
@@ -1845,7 +1854,7 @@ pytz = "*"
 type = "git"
 url = "https://github.com/sartography/SpiffWorkflow"
 reference = "main"
-resolved_reference = "76947aa98d81826b88b2eefd05ebae4427b00e02"
+resolved_reference = "804889ce3b993c909ea795047dd18ea0ed6e5a99"
 
 [[package]]
 name = "SQLAlchemy"
@@ -1959,7 +1968,7 @@ test = ["mypy", "pytest", "typing-extensions"]
 
 [[package]]
 name = "types-pytz"
-version = "2022.2.1.0"
+version = "2022.4.0.0"
 description = "Typing stubs for pytz"
 category = "main"
 optional = false
@@ -1967,7 +1976,7 @@ python-versions = "*"
 
 [[package]]
 name = "types-requests"
-version = "2.28.11"
+version = "2.28.11.1"
 description = "Typing stubs for requests"
 category = "main"
 optional = false
@@ -2156,8 +2165,8 @@ testing = ["func-timeout", "jaraco.itertools", "pytest (>=6)", "pytest-black (>=
 
 [metadata]
 lock-version = "1.1"
-python-versions = "^3.9"
-content-hash = "7a3c07a2eef00685adbf44b6e26b740e20fc52bf85e916b6c171b13d4fcc6dc9"
+python-versions = ">=3.9,<3.11"
+content-hash = "f64a06b52db52800be7400b19d7ab7906a54d5b3ecc625dd2fc886e69ff775ac"
 
 [metadata.files]
 alabaster = [
@@ -2433,7 +2442,7 @@ Flask-RESTful = [
     {file = "Flask-RESTful-0.3.9.tar.gz", hash = "sha256:ccec650b835d48192138c85329ae03735e6ced58e9b2d9c2146d6c84c06fa53e"},
     {file = "Flask_RESTful-0.3.9-py2.py3-none-any.whl", hash = "sha256:4970c49b6488e46c520b325f54833374dc2b98e211f1b272bd4b0c516232afe2"},
 ]
-Flask-SQLAlchemy = [
+flask-sqlalchemy = [
     {file = "Flask-SQLAlchemy-2.5.1.tar.gz", hash = "sha256:2bda44b43e7cacb15d4e05ff3cc1f8bc97936cc464623424102bfc2c35e95912"},
     {file = "Flask_SQLAlchemy-2.5.1-py2.py3-none-any.whl", hash = "sha256:f12c3d4cc5cc7fdcc148b9527ea05671718c3ea45d50c7e732cceb33f574b390"},
 ]
@@ -2510,8 +2519,8 @@ gunicorn = [
     {file = "gunicorn-20.1.0.tar.gz", hash = "sha256:e0a968b5ba15f8a328fdfd7ab1fcb5af4470c28aaf7e55df02a99bc13138e6e8"},
 ]
 identify = [
-    {file = "identify-2.5.5-py2.py3-none-any.whl", hash = "sha256:ef78c0d96098a3b5fe7720be4a97e73f439af7cf088ebf47b620aeaa10fadf97"},
-    {file = "identify-2.5.5.tar.gz", hash = "sha256:322a5699daecf7c6fd60e68852f36f2ecbb6a36ff6e6e973e0d2bb6fca203ee6"},
+    {file = "identify-2.5.6-py2.py3-none-any.whl", hash = "sha256:b276db7ec52d7e89f5bc4653380e33054ddc803d25875952ad90b0f012cbcdaa"},
+    {file = "identify-2.5.6.tar.gz", hash = "sha256:6c32dbd747aa4ceee1df33f25fed0b0f6e0d65721b15bd151307ff7056d50245"},
 ]
 idna = [
     {file = "idna-3.4-py3-none-any.whl", hash = "sha256:90b77e79eaa3eba6de819a0c442c0b4ceefc341a7a2ab77d7562bf49f425c5c2"},
@@ -2978,8 +2987,8 @@ python-jose = [
     {file = "python_jose-3.3.0-py2.py3-none-any.whl", hash = "sha256:9b1376b023f8b298536eedd47ae1089bcdb848f1535ab30555cd92002d78923a"},
 ]
 python-keycloak = [
-    {file = "python-keycloak-2.5.0.tar.gz", hash = "sha256:b401d2c67dc1b9e2dbb3309ef2012c2d178584925dc14bd07f6bd2416e5e3ff8"},
-    {file = "python_keycloak-2.5.0-py3-none-any.whl", hash = "sha256:ed1c1935ceaf5d7f928b1b3ab945130f7d54685e4b17da053dbc7bfee0c0271e"},
+    {file = "python-keycloak-2.6.0.tar.gz", hash = "sha256:08c530ff86f631faccb8033d9d9345cc3148cb2cf132ff7564f025292e4dbd96"},
+    {file = "python_keycloak-2.6.0-py3-none-any.whl", hash = "sha256:a1ce102b978beb56d385319b3ca20992b915c2c12d15a2d0c23f1104882f3fb6"},
 ]
 pytz = [
     {file = "pytz-2022.4-py2.py3-none-any.whl", hash = "sha256:2c0784747071402c6e99f0bafdb7da0fa22645f06554c7ae06bf6358897e9c91"},
@@ -2990,8 +2999,8 @@ pytz-deprecation-shim = [
     {file = "pytz_deprecation_shim-0.1.0.post0.tar.gz", hash = "sha256:af097bae1b616dde5c5744441e2ddc69e74dfdcb0c263129610d85b87445a59d"},
 ]
 pyupgrade = [
-    {file = "pyupgrade-2.38.2-py2.py3-none-any.whl", hash = "sha256:41bb9a9fd48fe57163b0dacffff433d6d5a63a0f7c2402918917b5f1a533342b"},
-    {file = "pyupgrade-2.38.2.tar.gz", hash = "sha256:a5d778c9de0b53975c6a9eac2d0df5adfad244a9f7d7993d8a114223ebbda367"},
+    {file = "pyupgrade-2.38.4-py2.py3-none-any.whl", hash = "sha256:944ff993c396ddc2b9012eb3de4cda138eb4c149b22c6c560d4c8bfd0e180982"},
+    {file = "pyupgrade-2.38.4.tar.gz", hash = "sha256:1eb43a49f416752929741ba4d706bf3f33593d3cac9bdc217fc1ef55c047c1f4"},
 ]
 PyYAML = [
     {file = "PyYAML-6.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:d4db7c7aef085872ef65a8fd7d6d09a14ae91f691dec3e87ee5ee0539d516f53"},
@@ -3123,6 +3132,10 @@ requests-toolbelt = [
     {file = "requests-toolbelt-0.9.1.tar.gz", hash = "sha256:968089d4584ad4ad7c171454f0a5c6dac23971e9472521ea3b6d49d610aa6fc0"},
     {file = "requests_toolbelt-0.9.1-py2.py3-none-any.whl", hash = "sha256:380606e1d10dc85c3bd47bf5a6095f815ec007be7a8b69c878507068df059e6f"},
 ]
+RestrictedPython = [
+    {file = "RestrictedPython-5.2-py2.py3-none-any.whl", hash = "sha256:fdf8621034c5dcb990a2a198f232f66b2d48866dd16d848e00ac7d187ae452ba"},
+    {file = "RestrictedPython-5.2.tar.gz", hash = "sha256:634da1f6c5c122a262f433b083ee3d17a9a039f8f1b3778597efb47461cd361b"},
+]
 restructuredtext-lint = [
     {file = "restructuredtext_lint-1.4.0.tar.gz", hash = "sha256:1b235c0c922341ab6c530390892eb9e92f90b9b75046063e047cacfb0f050c45"},
 ]
@@ -3167,8 +3180,8 @@ rsa = [
     {file = "ruamel.yaml.clib-0.2.6.tar.gz", hash = "sha256:4ff604ce439abb20794f05613c374759ce10e3595d1867764dd1ae675b85acbd"},
 ]
 safety = [
-    {file = "safety-2.2.0-py3-none-any.whl", hash = "sha256:b1a0f4c34fb41c502a7a5c54774c18376da382bc9d866ee26b39b2c747c0de40"},
-    {file = "safety-2.2.0.tar.gz", hash = "sha256:6745de12acbd60a58001fe66cb540355187d7b991b30104d9ef14ff4e4826073"},
+    {file = "safety-2.2.1-py3-none-any.whl", hash = "sha256:b0049b3f0af4128834f6bc5e6cd23a20ccc28303d6c92cbc019b71f1f06bc038"},
+    {file = "safety-2.2.1.tar.gz", hash = "sha256:d8b48c46ac6628bb83441b7dddc4756cfe2582abe13a112ee6e4ef1a34aad032"},
 ]
 sentry-sdk = [
     {file = "sentry-sdk-1.9.0.tar.gz", hash = "sha256:f185c53496d79b280fe5d9d21e6572aee1ab802d3354eb12314d216cfbaa8d30"},
@@ -3324,12 +3337,12 @@ typeguard = [
     {file = "typeguard-2.13.3.tar.gz", hash = "sha256:00edaa8da3a133674796cf5ea87d9f4b4c367d77476e185e80251cc13dfbb8c4"},
 ]
 types-pytz = [
-    {file = "types-pytz-2022.2.1.0.tar.gz", hash = "sha256:47cfb19c52b9f75896440541db392fd312a35b279c6307a531db71152ea63e2b"},
-    {file = "types_pytz-2022.2.1.0-py3-none-any.whl", hash = "sha256:50ead2254b524a3d4153bc65d00289b66898060d2938e586170dce918dbaf3b3"},
+    {file = "types-pytz-2022.4.0.0.tar.gz", hash = "sha256:17d66e4b16e80ceae0787726f3a22288df7d3f9fdebeb091dc64b92c0e4ea09d"},
+    {file = "types_pytz-2022.4.0.0-py3-none-any.whl", hash = "sha256:950b0f3d64ed5b03a3e29c1e38fe2be8371c933c8e97922d0352345336eb8af4"},
 ]
 types-requests = [
-    {file = "types-requests-2.28.11.tar.gz", hash = "sha256:7ee827eb8ce611b02b5117cfec5da6455365b6a575f5e3ff19f655ba603e6b4e"},
-    {file = "types_requests-2.28.11-py3-none-any.whl", hash = "sha256:af5f55e803cabcfb836dad752bd6d8a0fc8ef1cd84243061c0e27dee04ccf4fd"},
+    {file = "types-requests-2.28.11.1.tar.gz", hash = "sha256:02b1806c5b9904edcd87fa29236164aea0e6cdc4d93ea020cd615ef65cb43d65"},
+    {file = "types_requests-2.28.11.1-py3-none-any.whl", hash = "sha256:1ff2c1301f6fe58b5d1c66cdf631ca19734cb3b1a4bbadc878d75557d183291a"},
 ]
 types-urllib3 = [
     {file = "types-urllib3-1.26.25.tar.gz", hash = "sha256:5aef0e663724eef924afa8b320b62ffef2c1736c1fa6caecfc9bc6c8ae2c3def"},
