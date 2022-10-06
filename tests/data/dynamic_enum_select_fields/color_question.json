@@ -3,7 +3,7 @@
     "Color": {
       "title": "Color",
       "type": "string",
-      "anyOf": ["awesome_color_options"]
+      "anyOf": ["options_from_task_data_var:awesome_color_options"]
     }
   },
   "title": "Select Color",

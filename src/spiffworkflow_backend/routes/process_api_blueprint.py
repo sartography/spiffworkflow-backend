@@ -878,17 +878,47 @@ def process_instance_task_list(
 
 
 # originally from: https://bitcoden.com/answers/python-nested-dictionary-update-value-where-any-nested-key-matches
-def update_nested(in_dict, key, value):
+def update_nested(task_data: dict, in_dict: dict, key: str) -> None:
     """Update_nested."""
-    for k, v in in_dict.items():
+    for k, value in in_dict.items():
         if key == k:
-            in_dict[k] = value
-        elif isinstance(v, dict):
-            update_nested(v, key, value)
-        elif isinstance(v, list):
-            for o in v:
+            # value will look like the array on the right of "anyOf": ["options_from_task_data_var:awesome_options"]
+            if value.__class__.__name__ == "list":
+                if len(value) == 1:
+                    first_element_in_value_list = value[0]
+                    if first_element_in_value_list.__class__.__name__ == "str":
+                        if first_element_in_value_list.startswith(
+                            "options_from_task_data_var:"
+                        ):
+                            task_data_var = first_element_in_value_list.replace(
+                                "options_from_task_data_var:", ""
+                            )
+
+                            select_options_from_task_data = task_data.get(
+                                task_data_var, []
+                            )
+
+                            def map_function(
+                                task_data_select_option: TaskDataSelectOption,
+                            ) -> ReactJsonSchemaSelectOption:
+                                """Map_function."""
+                                return {
+                                    "type": "string",
+                                    "enum": [task_data_select_option["value"]],
+                                    "title": task_data_select_option["label"],
+                                }
+
+                            options_for_react_json_schema_form = list(
+                                map(map_function, select_options_from_task_data)
+                            )
+
+                            in_dict[k] = options_for_react_json_schema_form
+        elif isinstance(value, dict):
+            update_nested(task_data, value, key)
+        elif isinstance(value, list):
+            for o in value:
                 if isinstance(o, dict):
-                    update_nested(o, key, value)
+                    update_nested(task_data, o, key)
 
 
 def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response:
@@ -953,30 +983,7 @@ def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response
         form_dict = json.loads(form_contents)
 
         if task.data:
-            task_data_key_for_select_options = form_dict["definitions"]["Color"][
-                "anyOf"
-            ][0]
-            select_options_from_task_data = task.data.get(
-                task_data_key_for_select_options, []
-            )
-            def map_function(
-                task_data_select_option: TaskDataSelectOption,
-            ) -> ReactJsonSchemaSelectOption:
-                """Map_function."""
-                return {
-                    "type": "string",
-                    "enum": [task_data_select_option["value"]],
-                    "title": task_data_select_option["label"],
-                }
-
-            options_for_react_json_schema_form = list(
-                map(map_function, select_options_from_task_data)
-            )
-            update_nested(form_dict, 'anyOf', options_for_react_json_schema_form)
-
-            # form_dict["definitions"]["Color"][
-            #     "anyOf"
-            # ] = options_for_react_json_schema_form
+            update_nested(task.data, form_dict, "anyOf")
 
         if form_contents:
             # task.form_schema = form_contents
