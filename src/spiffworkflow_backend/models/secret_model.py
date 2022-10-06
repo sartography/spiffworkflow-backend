@@ -63,4 +63,3 @@ class SecretAllowedProcessSchema(Schema):
 
         model = SecretAllowedProcessPathModel
         fields = ["id", "secret_id", "allowed_relative_path"]
-

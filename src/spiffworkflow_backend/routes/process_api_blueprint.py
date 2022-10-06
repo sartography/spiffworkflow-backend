@@ -1313,29 +1313,33 @@ def add_allowed_process_path(body: dict) -> Response:
 
 
 def allowed_process_path_get(allowed_process_path_id: int) -> Response:
-    """Get allowed process path by id"""
-    allowed_process_path = SecretService.get_secret_allowed_process(allowed_process_path_id)
+    """Get allowed process path by id."""
+    allowed_process_path = SecretService.get_secret_allowed_process(
+        allowed_process_path_id
+    )
     assert allowed_process_path
     return Response(
         json.dumps(SecretAllowedProcessSchema().dump(allowed_process_path)),
         status=200,
-        mimetype="application/json"
+        mimetype="application/json",
     )
 
 
-def allowed_process_path_update(allowed_process_path_id: int, body: dict[str, Any]) -> Response:
-    """Update an existing allowed process path"""
+def allowed_process_path_update(
+    allowed_process_path_id: int, body: dict[str, Any]
+) -> Response:
+    """Update an existing allowed process path."""
     allowed_process_path = SecretService.update_allowed_process_path(
         allowed_process_path_id,
-        body['secret_id'],
-        body['allowed_relative_path'],
-        g.user.id
+        body["secret_id"],
+        body["allowed_relative_path"],
+        g.user.id,
     )
     assert allowed_process_path
     return Response(
         json.dumps(SecretAllowedProcessSchema().dump(allowed_process_path)),
         status=200,
-        mimetype="application/json"
+        mimetype="application/json",
     )
 
 
