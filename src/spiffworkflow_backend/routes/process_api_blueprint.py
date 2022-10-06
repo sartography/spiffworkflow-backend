@@ -1381,8 +1381,17 @@ def _update_form_schema_with_task_data_as_needed(
                                 "options_from_task_data_var:", ""
                             )
 
+                            if task_data_var not in task_data:
+                                raise (
+                                    ApiError(
+                                        code="missing_task_data_var",
+                                        message=f"Task data is missing variable: {task_data_var}",
+                                        status_code=500,
+                                    )
+                                )
+
                             select_options_from_task_data = task_data.get(
-                                task_data_var, []
+                                task_data_var
                             )
 
                             def map_function(
