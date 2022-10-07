@@ -18,25 +18,22 @@ class AuthorizationService:
         principal: PrincipalModel, permission: str, target_uri: str
     ) -> bool:
         """Has_permission."""
-        permission_assignments = (
+        permission_assignment = (
             PermissionAssignmentModel.query.filter_by(
                 principal_id=principal.id, permission=permission
             )
             .join(PermissionTargetModel)
             .filter_by(uri=target_uri)
-            .all()
+            .first()
         )
-        if len(permission_assignments) > 1:
-            raise Exception(
-                "Multiple permission assignments found for query. That should not be possible."
-            )
-        for permission_assignment in permission_assignments:
-            if permission_assignment.grant_type.value == "permit":
-                return True
-            elif permission_assignment.grant_type.value == "deny":
-                return False
-
-        return False
+        if permission_assignment is None:
+            return False
+        if permission_assignment.grant_type.value == "permit":
+            return True
+        elif permission_assignment.grant_type.value == "deny":
+            return False
+        else:
+            raise Exception("Unknown grant type")
 
     # def refresh_token(self, token: str) -> str:
     #     """Refresh_token."""
