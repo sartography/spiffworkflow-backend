@@ -28,46 +28,6 @@ class AuthorizationService:
             open_id_client_secret_key,
         )
 
-    def get_user_info_from_id_token(self, token: str) -> dict:
-        """This seems to work with basic tokens too."""
-        (
-            open_id_server_url,
-            open_id_client_id,
-            open_id_realm_name,
-            open_id_client_secret_key,
-        ) = AuthorizationService.get_open_id_args()
-
-        # backend_basic_auth_string = f"{open_id_client_id}:{open_id_client_secret_key}"
-        # backend_basic_auth_bytes = bytes(backend_basic_auth_string, encoding="ascii")
-        # backend_basic_auth = base64.b64encode(backend_basic_auth_bytes)
-
-        headers = {"Authorization": f"Bearer {token}"}
-
-        request_url = f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/userinfo"
-        try:
-            request_response = requests.get(request_url, headers=headers)
-        except Exception as e:
-            current_app.logger.error(f"Exception in get_user_info_from_id_token: {e}")
-            raise ApiError(
-                code="token_error",
-                message=f"Exception in get_user_info_from_id_token: {e}",
-                status_code=401,
-            ) from e
-
-        if request_response.status_code == 401:
-            raise ApiError(
-                code="invalid_token", message="Please login", status_code=401
-            )
-        elif request_response.status_code == 200:
-            user_info: dict = json.loads(request_response.text)
-            return user_info
-
-        raise ApiError(
-            code="user_info_error",
-            message="Cannot get user info in get_user_info_from_id_token",
-            status_code=401,
-        )
-
     # def refresh_token(self, token: str) -> str:
     #     """Refresh_token."""
     #     # if isinstance(token, str):

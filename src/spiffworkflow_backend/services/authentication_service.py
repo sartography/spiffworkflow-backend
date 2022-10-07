@@ -12,6 +12,8 @@ from flask import redirect
 from flask_bpmn.api.api_error import ApiError
 from werkzeug.wrappers.response import Response
 
+from spiffworkflow_backend.services.authorization_service import AuthorizationService
+
 
 def get_open_id_args() -> tuple:
     """Get_open_id_args."""
@@ -43,6 +45,47 @@ class PublicAuthenticationService:
     It uses a separate public open_id client: spiffworkflow-frontend
     Used during development to make testing easy.
     """
+
+    @staticmethod
+    def get_user_info_from_id_token(token: str) -> dict:
+        """This seems to work with basic tokens too."""
+        (
+            open_id_server_url,
+            open_id_client_id,
+            open_id_realm_name,
+            open_id_client_secret_key,
+        ) = AuthorizationService.get_open_id_args()
+
+        # backend_basic_auth_string = f"{open_id_client_id}:{open_id_client_secret_key}"
+        # backend_basic_auth_bytes = bytes(backend_basic_auth_string, encoding="ascii")
+        # backend_basic_auth = base64.b64encode(backend_basic_auth_bytes)
+
+        headers = {"Authorization": f"Bearer {token}"}
+
+        request_url = f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/userinfo"
+        try:
+            request_response = requests.get(request_url, headers=headers)
+        except Exception as e:
+            current_app.logger.error(f"Exception in get_user_info_from_id_token: {e}")
+            raise ApiError(
+                code="token_error",
+                message=f"Exception in get_user_info_from_id_token: {e}",
+                status_code=401,
+            ) from e
+
+        if request_response.status_code == 401:
+            raise ApiError(
+                code="invalid_token", message="Please login", status_code=401
+            )
+        elif request_response.status_code == 200:
+            user_info: dict = json.loads(request_response.text)
+            return user_info
+
+        raise ApiError(
+            code="user_info_error",
+            message="Cannot get user info in get_user_info_from_id_token",
+            status_code=401,
+        )
 
     def get_backend_url(self) -> str:
         """Get_backend_url."""

@@ -17,7 +17,6 @@ from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.services.authentication_service import (
     PublicAuthenticationService,
 )
-from spiffworkflow_backend.services.authorization_service import AuthorizationService
 from spiffworkflow_backend.services.user_service import UserService
 
 """
@@ -59,7 +58,7 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[Union[str, i
 
             elif "iss" in decoded_token.keys():
                 try:
-                    user_info = AuthorizationService().get_user_info_from_id_token(
+                    user_info = PublicAuthenticationService.get_user_info_from_id_token(
                         token
                     )
                 except ApiError as ae:
@@ -142,12 +141,12 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[Union[str, i
 def validate_scope(token: Any) -> bool:
     """Validate_scope."""
     print("validate_scope")
-    # token = AuthorizationService().refresh_token(token)
-    # user_info = AuthorizationService().get_user_info_from_public_access_token(token)
-    # bearer_token = AuthorizationService().get_bearer_token(token)
-    # permission = AuthorizationService().get_permission_by_basic_token(token)
-    # permissions = AuthorizationService().get_permissions_by_token_for_resource_and_scope(token)
-    # introspection = AuthorizationService().introspect_token(basic_token)
+    # token = PublicAuthenticationService.refresh_token(token)
+    # user_info = PublicAuthenticationService.get_user_info_from_public_access_token(token)
+    # bearer_token = PublicAuthenticationService.get_bearer_token(token)
+    # permission = PublicAuthenticationService.get_permission_by_basic_token(token)
+    # permissions = PublicAuthenticationService.get_permissions_by_token_for_resource_and_scope(token)
+    # introspection = PublicAuthenticationService.introspect_token(basic_token)
     return True
 
 
@@ -218,7 +217,7 @@ def login_return(code: str, state: str, session_state: str) -> Optional[Response
     id_token = id_token_object["id_token"]
 
     if PublicAuthenticationService.validate_id_token(id_token):
-        user_info = AuthorizationService().get_user_info_from_id_token(
+        user_info = PublicAuthenticationService.get_user_info_from_id_token(
             id_token_object["access_token"]
         )
         if user_info and "error" not in user_info:
