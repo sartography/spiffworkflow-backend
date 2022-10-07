@@ -55,4 +55,4 @@ class TestImportModule(BaseTest):
 
         with pytest.raises(ApiError) as exception:
             processor.do_engine_steps(save=True)
-        assert "ImportError:__import__ not found" in str(exception.value)
+        assert "Import not allowed: os" in str(exception.value)
