@@ -14,6 +14,7 @@ from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
 from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
     ProcessEntityNotFoundError,
 )
+from spiffworkflow_backend.models.active_task import ActiveTaskModel
 from spiffworkflow_backend.models.process_group import ProcessGroup
 from spiffworkflow_backend.models.process_group import ProcessGroupSchema
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
@@ -955,6 +956,44 @@ class TestProcessApi(BaseTest):
         task_event = task_events[0]
         assert task_event.user_id == user.id
         # TODO: When user tasks work, we need to add some more assertions for action, task_state, etc.
+
+    def test_task_show(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        """Test_process_instance_run_user_task."""
+        process_group_id = "my_process_group"
+        process_model_id = "dynamic_enum_select_fields"
+
+        user = self.find_or_create_user()
+        headers = self.logged_in_headers(user)
+        response = self.create_process_instance(
+            client, process_group_id, process_model_id, headers
+        )
+        assert response.json is not None
+        process_instance_id = response.json["id"]
+
+        response = client.post(
+            f"/v1.0/process-models/{process_group_id}/{process_model_id}/process-instances/{process_instance_id}/run",
+            headers=self.logged_in_headers(user),
+        )
+
+        assert response.json is not None
+        active_tasks = (
+            db.session.query(ActiveTaskModel)
+            .filter(ActiveTaskModel.process_instance_id == process_instance_id)
+            .all()
+        )
+        assert len(active_tasks) == 1
+        active_task = active_tasks[0]
+        response = client.get(
+            f"/v1.0/tasks/{process_instance_id}/{active_task.task_id}",
+            headers=self.logged_in_headers(user),
+        )
+        assert response.json is not None
+        assert (
+            response.json["form_schema"]["definitions"]["Color"]["anyOf"][1]["title"]
+            == "Green"
+        )
 
     def test_process_instance_list_with_default_list(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
