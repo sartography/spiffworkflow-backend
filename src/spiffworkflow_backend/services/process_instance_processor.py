@@ -83,6 +83,12 @@ from spiffworkflow_backend.services.user_service import UserService
 # Sorry about all this crap.  I wanted to move this thing to another file, but
 # importing a bunch of types causes circular imports.
 
+
+def _import(name: str, glbls: Dict[str, Any], *args: Any) -> None:
+    if name not in glbls:
+        raise ImportError(f"Import not allowed: {name}", name=name)
+
+
 DEFAULT_GLOBALS.update(
     {
         "datetime": datetime,
@@ -92,6 +98,7 @@ DEFAULT_GLOBALS.update(
 )
 # This will overwrite the standard builtins
 DEFAULT_GLOBALS.update(safe_globals)
+DEFAULT_GLOBALS["__builtins__"]["__import__"] = _import
 
 
 class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
