@@ -13,6 +13,14 @@ class AuthorizationService:
     """Determine whether a user has permission to perform their request."""
 
     @staticmethod
+    def has_permission(
+        principal: 'PrincipalModel', permission: str, target_uri: str
+    ) -> bool:
+        """Has_permission."""
+        return True
+
+
+    @staticmethod
     def get_open_id_args() -> tuple:
         """Get_open_id_args."""
         open_id_server_url = current_app.config["OPEN_ID_SERVER_URL"]

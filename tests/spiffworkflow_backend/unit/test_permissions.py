@@ -1,6 +1,7 @@
 """Test Permissions."""
 from flask.app import Flask
 from flask_bpmn.models.db import db
+from spiffworkflow_backend.services.authorization_service import AuthorizationService
 from tests.spiffworkflow_backend.helpers.base_test import BaseTest
 from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
 
@@ -38,7 +39,7 @@ class TestPermissions(BaseTest):
             permission_target_id=permission_target.id,
             principal_id=principal.id,
             permission="delete",
-            grant_type="grant",
+            grant_type="permit",
         )
         db.session.add(permission_assignment)
         db.session.commit()
@@ -49,6 +50,7 @@ class TestPermissions(BaseTest):
         """Test_group_a_admin_needs_to_stay_away_from_group_b."""
         process_group_ids = ["group-a", "group-b"]
         process_group_a_id = process_group_ids[0]
+        process_group_b_id = process_group_ids[1]
         for process_group_id in process_group_ids:
             load_test_spec(
                 "timers_intermediate_catch_event",
@@ -65,7 +67,12 @@ class TestPermissions(BaseTest):
             permission_target_id=permission_target.id,
             principal_id=principal.id,
             permission="update",
-            grant_type="grant",
+            grant_type="permit",
         )
         db.session.add(permission_assignment)
         db.session.commit()
+
+        has_permission_to_a = AuthorizationService.has_permission(principal=principal, permission="update", target_uri=f"/{process_group_a_id}")
+        assert has_permission_to_a is True
+        has_permission_to_b = AuthorizationService.has_permission(principal=principal, permission="update", target_uri=f"/{process_group_b_id}")
+        assert has_permission_to_b is False

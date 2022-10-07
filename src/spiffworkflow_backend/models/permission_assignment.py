@@ -10,11 +10,12 @@ from spiffworkflow_backend.models.permission_target import PermissionTargetModel
 from spiffworkflow_backend.models.principal import PrincipalModel
 
 
-class GrantDeny(enum.Enum):
-    """GrantDeny."""
+class PermitDeny(enum.Enum):
+    """PermitDeny."""
 
-    grant = 1
-    deny = 2
+    # permit, aka grant
+    permit = "permit"
+    deny = "deny"
 
 
 class Permission(enum.Enum):
@@ -42,5 +43,5 @@ class PermissionAssignmentModel(SpiffworkflowBaseDBModel):
     permission_target_id = db.Column(
         ForeignKey(PermissionTargetModel.id), nullable=False
     )
-    grant_type = db.Column(Enum(GrantDeny))
+    grant_type = db.Column(Enum(PermitDeny))
     permission = db.Column(Enum(Permission))
