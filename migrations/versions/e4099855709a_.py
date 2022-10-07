@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: a5d7c26dd838
+Revision ID: e4099855709a
 Revises: 
-Create Date: 2022-10-07 15:11:50.254111
+Create Date: 2022-10-07 15:17:50.681999
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'a5d7c26dd838'
+revision = 'e4099855709a'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -222,6 +222,16 @@ def upgrade():
     sa.ForeignKeyConstraint(['process_instance_id'], ['process_instance.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_table('permission_assignment',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('principal_id', sa.Integer(), nullable=False),
+    sa.Column('permission_target_id', sa.Integer(), nullable=False),
+    sa.Column('grant_type', sa.Enum('grant', 'deny', name='grantdeny'), nullable=True),
+    sa.Column('permission', sa.Enum('instantiate', 'administer', 'view_instance', name='permission'), nullable=True),
+    sa.ForeignKeyConstraint(['permission_target_id'], ['permission_target.id'], ),
+    sa.ForeignKeyConstraint(['principal_id'], ['principal.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
     op.create_table('secret_allowed_process',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('secret_id', sa.Integer(), nullable=False),
@@ -303,6 +313,7 @@ def downgrade():
     op.drop_table('task_event')
     op.drop_table('spiff_logging')
     op.drop_table('secret_allowed_process')
+    op.drop_table('permission_assignment')
     op.drop_table('message_instance')
     op.drop_index(op.f('ix_message_correlation_value'), table_name='message_correlation')
     op.drop_index(op.f('ix_message_correlation_process_instance_id'), table_name='message_correlation')

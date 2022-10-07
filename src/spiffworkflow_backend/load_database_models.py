@@ -20,6 +20,9 @@ from spiffworkflow_backend.models.message_model import MessageModel  # noqa: F40
 from spiffworkflow_backend.models.message_triggerable_process_model import (
     MessageTriggerableProcessModel,
 )  # noqa: F401
+from spiffworkflow_backend.models.permission_assignment import (
+    PermissionAssignmentModel,
+)  # noqa: F401
 from spiffworkflow_backend.models.permission_target import (
     PermissionTargetModel,
 )  # noqa: F401
@@ -40,7 +43,5 @@ from spiffworkflow_backend.models.user import UserModel  # noqa: F401
 from spiffworkflow_backend.models.user_group_assignment import (
     UserGroupAssignmentModel,
 )  # noqa: F401
-
-# from spiffworkflow_backend.models.permission_assignment import PermissionAssignmentModel  # noqa: F401
 
 add_listeners()
