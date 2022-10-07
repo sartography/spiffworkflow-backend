@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 838230f05aa0
+Revision ID: a5d7c26dd838
 Revises: 
-Create Date: 2022-09-26 12:12:48.657804
+Create Date: 2022-10-07 15:11:50.254111
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '838230f05aa0'
+revision = 'a5d7c26dd838'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -46,6 +46,12 @@ def upgrade():
     )
     op.create_index(op.f('ix_message_model_identifier'), 'message_model', ['identifier'], unique=True)
     op.create_index(op.f('ix_message_model_name'), 'message_model', ['name'], unique=True)
+    op.create_table('permission_target',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('uri', sa.String(length=255), nullable=False),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('uri')
+    )
     op.create_table('user',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('username', sa.String(length=255), nullable=False),
@@ -321,6 +327,7 @@ def downgrade():
     op.drop_index(op.f('ix_message_correlation_property_identifier'), table_name='message_correlation_property')
     op.drop_table('message_correlation_property')
     op.drop_table('user')
+    op.drop_table('permission_target')
     op.drop_index(op.f('ix_message_model_name'), table_name='message_model')
     op.drop_index(op.f('ix_message_model_identifier'), table_name='message_model')
     op.drop_table('message_model')
