@@ -85,6 +85,7 @@ from spiffworkflow_backend.services.user_service import UserService
 
 
 def _import(name: str, glbls: Dict[str, Any], *args: Any) -> None:
+    """_import."""
     if name not in glbls:
         raise ImportError(f"Import not allowed: {name}", name=name)
 
