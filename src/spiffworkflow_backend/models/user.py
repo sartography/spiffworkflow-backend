@@ -37,6 +37,7 @@ class UserModel(SpiffworkflowBaseDBModel):
         secondary="user_group_assignment",
         overlaps="user_group_assignments,users",
     )
+    principal = relationship("PrincipalModel", uselist=False)  # type: ignore
 
     @validates("service")
     def validate_service(self, key: str, value: Any) -> str:

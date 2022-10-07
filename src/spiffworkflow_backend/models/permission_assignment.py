@@ -20,9 +20,17 @@ class GrantDeny(enum.Enum):
 class Permission(enum.Enum):
     """Permission."""
 
-    instantiate = 1
-    administer = 2
-    view_instance = 3
+    # from original requirements
+    # instantiate = 1
+    # administer = 2
+    # view_instance = 3
+
+    create = 1
+    read = 2
+    update = 3
+    delete = 4
+    list = 5
+    instantiate = 6  # this is something you do to a process model
 
 
 class PermissionAssignmentModel(SpiffworkflowBaseDBModel):
