@@ -99,7 +99,7 @@ class PublicAuthenticationService:
             open_id_client_id,
             open_id_realm_name,
             open_id_client_secret_key,
-        ) = get_open_id_args()
+        ) = PublicAuthenticationService.get_open_id_args()
         request_url = (
             f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/logout?"
             + f"post_logout_redirect_uri={return_redirect_url}&"
@@ -121,7 +121,7 @@ class PublicAuthenticationService:
             open_id_client_id,
             open_id_realm_name,
             open_id_client_secret_key,
-        ) = get_open_id_args()
+        ) = PublicAuthenticationService.get_open_id_args()
         return_redirect_url = f"{self.get_backend_url()}/v1.0/login_return"
         login_redirect_url = (
             f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/auth?"
@@ -140,7 +140,7 @@ class PublicAuthenticationService:
             open_id_client_id,
             open_id_realm_name,
             open_id_client_secret_key,
-        ) = get_open_id_args()
+        ) = PublicAuthenticationService.get_open_id_args()
 
         backend_basic_auth_string = f"{open_id_client_id}:{open_id_client_secret_key}"
         backend_basic_auth_bytes = bytes(backend_basic_auth_string, encoding="ascii")
@@ -161,8 +161,8 @@ class PublicAuthenticationService:
         id_token_object: dict = json.loads(response.text)
         return id_token_object
 
-    @staticmethod
-    def validate_id_token(id_token: str) -> bool:
+    @classmethod
+    def validate_id_token(cls, id_token: str) -> bool:
         """Https://openid.net/specs/openid-connect-core-1_0.html#IDTokenValidation."""
         valid = True
         now = time.time()
@@ -171,7 +171,7 @@ class PublicAuthenticationService:
             open_id_client_id,
             open_id_realm_name,
             open_id_client_secret_key,
-        ) = get_open_id_args()
+        ) = cls.get_open_id_args()
         try:
             decoded_token = jwt.decode(id_token, options={"verify_signature": False})
         except Exception as e:

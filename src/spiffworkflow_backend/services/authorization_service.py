@@ -1,14 +1,13 @@
 """Authorization_service."""
-import base64
-import json
 from typing import Union
 
 import jwt
-import requests
 from flask import current_app
 from flask_bpmn.api.api_error import ApiError
 
 from spiffworkflow_backend.models.permission_assignment import PermissionAssignmentModel
+from spiffworkflow_backend.models.permission_target import PermissionTargetModel
+from spiffworkflow_backend.models.principal import PrincipalModel
 
 
 class AuthorizationService:
@@ -16,12 +15,28 @@ class AuthorizationService:
 
     @staticmethod
     def has_permission(
-        principal: 'PrincipalModel', permission: str, target_uri: str
+        principal: PrincipalModel, permission: str, target_uri: str
     ) -> bool:
         """Has_permission."""
-        PermissionAssignmentModel.query.filter_by(principal_id=principal.id).all()
-        return True
+        permission_assignments = (
+            PermissionAssignmentModel.query.filter_by(
+                principal_id=principal.id, permission=permission
+            )
+            .join(PermissionTargetModel)
+            .filter_by(uri=target_uri)
+            .all()
+        )
+        if len(permission_assignments) > 1:
+            raise Exception(
+                "Multiple permission assignments found for query. That should not be possible."
+            )
+        for permission_assignment in permission_assignments:
+            if permission_assignment.grant_type.value == "permit":
+                return True
+            elif permission_assignment.grant_type.value == "deny":
+                return False
 
+        return False
 
     # def refresh_token(self, token: str) -> str:
     #     """Refresh_token."""

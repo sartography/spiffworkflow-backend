@@ -38,6 +38,14 @@ class PermissionAssignmentModel(SpiffworkflowBaseDBModel):
     """PermissionAssignmentModel."""
 
     __tablename__ = "permission_assignment"
+    __table_args__ = (
+        db.UniqueConstraint(
+            "principal_id",
+            "permission_target_id",
+            "permission",
+            name="permission_assignment_uniq",
+        ),
+    )
     id = db.Column(db.Integer, primary_key=True)
     principal_id = db.Column(ForeignKey(PrincipalModel.id), nullable=False)
     permission_target_id = db.Column(

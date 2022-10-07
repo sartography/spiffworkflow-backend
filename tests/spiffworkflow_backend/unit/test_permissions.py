@@ -1,12 +1,12 @@
 """Test Permissions."""
 from flask.app import Flask
 from flask_bpmn.models.db import db
-from spiffworkflow_backend.services.authorization_service import AuthorizationService
 from tests.spiffworkflow_backend.helpers.base_test import BaseTest
 from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
 
 from spiffworkflow_backend.models.permission_assignment import PermissionAssignmentModel
 from spiffworkflow_backend.models.permission_target import PermissionTargetModel
+from spiffworkflow_backend.services.authorization_service import AuthorizationService
 
 
 # we think we can get the list of roles for a user.
@@ -72,7 +72,15 @@ class TestPermissions(BaseTest):
         db.session.add(permission_assignment)
         db.session.commit()
 
-        has_permission_to_a = AuthorizationService.has_permission(principal=principal, permission="update", target_uri=f"/{process_group_a_id}")
+        has_permission_to_a = AuthorizationService.has_permission(
+            principal=principal,
+            permission="update",
+            target_uri=f"/{process_group_a_id}",
+        )
         assert has_permission_to_a is True
-        has_permission_to_b = AuthorizationService.has_permission(principal=principal, permission="update", target_uri=f"/{process_group_b_id}")
+        has_permission_to_b = AuthorizationService.has_permission(
+            principal=principal,
+            permission="update",
+            target_uri=f"/{process_group_b_id}",
+        )
         assert has_permission_to_b is False
