@@ -40,9 +40,12 @@ def app() -> Flask:
 
     # NOTE: set this here since nox shoves tests and src code to
     # different places and this allows us to know exactly where we are at the start
-    app.config["BPMN_SPEC_ABSOLUTE_DIR"] = (
-        os.path.join(os.path.dirname(__file__))
-        + "/tests/spiffworkflow_backend/files/bpmn_specs"
+    app.config["BPMN_SPEC_ABSOLUTE_DIR"] = os.path.join(
+        os.path.dirname(__file__),
+        "tests",
+        "spiffworkflow_backend",
+        "files",
+        "bpmn_specs",
     )
 
     return app
