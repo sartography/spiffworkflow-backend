@@ -12,24 +12,6 @@ from flask import redirect
 from flask_bpmn.api.api_error import ApiError
 from werkzeug.wrappers.response import Response
 
-from spiffworkflow_backend.services.authorization_service import AuthorizationService
-
-
-def get_open_id_args() -> tuple:
-    """Get_open_id_args."""
-    open_id_server_url = current_app.config["OPEN_ID_SERVER_URL"]
-    open_id_client_id = current_app.config["OPEN_ID_CLIENT_ID"]
-    open_id_realm_name = current_app.config["OPEN_ID_REALM_NAME"]
-    open_id_client_secret_key = current_app.config[
-        "OPEN_ID_CLIENT_SECRET_KEY"
-    ]  # noqa: S105
-    return (
-        open_id_server_url,
-        open_id_client_id,
-        open_id_realm_name,
-        open_id_client_secret_key,
-    )
-
 
 class AuthenticationProviderTypes(enum.Enum):
     """AuthenticationServiceProviders."""
@@ -47,14 +29,30 @@ class PublicAuthenticationService:
     """
 
     @staticmethod
-    def get_user_info_from_id_token(token: str) -> dict:
+    def get_open_id_args() -> tuple:
+        """Get_open_id_args."""
+        open_id_server_url = current_app.config["OPEN_ID_SERVER_URL"]
+        open_id_client_id = current_app.config["OPEN_ID_CLIENT_ID"]
+        open_id_realm_name = current_app.config["OPEN_ID_REALM_NAME"]
+        open_id_client_secret_key = current_app.config[
+            "OPEN_ID_CLIENT_SECRET_KEY"
+        ]  # noqa: S105
+        return (
+            open_id_server_url,
+            open_id_client_id,
+            open_id_realm_name,
+            open_id_client_secret_key,
+        )
+
+    @classmethod
+    def get_user_info_from_id_token(cls, token: str) -> dict:
         """This seems to work with basic tokens too."""
         (
             open_id_server_url,
             open_id_client_id,
             open_id_realm_name,
             open_id_client_secret_key,
-        ) = AuthorizationService.get_open_id_args()
+        ) = cls.get_open_id_args()
 
         # backend_basic_auth_string = f"{open_id_client_id}:{open_id_client_secret_key}"
         # backend_basic_auth_bytes = bytes(backend_basic_auth_string, encoding="ascii")

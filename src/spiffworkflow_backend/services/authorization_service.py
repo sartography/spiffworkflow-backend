@@ -8,6 +8,8 @@ import requests
 from flask import current_app
 from flask_bpmn.api.api_error import ApiError
 
+from spiffworkflow_backend.models.permission_assignment import PermissionAssignmentModel
+
 
 class AuthorizationService:
     """Determine whether a user has permission to perform their request."""
@@ -17,24 +19,9 @@ class AuthorizationService:
         principal: 'PrincipalModel', permission: str, target_uri: str
     ) -> bool:
         """Has_permission."""
+        PermissionAssignmentModel.query.filter_by(principal_id=principal.id).all()
         return True
 
-
-    @staticmethod
-    def get_open_id_args() -> tuple:
-        """Get_open_id_args."""
-        open_id_server_url = current_app.config["OPEN_ID_SERVER_URL"]
-        open_id_client_id = current_app.config["OPEN_ID_CLIENT_ID"]
-        open_id_realm_name = current_app.config["OPEN_ID_REALM_NAME"]
-        open_id_client_secret_key = current_app.config[
-            "OPEN_ID_CLIENT_SECRET_KEY"
-        ]  # noqa: S105
-        return (
-            open_id_server_url,
-            open_id_client_id,
-            open_id_realm_name,
-            open_id_client_secret_key,
-        )
 
     # def refresh_token(self, token: str) -> str:
     #     """Refresh_token."""
@@ -58,36 +45,36 @@ class AuthorizationService:
     #     refresh_token = json.loads(refresh_response.text)
     #     return refresh_token
 
-    def get_bearer_token(self, basic_token: str) -> dict:
-        """Get_bearer_token."""
-        (
-            open_id_server_url,
-            open_id_client_id,
-            open_id_realm_name,
-            open_id_client_secret_key,
-        ) = AuthorizationService.get_open_id_args()
-
-        backend_basic_auth_string = f"{open_id_client_id}:{open_id_client_secret_key}"
-        backend_basic_auth_bytes = bytes(backend_basic_auth_string, encoding="ascii")
-        backend_basic_auth = base64.b64encode(backend_basic_auth_bytes)
-
-        headers = {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "Authorization": f"Basic {backend_basic_auth.decode('utf-8')}",
-        }
-        data = {
-            "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
-            "client_id": open_id_client_id,
-            "subject_token": basic_token,
-            "audience": open_id_client_id,
-        }
-        request_url = f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/token"
-
-        backend_response = requests.post(request_url, headers=headers, data=data)
-        # json_data = json.loads(backend_response.text)
-        # bearer_token = json_data['access_token']
-        bearer_token: dict = json.loads(backend_response.text)
-        return bearer_token
+    # def get_bearer_token(self, basic_token: str) -> dict:
+    #     """Get_bearer_token."""
+    #     (
+    #         open_id_server_url,
+    #         open_id_client_id,
+    #         open_id_realm_name,
+    #         open_id_client_secret_key,
+    #     ) = AuthorizationService.get_open_id_args()
+    #
+    #     backend_basic_auth_string = f"{open_id_client_id}:{open_id_client_secret_key}"
+    #     backend_basic_auth_bytes = bytes(backend_basic_auth_string, encoding="ascii")
+    #     backend_basic_auth = base64.b64encode(backend_basic_auth_bytes)
+    #
+    #     headers = {
+    #         "Content-Type": "application/x-www-form-urlencoded",
+    #         "Authorization": f"Basic {backend_basic_auth.decode('utf-8')}",
+    #     }
+    #     data = {
+    #         "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
+    #         "client_id": open_id_client_id,
+    #         "subject_token": basic_token,
+    #         "audience": open_id_client_id,
+    #     }
+    #     request_url = f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/token"
+    #
+    #     backend_response = requests.post(request_url, headers=headers, data=data)
+    #     # json_data = json.loads(backend_response.text)
+    #     # bearer_token = json_data['access_token']
+    #     bearer_token: dict = json.loads(backend_response.text)
+    #     return bearer_token
 
     @staticmethod
     def decode_auth_token(auth_token: str) -> dict[str, Union[str, None]]:
@@ -280,30 +267,30 @@ class AuthorizationService:
     #
     #     print("get_resource_set")
 
-    def get_permission_by_token(self, public_access_token: str) -> dict:
-        """Get_permission_by_token."""
-        # TODO: Write a test for this
-        (
-            open_id_server_url,
-            open_id_client_id,
-            open_id_realm_name,
-            open_id_client_secret_key,
-        ) = AuthorizationService.get_open_id_args()
-        bearer_token = AuthorizationService().get_bearer_token(public_access_token)
-        auth_bearer_string = f"Bearer {bearer_token['access_token']}"
-        headers = {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "Authorization": auth_bearer_string,
-        }
-        data = {
-            "grant_type": "urn:ietf:params:oauth:grant-type:uma-ticket",
-            "audience": open_id_client_id,
-        }
-        request_url = f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/token"
-        permission_response = requests.post(request_url, headers=headers, data=data)
-        permission: dict = json.loads(permission_response.text)
-
-        return permission
+    # def get_permission_by_token(self, public_access_token: str) -> dict:
+    #     """Get_permission_by_token."""
+    #     # TODO: Write a test for this
+    #     (
+    #         open_id_server_url,
+    #         open_id_client_id,
+    #         open_id_realm_name,
+    #         open_id_client_secret_key,
+    #     ) = AuthorizationService.get_open_id_args()
+    #     bearer_token = AuthorizationService().get_bearer_token(public_access_token)
+    #     auth_bearer_string = f"Bearer {bearer_token['access_token']}"
+    #     headers = {
+    #         "Content-Type": "application/x-www-form-urlencoded",
+    #         "Authorization": auth_bearer_string,
+    #     }
+    #     data = {
+    #         "grant_type": "urn:ietf:params:oauth:grant-type:uma-ticket",
+    #         "audience": open_id_client_id,
+    #     }
+    #     request_url = f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/token"
+    #     permission_response = requests.post(request_url, headers=headers, data=data)
+    #     permission: dict = json.loads(permission_response.text)
+    #
+    #     return permission
 
 
 class KeycloakAuthorization:
