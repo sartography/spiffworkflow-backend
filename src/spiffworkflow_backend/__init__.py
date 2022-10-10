@@ -1,14 +1,13 @@
 """__init__."""
-import json
 import os
 from typing import Any
 
 import connexion  # type: ignore
 import flask.app
 import flask.json
-from flask import jsonify
 import sqlalchemy
 from apscheduler.schedulers.background import BackgroundScheduler  # type: ignore
+from flask.json.provider import DefaultJSONProvider
 from flask_bpmn.api.api_error import api_error_blueprint
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import migrate
@@ -24,7 +23,6 @@ from spiffworkflow_backend.services.background_processing_service import (
     BackgroundProcessingService,
 )
 
-from flask.json.provider import DefaultJSONProvider, _default
 
 class MyJSONEncoder(DefaultJSONProvider):
     """MyJSONEncoder."""
@@ -45,9 +43,11 @@ class MyJSONEncoder(DefaultJSONProvider):
             return return_dict
         return super().default(obj)
 
-    def dumps(self, obj, **kwargs):
+    def dumps(self, obj: Any, **kwargs: Any) -> Any:
+        """Dumps."""
         kwargs.setdefault("default", self.default)
         return super().dumps(obj, **kwargs)
+
 
 def start_scheduler(app: flask.app.Flask) -> None:
     """Start_scheduler."""

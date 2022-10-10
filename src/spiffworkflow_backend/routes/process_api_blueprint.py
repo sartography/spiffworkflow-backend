@@ -477,7 +477,7 @@ def message_instance_list(
             ProcessInstanceModel.process_model_identifier,
             ProcessInstanceModel.process_group_identifier,
         )
-        .paginate(page, per_page, False)
+        .paginate(page=page, per_page=per_page, error_out=False)
     )
 
     response_json = {
@@ -635,7 +635,7 @@ def process_instance_list(
 
     process_instances = process_instance_query.order_by(
         ProcessInstanceModel.start_in_seconds.desc(), ProcessInstanceModel.id.desc()  # type: ignore
-    ).paginate(page, per_page, False)
+    ).paginate(page=page, per_page=per_page, error_out=False)
 
     response_json = {
         "results": process_instances.items,
@@ -788,7 +788,7 @@ def process_instance_report_show(
         .order_by(
             ProcessInstanceModel.start_in_seconds.desc(), ProcessInstanceModel.id.desc()  # type: ignore
         )
-        .paginate(page, per_page, False)
+        .paginate(page=page, per_page=per_page, error_out=False)
     )
 
     process_instance_report = ProcessInstanceReportModel.query.filter_by(
@@ -838,7 +838,7 @@ def task_list_my_tasks(page: int = 1, per_page: int = 100) -> flask.wrappers.Res
             ActiveTaskModel.process_model_display_name,
             ActiveTaskModel.process_instance_id,
         )
-        .paginate(page, per_page, False)
+        .paginate(page=page, per_page=per_page, error_out=False)
     )
 
     tasks = [ActiveTaskModel.to_task(active_task) for active_task in active_tasks.items]
@@ -1289,7 +1289,7 @@ def secret_list(
         .add_columns(
             UserModel.username,
         )
-        .paginate(page, per_page, False)
+        .paginate(page=page, per_page=per_page, error_out=False)
     )
     response_json = {
         "results": secrets.items,
