@@ -1,0 +1,6 @@
+group-a:
+  users: [kb, alex, dan, mike, jason]
+
+permission-read-all:
+  groups: [group-a]
+  users: []
