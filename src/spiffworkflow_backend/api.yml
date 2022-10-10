@@ -85,47 +85,41 @@ paths:
         "200":
           description: Logout Authenticated User
 
-  #  /login_api:
-  #    parameters:
-  #      - name: redirect_url
-  #        in: query
-  #        required: false
-  #        schema:
-  #          type: string
-  #    get:
-  #      security: []
-  #      operationId: spiffworkflow_backend.routes.user.login_api
-  #      summary: Authenticate user for API access
-  #      tags:
-  #        - Authentication
-  #      responses:
-  #        "304":
-  #          description: Redirection to the hosted frontend with an auth_token header.
-  #  /login_api_return:
-  #    parameters:
-  #      - name: code
-  #        in: query
-  #        required: true
-  #        schema:
-  #          type: string
-  #      - name: state
-  #        in: query
-  #        required: true
-  #        schema:
-  #          type: string
-  #      - name: session_state
-  #        in: query
-  #        required: false
-  #        schema:
-  #          type: string
-  #    get:
-  #      security: []
-  #      operationId: spiffworkflow_backend.routes.user.login_api_return
-  #      tags:
-  #        - Authentication
-  #      responses:
-  #        "200":
-  #          description: Test Return Response
+  /login_api:
+      get:
+        security: []
+        operationId: spiffworkflow_backend.routes.user.login_api
+        summary: Authenticate user for API access
+        tags:
+          - Authentication
+        responses:
+          "200":
+            description: Redirects to authentication server
+  /login_api_return:
+    parameters:
+      - name: code
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: state
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: session_state
+        in: query
+        required: false
+        schema:
+          type: string
+    get:
+      security: []
+      operationId: spiffworkflow_backend.routes.user.login_api_return
+      tags:
+        - Authentication
+      responses:
+        "200":
+          description: Test Return Response
 
   /status:
     get:
@@ -1250,7 +1244,7 @@ components:
       flows:
         authorizationCode:
           authorizationUrl: /v1.0/login_api
-          tokenUrl: /v1.0/login_return
+          tokenUrl: /v1.0/login_api_return
           scopes:
             read_email: read email
       x-tokenInfoFunc: spiffworkflow_backend.routes.user.get_scope

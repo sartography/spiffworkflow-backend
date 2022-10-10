@@ -114,7 +114,7 @@ class PublicAuthenticationService:
         state = base64.b64encode(bytes(str({"redirect_url": redirect_url}), "UTF-8"))
         return state
 
-    def get_login_redirect_url(self, state: str) -> str:
+    def get_login_redirect_url(self, state: str, redirect_url: str = "/v1.0/login_return") -> str:
         """Get_login_redirect_url."""
         (
             open_id_server_url,
@@ -122,7 +122,7 @@ class PublicAuthenticationService:
             open_id_realm_name,
             open_id_client_secret_key,
         ) = PublicAuthenticationService.get_open_id_args()
-        return_redirect_url = f"{self.get_backend_url()}/v1.0/login_return"
+        return_redirect_url = f"{self.get_backend_url()}{redirect_url}"
         login_redirect_url = (
             f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/auth?"
             + f"state={state}&"
@@ -133,7 +133,7 @@ class PublicAuthenticationService:
         )
         return login_redirect_url
 
-    def get_id_token_object(self, code: str) -> dict:
+    def get_id_token_object(self, code: str, redirect_url: str = "/v1.0/login_return") -> dict:
         """Get_id_token_object."""
         (
             open_id_server_url,
@@ -152,7 +152,7 @@ class PublicAuthenticationService:
         data = {
             "grant_type": "authorization_code",
             "code": code,
-            "redirect_uri": f"{self.get_backend_url()}/v1.0/login_return",
+            "redirect_uri": f"{self.get_backend_url()}{redirect_url}",
         }
 
         request_url = f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/token"
