@@ -22,7 +22,7 @@ class AuthorizationService:
         principal_ids = [p.id for p in principals]
         permission_assignment = (
             PermissionAssignmentModel.query.
-            filter(PrincipalModel.id.in_(principal_ids))
+            filter(PermissionAssignmentModel.principal_id.in_(principal_ids))
             .filter_by(
                 permission=permission
             )

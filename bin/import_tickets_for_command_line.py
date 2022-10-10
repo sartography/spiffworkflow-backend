@@ -26,7 +26,7 @@ def print_process_instance_count(process_model_identifier_ticket: str) -> None:
 
 def main():
     """Main."""
-    os.environ["FLASK_ENV"] = "development"
+    os.environ["SPIFFWORKFLOW_BACKEND_ENV"] = "development"
     flask_env_key = "FLASK_SESSION_SECRET_KEY"
     os.environ[flask_env_key] = "whatevs"
     app = create_app()

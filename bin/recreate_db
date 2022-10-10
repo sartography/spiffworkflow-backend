@@ -43,7 +43,7 @@ mysql -uroot -e "CREATE DATABASE IF NOT EXISTS spiffworkflow_backend_development
 mysql -uroot -e "CREATE DATABASE IF NOT EXISTS spiffworkflow_backend_testing"
 
 for task in $tasks; do
-  FLASK_ENV=development FLASK_APP=src/spiffworkflow_backend poetry run flask db "$task"
+  SPIFFWORKFLOW_BACKEND_ENV=development FLASK_APP=src/spiffworkflow_backend poetry run flask db "$task"
 done
 
-FLASK_ENV=testing FLASK_APP=src/spiffworkflow_backend poetry run flask db upgrade
+SPIFFWORKFLOW_BACKEND_ENV=testing FLASK_APP=src/spiffworkflow_backend poetry run flask db upgrade

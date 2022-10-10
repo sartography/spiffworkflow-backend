@@ -118,7 +118,7 @@ def setup_logger(app: Flask) -> None:
 
     # the json formatter is nice for real environments but makes
     # debugging locally a little more difficult
-    if app.env != "development":
+    if app.config['ENV_IDENTIFIER'] != "development":
         json_formatter = JsonFormatter(
             {
                 "level": "levelname",
@@ -136,7 +136,7 @@ def setup_logger(app: Flask) -> None:
     spiff_logger_filehandler = None
     if app.config["SPIFFWORKFLOW_BACKEND_LOG_TO_FILE"]:
         spiff_logger_filehandler = logging.FileHandler(
-            f"{app.instance_path}/../../log/{app.env}.log"
+            f"{app.instance_path}/../../log/{app.config['ENV_IDENTIFIER']}.log"
         )
         spiff_logger_filehandler.setLevel(spiff_log_level)
         spiff_logger_filehandler.setFormatter(log_formatter)
