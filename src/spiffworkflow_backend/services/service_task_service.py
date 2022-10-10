@@ -31,12 +31,14 @@ class ServiceTaskDelegate:
         return value
 
     @staticmethod
-    def call_connector(name: str, bpmn_params: Any) -> str:
+    def call_connector(name: str, bpmn_params: Any, task_data: Any) -> str:
         """Calls a connector via the configured proxy."""
         params = {
             k: ServiceTaskDelegate.normalize_value(v["value"])
             for k, v in bpmn_params.items()
         }
+        params['spiff__task_data'] = json.dumps(task_data)
+
         proxied_response = requests.get(f"{connector_proxy_url()}/v1/do/{name}", params)
 
         if proxied_response.status_code != 200:
