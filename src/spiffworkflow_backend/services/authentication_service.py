@@ -114,7 +114,9 @@ class PublicAuthenticationService:
         state = base64.b64encode(bytes(str({"redirect_url": redirect_url}), "UTF-8"))
         return state
 
-    def get_login_redirect_url(self, state: str, redirect_url: str = "/v1.0/login_return") -> str:
+    def get_login_redirect_url(
+        self, state: str, redirect_url: str = "/v1.0/login_return"
+    ) -> str:
         """Get_login_redirect_url."""
         (
             open_id_server_url,
@@ -133,7 +135,9 @@ class PublicAuthenticationService:
         )
         return login_redirect_url
 
-    def get_id_token_object(self, code: str, redirect_url: str = "/v1.0/login_return") -> dict:
+    def get_id_token_object(
+        self, code: str, redirect_url: str = "/v1.0/login_return"
+    ) -> dict:
         """Get_id_token_object."""
         (
             open_id_server_url,

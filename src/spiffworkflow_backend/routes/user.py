@@ -10,7 +10,6 @@ import jwt
 from flask import current_app
 from flask import g
 from flask import redirect
-from flask import request
 from flask_bpmn.api.api_error import ApiError
 from werkzeug.wrappers.response import Response
 
@@ -259,33 +258,42 @@ def login_return(code: str, state: str, session_state: str) -> Optional[Response
                 return redirect(redirect_url)
 
         raise ApiError(
-            code="invalid_login", message="Login failed. Please try again", status_code=401
+            code="invalid_login",
+            message="Login failed. Please try again",
+            status_code=401,
         )
 
     else:
         raise ApiError(
-            code="invalid_token", message="Login failed. Please try again", status_code=401
+            code="invalid_token",
+            message="Login failed. Please try again",
+            status_code=401,
         )
 
 
-def login_api():
-    if "SWAGGER_URL" in current_app.config:
-        redirect_url = "/v1.0/login_api_return"
-        state = PublicAuthenticationService.generate_state(redirect_url)
-        login_redirect_url = PublicAuthenticationService().get_login_redirect_url(
-            state.decode("UTF-8"),
-            redirect_url
-        )
-        return redirect(login_redirect_url)
+def login_api() -> Response:
+    """Login_api."""
+    redirect_url = "/v1.0/login_api_return"
+    state = PublicAuthenticationService.generate_state(redirect_url)
+    login_redirect_url = PublicAuthenticationService().get_login_redirect_url(
+        state.decode("UTF-8"), redirect_url
+    )
+    return redirect(login_redirect_url)
 
 
-def login_api_return(code: str, state: str, session_state: str):
+def login_api_return(code: str, state: str, session_state: str) -> str:
+    """Login_api_return."""
     state_dict = ast.literal_eval(base64.b64decode(state).decode("utf-8"))
-    state_redirect_url = state_dict["redirect_url"]
+    state_dict["redirect_url"]
 
-    id_token_object = PublicAuthenticationService().get_id_token_object(code, "/v1.0/login_api_return")
-    return id_token_object['access_token']
-    print("login_api_return")
+    id_token_object = PublicAuthenticationService().get_id_token_object(
+        code, "/v1.0/login_api_return"
+    )
+    access_token: str = id_token_object["access_token"]
+    assert access_token  # noqa: S101
+    return access_token
+    # return redirect("localhost:7000/v1.0/ui")
+    # return {'uid': 'user_1'}
 
 
 def logout(id_token: str, redirect_url: Optional[str]) -> Response:
