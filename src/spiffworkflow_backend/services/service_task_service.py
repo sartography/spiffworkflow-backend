@@ -54,7 +54,6 @@ class ServiceTaskService:
     def available_connectors() -> Any:
         """Returns a list of available connectors."""
         try:
-            print(connector_proxy_url)
             response = requests.get(f"{connector_proxy_url()}/v1/commands")
 
             if response.status_code != 200:
@@ -65,8 +64,3 @@ class ServiceTaskService:
         except Exception as e:
             print(e)
             return []
-
-    @staticmethod
-    def scripting_additions() -> Dict[str, Any]:
-        """Allows the ServiceTaskDelegate to be available to script engine instances."""
-        return {"ServiceTaskDelegate": ServiceTaskDelegate}
