@@ -2,7 +2,17 @@ group-a:
   type: Group
   users: [kb, alex, dan, mike, jason]
 
-permission-read-all:
+permission-finance-admin:
   type: Permission
   groups: [group-a]
   users: []
+  allowed_permissions: [CREATE, READ, UPDATE, DELETE]
+  uri: /v1.0/process-groups/finance/*
+  
+
+permission-read-all:
+  type: Permission
+  groups: [group-a, group-b, group-c]
+  users: []
+  allowed_permissions: [READ]
+  uri: /*
