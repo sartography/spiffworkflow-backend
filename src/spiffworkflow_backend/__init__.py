@@ -100,9 +100,11 @@ def create_app() -> flask.app.Flask:
     mail = Mail(app)
     app.config["MAIL_APP"] = mail
 
-    app.json_encoder = MyJSONEncoder
+    app.json_provider_class = MyJSONEncoder
 
     if app.config["PROCESS_WAITING_MESSAGES"]:
         start_scheduler(app)
+
+    print(f"app.debug: {app.debug}")
 
     return app  # type: ignore

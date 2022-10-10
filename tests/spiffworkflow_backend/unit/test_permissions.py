@@ -73,13 +73,13 @@ class TestPermissions(BaseTest):
         db.session.commit()
 
         has_permission_to_a = AuthorizationService.has_permission(
-            principal=principal,
+            principals=[principal],
             permission="update",
             target_uri=f"/{process_group_a_id}",
         )
         assert has_permission_to_a is True
         has_permission_to_b = AuthorizationService.has_permission(
-            principal=principal,
+            principals=[principal],
             permission="update",
             target_uri=f"/{process_group_b_id}",
         )
