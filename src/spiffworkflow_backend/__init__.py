@@ -1,10 +1,12 @@
 """__init__."""
+import json
 import os
 from typing import Any
 
 import connexion  # type: ignore
 import flask.app
 import flask.json
+from flask import jsonify
 import sqlalchemy
 from apscheduler.schedulers.background import BackgroundScheduler  # type: ignore
 from flask_bpmn.api.api_error import api_error_blueprint
@@ -22,8 +24,9 @@ from spiffworkflow_backend.services.background_processing_service import (
     BackgroundProcessingService,
 )
 
+from flask.json.provider import DefaultJSONProvider, _default
 
-class MyJSONEncoder(flask.json.JSONEncoder):
+class MyJSONEncoder(DefaultJSONProvider):
     """MyJSONEncoder."""
 
     def default(self, obj: Any) -> Any:
@@ -42,6 +45,9 @@ class MyJSONEncoder(flask.json.JSONEncoder):
             return return_dict
         return super().default(obj)
 
+    def dumps(self, obj, **kwargs):
+        kwargs.setdefault("default", self.default)
+        return super().dumps(obj, **kwargs)
 
 def start_scheduler(app: flask.app.Flask) -> None:
     """Start_scheduler."""
@@ -100,7 +106,7 @@ def create_app() -> flask.app.Flask:
     mail = Mail(app)
     app.config["MAIL_APP"] = mail
 
-    app.json_provider_class = MyJSONEncoder
+    app.json = MyJSONEncoder(app)
 
     if app.config["PROCESS_WAITING_MESSAGES"]:
         start_scheduler(app)

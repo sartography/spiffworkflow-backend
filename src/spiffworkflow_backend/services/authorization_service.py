@@ -7,7 +7,8 @@ from flask_bpmn.api.api_error import ApiError
 
 from spiffworkflow_backend.models.permission_assignment import PermissionAssignmentModel
 from spiffworkflow_backend.models.permission_target import PermissionTargetModel
-from spiffworkflow_backend.models.principal import MissingPrincipalError, PrincipalModel
+from spiffworkflow_backend.models.principal import MissingPrincipalError
+from spiffworkflow_backend.models.principal import PrincipalModel
 from spiffworkflow_backend.models.user import UserModel
 
 
@@ -21,11 +22,10 @@ class AuthorizationService:
         """Has_permission."""
         principal_ids = [p.id for p in principals]
         permission_assignment = (
-            PermissionAssignmentModel.query.
-            filter(PermissionAssignmentModel.principal_id.in_(principal_ids))
-            .filter_by(
-                permission=permission
+            PermissionAssignmentModel.query.filter(
+                PermissionAssignmentModel.principal_id.in_(principal_ids)
             )
+            .filter_by(permission=permission)
             .join(PermissionTargetModel)
             .filter_by(uri=target_uri)
             .first()
@@ -40,20 +40,26 @@ class AuthorizationService:
             raise Exception("Unknown grant type")
 
     @classmethod
-    def user_has_permission(cls, user: UserModel, permission: str, target_uri: str) -> bool:
+    def user_has_permission(
+        cls, user: UserModel, permission: str, target_uri: str
+    ) -> bool:
+        """User_has_permission."""
         if user.principal is None:
-            raise MissingPrincipalError(f"Missing principal for user with id: {user.id}")
+            raise MissingPrincipalError(
+                f"Missing principal for user with id: {user.id}"
+            )
 
         principals = [user.principal]
 
         for group in user.groups:
             if group.principal is None:
-                raise MissingPrincipalError(f"Missing principal for group with id: {group.id}")
+                raise MissingPrincipalError(
+                    f"Missing principal for group with id: {group.id}"
+                )
             principals.append(group.principal)
 
-        return has_permission(principals, permission, target_uri)
+        return cls.has_permission(principals, permission, target_uri)
         # return False
-
 
     # def refresh_token(self, token: str) -> str:
     #     """Refresh_token."""

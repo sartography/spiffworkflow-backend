@@ -54,6 +54,7 @@ types-requests = "^2.28.6"
 Jinja2 = "^3.1.2"
 RestrictedPython = "^5.2"
 Flask-SQLAlchemy = "^3"
+orjson = "^3.8.0"
 
 
 [tool.poetry.dev-dependencies]
@@ -103,7 +104,12 @@ filterwarnings = [
     # connexion/spec.py:50
     'ignore:Passing a schema to Validator.iter_errors is deprecated and will be removed in a future release',
     # connexion/decorators/validation.py:16
-    'ignore:Accessing jsonschema.draft4_format_checker is deprecated and will be removed in a future release.'
+    'ignore:Accessing jsonschema.draft4_format_checker is deprecated and will be removed in a future release.',
+    # connexion/apis/flask_api.py:236
+    "ignore:'_request_ctx_stack' is deprecated and will be removed in Flask 2.3",
+    "ignore:Setting 'json_encoder' on the app or a blueprint is deprecated and will be removed in Flask 2.3",
+    "ignore:'JSONEncoder' is deprecated and will be removed in Flask 2.3",
+    "ignore:'app.json_encoder' is deprecated and will be removed in Flask 2.3"
 ]
 
 [tool.coverage.paths]

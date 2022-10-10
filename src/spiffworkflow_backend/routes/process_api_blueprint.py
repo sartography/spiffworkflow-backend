@@ -436,7 +436,7 @@ def process_instance_log_list(
         .add_columns(
             UserModel.username,
         )
-        .paginate(page, per_page, False)
+        .paginate(page=page, per_page=per_page, error_out=False)
     )
 
     response_json = {

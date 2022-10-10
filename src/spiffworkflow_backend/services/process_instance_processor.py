@@ -115,7 +115,9 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
 
     def __get_augment_methods(self, task: SpiffTask) -> Dict[str, Callable]:
         """__get_augment_methods."""
-        return Script.generate_augmented_list(task, current_app.config['ENV_IDENTIFIER'])
+        return Script.generate_augmented_list(
+            task, current_app.config["ENV_IDENTIFIER"]
+        )
 
     def evaluate(self, task: SpiffTask, expression: str) -> Any:
         """Evaluate."""

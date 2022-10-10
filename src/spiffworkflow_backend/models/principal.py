@@ -11,11 +11,11 @@ from spiffworkflow_backend.models.user import UserModel
 
 
 class DataValidityError(Exception):
-    pass
+    """DataValidityError."""
 
 
 class MissingPrincipalError(DataValidityError):
-    pass
+    """MissingPrincipalError."""
 
 
 @dataclass
