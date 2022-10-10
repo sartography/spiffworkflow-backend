@@ -1,6 +1,8 @@
 group-a:
+  type: Group
   users: [kb, alex, dan, mike, jason]
 
 permission-read-all:
+  type: Permission
   groups: [group-a]
   users: []
