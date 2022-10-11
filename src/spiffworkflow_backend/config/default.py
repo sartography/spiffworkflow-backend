@@ -41,3 +41,7 @@ SPIFFWORKFLOW_BACKEND_LOG_TO_FILE = (
 CONNECTOR_PROXY_URL = environ.get(
     "CONNECTOR_PROXY_URL", default="http://localhost:7004"
 )
+
+# Sentry Configuration
+SENTRY_DSN = environ.get('SENTRY_DSN', default="")
+SENTRY_SAMPLE_RATE =  environ.get('SENTRY_SAMPLE_RATE', default="1.0")
