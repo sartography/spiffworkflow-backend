@@ -164,7 +164,7 @@ class TestProcessApi(BaseTest):
         # make sure we get an error in the response
         assert response.status_code == 400
         data = json.loads(response.get_data(as_text=True))
-        assert data["code"] == "existing_instances"
+        assert data["error_code"] == "existing_instances"
         assert (
             data["message"]
             == "We cannot delete the model `sample`, there are existing instances that depend on it."
@@ -459,7 +459,7 @@ class TestProcessApi(BaseTest):
 
         assert response.status_code == 400
         assert response.json is not None
-        assert response.json["code"] == "no_file_given"
+        assert response.json["error_code"] == "no_file_given"
 
     def test_process_model_file_update_fails_if_contents_is_empty(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
@@ -480,7 +480,7 @@ class TestProcessApi(BaseTest):
 
         assert response.status_code == 400
         assert response.json is not None
-        assert response.json["code"] == "file_contents_empty"
+        assert response.json["error_code"] == "file_contents_empty"
 
     def test_process_model_file_update(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
@@ -529,7 +529,7 @@ class TestProcessApi(BaseTest):
 
         assert response.status_code == 400
         assert response.json is not None
-        assert response.json["code"] == "process_model_cannot_be_found"
+        assert response.json["error_code"] == "process_model_cannot_be_found"
 
     def test_process_model_file_delete_when_bad_file(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
@@ -547,7 +547,7 @@ class TestProcessApi(BaseTest):
 
         assert response.status_code == 400
         assert response.json is not None
-        assert response.json["code"] == "process_model_file_cannot_be_found"
+        assert response.json["error_code"] == "process_model_file_cannot_be_found"
 
     def test_process_model_file_delete(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
@@ -682,7 +682,7 @@ class TestProcessApi(BaseTest):
         )
         assert response.status_code == 400
         assert response.json is not None
-        assert response.json["code"] == "process_model_cannot_be_found"
+        assert response.json["error_code"] == "process_model_cannot_be_found"
 
     def test_process_instance_create(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
@@ -1332,7 +1332,7 @@ class TestProcessApi(BaseTest):
         )
         assert response.status_code == 404
         data = json.loads(response.get_data(as_text=True))
-        assert data["code"] == "unknown_process_instance_report"
+        assert data["error_code"] == "unknown_process_instance_report"
 
     def setup_testing_instance(
         self,
@@ -1377,9 +1377,9 @@ class TestProcessApi(BaseTest):
         assert response.status_code == 400
 
         api_error = json.loads(response.get_data(as_text=True))
-        assert api_error["code"] == "task_error"
+        assert api_error["error_code"] == "task_error"
         assert (
-            'Activity_CauseError: TypeError:can only concatenate str (not "int") to str'
+            'TypeError:can only concatenate str (not "int") to str'
             in api_error["message"]
         )
 
@@ -1460,8 +1460,7 @@ class TestProcessApi(BaseTest):
             message = outbox[0]
             assert message.subject == "Unexpected error in app"
             assert (
-                message.body
-                == 'Activity_CauseError: TypeError:can only concatenate str (not "int") to str'
+                message.body == 'TypeError:can only concatenate str (not "int") to str'
             )
             assert message.recipients == process_model.exception_notification_addresses
 

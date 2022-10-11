@@ -51,7 +51,7 @@ class UserModel(SpiffworkflowBaseDBModel):
             ap_value: str = ap_type.value
             return ap_value
         raise ApiError(
-            code="invalid_service",
+            error_code="invalid_service",
             message=f"Could not validate service with value: {value}",
         )
 

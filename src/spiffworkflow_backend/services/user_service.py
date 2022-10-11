@@ -50,7 +50,8 @@ class UserService:
             except Exception as e:
                 db.session.rollback()
                 raise ApiError(
-                    code="add_user_error", message=f"Could not add user {username}"
+                    error_code="add_user_error",
+                    message=f"Could not add user {username}",
                 ) from e
             cls.create_principal(user_model.id)
             return user_model
@@ -61,7 +62,7 @@ class UserService:
             #  Don't really want to send service_id.
             raise (
                 ApiError(
-                    code="user_already_exists",
+                    error_code="user_already_exists",
                     message=f"User already exists: {username}",
                     status_code=409,
                 )
@@ -264,7 +265,7 @@ class UserService:
         if principal:
             return principal
         raise ApiError(
-            code="no_principal_found",
+            error_code="no_principal_found",
             message=f"No principal was found for user_id: {user_id}",
         )
 
@@ -283,7 +284,7 @@ class UserService:
                 db.session.rollback()
                 current_app.logger.error(f"Exception in create_principal: {e}")
                 raise ApiError(
-                    code="add_principal_error",
+                    error_code="add_principal_error",
                     message=f"Could not create principal {user_id}",
                 ) from e
         return principal

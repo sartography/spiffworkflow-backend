@@ -66,7 +66,7 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[Union[str, i
                 except Exception as e:
                     current_app.logger.error(f"Exception raised in get_token: {e}")
                     raise ApiError(
-                        code="fail_get_user_info",
+                        error_code="fail_get_user_info",
                         message="Cannot get user info from token",
                     ) from e
 
@@ -80,14 +80,14 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[Union[str, i
                     )
                     if user_model is None:
                         raise ApiError(
-                            code="invalid_user",
+                            error_code="invalid_user",
                             message="Invalid user. Please log in.",
                             status_code=401,
                         )
                 # no user_info
                 else:
                     raise ApiError(
-                        code="no_user_info", message="Cannot retrieve user info"
+                        error_code="no_user_info", message="Cannot retrieve user info"
                     )
 
             else:
@@ -95,7 +95,7 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[Union[str, i
                     "token_type not in decode_token in verify_token"
                 )
                 raise ApiError(
-                    code="invalid_token",
+                    error_code="invalid_token",
                     message="Invalid token. Please log in.",
                     status_code=401,
                 )
@@ -110,10 +110,10 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[Union[str, i
             return {"uid": g.user.id, "sub": g.user.id, "scope": scope}
             # return validate_scope(token, user_info, user_model)
         else:
-            raise ApiError(code="no_user_id", message="Cannot get a user id")
+            raise ApiError(error_code="no_user_id", message="Cannot get a user id")
 
     raise ApiError(
-        code="invalid_token", message="Cannot validate token.", status_code=401
+        error_code="invalid_token", message="Cannot validate token.", status_code=401
     )
     # no token -- do we ever get here?
     # else:
@@ -132,7 +132,7 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[Union[str, i
     #
     # else:
     #     raise ApiError(
-    #         code="no_auth_token",
+    #         error_code="no_auth_token",
     #         message="No authorization token was available.",
     #         status_code=401,
     #     )
@@ -190,7 +190,7 @@ def encode_auth_token(sub: str, token_type: Optional[str] = None) -> str:
     else:
         current_app.logger.error("Missing SECRET_KEY in encode_auth_token")
         raise ApiError(
-            code="encode_error", message="Missing SECRET_KEY in encode_auth_token"
+            error_code="encode_error", message="Missing SECRET_KEY in encode_auth_token"
         )
     return jwt.encode(
         payload,
@@ -258,14 +258,14 @@ def login_return(code: str, state: str, session_state: str) -> Optional[Response
                 return redirect(redirect_url)
 
         raise ApiError(
-            code="invalid_login",
+            error_code="invalid_login",
             message="Login failed. Please try again",
             status_code=401,
         )
 
     else:
         raise ApiError(
-            code="invalid_token",
+            error_code="invalid_token",
             message="Login failed. Please try again",
             status_code=401,
         )
@@ -317,7 +317,9 @@ def get_decoded_token(token: str) -> Optional[Dict]:
         decoded_token = jwt.decode(token, options={"verify_signature": False})
     except Exception as e:
         print(f"Exception in get_token_type: {e}")
-        raise ApiError(code="invalid_token", message="Cannot decode token.") from e
+        raise ApiError(
+            error_code="invalid_token", message="Cannot decode token."
+        ) from e
     else:
         if "token_type" in decoded_token or "iss" in decoded_token:
             return decoded_token
@@ -326,7 +328,8 @@ def get_decoded_token(token: str) -> Optional[Dict]:
                 f"Unknown token type in get_decoded_token: token: {token}"
             )
             raise ApiError(
-                code="unknown_token", message="Unknown token type in get_decoded_token"
+                error_code="unknown_token",
+                message="Unknown token type in get_decoded_token",
             )
     # try:
     #     # see if we have an open_id token

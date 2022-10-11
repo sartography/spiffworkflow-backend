@@ -108,4 +108,6 @@ class FailingService:
     @staticmethod
     def fail_as_service() -> None:
         """It fails."""
-        raise ApiError(code="failing_service", message="This is my failing service")
+        raise ApiError(
+            error_code="failing_service", message="This is my failing service"
+        )

@@ -315,7 +315,7 @@ class ProcessInstanceProcessor:
 
         except MissingSpecError as ke:
             raise ApiError(
-                code="unexpected_process_instance_structure",
+                error_code="unexpected_process_instance_structure",
                 message="Failed to deserialize process_instance"
                 " '%s'  due to a mis-placed or missing task '%s'"
                 % (self.process_model_identifier, str(ke)),
@@ -521,7 +521,7 @@ class ProcessInstanceProcessor:
                 if principal is None:
                     raise (
                         ApiError(
-                            code="principal_not_found",
+                            error_code="principal_not_found",
                             message=f"Principal not found from user id: {user_id}",
                             status_code=400,
                         )
@@ -623,7 +623,7 @@ class ProcessInstanceProcessor:
         if bpmn_file_full_path is None:
             raise (
                 ApiError(
-                    code="could_not_find_bpmn_process_identifier",
+                    error_code="could_not_find_bpmn_process_identifier",
                     message="Could not find the the given bpmn process identifier from any sources: %s"
                     % bpmn_process_identifier,
                 )
@@ -686,7 +686,7 @@ class ProcessInstanceProcessor:
         ):
             raise (
                 ApiError(
-                    code="no_primary_bpmn_error",
+                    error_code="no_primary_bpmn_error",
                     message="There is no primary BPMN process id defined for process_model %s"
                     % process_model_info.id,
                 )
@@ -704,7 +704,7 @@ class ProcessInstanceProcessor:
             )
         except ValidationException as ve:
             raise ApiError(
-                code="process_instance_validation_error",
+                error_code="process_instance_validation_error",
                 message="Failed to parse the Workflow Specification. "
                 + "Error is '%s.'" % str(ve),
                 file_name=ve.filename,
