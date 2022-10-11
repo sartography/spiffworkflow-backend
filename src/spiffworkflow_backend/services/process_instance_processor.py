@@ -164,11 +164,12 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
             raise WorkflowTaskExecException(task, f" {script}, {e}", e) from e
 
     def call_service(
-        self, 
-        operation_name: str, 
-        operation_params: Dict[str, Any], 
-        task_data: Dict[str, Any]
+        self,
+        operation_name: str,
+        operation_params: Dict[str, Any],
+        task_data: Dict[str, Any],
     ) -> Any:
+        """CallService."""
         return ServiceTaskDelegate.call_connector(
             operation_name, operation_params, task_data
         )

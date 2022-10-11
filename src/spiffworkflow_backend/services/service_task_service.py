@@ -1,7 +1,6 @@
 """ServiceTask_service."""
 import json
 from typing import Any
-from typing import Dict
 
 import requests
 from flask import current_app
