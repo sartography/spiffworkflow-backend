@@ -58,17 +58,14 @@ def setup_config(app: Flask) -> None:
     try:
         app.config.from_object(env_config_module)
     except ImportStringError as exception:
-        print("HERE WE ARE")
         raise ModuleNotFoundError(
             f"Cannot find config module: {env_config_module}"
         ) from exception
-    print(f"env_config_module: {env_config_module}")
 
     setup_database_uri(app)
     setup_logger(app)
 
     app.config["PERMISSIONS_FILE_FULLPATH"] = None
-    print(f"app.config['PERMI: {app.config['SPIFFWORKFLOW_BACKEND_PERMISSIONS_FILE_NAME']}")
     if app.config["SPIFFWORKFLOW_BACKEND_PERMISSIONS_FILE_NAME"]:
         app.config["PERMISSIONS_FILE_FULLPATH"] = os.path.join(
             app.root_path,
