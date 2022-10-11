@@ -65,7 +65,6 @@ class AuthorizationService:
             principals.append(group.principal)
 
         return cls.has_permission(principals, permission, target_uri)
-        # return False
 
     # def refresh_token(self, token: str) -> str:
     #     """Refresh_token."""

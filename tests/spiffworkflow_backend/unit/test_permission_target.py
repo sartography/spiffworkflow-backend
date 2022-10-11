@@ -12,7 +12,7 @@ class TestPermissionTarget(BaseTest):
     def test_asterisk_must_go_at_the_end_of_uri(
         self, app: Flask, with_db_and_bpmn_file_cleanup: None
     ) -> None:
-        permission_target = PermissionTargetModel(uri="/test_group/*")
+        permission_target = PermissionTargetModel(uri="/test_group/%")
         db.session.add(permission_target)
         db.session.commit()
 
@@ -21,7 +21,7 @@ class TestPermissionTarget(BaseTest):
         db.session.commit()
 
         with pytest.raises(InvalidPermissionTargetUri) as exception:
-            PermissionTargetModel(uri="/test_group/*/model")
+            PermissionTargetModel(uri="/test_group/%/model")
         assert (
-            str(exception.value) == "Invalid Permission Target Uri: /test_group/*/model"
+            str(exception.value) == "Invalid Permission Target Uri: /test_group/%/model"
         )

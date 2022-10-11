@@ -19,7 +19,7 @@ class PermissionTargetModel(SpiffworkflowBaseDBModel):
 
     @validates("uri")
     def validate_uri(self, key: str, value: str) -> str:
-        if re.search(r"\*.", value):
+        if re.search(r"%.", value):
             raise InvalidPermissionTargetUri(
                 f"Invalid Permission Target Uri: {value}"
             )
