@@ -1,5 +1,8 @@
 """Authorization_service."""
+import re
 from typing import Union
+
+from sqlalchemy import text
 
 import jwt
 from flask import current_app
@@ -21,13 +24,14 @@ class AuthorizationService:
     ) -> bool:
         """Has_permission."""
         principal_ids = [p.id for p in principals]
+
         permission_assignments = (
             PermissionAssignmentModel.query.filter(
                 PermissionAssignmentModel.principal_id.in_(principal_ids)
             )
             .filter_by(permission=permission)
             .join(PermissionTargetModel)
-            .filter_by(uri=target_uri)
+            .filter(text(f"'{target_uri}' LIKE `permission_target`.`uri`"))
             .all()
         )
 

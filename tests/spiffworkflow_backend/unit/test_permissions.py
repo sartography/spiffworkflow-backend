@@ -90,7 +90,6 @@ class TestPermissions(BaseTest):
     def test_user_can_be_granted_access_through_a_group(
         self, app: Flask, with_db_and_bpmn_file_cleanup: None
     ) -> None:
-        """Test_group_a_admin_needs_to_stay_away_from_group_b."""
         process_group_ids = ["group-a", "group-b"]
         process_group_a_id = process_group_ids[0]
         process_group_ids[1]
@@ -129,3 +128,42 @@ class TestPermissions(BaseTest):
             target_uri=f"/{process_group_a_id}",
         )
         assert has_permission_to_a is True
+
+    def test_user_can_be_read_models_with_global_permission(
+        self, app: Flask, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        process_group_ids = ["group-a", "group-b"]
+        process_group_a_id = process_group_ids[0]
+        process_group_b_id = process_group_ids[1]
+        for process_group_id in process_group_ids:
+            load_test_spec(
+                "timers_intermediate_catch_event",
+                process_group_id=process_group_id,
+            )
+        group_a_admin = self.find_or_create_user()
+
+        permission_target = PermissionTargetModel(uri=f"/%")
+        db.session.add(permission_target)
+        db.session.commit()
+
+        permission_assignment = PermissionAssignmentModel(
+            permission_target_id=permission_target.id,
+            principal_id=group_a_admin.principal.id,
+            permission="update",
+            grant_type="permit",
+        )
+        db.session.add(permission_assignment)
+        db.session.commit()
+
+        has_permission_to_a = AuthorizationService.user_has_permission(
+            user=group_a_admin,
+            permission="update",
+            target_uri=f"/{process_group_a_id}",
+        )
+        assert has_permission_to_a is True
+        has_permission_to_b = AuthorizationService.user_has_permission(
+            user=group_a_admin,
+            permission="update",
+            target_uri=f"/{process_group_b_id}",
+        )
+        assert has_permission_to_b is True
