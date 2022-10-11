@@ -1,0 +1,28 @@
+groups:
+  admin:
+    users: [jakub, kb, alex, dan, mike, jason]
+
+  finance:
+    users: [harmeet, sasha]
+
+  hr:
+    users: [manuchehr]
+
+permissions:
+  admin:
+    groups: [admin]
+    users: []
+    allowed_permissions: [CREATE, READ, UPDATE, DELETE, LIST, INSTANTIATE]
+    uri: /*
+
+  finance-admin:
+    groups: [finance]
+    users: []
+    allowed_permissions: [CREATE, READ, UPDATE, DELETE]
+    uri: /v1.0/process-groups/finance/*
+
+  read-all:
+    groups: [finance, hr, admin]
+    users: []
+    allowed_permissions: [READ]
+    uri: /*

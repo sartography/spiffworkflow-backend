@@ -1866,7 +1866,7 @@ pytz = "*"
 type = "git"
 url = "https://github.com/sartography/SpiffWorkflow"
 reference = "main"
-resolved_reference = "f30221dc6bb52753952369fc3bc5ee55ceef762f"
+resolved_reference = "63db3e45947ec66b8d0efc2c74064004f8ff482c"
 
 [[package]]
 name = "SQLAlchemy"
@@ -1982,6 +1982,14 @@ test = ["mypy", "pytest", "typing-extensions"]
 name = "types-pytz"
 version = "2022.4.0.0"
 description = "Typing stubs for pytz"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
+name = "types-PyYAML"
+version = "6.0.12"
+description = "Typing stubs for PyYAML"
 category = "main"
 optional = false
 python-versions = "*"
@@ -2178,7 +2186,7 @@ testing = ["func-timeout", "jaraco.itertools", "pytest (>=6)", "pytest-black (>=
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9,<3.11"
-content-hash = "5a1aa6f7788fe750e6c4f5681b71d7a8269806da061be6565746e3a23203196f"
+content-hash = "d05da4b7176e705f6962576bd25332a2514b94eac99b48f19bf950f073a2ddad"
 
 [metadata.files]
 alabaster = [
@@ -3395,6 +3403,10 @@ typeguard = [
 types-pytz = [
     {file = "types-pytz-2022.4.0.0.tar.gz", hash = "sha256:17d66e4b16e80ceae0787726f3a22288df7d3f9fdebeb091dc64b92c0e4ea09d"},
     {file = "types_pytz-2022.4.0.0-py3-none-any.whl", hash = "sha256:950b0f3d64ed5b03a3e29c1e38fe2be8371c933c8e97922d0352345336eb8af4"},
+]
+types-PyYAML = [
+    {file = "types-PyYAML-6.0.12.tar.gz", hash = "sha256:f6f350418125872f3f0409d96a62a5a5ceb45231af5cc07ee0034ec48a3c82fa"},
+    {file = "types_PyYAML-6.0.12-py3-none-any.whl", hash = "sha256:29228db9f82df4f1b7febee06bbfb601677882e98a3da98132e31c6874163e15"},
 ]
 types-requests = [
     {file = "types-requests-2.28.11.1.tar.gz", hash = "sha256:02b1806c5b9904edcd87fa29236164aea0e6cdc4d93ea020cd615ef65cb43d65"},

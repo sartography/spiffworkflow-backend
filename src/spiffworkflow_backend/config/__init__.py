@@ -57,6 +57,15 @@ def setup_config(app: Flask) -> None:
     setup_database_uri(app)
     setup_logger(app)
 
+    app.config["PERMISSIONS_FILE_FULLPATH"] = None
+    if app.config["SPIFFWORKFLOW_BACKEND_PERMISSIONS_FILE_NAME"]:
+        app.config["PERMISSIONS_FILE_FULLPATH"] = os.path.join(
+            app.root_path,
+            "config",
+            "permissions",
+            app.config["SPIFFWORKFLOW_BACKEND_PERMISSIONS_FILE_NAME"],
+        )
+
     env_config_module = "spiffworkflow_backend.config." + app.config["ENV_IDENTIFIER"]
     try:
         app.config.from_object(env_config_module)
