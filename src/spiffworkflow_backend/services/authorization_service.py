@@ -31,7 +31,7 @@ class AuthorizationService:
             )
             .filter_by(permission=permission)
             .join(PermissionTargetModel)
-            .filter(text(f"'{target_uri}' LIKE `permission_target`.`uri`"))
+            .filter(text(f"'{target_uri}' LIKE permission_target.uri"))
             .all()
         )
 
