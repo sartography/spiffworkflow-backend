@@ -928,7 +928,7 @@ def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response
                 ApiError(
                     error_code="missing_form_file",
                     message=f"Cannot find a form file for process_instance_id: {process_instance_id}, task_id: {task_id}",
-                    status_code=500,
+                    status_code=400,
                 )
             )
 
@@ -937,8 +937,18 @@ def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response
             task.data,
             process_model_with_form,
         )
-        # form_contents is a str
-        form_dict = json.loads(form_contents)
+
+        try:
+            # form_contents is a str
+            form_dict = json.loads(form_contents)
+        except Exception as exception:
+            raise (
+                ApiError(
+                    error_code="error_loading_form",
+                    message=f"Could not load form schema from: {form_schema_file_name}. Error was: {str(exception)}",
+                    status_code=400,
+                )
+            ) from exception
 
         if task.data:
             _update_form_schema_with_task_data_as_needed(form_dict, task.data)
