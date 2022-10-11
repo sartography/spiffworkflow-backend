@@ -26,38 +26,6 @@ admin_blueprint = Blueprint(
 ALLOWED_BPMN_EXTENSIONS = {"bpmn", "dmn"}
 
 
-@admin_blueprint.before_app_first_request
-def before_first_request() -> None:
-    """Before_first_request."""
-    # token()
-    # ProcessInstanceReportModel.add_fixtures()
-
-
-# @admin_blueprint.route("/token", methods=["GET"])
-# def token() -> str:
-#     """Token."""
-#     if current_app.env == "production":
-#         return "Not authorized"
-#
-#     user = UserModel.query.first()
-#     if user is None:
-#         user = UserModel(service='keycloak',
-#                          service_id="test_user1",
-#                          name='Test Name',
-#                          username='test_username')
-#         db.session.add(user)
-#         db.session.commit()
-#
-#     principal = PrincipalModel.query.filter_by(user_id=user.id).first()
-#     if principal is None:
-#         principal = PrincipalModel(user_id=user.id)
-#         db.session.add(principal)
-#         db.session.commit()
-#
-#     auth_token = user.encode_auth_token()
-#     return f"auth_token: {auth_token}"
-
-
 @admin_blueprint.route("/process-groups", methods=["GET"])
 def process_groups_list() -> str:
     """Process_groups_list."""
@@ -174,7 +142,7 @@ def process_model_save(process_model_id: str, file_name: str) -> Union[str, Resp
 @admin_blueprint.route("/process-models/<process_model_id>/run", methods=["GET"])
 def process_model_run(process_model_id: str) -> Union[str, Response]:
     """Process_model_run."""
-    user = UserService().create_user("internal", "Mr. Test", username="Mr. Test")
+    user = UserService.create_user("internal", "Mr. Test", username="Mr. Test")
     process_instance = ProcessInstanceService.create_process_instance(
         process_model_id, user
     )

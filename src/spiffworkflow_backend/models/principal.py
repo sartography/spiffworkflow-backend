@@ -10,6 +10,14 @@ from spiffworkflow_backend.models.group import GroupModel
 from spiffworkflow_backend.models.user import UserModel
 
 
+class DataValidityError(Exception):
+    """DataValidityError."""
+
+
+class MissingPrincipalError(DataValidityError):
+    """MissingPrincipalError."""
+
+
 @dataclass
 class PrincipalModel(SpiffworkflowBaseDBModel):
     """PrincipalModel."""

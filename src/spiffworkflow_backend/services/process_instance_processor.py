@@ -102,6 +102,10 @@ DEFAULT_GLOBALS.update(safe_globals)
 DEFAULT_GLOBALS["__builtins__"]["__import__"] = _import
 
 
+class ProcessInstanceProcessorError(Exception):
+    """ProcessInstanceProcessorError."""
+
+
 class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
     """This is a custom script processor that can be easily injected into Spiff Workflow.
 
@@ -115,7 +119,9 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
 
     def __get_augment_methods(self, task: SpiffTask) -> Dict[str, Callable]:
         """__get_augment_methods."""
-        return Script.generate_augmented_list(task, current_app.env)
+        return Script.generate_augmented_list(
+            task, current_app.config["ENV_IDENTIFIER"]
+        )
 
     def evaluate(self, task: SpiffTask, expression: str) -> Any:
         """Evaluate."""
@@ -166,10 +172,6 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
     def available_service_task_external_methods(self) -> Dict[str, Any]:
         """Returns available service task external methods."""
         return ServiceTaskService.scripting_additions()
-
-
-class ProcessInstanceProcessorError(Exception):
-    """ProcessInstanceProcessorError."""
 
 
 class MyCustomParser(BpmnDmnParser):  # type: ignore

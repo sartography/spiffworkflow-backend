@@ -38,7 +38,7 @@ class BaseTest:
         if isinstance(user, UserModel):
             return user
 
-        user = UserService().create_user("internal", username, username=username)
+        user = UserService.create_user("internal", username, username=username)
         if isinstance(user, UserModel):
             return user
 

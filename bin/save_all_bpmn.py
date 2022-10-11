@@ -10,7 +10,7 @@ from spiffworkflow_backend.services.spec_file_service import SpecFileService
 
 def main():
     """Main."""
-    os.environ["FLASK_ENV"] = "development"
+    os.environ["SPIFFWORKFLOW_BACKEND_ENV"] = "development"
     flask_env_key = "FLASK_SESSION_SECRET_KEY"
     os.environ[flask_env_key] = "whatevs"
     if "BPMN_SPEC_ABSOLUTE_DIR" not in os.environ:
