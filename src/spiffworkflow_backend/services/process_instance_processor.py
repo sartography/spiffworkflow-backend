@@ -167,7 +167,7 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
         except WorkflowException as e:
             raise e
         except Exception as e:
-            raise WorkflowTaskExecException(task, f" {script}, {e}", e) from e
+            raise WorkflowTaskExecException(task, f" {script}, ") from e
 
     def call_service(
         self,
