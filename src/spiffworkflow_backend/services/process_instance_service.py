@@ -213,7 +213,7 @@ class ProcessInstanceService:
         """Get_users_assigned_to_task."""
         if processor.process_instance_model.process_initiator_id is None:
             raise ApiError.from_task(
-                code="invalid_workflow",
+                error_code="invalid_workflow",
                 message="A process instance must have a user_id.",
                 task=spiff_task,
             )
@@ -246,7 +246,7 @@ class ProcessInstanceService:
                         lane_uids.append(user["value"])
                     else:
                         raise ApiError.from_task(
-                            code="task_lane_user_error",
+                            error_code="task_lane_user_error",
                             message="Spiff Task %s lane user dict must have a key called 'value' with the user's uid in it."
                             % spiff_task.task_spec.name,
                             task=spiff_task,
@@ -255,7 +255,7 @@ class ProcessInstanceService:
                     lane_uids.append(user)
                 else:
                     raise ApiError.from_task(
-                        code="task_lane_user_error",
+                        error_code="task_lane_user_error",
                         message="Spiff Task %s lane user is not a string or dict"
                         % spiff_task.task_spec.name,
                         task=spiff_task,

@@ -217,12 +217,12 @@ class SpecFileService(FileSystemService):
             except ValidationException as ve:
                 if ve.args[0].find("No executable process tag found") >= 0:
                     raise ApiError(
-                        code="missing_executable_option",
+                        error_code="missing_executable_option",
                         message="No executable process tag found. Please make sure the Executable option is set in the workflow.",
                     ) from ve
                 else:
                     raise ApiError(
-                        code="validation_error",
+                        error_code="validation_error",
                         message=f"There was an error validating your workflow. Original message is: {ve}",
                     ) from ve
         else:

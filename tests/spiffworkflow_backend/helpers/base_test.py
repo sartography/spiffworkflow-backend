@@ -38,12 +38,13 @@ class BaseTest:
         if isinstance(user, UserModel):
             return user
 
-        user = UserService().create_user("internal", username, username=username)
+        user = UserService.create_user("internal", username, username=username)
         if isinstance(user, UserModel):
             return user
 
         raise ApiError(
-            code="create_user_error", message=f"Cannot find or create user: {username}"
+            error_code="create_user_error",
+            message=f"Cannot find or create user: {username}",
         )
 
     @staticmethod

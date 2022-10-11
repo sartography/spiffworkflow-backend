@@ -7,33 +7,61 @@ from flask_bpmn.api.api_error import ApiError
 
 from spiffworkflow_backend.models.permission_assignment import PermissionAssignmentModel
 from spiffworkflow_backend.models.permission_target import PermissionTargetModel
+from spiffworkflow_backend.models.principal import MissingPrincipalError
 from spiffworkflow_backend.models.principal import PrincipalModel
+from spiffworkflow_backend.models.user import UserModel
 
 
 class AuthorizationService:
     """Determine whether a user has permission to perform their request."""
 
-    @staticmethod
+    @classmethod
     def has_permission(
-        principal: PrincipalModel, permission: str, target_uri: str
+        cls, principals: list[PrincipalModel], permission: str, target_uri: str
     ) -> bool:
         """Has_permission."""
-        permission_assignment = (
-            PermissionAssignmentModel.query.filter_by(
-                principal_id=principal.id, permission=permission
+        principal_ids = [p.id for p in principals]
+        permission_assignments = (
+            PermissionAssignmentModel.query.filter(
+                PermissionAssignmentModel.principal_id.in_(principal_ids)
             )
+            .filter_by(permission=permission)
             .join(PermissionTargetModel)
             .filter_by(uri=target_uri)
-            .first()
+            .all()
         )
-        if permission_assignment is None:
-            return False
-        if permission_assignment.grant_type.value == "permit":
-            return True
-        elif permission_assignment.grant_type.value == "deny":
-            return False
-        else:
-            raise Exception("Unknown grant type")
+
+        for permission_assignment in permission_assignments:
+            if permission_assignment.grant_type.value == "permit":
+                return True
+            elif permission_assignment.grant_type.value == "deny":
+                return False
+            else:
+                raise Exception("Unknown grant type")
+
+        return False
+
+    @classmethod
+    def user_has_permission(
+        cls, user: UserModel, permission: str, target_uri: str
+    ) -> bool:
+        """User_has_permission."""
+        if user.principal is None:
+            raise MissingPrincipalError(
+                f"Missing principal for user with id: {user.id}"
+            )
+
+        principals = [user.principal]
+
+        for group in user.groups:
+            if group.principal is None:
+                raise MissingPrincipalError(
+                    f"Missing principal for group with id: {group.id}"
+                )
+            principals.append(group.principal)
+
+        return cls.has_permission(principals, permission, target_uri)
+        # return False
 
     # def refresh_token(self, token: str) -> str:
     #     """Refresh_token."""

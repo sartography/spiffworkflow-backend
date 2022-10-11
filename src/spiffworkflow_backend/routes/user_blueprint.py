@@ -31,7 +31,7 @@ user_blueprint = Blueprint("main", __name__)
 #     if user is not None:
 #         raise (
 #             ApiError(
-#                 code="user_already_exists",
+#                 error_code="user_already_exists",
 #                 message=f"User already exists: {username}",
 #                 status_code=409,
 #             )
@@ -45,7 +45,7 @@ user_blueprint = Blueprint("main", __name__)
 #         db.session.add(user)
 #     except IntegrityError as exception:
 #         raise (
-#             ApiError(code="integrity_error", message=repr(exception), status_code=500)
+#             ApiError(error_code="integrity_error", message=repr(exception), status_code=500)
 #         ) from exception
 #
 #     try:
@@ -68,7 +68,7 @@ def delete_user(username: str) -> flask.wrappers.Response:
     if user is None:
         raise (
             ApiError(
-                code="user_cannot_be_found",
+                error_code="user_cannot_be_found",
                 message=f"User cannot be found: {username}",
                 status_code=400,
             )
@@ -87,7 +87,7 @@ def create_group(group_name: str) -> flask.wrappers.Response:
     if group is not None:
         raise (
             ApiError(
-                code="group_already_exists",
+                error_code="group_already_exists",
                 message=f"Group already exists: {group_name}",
                 status_code=409,
             )
@@ -98,7 +98,9 @@ def create_group(group_name: str) -> flask.wrappers.Response:
         db.session.add(group)
     except IntegrityError as exception:
         raise (
-            ApiError(code="integrity_error", message=repr(exception), status_code=500)
+            ApiError(
+                error_code="integrity_error", message=repr(exception), status_code=500
+            )
         ) from exception
     db.session.commit()
 
@@ -112,7 +114,7 @@ def delete_group(group_name: str) -> flask.wrappers.Response:
     if group is None:
         raise (
             ApiError(
-                code="group_cannot_be_found",
+                error_code="group_cannot_be_found",
                 message=f"Group cannot be found: {group_name}",
                 status_code=400,
             )
@@ -136,7 +138,7 @@ def assign_user_to_group() -> flask.wrappers.Response:
     if user_group_assignment is not None:
         raise (
             ApiError(
-                code="user_is_already_in_group",
+                error_code="user_is_already_in_group",
                 message=f"User ({user.id}) is already in group ({group.id})",
                 status_code=409,
             )
@@ -165,7 +167,7 @@ def remove_user_from_group() -> flask.wrappers.Response:
     if user_group_assignment is None:
         raise (
             ApiError(
-                code="user_not_in_group",
+                error_code="user_not_in_group",
                 message=f"User ({user.id}) is not in group ({group.id})",
                 status_code=400,
             )
@@ -195,7 +197,7 @@ def get_user_from_request() -> Any:
     if user_id is None:
         raise (
             ApiError(
-                code="user_id_is_required",
+                error_code="user_id_is_required",
                 message="Attribute user_id is required",
                 status_code=400,
             )
@@ -205,7 +207,7 @@ def get_user_from_request() -> Any:
     if user is None:
         raise (
             ApiError(
-                code="user_cannot_be_found",
+                error_code="user_cannot_be_found",
                 message=f"User cannot be found: {user_id}",
                 status_code=400,
             )
@@ -220,7 +222,7 @@ def get_group_from_request() -> Any:
     if group_id is None:
         raise (
             ApiError(
-                code="group_id_is_required",
+                error_code="group_id_is_required",
                 message="Attribute group_id is required",
                 status_code=400,
             )
@@ -230,7 +232,7 @@ def get_group_from_request() -> Any:
     if group is None:
         raise (
             ApiError(
-                code="group_cannot_be_found",
+                error_code="group_cannot_be_found",
                 message=f"Group cannot be found: {group_id}",
                 status_code=400,
             )

@@ -48,7 +48,7 @@ repos:
         language: system
         types: [python]
         args: [--application-directories=src]
-        exclude: ^migrations/
+        exclude: "(^migrations/|load_database_models)"
       - id: trailing-whitespace
         name: Trim Trailing Whitespace
         entry: trailing-whitespace-fixer

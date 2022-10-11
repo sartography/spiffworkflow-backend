@@ -47,7 +47,7 @@ class SecretService:
             db.session.commit()
         except Exception as e:
             raise ApiError(
-                code="create_secret_error",
+                error_code="create_secret_error",
                 message=f"There was an error creating a secret with key: {key} and value ending with: {value[:-4]}. "
                 f"Original error is {e}",
             ) from e
@@ -63,7 +63,7 @@ class SecretService:
             return secret
         else:
             raise ApiError(
-                code="missing_secret_error",
+                error_code="missing_secret_error",
                 message=f"Unable to locate a secret with the name: {key}. ",
             )
 
@@ -83,18 +83,18 @@ class SecretService:
                     db.session.commit()
                 except Exception as e:
                     raise ApiError(
-                        code="update_secret_error",
+                        error_code="update_secret_error",
                         message=f"There was an error updating the secret with key: {key}, and value: {value}",
                     ) from e
             else:
                 raise ApiError(
-                    code="update_secret_error",
+                    error_code="update_secret_error",
                     message=f"User: {creator_user_id} cannot update the secret with key : {key}",
                     status_code=401,
                 )
         else:
             raise ApiError(
-                code="update_secret_error",
+                error_code="update_secret_error",
                 message=f"Cannot update secret with key: {key}. Resource does not exist.",
                 status_code=404,
             )
@@ -110,18 +110,18 @@ class SecretService:
                     db.session.commit()
                 except Exception as e:
                     raise ApiError(
-                        code="delete_secret_error",
+                        error_code="delete_secret_error",
                         message=f"Could not delete secret with key: {key}. Original error is: {e}",
                     ) from e
             else:
                 raise ApiError(
-                    code="delete_secret_error",
+                    error_code="delete_secret_error",
                     message=f"User: {user_id} cannot delete the secret with key : {key}",
                     status_code=401,
                 )
         else:
             raise ApiError(
-                code="delete_secret_error",
+                error_code="delete_secret_error",
                 message=f"Cannot delete secret with key: {key}. Resource does not exist.",
                 status_code=404,
             )
@@ -145,7 +145,7 @@ class SecretService:
                 except IntegrityError as ie:
                     db.session.rollback()
                     raise ApiError(
-                        code="add_allowed_process_error",
+                        error_code="add_allowed_process_error",
                         message=f"Error adding allowed_process with secret {secret_model.id}, "
                         f"and path: {allowed_relative_path}. Resource already exists. "
                         f"Original error is {ie}",
@@ -155,7 +155,7 @@ class SecretService:
                     # TODO: should we call db.session.rollback() here?
                     # db.session.rollback()
                     raise ApiError(
-                        code="add_allowed_process_error",
+                        error_code="add_allowed_process_error",
                         message=f"Could not create an allowed process for secret with key: {secret_model.key} "
                         f"with path: {allowed_relative_path}. "
                         f"Original error is {e}",
@@ -163,13 +163,13 @@ class SecretService:
                 return secret_process_model
             else:
                 raise ApiError(
-                    code="add_allowed_process_error",
+                    error_code="add_allowed_process_error",
                     message=f"User: {user_id} cannot modify the secret with key : {secret_model.key}",
                     status_code=401,
                 )
         else:
             raise ApiError(
-                code="add_allowed_process_error",
+                error_code="add_allowed_process_error",
                 message=f"Cannot add allowed process to secret with key: {secret_id}. Resource does not exist.",
                 status_code=404,
             )
@@ -191,19 +191,19 @@ class SecretService:
                     db.session.commit()
                 except Exception as e:
                     raise ApiError(
-                        code="delete_allowed_process_error",
+                        error_code="delete_allowed_process_error",
                         message=f"There was an exception deleting allowed_process: {allowed_process_id}. "
                         f"Original error is: {e}",
                     ) from e
             else:
                 raise ApiError(
-                    code="delete_allowed_process_error",
+                    error_code="delete_allowed_process_error",
                     message=f"User: {user_id} cannot delete the allowed_process with id : {allowed_process_id}",
                     status_code=401,
                 )
         else:
             raise ApiError(
-                code="delete_allowed_process_error",
+                error_code="delete_allowed_process_error",
                 message=f"Cannot delete allowed_process: {allowed_process_id}. Resource does not exist.",
                 status_code=404,
             )

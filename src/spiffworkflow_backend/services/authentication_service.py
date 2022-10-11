@@ -66,21 +66,21 @@ class PublicAuthenticationService:
         except Exception as e:
             current_app.logger.error(f"Exception in get_user_info_from_id_token: {e}")
             raise ApiError(
-                code="token_error",
+                error_code="token_error",
                 message=f"Exception in get_user_info_from_id_token: {e}",
                 status_code=401,
             ) from e
 
         if request_response.status_code == 401:
             raise ApiError(
-                code="invalid_token", message="Please login", status_code=401
+                error_code="invalid_token", message="Please login", status_code=401
             )
         elif request_response.status_code == 200:
             user_info: dict = json.loads(request_response.text)
             return user_info
 
         raise ApiError(
-            code="user_info_error",
+            error_code="user_info_error",
             message="Cannot get user info in get_user_info_from_id_token",
             status_code=401,
         )
@@ -114,7 +114,9 @@ class PublicAuthenticationService:
         state = base64.b64encode(bytes(str({"redirect_url": redirect_url}), "UTF-8"))
         return state
 
-    def get_login_redirect_url(self, state: str) -> str:
+    def get_login_redirect_url(
+        self, state: str, redirect_url: str = "/v1.0/login_return"
+    ) -> str:
         """Get_login_redirect_url."""
         (
             open_id_server_url,
@@ -122,7 +124,7 @@ class PublicAuthenticationService:
             open_id_realm_name,
             open_id_client_secret_key,
         ) = PublicAuthenticationService.get_open_id_args()
-        return_redirect_url = f"{self.get_backend_url()}/v1.0/login_return"
+        return_redirect_url = f"{self.get_backend_url()}{redirect_url}"
         login_redirect_url = (
             f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/auth?"
             + f"state={state}&"
@@ -133,7 +135,9 @@ class PublicAuthenticationService:
         )
         return login_redirect_url
 
-    def get_id_token_object(self, code: str) -> dict:
+    def get_id_token_object(
+        self, code: str, redirect_url: str = "/v1.0/login_return"
+    ) -> dict:
         """Get_id_token_object."""
         (
             open_id_server_url,
@@ -152,7 +156,7 @@ class PublicAuthenticationService:
         data = {
             "grant_type": "authorization_code",
             "code": code,
-            "redirect_uri": f"{self.get_backend_url()}/v1.0/login_return",
+            "redirect_uri": f"{self.get_backend_url()}{redirect_url}",
         }
 
         request_url = f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/token"
@@ -176,7 +180,9 @@ class PublicAuthenticationService:
             decoded_token = jwt.decode(id_token, options={"verify_signature": False})
         except Exception as e:
             raise ApiError(
-                code="bad_id_token", message="Cannot decode id_token", status_code=401
+                error_code="bad_id_token",
+                message="Cannot decode id_token",
+                status_code=401,
             ) from e
         if decoded_token["iss"] != f"{open_id_server_url}/realms/{open_id_realm_name}":
             valid = False
@@ -199,7 +205,7 @@ class PublicAuthenticationService:
 
         if now > decoded_token["exp"]:
             raise ApiError(
-                code="invalid_token",
+                error_code="invalid_token",
                 message="Your token is expired. Please Login",
                 status_code=401,
             )
