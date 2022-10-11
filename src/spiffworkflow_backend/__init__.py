@@ -111,6 +111,4 @@ def create_app() -> flask.app.Flask:
     if app.config["PROCESS_WAITING_MESSAGES"]:
         start_scheduler(app)
 
-    print(f"app.debug: {app.debug}")
-
     return app  # type: ignore

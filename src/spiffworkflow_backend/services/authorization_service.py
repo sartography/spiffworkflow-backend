@@ -21,23 +21,25 @@ class AuthorizationService:
     ) -> bool:
         """Has_permission."""
         principal_ids = [p.id for p in principals]
-        permission_assignment = (
+        permission_assignments = (
             PermissionAssignmentModel.query.filter(
                 PermissionAssignmentModel.principal_id.in_(principal_ids)
             )
             .filter_by(permission=permission)
             .join(PermissionTargetModel)
             .filter_by(uri=target_uri)
-            .first()
+            .all()
         )
-        if permission_assignment is None:
-            return False
-        if permission_assignment.grant_type.value == "permit":
-            return True
-        elif permission_assignment.grant_type.value == "deny":
-            return False
-        else:
-            raise Exception("Unknown grant type")
+
+        for permission_assignment in permission_assignments:
+            if permission_assignment.grant_type.value == "permit":
+                return True
+            elif permission_assignment.grant_type.value == "deny":
+                return False
+            else:
+                raise Exception("Unknown grant type")
+
+        return False
 
     @classmethod
     def user_has_permission(

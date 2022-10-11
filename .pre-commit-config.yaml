@@ -7,7 +7,7 @@ repos:
         language: system
         types: [python]
         require_serial: true
-        exclude: ^migrations/
+        exclude: "(^migrations/|^load_database_models.)"
       - id: check-added-large-files
         name: Check for added large files
         entry: check-added-large-files

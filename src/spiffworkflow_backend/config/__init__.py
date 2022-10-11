@@ -47,11 +47,9 @@ def setup_config(app: Flask) -> None:
     )
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config.from_object("spiffworkflow_backend.config.default")
+
     # This allows config/testing.py or instance/config.py to override the default config
-    if (
-        "SPIFFWORKFLOW_BACKEND_ENV" in app.config
-        and app.config["SPIFFWORKFLOW_BACKEND_ENV"] == "testing"
-    ):
+    if "ENV_IDENTIFIER" in app.config and app.config["ENV_IDENTIFIER"] == "testing":
         app.config.from_pyfile("config/testing.py", silent=True)
     else:
         app.config.from_pyfile(f"{app.instance_path}/config.py", silent=True)

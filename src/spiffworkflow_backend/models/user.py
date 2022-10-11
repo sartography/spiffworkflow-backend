@@ -12,10 +12,11 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.orm import validates
 
 from spiffworkflow_backend.models.group import GroupModel
-from spiffworkflow_backend.models.user_group_assignment import UserGroupAssignmentModel
 from spiffworkflow_backend.services.authentication_service import (
     AuthenticationProviderTypes,
 )
+
+# from spiffworkflow_backend.models.user_group_assignment import UserGroupAssignmentModel
 
 
 class UserModel(SpiffworkflowBaseDBModel):
@@ -23,6 +24,7 @@ class UserModel(SpiffworkflowBaseDBModel):
 
     __tablename__ = "user"
     __table_args__ = (db.UniqueConstraint("service", "service_id", name="service_key"),)
+
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(255), nullable=False, unique=True)
     uid = db.Column(db.String(50), unique=True)
@@ -30,7 +32,8 @@ class UserModel(SpiffworkflowBaseDBModel):
     service_id = db.Column(db.String(255), nullable=False, unique=False)
     name = db.Column(db.String(255))
     email = db.Column(db.String(255))
-    user_group_assignments = relationship(UserGroupAssignmentModel, cascade="delete")
+
+    user_group_assignments = relationship("UserGroupAssignmentModel", cascade="delete")
     groups = relationship(  # type: ignore
         GroupModel,
         viewonly=True,

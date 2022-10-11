@@ -4,6 +4,12 @@ autoflake8 will remove these lines without the noqa comment
 """
 from flask_bpmn.models.db import add_listeners
 
+# must load this before UserModel and GroupModel for relationships
+from spiffworkflow_backend.models.user_group_assignment import (
+    UserGroupAssignmentModel,
+)  # noqa: F401
+
+
 from spiffworkflow_backend.models.active_task import ActiveTaskModel  # noqa: F401
 from spiffworkflow_backend.models.bpmn_process_id_lookup import (
     BpmnProcessIdLookup,
@@ -40,8 +46,6 @@ from spiffworkflow_backend.models.secret_model import SecretModel  # noqa: F401
 from spiffworkflow_backend.models.spiff_logging import SpiffLoggingModel  # noqa: F401
 from spiffworkflow_backend.models.task_event import TaskEventModel  # noqa: F401
 from spiffworkflow_backend.models.user import UserModel  # noqa: F401
-from spiffworkflow_backend.models.user_group_assignment import (
-    UserGroupAssignmentModel,
-)  # noqa: F401
+from spiffworkflow_backend.models.group import GroupModel  # noqa: F401
 
 add_listeners()
