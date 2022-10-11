@@ -66,21 +66,21 @@ class PublicAuthenticationService:
         except Exception as e:
             current_app.logger.error(f"Exception in get_user_info_from_id_token: {e}")
             raise ApiError(
-                code="token_error",
+                error_code="token_error",
                 message=f"Exception in get_user_info_from_id_token: {e}",
                 status_code=401,
             ) from e
 
         if request_response.status_code == 401:
             raise ApiError(
-                code="invalid_token", message="Please login", status_code=401
+                error_code="invalid_token", message="Please login", status_code=401
             )
         elif request_response.status_code == 200:
             user_info: dict = json.loads(request_response.text)
             return user_info
 
         raise ApiError(
-            code="user_info_error",
+            error_code="user_info_error",
             message="Cannot get user info in get_user_info_from_id_token",
             status_code=401,
         )
@@ -180,7 +180,9 @@ class PublicAuthenticationService:
             decoded_token = jwt.decode(id_token, options={"verify_signature": False})
         except Exception as e:
             raise ApiError(
-                code="bad_id_token", message="Cannot decode id_token", status_code=401
+                error_code="bad_id_token",
+                message="Cannot decode id_token",
+                status_code=401,
             ) from e
         if decoded_token["iss"] != f"{open_id_server_url}/realms/{open_id_realm_name}":
             valid = False
@@ -203,7 +205,7 @@ class PublicAuthenticationService:
 
         if now > decoded_token["exp"]:
             raise ApiError(
-                code="invalid_token",
+                error_code="invalid_token",
                 message="Your token is expired. Please Login",
                 status_code=401,
             )

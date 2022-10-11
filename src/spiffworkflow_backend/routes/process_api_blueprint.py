@@ -154,7 +154,7 @@ def process_group_show(
     except ProcessEntityNotFoundError as exception:
         raise (
             ApiError(
-                code="process_group_cannot_be_found",
+                error_code="process_group_cannot_be_found",
                 message=f"Process group cannot be found: {process_group_id}",
                 status_code=400,
             )
@@ -169,7 +169,7 @@ def process_model_add(
     process_model_info = ProcessModelInfoSchema().load(body)
     if process_model_info is None:
         raise ApiError(
-            code="process_model_could_not_be_created",
+            error_code="process_model_could_not_be_created",
             message=f"Process Model could not be created from given body: {body}",
             status_code=400,
         )
@@ -180,7 +180,7 @@ def process_model_add(
     )
     if process_group is None:
         raise ApiError(
-            code="process_model_could_not_be_created",
+            error_code="process_model_could_not_be_created",
             message=f"Process Model could not be created from given body because Process Group could not be found: {body}",
             status_code=400,
         )
@@ -259,7 +259,7 @@ def get_file(process_group_id: str, process_model_id: str, file_name: str) -> An
     files = SpecFileService.get_files(process_model, file_name)
     if len(files) == 0:
         raise ApiError(
-            code="unknown file",
+            error_code="unknown file",
             message=f"No information exists for file {file_name}"
             f" it does not exist in workflow {process_model_id}.",
             status_code=404,
@@ -283,7 +283,7 @@ def process_model_file_update(
     request_file_contents = request_file.stream.read()
     if not request_file_contents:
         raise ApiError(
-            code="file_contents_empty",
+            error_code="file_contents_empty",
             message="Given request file does not have any content",
             status_code=400,
         )
@@ -311,7 +311,7 @@ def process_model_file_delete(
     except FileNotFoundError as exception:
         raise (
             ApiError(
-                code="process_model_file_cannot_be_found",
+                error_code="process_model_file_cannot_be_found",
                 message=f"Process model file cannot be found: {file_name}",
                 status_code=400,
             )
@@ -326,7 +326,7 @@ def add_file(process_group_id: str, process_model_id: str) -> flask.wrappers.Res
     request_file = get_file_from_request()
     if not request_file.filename:
         raise ApiError(
-            code="could_not_get_filename",
+            error_code="could_not_get_filename",
             message="Could not get filename from request",
             status_code=400,
         )
@@ -379,7 +379,7 @@ def process_instance_run(
             ErrorHandlingService().handle_error(processor, e)
             task = processor.bpmn_process_instance.last_task
             raise ApiError.from_task(
-                code="unknown_exception",
+                error_code="unknown_exception",
                 message=f"An unknown error occurred. Original error: {e}",
                 status_code=400,
                 task=task,
@@ -507,7 +507,7 @@ def message_start(
     if message_model is None:
         raise (
             ApiError(
-                code="unknown_message",
+                error_code="unknown_message",
                 message=f"Could not find message with identifier: {message_identifier}",
                 status_code=404,
             )
@@ -516,7 +516,7 @@ def message_start(
     if "payload" not in body:
         raise (
             ApiError(
-                code="missing_payload",
+                error_code="missing_payload",
                 message="Body is missing payload.",
                 status_code=400,
             )
@@ -538,7 +538,7 @@ def message_start(
         if message_instance is None:
             raise (
                 ApiError(
-                    code="cannot_find_waiting_message",
+                    error_code="cannot_find_waiting_message",
                     message=f"Could not find waiting message for identifier {message_identifier} "
                     f"and process instance {process_instance.id}",
                     status_code=400,
@@ -558,7 +558,7 @@ def message_start(
         if message_triggerable_process_model is None:
             raise (
                 ApiError(
-                    code="cannot_start_message",
+                    error_code="cannot_start_message",
                     message=f"Message with identifier cannot be start with message: {message_identifier}",
                     status_code=400,
                 )
@@ -607,7 +607,7 @@ def process_instance_list(
     ):
         raise (
             ApiError(
-                code="unexpected_condition",
+                error_code="unexpected_condition",
                 message="Something went very wrong",
                 status_code=500,
             )
@@ -730,7 +730,7 @@ def process_instance_report_update(
     ).first()
     if process_instance_report is None:
         raise ApiError(
-            code="unknown_process_instance_report",
+            error_code="unknown_process_instance_report",
             message="Unknown process instance report",
             status_code=404,
         )
@@ -754,7 +754,7 @@ def process_instance_report_delete(
     ).first()
     if process_instance_report is None:
         raise ApiError(
-            code="unknown_process_instance_report",
+            error_code="unknown_process_instance_report",
             message="Unknown process instance report",
             status_code=404,
         )
@@ -798,7 +798,7 @@ def process_instance_report_show(
     ).first()
     if process_instance_report is None:
         raise ApiError(
-            code="unknown_process_instance_report",
+            error_code="unknown_process_instance_report",
             message="Unknown process instance report",
             status_code=404,
         )
@@ -926,7 +926,7 @@ def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response
         if not form_schema_file_name:
             raise (
                 ApiError(
-                    code="missing_form_file",
+                    error_code="missing_form_file",
                     message=f"Cannot find a form file for process_instance_id: {process_instance_id}, task_id: {task_id}",
                     status_code=500,
                 )
@@ -987,7 +987,7 @@ def task_submit(
     if spiff_task.state != TaskState.READY:
         raise (
             ApiError(
-                code="invalid_state",
+                error_code="invalid_state",
                 message="You may not update a task unless it is in the READY state.",
                 status_code=400,
             )
@@ -1041,7 +1041,7 @@ def script_unit_test_create(
     file = SpecFileService.get_files(process_model, process_model.primary_file_name)[0]
     if file is None:
         raise ApiError(
-            code="cannot_find_file",
+            error_code="cannot_find_file",
             message=f"Could not find the primary bpmn file for process_model: {process_model.id}",
             status_code=404,
         )
@@ -1063,7 +1063,7 @@ def script_unit_test_create(
     )
     if len(script_task_elements) == 0:
         raise ApiError(
-            code="missing_script_task",
+            error_code="missing_script_task",
             message=f"Cannot find a script task with id: {bpmn_task_identifier}",
             status_code=404,
         )
@@ -1139,7 +1139,7 @@ def get_file_from_request() -> Any:
     request_file = connexion.request.files.get("file")
     if not request_file:
         raise ApiError(
-            code="no_file_given",
+            error_code="no_file_given",
             message="Given request does not contain a file",
             status_code=400,
         )
@@ -1156,7 +1156,7 @@ def get_process_model(process_model_id: str, process_group_id: str) -> ProcessMo
     except ProcessEntityNotFoundError as exception:
         raise (
             ApiError(
-                code="process_model_cannot_be_found",
+                error_code="process_model_cannot_be_found",
                 message=f"Process model cannot be found: {process_model_id}",
                 status_code=400,
             )
@@ -1171,7 +1171,7 @@ def find_principal_or_raise() -> PrincipalModel:
     if principal is None:
         raise (
             ApiError(
-                code="principal_not_found",
+                error_code="principal_not_found",
                 message=f"Principal not found from user id: {g.user.id}",
                 status_code=400,
             )
@@ -1195,7 +1195,7 @@ def find_active_task_by_id_or_raise(
         )
         raise (
             ApiError(
-                code="task_not_found",
+                error_code="task_not_found",
                 message=message,
                 status_code=400,
             )
@@ -1213,7 +1213,7 @@ def find_process_instance_by_id_or_raise(
     if process_instance is None:
         raise (
             ApiError(
-                code="process_instance_cannot_be_found",
+                error_code="process_instance_cannot_be_found",
                 message=f"Process instance cannot be found: {process_instance_id}",
                 status_code=400,
             )
@@ -1264,7 +1264,7 @@ def get_spiff_task_from_process_instance(
     if spiff_task is None:
         raise (
             ApiError(
-                code="empty_task",
+                error_code="empty_task",
                 message="Processor failed to obtain task.",
                 status_code=500,
             )
@@ -1355,7 +1355,7 @@ def _get_required_parameter_or_raise(parameter: str, post_body: dict[str, Any]) 
     if return_value is None or return_value == "":
         raise (
             ApiError(
-                code="missing_required_parameter",
+                error_code="missing_required_parameter",
                 message=f"Parameter is missing from json request body: {parameter}",
                 status_code=400,
             )
@@ -1386,7 +1386,7 @@ def _update_form_schema_with_task_data_as_needed(
                             if task_data_var not in task_data:
                                 raise (
                                     ApiError(
-                                        code="missing_task_data_var",
+                                        error_code="missing_task_data_var",
                                         message=f"Task data is missing variable: {task_data_var}",
                                         status_code=500,
                                     )
