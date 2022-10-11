@@ -7,6 +7,7 @@ from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
 from spiffworkflow_backend.models.group import GroupModel
 from spiffworkflow_backend.models.permission_assignment import PermissionAssignmentModel
 from spiffworkflow_backend.models.permission_target import PermissionTargetModel
+from spiffworkflow_backend.models.principal import PrincipalModel
 from spiffworkflow_backend.services.authorization_service import AuthorizationService
 from spiffworkflow_backend.services.user_service import UserService
 
@@ -107,6 +108,10 @@ class TestPermissions(BaseTest):
 
         permission_target = PermissionTargetModel(uri=f"/{process_group_a_id}")
         db.session.add(permission_target)
+        db.session.commit()
+
+        principal = PrincipalModel(group_id=group.id)
+        db.session.add(principal)
         db.session.commit()
 
         permission_assignment = PermissionAssignmentModel(

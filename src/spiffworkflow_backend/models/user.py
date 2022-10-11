@@ -16,8 +16,6 @@ from spiffworkflow_backend.services.authentication_service import (
     AuthenticationProviderTypes,
 )
 
-# from spiffworkflow_backend.models.user_group_assignment import UserGroupAssignmentModel
-
 
 class UserModel(SpiffworkflowBaseDBModel):
     """UserModel."""
@@ -33,7 +31,7 @@ class UserModel(SpiffworkflowBaseDBModel):
     name = db.Column(db.String(255))
     email = db.Column(db.String(255))
 
-    user_group_assignments = relationship("UserGroupAssignmentModel", cascade="delete")
+    user_group_assignments = relationship("UserGroupAssignmentModel", cascade="delete")  # type: ignore
     groups = relationship(  # type: ignore
         GroupModel,
         viewonly=True,

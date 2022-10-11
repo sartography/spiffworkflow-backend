@@ -10,7 +10,6 @@ from tests.spiffworkflow_backend.helpers.base_test import BaseTest
 from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
 
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
-from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.services.process_instance_processor import (
     ProcessInstanceProcessor,
 )
@@ -56,10 +55,7 @@ def app() -> Flask:
 @pytest.fixture()
 def with_db_and_bpmn_file_cleanup() -> None:
     """Process_group_resource."""
-
-    # db.session.query(UserModel).delete()
     for model in SpiffworkflowBaseDBModel._all_subclasses():
-        print(f"model: {model}")
         db.session.query(model).delete()
 
     try:

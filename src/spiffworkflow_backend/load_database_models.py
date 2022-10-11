@@ -1,7 +1,13 @@
 """Loads and sets up all database models for SQLAlchemy.
 
 autoflake8 will remove these lines without the noqa comment
+
+NOTE: make sure this file is ignored by reorder-python-imports since
+some models need to be loaded before others for relationships and to
+avoid circular imports
 """
+
+
 from flask_bpmn.models.db import add_listeners
 
 # must load this before UserModel and GroupModel for relationships

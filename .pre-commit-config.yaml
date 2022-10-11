@@ -7,7 +7,7 @@ repos:
         language: system
         types: [python]
         require_serial: true
-        exclude: "(^migrations/|^load_database_models.)"
+        exclude: ^migrations/
       - id: check-added-large-files
         name: Check for added large files
         entry: check-added-large-files
@@ -48,7 +48,7 @@ repos:
         language: system
         types: [python]
         args: [--application-directories=src]
-        exclude: ^migrations/
+        exclude: "(^migrations/|load_database_models)"
       - id: trailing-whitespace
         name: Trim Trailing Whitespace
         entry: trailing-whitespace-fixer
