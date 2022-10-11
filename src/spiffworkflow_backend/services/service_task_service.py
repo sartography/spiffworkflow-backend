@@ -6,6 +6,7 @@ from typing import Dict
 import requests
 from flask import current_app
 
+from spiffworkflow_backend.services.file_system_service import FileSystemService
 from spiffworkflow_backend.services.secret_service import SecretService
 
 
@@ -20,14 +21,23 @@ class ServiceTaskDelegate:
     @staticmethod
     def normalize_value(value: Any) -> Any:
         """Normalize_value."""
-        secret_prefix = "secret:"  # noqa: S105
         if isinstance(value, dict):
             value = json.dumps(value)
+
+        secret_prefix = "secret:"  # noqa: S105
         if value.startswith(secret_prefix):
             key = value.removeprefix(secret_prefix)
             secret = SecretService().get_secret(key)
             assert secret  # noqa: S101
-            value = secret.value
+            return secret.value
+
+        file_prefix = "file:"
+        if value.startswith(file_prefix):
+            file_name = value.removeprefix(file_prefix)
+            full_path = FileSystemService.full_path_from_relative_path(file_name)
+            with open(full_path) as f:
+                return f.read()
+
         return value
 
     @staticmethod
