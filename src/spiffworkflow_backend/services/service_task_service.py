@@ -47,7 +47,7 @@ class ServiceTaskDelegate:
             k: ServiceTaskDelegate.normalize_value(v["value"])
             for k, v in bpmn_params.items()
         }
-        params['spiff__task_data'] = json.dumps(task_data)
+        params["spiff__task_data"] = json.dumps(task_data)
 
         proxied_response = requests.get(f"{connector_proxy_url()}/v1/do/{name}", params)
 
