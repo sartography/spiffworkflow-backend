@@ -43,5 +43,5 @@ CONNECTOR_PROXY_URL = environ.get(
 )
 
 # Sentry Configuration
-SENTRY_DSN = environ.get('SENTRY_DSN', default="")
-SENTRY_SAMPLE_RATE =  environ.get('SENTRY_SAMPLE_RATE', default="1.0")
+SENTRY_DSN = environ.get("SENTRY_DSN", default="")
+SENTRY_SAMPLE_RATE = environ.get("SENTRY_SAMPLE_RATE", default="1.0")

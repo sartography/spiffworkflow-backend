@@ -116,21 +116,24 @@ def create_app() -> flask.app.Flask:
     return app  # type: ignore
 
 
-def configure_sentry(app):
+def configure_sentry(app: flask.app.Flask) -> None:
+    """Configure_sentry."""
     import sentry_sdk
     from flask import Flask
     from sentry_sdk.integrations.flask import FlaskIntegration
 
+    sentry_sample_rate = app.config.get("SENTRY_SAMPLE_RATE")
+    if sentry_sample_rate is None:
+        return
     sentry_sdk.init(
         dsn=app.config.get("SENTRY_DSN"),
         integrations=[
             FlaskIntegration(),
         ],
-
         # Set traces_sample_rate to 1.0 to capture 100%
         # of transactions for performance monitoring.
         # We recommend adjusting this value in production.
-        traces_sample_rate=float(app.config.get("SENTRY_SAMPLE_RATE"))
+        traces_sample_rate=float(sentry_sample_rate),
     )
 
     app = Flask(__name__)
