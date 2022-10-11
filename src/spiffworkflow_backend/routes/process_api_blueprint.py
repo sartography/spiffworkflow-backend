@@ -208,7 +208,7 @@ def process_model_update(
     """Process_model_update."""
     body_include_list = ["display_name", "primary_file_name", "primary_process_id"]
     body_filtered = {
-        include_item: body[include_item] for include_item in body_include_list
+        include_item: body[include_item] for include_item in body_include_list if include_item in body
     }
 
     process_model = get_process_model(process_model_id, process_group_id)
