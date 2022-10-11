@@ -1,6 +1,6 @@
 groups:
   admin:
-    users: [jakub, kb, alex, dan, mike, jason]
+    users: [jakub, kb, alex, dan, mike, jason, amir, jarrad, elizabeth, jon]
 
   finance:
     users: [harmeet, sasha]
@@ -12,17 +12,17 @@ permissions:
   admin:
     groups: [admin]
     users: []
-    allowed_permissions: [CREATE, READ, UPDATE, DELETE, LIST, INSTANTIATE]
+    allowed_permissions: [create, read, update, delete, list, instantiate]
     uri: /*
 
   finance-admin:
     groups: [finance]
     users: []
-    allowed_permissions: [CREATE, READ, UPDATE, DELETE]
+    allowed_permissions: [create, read, update, delete]
     uri: /v1.0/process-groups/finance/*
 
   read-all:
     groups: [finance, hr, admin]
     users: []
-    allowed_permissions: [READ]
+    allowed_permissions: [read]
     uri: /*

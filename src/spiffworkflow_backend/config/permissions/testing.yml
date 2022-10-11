@@ -15,14 +15,14 @@ permissions:
     allowed_permissions: [create, read, update, delete, list, instantiate]
     uri: /*
 
-  finance-admin:
-    groups: [finance]
-    users: [testuser4]
-    allowed_permissions: [create, read, update, delete]
-    uri: /v1.0/process-groups/finance/*
-
   read-all:
     groups: [finance, hr, admin]
     users: []
     allowed_permissions: [read]
     uri: /*
+
+  finance-admin:
+    groups: [finance]
+    users: [testuser4]
+    allowed_permissions: [create, read, update, delete]
+    uri: /v1.0/process-groups/finance/*

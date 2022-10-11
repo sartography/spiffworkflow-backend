@@ -54,10 +54,21 @@ def setup_config(app: Flask) -> None:
     else:
         app.config.from_pyfile(f"{app.instance_path}/config.py", silent=True)
 
+    env_config_module = "spiffworkflow_backend.config." + app.config["ENV_IDENTIFIER"]
+    try:
+        app.config.from_object(env_config_module)
+    except ImportStringError as exception:
+        print("HERE WE ARE")
+        raise ModuleNotFoundError(
+            f"Cannot find config module: {env_config_module}"
+        ) from exception
+    print(f"env_config_module: {env_config_module}")
+
     setup_database_uri(app)
     setup_logger(app)
 
     app.config["PERMISSIONS_FILE_FULLPATH"] = None
+    print(f"app.config['PERMI: {app.config['SPIFFWORKFLOW_BACKEND_PERMISSIONS_FILE_NAME']}")
     if app.config["SPIFFWORKFLOW_BACKEND_PERMISSIONS_FILE_NAME"]:
         app.config["PERMISSIONS_FILE_FULLPATH"] = os.path.join(
             app.root_path,
@@ -65,14 +76,6 @@ def setup_config(app: Flask) -> None:
             "permissions",
             app.config["SPIFFWORKFLOW_BACKEND_PERMISSIONS_FILE_NAME"],
         )
-
-    env_config_module = "spiffworkflow_backend.config." + app.config["ENV_IDENTIFIER"]
-    try:
-        app.config.from_object(env_config_module)
-    except ImportStringError as exception:
-        raise ModuleNotFoundError(
-            f"Cannot find config module: {env_config_module}"
-        ) from exception
 
     thread_local_data = threading.local()
     app.config["THREAD_LOCAL_DATA"] = thread_local_data

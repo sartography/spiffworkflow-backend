@@ -99,11 +99,15 @@ class AuthorizationService:
                                 )
                             )
                         continue
-                    user_group_assignemnt = UserGroupAssignmentModel(
+                    user_group_assignemnt = UserGroupAssignmentModel.query.filter_by(
                         user_id=user.id, group_id=group.id
-                    )
-                    db.session.add(user_group_assignemnt)
-                    db.session.commit()
+                    ).first()
+                    if user_group_assignemnt is None:
+                        user_group_assignemnt = UserGroupAssignmentModel(
+                            user_id=user.id, group_id=group.id
+                        )
+                        db.session.add(user_group_assignemnt)
+                        db.session.commit()
 
         if "permissions" in permission_configs:
             for _permission_identifier, permission_config in permission_configs[

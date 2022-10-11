@@ -39,6 +39,7 @@ class TestAuthorizationService(BaseTest):
         self.assert_user_has_permission(users['testuser1'], 'update', "/v1.0/process-groups/finance/")
         self.assert_user_has_permission(users['testuser1'], 'update', "/v1.0/process-groups/", expected_result=False)
         self.assert_user_has_permission(users['testuser4'], 'update', "/v1.0/process-groups/finance/model1")
+        self.assert_user_has_permission(users['testuser4'], 'read', "/v1.0/process-groups/finance/model1")
         self.assert_user_has_permission(users['testuser2'], 'update', "/v1.0/process-groups/finance/model1")
         self.assert_user_has_permission(users['testuser2'], 'update', "/v1.0/process-groups/", expected_result=False)
         self.assert_user_has_permission(users['testuser2'], 'read', "/v1.0/process-groups/")
