@@ -43,7 +43,8 @@ class BaseTest:
             return user
 
         raise ApiError(
-            code="create_user_error", message=f"Cannot find or create user: {username}"
+            error_code="create_user_error",
+            message=f"Cannot find or create user: {username}",
         )
 
     @staticmethod
