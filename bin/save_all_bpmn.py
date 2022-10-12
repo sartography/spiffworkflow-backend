@@ -1,7 +1,7 @@
 """Grabs tickets from csv and makes process instances."""
 import os
 
-from spiffworkflow_backend import create_app
+from spiffworkflow_backend import get_hacked_up_app_for_script
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 from spiffworkflow_backend.services.spec_file_service import SpecFileService
 
@@ -10,21 +10,8 @@ from spiffworkflow_backend.services.spec_file_service import SpecFileService
 
 def main():
     """Main."""
-    os.environ["SPIFFWORKFLOW_BACKEND_ENV"] = "development"
-    flask_env_key = "FLASK_SESSION_SECRET_KEY"
-    os.environ[flask_env_key] = "whatevs"
-    if "BPMN_SPEC_ABSOLUTE_DIR" not in os.environ:
-        home = os.environ["HOME"]
-        full_process_model_path = (
-            f"{home}/projects/github/sartography/sample-process-models"
-        )
-        if os.path.isdir(full_process_model_path):
-            os.environ["BPMN_SPEC_ABSOLUTE_DIR"] = full_process_model_path
-        else:
-            raise Exception(f"Could not find {full_process_model_path}")
-    app = create_app()
+    app = get_hacked_up_app_for_script()
     with app.app_context():
-        no_primary = []
         failing_process_models = []
         process_models = ProcessModelService().get_process_models()
         for process_model in process_models:
@@ -51,7 +38,7 @@ def main():
                     )
                 except Exception as ex:
                     failing_process_models.append(
-                        (process_model.primary_file_name, str(ex))
+                        (f"{process_model.process_group_id}/{process_model.id}/{process_model.primary_file_name}", str(ex))
                     )
                 # files = SpecFileService.get_files(
                 #     process_model, extension_filter="bpmn"
@@ -86,9 +73,9 @@ def main():
                 #     print(f"BAD ONE: {process_model.id}")
                 #     # raise exception
             else:
-                no_primary.append(process_model)
-        # for bpmn in no_primary:
-        #     print(bpmn)
+                failing_process_models.append(
+                    (f"{process_model.process_group_id}/{process_model.id}", "primary_file_name not set")
+                )
         for bpmn_errors in failing_process_models:
             print(bpmn_errors)
         if len(failing_process_models) > 0:
