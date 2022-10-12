@@ -65,5 +65,9 @@ def setup_config(app: Flask) -> None:
             f"Cannot find config module: {env_config_module}"
         ) from exception
 
+    # unversioned (see .gitignore) config that can override everything and include secrets.
+    # src/spiffworkflow_backend/config/secrets.py
+    app.config.from_pyfile(os.path.join("config", "secrets.py"))
+
     thread_local_data = threading.local()
     app.config["THREAD_LOCAL_DATA"] = thread_local_data
