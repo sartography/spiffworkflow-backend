@@ -76,7 +76,7 @@ from spiffworkflow_backend.models.user import UserModelSchema
 from spiffworkflow_backend.scripts.script import Script
 from spiffworkflow_backend.services.file_system_service import FileSystemService
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
-from spiffworkflow_backend.services.service_task_service import ServiceTaskService
+from spiffworkflow_backend.services.service_task_service import ServiceTaskDelegate
 from spiffworkflow_backend.services.spec_file_service import SpecFileService
 from spiffworkflow_backend.services.user_service import UserService
 
@@ -169,9 +169,16 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
         except Exception as e:
             raise WorkflowTaskExecException(task, f" {script}, {e}", e) from e
 
-    def available_service_task_external_methods(self) -> Dict[str, Any]:
-        """Returns available service task external methods."""
-        return ServiceTaskService.scripting_additions()
+    def call_service(
+        self,
+        operation_name: str,
+        operation_params: Dict[str, Any],
+        task_data: Dict[str, Any],
+    ) -> Any:
+        """CallService."""
+        return ServiceTaskDelegate.call_connector(
+            operation_name, operation_params, task_data
+        )
 
 
 class MyCustomParser(BpmnDmnParser):  # type: ignore

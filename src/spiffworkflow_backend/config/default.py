@@ -45,3 +45,7 @@ CONNECTOR_PROXY_URL = environ.get(
 SPIFFWORKFLOW_BACKEND_PERMISSIONS_FILE_NAME = environ.get(
     "SPIFFWORKFLOW_BACKEND_PERMISSIONS_FILE_NAME"
 )
+
+# Sentry Configuration
+SENTRY_DSN = environ.get("SENTRY_DSN", default="")
+SENTRY_SAMPLE_RATE = environ.get("SENTRY_SAMPLE_RATE", default="1.0")
