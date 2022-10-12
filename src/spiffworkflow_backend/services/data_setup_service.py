@@ -1,4 +1,6 @@
 """Data_setup_service."""
+from flask import current_app
+
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 from spiffworkflow_backend.services.spec_file_service import SpecFileService
 
@@ -6,9 +8,15 @@ from spiffworkflow_backend.services.spec_file_service import SpecFileService
 class DataSetupService:
     """DataSetupService."""
 
-    @staticmethod
-    def save_all() -> list:
+    @classmethod
+    def run_setup(cls) -> list:
+        """Run_setup."""
+        return cls.save_all_process_models()
+
+    @classmethod
+    def save_all_process_models(cls) -> list:
         """Save_all."""
+        current_app.logger.debug("DataSetupService.save_all_process_models() start")
         failing_process_models = []
         process_models = ProcessModelService().get_process_models()
         for process_model in process_models:
@@ -26,7 +34,7 @@ class DataSetupService:
                 ]
                 if process_model.primary_file_name in bad_files:
                     continue
-                print(f"primary_file_name: {process_model.primary_file_name}")
+                # print(f"primary_file_name: {process_model.primary_file_name}")
                 try:
                     SpecFileService.update_file(
                         process_model,
@@ -79,4 +87,5 @@ class DataSetupService:
                         "primary_file_name not set",
                     )
                 )
+        current_app.logger.debug("DataSetupService.save_all_process_models() end")
         return failing_process_models

@@ -7,7 +7,7 @@ def main() -> None:
     """Main."""
     app = get_hacked_up_app_for_script()
     with app.app_context():
-        failing_process_models = DataSetupService.save_all()
+        failing_process_models = DataSetupService.save_all_process_models()
         for bpmn_errors in failing_process_models:
             print(bpmn_errors)
         if len(failing_process_models) > 0:
