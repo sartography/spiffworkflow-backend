@@ -1,6 +1,4 @@
 """Grabs tickets from csv and makes process instances."""
-import os
-
 from spiffworkflow_backend import get_hacked_up_app_for_script
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 from spiffworkflow_backend.services.spec_file_service import SpecFileService
@@ -38,7 +36,10 @@ def main():
                     )
                 except Exception as ex:
                     failing_process_models.append(
-                        (f"{process_model.process_group_id}/{process_model.id}/{process_model.primary_file_name}", str(ex))
+                        (
+                            f"{process_model.process_group_id}/{process_model.id}/{process_model.primary_file_name}",
+                            str(ex),
+                        )
                     )
                 # files = SpecFileService.get_files(
                 #     process_model, extension_filter="bpmn"
@@ -74,7 +75,10 @@ def main():
                 #     # raise exception
             else:
                 failing_process_models.append(
-                    (f"{process_model.process_group_id}/{process_model.id}", "primary_file_name not set")
+                    (
+                        f"{process_model.process_group_id}/{process_model.id}",
+                        "primary_file_name not set",
+                    )
                 )
         for bpmn_errors in failing_process_models:
             print(bpmn_errors)
