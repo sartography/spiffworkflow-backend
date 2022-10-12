@@ -14,7 +14,3 @@ app = create_app()
 if os.environ.get("SPIFFWORKFLOW_BACKEND_LOAD_FIXTURE_DATA") == "true":
     with app.app_context():
         load_acceptance_test_fixtures()
-
-if os.environ.get("SPIFFWORKFLOW_BACKEND_RUN_DATA_SETUP") != "false":
-    with app.app_context():
-        DataSetupService.run_setup()

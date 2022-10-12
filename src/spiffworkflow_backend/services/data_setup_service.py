@@ -34,7 +34,9 @@ class DataSetupService:
                 ]
                 if process_model.primary_file_name in bad_files:
                     continue
-                # print(f"primary_file_name: {process_model.primary_file_name}")
+                current_app.logger.debug(
+                    f"primary_file_name: {process_model.primary_file_name}"
+                )
                 try:
                     SpecFileService.update_file(
                         process_model,
