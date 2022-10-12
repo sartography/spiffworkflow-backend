@@ -1,6 +1,6 @@
 """Authorization_service."""
 import re
-from typing import Any
+from typing import Optional
 from typing import Union
 
 import jwt
@@ -151,9 +151,11 @@ class AuthorizationService:
         principal: PrincipalModel,
         permission_target: PermissionTargetModel,
         permission: str,
-    ) -> PermissionAssignmentModel | Any:
+    ) -> PermissionAssignmentModel:
         """Create_permission_for_principal."""
-        permission_assignment = PermissionAssignmentModel.query.filter_by(
+        permission_assignment: Optional[
+            PermissionAssignmentModel
+        ] = PermissionAssignmentModel.query.filter_by(
             principal_id=principal.id,
             permission_target_id=permission_target.id,
             permission=permission,
