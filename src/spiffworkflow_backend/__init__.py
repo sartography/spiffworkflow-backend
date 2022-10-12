@@ -17,7 +17,9 @@ from flask_mail import Mail  # type: ignore
 import spiffworkflow_backend.load_database_models  # noqa: F401
 from spiffworkflow_backend.config import setup_config
 from spiffworkflow_backend.routes.admin_blueprint.admin_blueprint import admin_blueprint
+from spiffworkflow_backend.routes.process_api_blueprint import check_for_permission
 from spiffworkflow_backend.routes.process_api_blueprint import process_api_blueprint
+from spiffworkflow_backend.routes.user import verify_token
 from spiffworkflow_backend.routes.user_blueprint import user_blueprint
 from spiffworkflow_backend.services.background_processing_service import (
     BackgroundProcessingService,
@@ -112,6 +114,9 @@ def create_app() -> flask.app.Flask:
         start_scheduler(app)
 
     configure_sentry(app)
+
+    app.before_request(verify_token)
+    app.before_request(check_for_permission)
 
     return app  # type: ignore
 

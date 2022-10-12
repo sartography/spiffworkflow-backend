@@ -4,10 +4,14 @@ import os
 import random
 import string
 import uuid
+from functools import wraps
 from typing import Any
+from typing import Callable
+from typing import cast
 from typing import Dict
 from typing import Optional
 from typing import TypedDict
+from typing import TypeVar
 from typing import Union
 
 import connexion  # type: ignore
@@ -53,6 +57,7 @@ from spiffworkflow_backend.models.secret_model import SecretModel
 from spiffworkflow_backend.models.secret_model import SecretModelSchema
 from spiffworkflow_backend.models.spiff_logging import SpiffLoggingModel
 from spiffworkflow_backend.models.user import UserModel
+from spiffworkflow_backend.services.authorization_service import AuthorizationService
 from spiffworkflow_backend.services.error_handling_service import ErrorHandlingService
 from spiffworkflow_backend.services.file_system_service import FileSystemService
 from spiffworkflow_backend.services.git_service import GitService
@@ -87,6 +92,51 @@ class ReactJsonSchemaSelectOption(TypedDict):
 
 
 process_api_blueprint = Blueprint("process_api", __name__)
+authorization_exclusion_list = ['status']
+
+
+def check_for_permission() -> None:
+    """Check_for_permission."""
+    if request.method == 'OPTIONS':
+        return None
+
+    if not request.endpoint:
+        raise ApiError(
+            error_code="request_endpoint_not_found",
+            message="Could not find the endpong from the rquest.",
+            status_code=500,
+        )
+
+    api_view_function = current_app.view_functions[request.endpoint]
+    if api_view_function and api_view_function.__name__ not in authorization_exclusion_list:
+        permission_string = get_permission_from_request_method()
+        if permission_string:
+            has_permission = AuthorizationService.user_has_permission(
+                user=g.user,
+                permission=permission_string,
+                target_uri=request.path,
+            )
+            if has_permission:
+                return None
+
+    raise ApiError(
+        error_code="unauthorized",
+        message="User is not authorized to perform requested action.",
+        status_code=403,
+    )
+
+
+def get_permission_from_request_method() -> Optional[str]:
+    request_method_mapper = {
+        "POST": "create",
+        "GET": "read",
+        "PUT": "update",
+        "DELETE": "delete"
+    }
+    if request.method in request_method_mapper:
+        return request_method_mapper[request.method]
+
+    return None
 
 
 def status() -> flask.wrappers.Response:

@@ -10,6 +10,7 @@ import jwt
 from flask import current_app
 from flask import g
 from flask import redirect
+from flask import request
 from flask_bpmn.api.api_error import ApiError
 from werkzeug.wrappers.response import Response
 
@@ -26,6 +27,7 @@ from spiffworkflow_backend.services.user_service import UserService
 """
 
 
+# authorization_exclusion_list = ['status']
 def verify_token(token: Optional[str] = None) -> Dict[str, Optional[Union[str, int]]]:
     """Verify the token for the user (if provided).
 
@@ -41,6 +43,17 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[Union[str, i
         ApiError:  If not on production and token is not valid, returns an 'invalid_token' 403 error.
         If on production and user is not authenticated, returns a 'no_user' 403 error.
     """
+
+    if request.method == 'OPTIONS':
+        return None
+
+    api_view_function = current_app.view_functions[request.endpoint]
+    if api_view_function and api_view_function.__name__.startswith('login'):
+        return None
+
+    if not token and 'Authorization' in request.headers:
+        token = request.headers['Authorization'].removeprefix('Bearer ')
+
     if token:
         user_model = None
         decoded_token = get_decoded_token(token)

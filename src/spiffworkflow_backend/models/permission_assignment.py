@@ -31,7 +31,13 @@ class Permission(enum.Enum):
     read = "read"
     update = "update"
     delete = "delete"
+
+    # maybe read to GET process_model/process-instances instead?
     list = "list"
+
+    # maybe use create instead on
+    # POST http://localhost:7000/v1.0/process-models/category_number_one/call-activity/process-instances/*
+    # POST http://localhost:7000/v1.0/process-models/category_number_one/call-activity/process-instances/332/run
     instantiate = "instantiate"  # this is something you do to a process model
 
 

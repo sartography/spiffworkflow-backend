@@ -6,8 +6,8 @@ info:
     name: MIT
 servers:
   - url: http://localhost:5000/v1.0
-security:
-  - jwt: ["secret"]
+security: []
+#  - jwt: ["secret"]
 #  - oAuth2AuthCode:
 #      - read_email
 #      - uid
@@ -378,7 +378,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/OkTrue"
-    # process model update
     put:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.process_model_update
       summary: Modifies an existing process mosel with the given parameters.
@@ -827,7 +826,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/File"
-    # process_model_file_update
     put:
       operationId: spiffworkflow_backend.routes.process_api_blueprint.process_model_file_update
       summary: save the contents to the given file
