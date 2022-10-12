@@ -14,6 +14,7 @@ from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
 from spiffworkflow_backend.exceptions.process_entity_not_found_error import (
     ProcessEntityNotFoundError,
 )
+from spiffworkflow_backend.models.active_task import ActiveTaskModel
 from spiffworkflow_backend.models.process_group import ProcessGroup
 from spiffworkflow_backend.models.process_group import ProcessGroupSchema
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
@@ -163,7 +164,7 @@ class TestProcessApi(BaseTest):
         # make sure we get an error in the response
         assert response.status_code == 400
         data = json.loads(response.get_data(as_text=True))
-        assert data["code"] == "existing_instances"
+        assert data["error_code"] == "existing_instances"
         assert (
             data["message"]
             == "We cannot delete the model `sample`, there are existing instances that depend on it."
@@ -178,9 +179,13 @@ class TestProcessApi(BaseTest):
         assert process_model.id == "make_cookies"
         assert process_model.display_name == "Cooooookies"
         assert process_model.is_review is False
+        assert process_model.primary_file_name is None
+        assert process_model.primary_process_id is None
 
         process_model.display_name = "Updated Display Name"
-        process_model.is_review = True
+        process_model.primary_file_name = "superduper.bpmn"
+        process_model.primary_process_id = "superduper"
+        process_model.is_review = True  # not in the include list, so get ignored
 
         user = self.find_or_create_user()
         response = client.put(
@@ -192,6 +197,8 @@ class TestProcessApi(BaseTest):
         assert response.status_code == 200
         assert response.json is not None
         assert response.json["display_name"] == "Updated Display Name"
+        assert response.json["primary_file_name"] == "superduper.bpmn"
+        assert response.json["primary_process_id"] == "superduper"
         assert response.json["is_review"] is False
 
     def test_process_model_list(
@@ -452,7 +459,7 @@ class TestProcessApi(BaseTest):
 
         assert response.status_code == 400
         assert response.json is not None
-        assert response.json["code"] == "no_file_given"
+        assert response.json["error_code"] == "no_file_given"
 
     def test_process_model_file_update_fails_if_contents_is_empty(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
@@ -473,7 +480,7 @@ class TestProcessApi(BaseTest):
 
         assert response.status_code == 400
         assert response.json is not None
-        assert response.json["code"] == "file_contents_empty"
+        assert response.json["error_code"] == "file_contents_empty"
 
     def test_process_model_file_update(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
@@ -522,7 +529,7 @@ class TestProcessApi(BaseTest):
 
         assert response.status_code == 400
         assert response.json is not None
-        assert response.json["code"] == "process_model_cannot_be_found"
+        assert response.json["error_code"] == "process_model_cannot_be_found"
 
     def test_process_model_file_delete_when_bad_file(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
@@ -540,7 +547,7 @@ class TestProcessApi(BaseTest):
 
         assert response.status_code == 400
         assert response.json is not None
-        assert response.json["code"] == "process_model_file_cannot_be_found"
+        assert response.json["error_code"] == "process_model_file_cannot_be_found"
 
     def test_process_model_file_delete(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
@@ -675,7 +682,7 @@ class TestProcessApi(BaseTest):
         )
         assert response.status_code == 400
         assert response.json is not None
-        assert response.json["code"] == "process_model_cannot_be_found"
+        assert response.json["error_code"] == "process_model_cannot_be_found"
 
     def test_process_instance_create(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
@@ -955,6 +962,44 @@ class TestProcessApi(BaseTest):
         task_event = task_events[0]
         assert task_event.user_id == user.id
         # TODO: When user tasks work, we need to add some more assertions for action, task_state, etc.
+
+    def test_task_show(
+        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        """Test_process_instance_run_user_task."""
+        process_group_id = "my_process_group"
+        process_model_id = "dynamic_enum_select_fields"
+
+        user = self.find_or_create_user()
+        headers = self.logged_in_headers(user)
+        response = self.create_process_instance(
+            client, process_group_id, process_model_id, headers
+        )
+        assert response.json is not None
+        process_instance_id = response.json["id"]
+
+        response = client.post(
+            f"/v1.0/process-models/{process_group_id}/{process_model_id}/process-instances/{process_instance_id}/run",
+            headers=self.logged_in_headers(user),
+        )
+
+        assert response.json is not None
+        active_tasks = (
+            db.session.query(ActiveTaskModel)
+            .filter(ActiveTaskModel.process_instance_id == process_instance_id)
+            .all()
+        )
+        assert len(active_tasks) == 1
+        active_task = active_tasks[0]
+        response = client.get(
+            f"/v1.0/tasks/{process_instance_id}/{active_task.task_id}",
+            headers=self.logged_in_headers(user),
+        )
+        assert response.json is not None
+        assert (
+            response.json["form_schema"]["definitions"]["Color"]["anyOf"][1]["title"]
+            == "Green"
+        )
 
     def test_process_instance_list_with_default_list(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None
@@ -1287,7 +1332,7 @@ class TestProcessApi(BaseTest):
         )
         assert response.status_code == 404
         data = json.loads(response.get_data(as_text=True))
-        assert data["code"] == "unknown_process_instance_report"
+        assert data["error_code"] == "unknown_process_instance_report"
 
     def setup_testing_instance(
         self,
@@ -1332,9 +1377,9 @@ class TestProcessApi(BaseTest):
         assert response.status_code == 400
 
         api_error = json.loads(response.get_data(as_text=True))
-        assert api_error["code"] == "task_error"
+        assert api_error["error_code"] == "task_error"
         assert (
-            'Activity_CauseError: TypeError:can only concatenate str (not "int") to str'
+            'TypeError:can only concatenate str (not "int") to str'
             in api_error["message"]
         )
 
@@ -1415,8 +1460,7 @@ class TestProcessApi(BaseTest):
             message = outbox[0]
             assert message.subject == "Unexpected error in app"
             assert (
-                message.body
-                == 'Activity_CauseError: TypeError:can only concatenate str (not "int") to str'
+                message.body == 'TypeError:can only concatenate str (not "int") to str'
             )
             assert message.recipients == process_model.exception_notification_addresses
 

@@ -13,22 +13,6 @@ from flask_bpmn.api.api_error import ApiError
 from werkzeug.wrappers.response import Response
 
 
-def get_open_id_args() -> tuple:
-    """Get_open_id_args."""
-    open_id_server_url = current_app.config["OPEN_ID_SERVER_URL"]
-    open_id_client_id = current_app.config["OPEN_ID_CLIENT_ID"]
-    open_id_realm_name = current_app.config["OPEN_ID_REALM_NAME"]
-    open_id_client_secret_key = current_app.config[
-        "OPEN_ID_CLIENT_SECRET_KEY"
-    ]  # noqa: S105
-    return (
-        open_id_server_url,
-        open_id_client_id,
-        open_id_realm_name,
-        open_id_client_secret_key,
-    )
-
-
 class AuthenticationProviderTypes(enum.Enum):
     """AuthenticationServiceProviders."""
 
@@ -44,6 +28,63 @@ class PublicAuthenticationService:
     Used during development to make testing easy.
     """
 
+    @staticmethod
+    def get_open_id_args() -> tuple:
+        """Get_open_id_args."""
+        open_id_server_url = current_app.config["OPEN_ID_SERVER_URL"]
+        open_id_client_id = current_app.config["OPEN_ID_CLIENT_ID"]
+        open_id_realm_name = current_app.config["OPEN_ID_REALM_NAME"]
+        open_id_client_secret_key = current_app.config[
+            "OPEN_ID_CLIENT_SECRET_KEY"
+        ]  # noqa: S105
+        return (
+            open_id_server_url,
+            open_id_client_id,
+            open_id_realm_name,
+            open_id_client_secret_key,
+        )
+
+    @classmethod
+    def get_user_info_from_id_token(cls, token: str) -> dict:
+        """This seems to work with basic tokens too."""
+        (
+            open_id_server_url,
+            open_id_client_id,
+            open_id_realm_name,
+            open_id_client_secret_key,
+        ) = cls.get_open_id_args()
+
+        # backend_basic_auth_string = f"{open_id_client_id}:{open_id_client_secret_key}"
+        # backend_basic_auth_bytes = bytes(backend_basic_auth_string, encoding="ascii")
+        # backend_basic_auth = base64.b64encode(backend_basic_auth_bytes)
+
+        headers = {"Authorization": f"Bearer {token}"}
+
+        request_url = f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/userinfo"
+        try:
+            request_response = requests.get(request_url, headers=headers)
+        except Exception as e:
+            current_app.logger.error(f"Exception in get_user_info_from_id_token: {e}")
+            raise ApiError(
+                error_code="token_error",
+                message=f"Exception in get_user_info_from_id_token: {e}",
+                status_code=401,
+            ) from e
+
+        if request_response.status_code == 401:
+            raise ApiError(
+                error_code="invalid_token", message="Please login", status_code=401
+            )
+        elif request_response.status_code == 200:
+            user_info: dict = json.loads(request_response.text)
+            return user_info
+
+        raise ApiError(
+            error_code="user_info_error",
+            message="Cannot get user info in get_user_info_from_id_token",
+            status_code=401,
+        )
+
     def get_backend_url(self) -> str:
         """Get_backend_url."""
         return str(current_app.config["SPIFFWORKFLOW_BACKEND_URL"])
@@ -58,7 +99,7 @@ class PublicAuthenticationService:
             open_id_client_id,
             open_id_realm_name,
             open_id_client_secret_key,
-        ) = get_open_id_args()
+        ) = PublicAuthenticationService.get_open_id_args()
         request_url = (
             f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/logout?"
             + f"post_logout_redirect_uri={return_redirect_url}&"
@@ -73,15 +114,17 @@ class PublicAuthenticationService:
         state = base64.b64encode(bytes(str({"redirect_url": redirect_url}), "UTF-8"))
         return state
 
-    def get_login_redirect_url(self, state: str) -> str:
+    def get_login_redirect_url(
+        self, state: str, redirect_url: str = "/v1.0/login_return"
+    ) -> str:
         """Get_login_redirect_url."""
         (
             open_id_server_url,
             open_id_client_id,
             open_id_realm_name,
             open_id_client_secret_key,
-        ) = get_open_id_args()
-        return_redirect_url = f"{self.get_backend_url()}/v1.0/login_return"
+        ) = PublicAuthenticationService.get_open_id_args()
+        return_redirect_url = f"{self.get_backend_url()}{redirect_url}"
         login_redirect_url = (
             f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/auth?"
             + f"state={state}&"
@@ -92,14 +135,16 @@ class PublicAuthenticationService:
         )
         return login_redirect_url
 
-    def get_id_token_object(self, code: str) -> dict:
+    def get_id_token_object(
+        self, code: str, redirect_url: str = "/v1.0/login_return"
+    ) -> dict:
         """Get_id_token_object."""
         (
             open_id_server_url,
             open_id_client_id,
             open_id_realm_name,
             open_id_client_secret_key,
-        ) = get_open_id_args()
+        ) = PublicAuthenticationService.get_open_id_args()
 
         backend_basic_auth_string = f"{open_id_client_id}:{open_id_client_secret_key}"
         backend_basic_auth_bytes = bytes(backend_basic_auth_string, encoding="ascii")
@@ -111,7 +156,7 @@ class PublicAuthenticationService:
         data = {
             "grant_type": "authorization_code",
             "code": code,
-            "redirect_uri": f"{self.get_backend_url()}/v1.0/login_return",
+            "redirect_uri": f"{self.get_backend_url()}{redirect_url}",
         }
 
         request_url = f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/token"
@@ -120,8 +165,8 @@ class PublicAuthenticationService:
         id_token_object: dict = json.loads(response.text)
         return id_token_object
 
-    @staticmethod
-    def validate_id_token(id_token: str) -> bool:
+    @classmethod
+    def validate_id_token(cls, id_token: str) -> bool:
         """Https://openid.net/specs/openid-connect-core-1_0.html#IDTokenValidation."""
         valid = True
         now = time.time()
@@ -130,12 +175,14 @@ class PublicAuthenticationService:
             open_id_client_id,
             open_id_realm_name,
             open_id_client_secret_key,
-        ) = get_open_id_args()
+        ) = cls.get_open_id_args()
         try:
             decoded_token = jwt.decode(id_token, options={"verify_signature": False})
         except Exception as e:
             raise ApiError(
-                code="bad_id_token", message="Cannot decode id_token", status_code=401
+                error_code="bad_id_token",
+                message="Cannot decode id_token",
+                status_code=401,
             ) from e
         if decoded_token["iss"] != f"{open_id_server_url}/realms/{open_id_realm_name}":
             valid = False
@@ -158,7 +205,7 @@ class PublicAuthenticationService:
 
         if now > decoded_token["exp"]:
             raise ApiError(
-                code="invalid_token",
+                error_code="invalid_token",
                 message="Your token is expired. Please Login",
                 status_code=401,
             )

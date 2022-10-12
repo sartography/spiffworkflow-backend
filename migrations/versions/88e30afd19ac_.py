@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 838230f05aa0
+Revision ID: 88e30afd19ac
 Revises: 
-Create Date: 2022-09-26 12:12:48.657804
+Create Date: 2022-10-11 09:39:40.882490
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '838230f05aa0'
+revision = '88e30afd19ac'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -35,7 +35,7 @@ def upgrade():
     op.create_table('group',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=255), nullable=True),
-    sa.Column('new_name_two', sa.String(length=255), nullable=True),
+    sa.Column('identifier', sa.String(length=255), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('message_model',
@@ -46,6 +46,12 @@ def upgrade():
     )
     op.create_index(op.f('ix_message_model_identifier'), 'message_model', ['identifier'], unique=True)
     op.create_index(op.f('ix_message_model_name'), 'message_model', ['name'], unique=True)
+    op.create_table('permission_target',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('uri', sa.String(length=255), nullable=False),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('uri')
+    )
     op.create_table('user',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('username', sa.String(length=255), nullable=False),
@@ -216,6 +222,17 @@ def upgrade():
     sa.ForeignKeyConstraint(['process_instance_id'], ['process_instance.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_table('permission_assignment',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('principal_id', sa.Integer(), nullable=False),
+    sa.Column('permission_target_id', sa.Integer(), nullable=False),
+    sa.Column('grant_type', sa.Enum('permit', 'deny', name='permitdeny'), nullable=True),
+    sa.Column('permission', sa.Enum('create', 'read', 'update', 'delete', 'list', 'instantiate', name='permission'), nullable=True),
+    sa.ForeignKeyConstraint(['permission_target_id'], ['permission_target.id'], ),
+    sa.ForeignKeyConstraint(['principal_id'], ['principal.id'], ),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('principal_id', 'permission_target_id', 'permission', name='permission_assignment_uniq')
+    )
     op.create_table('secret_allowed_process',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('secret_id', sa.Integer(), nullable=False),
@@ -297,6 +314,7 @@ def downgrade():
     op.drop_table('task_event')
     op.drop_table('spiff_logging')
     op.drop_table('secret_allowed_process')
+    op.drop_table('permission_assignment')
     op.drop_table('message_instance')
     op.drop_index(op.f('ix_message_correlation_value'), table_name='message_correlation')
     op.drop_index(op.f('ix_message_correlation_process_instance_id'), table_name='message_correlation')
@@ -321,6 +339,7 @@ def downgrade():
     op.drop_index(op.f('ix_message_correlation_property_identifier'), table_name='message_correlation_property')
     op.drop_table('message_correlation_property')
     op.drop_table('user')
+    op.drop_table('permission_target')
     op.drop_index(op.f('ix_message_model_name'), table_name='message_model')
     op.drop_index(op.f('ix_message_model_identifier'), table_name='message_model')
     op.drop_table('message_model')

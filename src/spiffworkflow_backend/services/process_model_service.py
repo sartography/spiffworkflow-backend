@@ -83,7 +83,7 @@ class ProcessModelService(FileSystemService):
         ).all()
         if len(instances) > 0:
             raise ApiError(
-                code="existing_instances",
+                error_code="existing_instances",
                 message=f"We cannot delete the model `{process_model_id}`, there are existing instances that depend on it.",
             )
         process_model = self.get_process_model(process_model_id)
@@ -260,7 +260,7 @@ class ProcessModelService(FileSystemService):
                 process_group = ProcessGroup(**data)
                 if process_group is None:
                     raise ApiError(
-                        code="process_group_could_not_be_loaded_from_disk",
+                        error_code="process_group_could_not_be_loaded_from_disk",
                         message=f"We could not load the process_group from disk from: {dir_item}",
                     )
         else:
@@ -300,13 +300,13 @@ class ProcessModelService(FileSystemService):
                 spec = ProcessModelInfo(**data)
                 if spec is None:
                     raise ApiError(
-                        code="process_model_could_not_be_loaded_from_disk",
+                        error_code="process_model_could_not_be_loaded_from_disk",
                         message=f"We could not load the process_model from disk with data: {data}",
                     )
         else:
             if name is None:
                 raise ApiError(
-                    code="missing_name_of_process_model",
+                    error_code="missing_name_of_process_model",
                     message="Missing name of process model. It should be given",
                 )
 

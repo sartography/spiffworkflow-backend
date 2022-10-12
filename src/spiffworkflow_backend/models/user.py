@@ -12,7 +12,6 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.orm import validates
 
 from spiffworkflow_backend.models.group import GroupModel
-from spiffworkflow_backend.models.user_group_assignment import UserGroupAssignmentModel
 from spiffworkflow_backend.services.authentication_service import (
     AuthenticationProviderTypes,
 )
@@ -23,6 +22,7 @@ class UserModel(SpiffworkflowBaseDBModel):
 
     __tablename__ = "user"
     __table_args__ = (db.UniqueConstraint("service", "service_id", name="service_key"),)
+
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(255), nullable=False, unique=True)
     uid = db.Column(db.String(50), unique=True)
@@ -30,13 +30,15 @@ class UserModel(SpiffworkflowBaseDBModel):
     service_id = db.Column(db.String(255), nullable=False, unique=False)
     name = db.Column(db.String(255))
     email = db.Column(db.String(255))
-    user_group_assignments = relationship(UserGroupAssignmentModel, cascade="delete")
+
+    user_group_assignments = relationship("UserGroupAssignmentModel", cascade="delete")  # type: ignore
     groups = relationship(  # type: ignore
         GroupModel,
         viewonly=True,
         secondary="user_group_assignment",
         overlaps="user_group_assignments,users",
     )
+    principal = relationship("PrincipalModel", uselist=False)  # type: ignore
 
     @validates("service")
     def validate_service(self, key: str, value: Any) -> str:
@@ -49,7 +51,7 @@ class UserModel(SpiffworkflowBaseDBModel):
             ap_value: str = ap_type.value
             return ap_value
         raise ApiError(
-            code="invalid_service",
+            error_code="invalid_service",
             message=f"Could not validate service with value: {value}",
         )
 

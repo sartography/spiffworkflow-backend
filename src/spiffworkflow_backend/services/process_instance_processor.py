@@ -76,12 +76,19 @@ from spiffworkflow_backend.models.user import UserModelSchema
 from spiffworkflow_backend.scripts.script import Script
 from spiffworkflow_backend.services.file_system_service import FileSystemService
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
-from spiffworkflow_backend.services.service_task_service import ServiceTaskService
+from spiffworkflow_backend.services.service_task_service import ServiceTaskDelegate
 from spiffworkflow_backend.services.spec_file_service import SpecFileService
 from spiffworkflow_backend.services.user_service import UserService
 
 # Sorry about all this crap.  I wanted to move this thing to another file, but
 # importing a bunch of types causes circular imports.
+
+
+def _import(name: str, glbls: Dict[str, Any], *args: Any) -> None:
+    """_import."""
+    if name not in glbls:
+        raise ImportError(f"Import not allowed: {name}", name=name)
+
 
 DEFAULT_GLOBALS.update(
     {
@@ -92,6 +99,11 @@ DEFAULT_GLOBALS.update(
 )
 # This will overwrite the standard builtins
 DEFAULT_GLOBALS.update(safe_globals)
+DEFAULT_GLOBALS["__builtins__"]["__import__"] = _import
+
+
+class ProcessInstanceProcessorError(Exception):
+    """ProcessInstanceProcessorError."""
 
 
 class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
@@ -107,7 +119,9 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
 
     def __get_augment_methods(self, task: SpiffTask) -> Dict[str, Callable]:
         """__get_augment_methods."""
-        return Script.generate_augmented_list(task, current_app.env)
+        return Script.generate_augmented_list(
+            task, current_app.config["ENV_IDENTIFIER"]
+        )
 
     def evaluate(self, task: SpiffTask, expression: str) -> Any:
         """Evaluate."""
@@ -155,13 +169,16 @@ class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
         except Exception as e:
             raise WorkflowTaskExecException(task, f" {script}, {e}", e) from e
 
-    def available_service_task_external_methods(self) -> Dict[str, Any]:
-        """Returns available service task external methods."""
-        return ServiceTaskService.scripting_additions()
-
-
-class ProcessInstanceProcessorError(Exception):
-    """ProcessInstanceProcessorError."""
+    def call_service(
+        self,
+        operation_name: str,
+        operation_params: Dict[str, Any],
+        task_data: Dict[str, Any],
+    ) -> Any:
+        """CallService."""
+        return ServiceTaskDelegate.call_connector(
+            operation_name, operation_params, task_data
+        )
 
 
 class MyCustomParser(BpmnDmnParser):  # type: ignore
@@ -305,7 +322,7 @@ class ProcessInstanceProcessor:
 
         except MissingSpecError as ke:
             raise ApiError(
-                code="unexpected_process_instance_structure",
+                error_code="unexpected_process_instance_structure",
                 message="Failed to deserialize process_instance"
                 " '%s'  due to a mis-placed or missing task '%s'"
                 % (self.process_model_identifier, str(ke)),
@@ -511,7 +528,7 @@ class ProcessInstanceProcessor:
                 if principal is None:
                     raise (
                         ApiError(
-                            code="principal_not_found",
+                            error_code="principal_not_found",
                             message=f"Principal not found from user id: {user_id}",
                             status_code=400,
                         )
@@ -613,7 +630,7 @@ class ProcessInstanceProcessor:
         if bpmn_file_full_path is None:
             raise (
                 ApiError(
-                    code="could_not_find_bpmn_process_identifier",
+                    error_code="could_not_find_bpmn_process_identifier",
                     message="Could not find the the given bpmn process identifier from any sources: %s"
                     % bpmn_process_identifier,
                 )
@@ -676,7 +693,7 @@ class ProcessInstanceProcessor:
         ):
             raise (
                 ApiError(
-                    code="no_primary_bpmn_error",
+                    error_code="no_primary_bpmn_error",
                     message="There is no primary BPMN process id defined for process_model %s"
                     % process_model_info.id,
                 )
@@ -694,7 +711,7 @@ class ProcessInstanceProcessor:
             )
         except ValidationException as ve:
             raise ApiError(
-                code="process_instance_validation_error",
+                error_code="process_instance_validation_error",
                 message="Failed to parse the Workflow Specification. "
                 + "Error is '%s.'" % str(ve),
                 file_name=ve.filename,

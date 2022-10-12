@@ -7,6 +7,7 @@ import flask.app
 import flask.json
 import sqlalchemy
 from apscheduler.schedulers.background import BackgroundScheduler  # type: ignore
+from flask.json.provider import DefaultJSONProvider
 from flask_bpmn.api.api_error import api_error_blueprint
 from flask_bpmn.models.db import db
 from flask_bpmn.models.db import migrate
@@ -23,7 +24,7 @@ from spiffworkflow_backend.services.background_processing_service import (
 )
 
 
-class MyJSONEncoder(flask.json.JSONEncoder):
+class MyJSONEncoder(DefaultJSONProvider):
     """MyJSONEncoder."""
 
     def default(self, obj: Any) -> Any:
@@ -41,6 +42,11 @@ class MyJSONEncoder(flask.json.JSONEncoder):
             return_dict.pop("_sa_instance_state")
             return return_dict
         return super().default(obj)
+
+    def dumps(self, obj: Any, **kwargs: Any) -> Any:
+        """Dumps."""
+        kwargs.setdefault("default", self.default)
+        return super().dumps(obj, **kwargs)
 
 
 def start_scheduler(app: flask.app.Flask) -> None:
@@ -100,9 +106,34 @@ def create_app() -> flask.app.Flask:
     mail = Mail(app)
     app.config["MAIL_APP"] = mail
 
-    app.json_encoder = MyJSONEncoder
+    app.json = MyJSONEncoder(app)
 
     if app.config["PROCESS_WAITING_MESSAGES"]:
         start_scheduler(app)
 
+    configure_sentry(app)
+
     return app  # type: ignore
+
+
+def configure_sentry(app: flask.app.Flask) -> None:
+    """Configure_sentry."""
+    import sentry_sdk
+    from flask import Flask
+    from sentry_sdk.integrations.flask import FlaskIntegration
+
+    sentry_sample_rate = app.config.get("SENTRY_SAMPLE_RATE")
+    if sentry_sample_rate is None:
+        return
+    sentry_sdk.init(
+        dsn=app.config.get("SENTRY_DSN"),
+        integrations=[
+            FlaskIntegration(),
+        ],
+        # Set traces_sample_rate to 1.0 to capture 100%
+        # of transactions for performance monitoring.
+        # We recommend adjusting this value in production.
+        traces_sample_rate=float(sentry_sample_rate),
+    )
+
+    app = Flask(__name__)

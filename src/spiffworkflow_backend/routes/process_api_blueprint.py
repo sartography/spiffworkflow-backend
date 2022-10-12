@@ -7,6 +7,7 @@ import uuid
 from typing import Any
 from typing import Dict
 from typing import Optional
+from typing import TypedDict
 from typing import Union
 
 import connexion  # type: ignore
@@ -68,6 +69,22 @@ from spiffworkflow_backend.services.secret_service import SecretService
 from spiffworkflow_backend.services.service_task_service import ServiceTaskService
 from spiffworkflow_backend.services.spec_file_service import SpecFileService
 from spiffworkflow_backend.services.user_service import UserService
+
+
+class TaskDataSelectOption(TypedDict):
+    """TaskDataSelectOption."""
+
+    value: str
+    label: str
+
+
+class ReactJsonSchemaSelectOption(TypedDict):
+    """ReactJsonSchemaSelectOption."""
+
+    type: str
+    title: str
+    enum: list[str]
+
 
 process_api_blueprint = Blueprint("process_api", __name__)
 
@@ -137,7 +154,7 @@ def process_group_show(
     except ProcessEntityNotFoundError as exception:
         raise (
             ApiError(
-                code="process_group_cannot_be_found",
+                error_code="process_group_cannot_be_found",
                 message=f"Process group cannot be found: {process_group_id}",
                 status_code=400,
             )
@@ -152,7 +169,7 @@ def process_model_add(
     process_model_info = ProcessModelInfoSchema().load(body)
     if process_model_info is None:
         raise ApiError(
-            code="process_model_could_not_be_created",
+            error_code="process_model_could_not_be_created",
             message=f"Process Model could not be created from given body: {body}",
             status_code=400,
         )
@@ -163,7 +180,7 @@ def process_model_add(
     )
     if process_group is None:
         raise ApiError(
-            code="process_model_could_not_be_created",
+            error_code="process_model_could_not_be_created",
             message=f"Process Model could not be created from given body because Process Group could not be found: {body}",
             status_code=400,
         )
@@ -189,9 +206,11 @@ def process_model_update(
     process_group_id: str, process_model_id: str, body: Dict[str, Union[str, bool, int]]
 ) -> Any:
     """Process_model_update."""
-    body_include_list = ["display_name"]
+    body_include_list = ["display_name", "primary_file_name", "primary_process_id"]
     body_filtered = {
-        include_item: body[include_item] for include_item in body_include_list
+        include_item: body[include_item]
+        for include_item in body_include_list
+        if include_item in body
     }
 
     process_model = get_process_model(process_model_id, process_group_id)
@@ -240,7 +259,7 @@ def get_file(process_group_id: str, process_model_id: str, file_name: str) -> An
     files = SpecFileService.get_files(process_model, file_name)
     if len(files) == 0:
         raise ApiError(
-            code="unknown file",
+            error_code="unknown file",
             message=f"No information exists for file {file_name}"
             f" it does not exist in workflow {process_model_id}.",
             status_code=404,
@@ -264,7 +283,7 @@ def process_model_file_update(
     request_file_contents = request_file.stream.read()
     if not request_file_contents:
         raise ApiError(
-            code="file_contents_empty",
+            error_code="file_contents_empty",
             message="Given request file does not have any content",
             status_code=400,
         )
@@ -292,7 +311,7 @@ def process_model_file_delete(
     except FileNotFoundError as exception:
         raise (
             ApiError(
-                code="process_model_file_cannot_be_found",
+                error_code="process_model_file_cannot_be_found",
                 message=f"Process model file cannot be found: {file_name}",
                 status_code=400,
             )
@@ -307,7 +326,7 @@ def add_file(process_group_id: str, process_model_id: str) -> flask.wrappers.Res
     request_file = get_file_from_request()
     if not request_file.filename:
         raise ApiError(
-            code="could_not_get_filename",
+            error_code="could_not_get_filename",
             message="Could not get filename from request",
             status_code=400,
         )
@@ -360,7 +379,7 @@ def process_instance_run(
             ErrorHandlingService().handle_error(processor, e)
             task = processor.bpmn_process_instance.last_task
             raise ApiError.from_task(
-                code="unknown_exception",
+                error_code="unknown_exception",
                 message=f"An unknown error occurred. Original error: {e}",
                 status_code=400,
                 task=task,
@@ -419,7 +438,7 @@ def process_instance_log_list(
         .add_columns(
             UserModel.username,
         )
-        .paginate(page, per_page, False)
+        .paginate(page=page, per_page=per_page, error_out=False)
     )
 
     response_json = {
@@ -460,7 +479,7 @@ def message_instance_list(
             ProcessInstanceModel.process_model_identifier,
             ProcessInstanceModel.process_group_identifier,
         )
-        .paginate(page, per_page, False)
+        .paginate(page=page, per_page=per_page, error_out=False)
     )
 
     response_json = {
@@ -488,7 +507,7 @@ def message_start(
     if message_model is None:
         raise (
             ApiError(
-                code="unknown_message",
+                error_code="unknown_message",
                 message=f"Could not find message with identifier: {message_identifier}",
                 status_code=404,
             )
@@ -497,7 +516,7 @@ def message_start(
     if "payload" not in body:
         raise (
             ApiError(
-                code="missing_payload",
+                error_code="missing_payload",
                 message="Body is missing payload.",
                 status_code=400,
             )
@@ -519,7 +538,7 @@ def message_start(
         if message_instance is None:
             raise (
                 ApiError(
-                    code="cannot_find_waiting_message",
+                    error_code="cannot_find_waiting_message",
                     message=f"Could not find waiting message for identifier {message_identifier} "
                     f"and process instance {process_instance.id}",
                     status_code=400,
@@ -539,7 +558,7 @@ def message_start(
         if message_triggerable_process_model is None:
             raise (
                 ApiError(
-                    code="cannot_start_message",
+                    error_code="cannot_start_message",
                     message=f"Message with identifier cannot be start with message: {message_identifier}",
                     status_code=400,
                 )
@@ -588,7 +607,7 @@ def process_instance_list(
     ):
         raise (
             ApiError(
-                code="unexpected_condition",
+                error_code="unexpected_condition",
                 message="Something went very wrong",
                 status_code=500,
             )
@@ -618,7 +637,7 @@ def process_instance_list(
 
     process_instances = process_instance_query.order_by(
         ProcessInstanceModel.start_in_seconds.desc(), ProcessInstanceModel.id.desc()  # type: ignore
-    ).paginate(page, per_page, False)
+    ).paginate(page=page, per_page=per_page, error_out=False)
 
     response_json = {
         "results": process_instances.items,
@@ -711,7 +730,7 @@ def process_instance_report_update(
     ).first()
     if process_instance_report is None:
         raise ApiError(
-            code="unknown_process_instance_report",
+            error_code="unknown_process_instance_report",
             message="Unknown process instance report",
             status_code=404,
         )
@@ -735,7 +754,7 @@ def process_instance_report_delete(
     ).first()
     if process_instance_report is None:
         raise ApiError(
-            code="unknown_process_instance_report",
+            error_code="unknown_process_instance_report",
             message="Unknown process instance report",
             status_code=404,
         )
@@ -771,7 +790,7 @@ def process_instance_report_show(
         .order_by(
             ProcessInstanceModel.start_in_seconds.desc(), ProcessInstanceModel.id.desc()  # type: ignore
         )
-        .paginate(page, per_page, False)
+        .paginate(page=page, per_page=per_page, error_out=False)
     )
 
     process_instance_report = ProcessInstanceReportModel.query.filter_by(
@@ -779,7 +798,7 @@ def process_instance_report_show(
     ).first()
     if process_instance_report is None:
         raise ApiError(
-            code="unknown_process_instance_report",
+            error_code="unknown_process_instance_report",
             message="Unknown process instance report",
             status_code=404,
         )
@@ -821,7 +840,7 @@ def task_list_my_tasks(page: int = 1, per_page: int = 100) -> flask.wrappers.Res
             ActiveTaskModel.process_model_display_name,
             ActiveTaskModel.process_instance_id,
         )
-        .paginate(page, per_page, False)
+        .paginate(page=page, per_page=per_page, error_out=False)
     )
 
     tasks = [ActiveTaskModel.to_task(active_task) for active_task in active_tasks.items]
@@ -907,9 +926,9 @@ def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response
         if not form_schema_file_name:
             raise (
                 ApiError(
-                    code="missing_form_file",
+                    error_code="missing_form_file",
                     message=f"Cannot find a form file for process_instance_id: {process_instance_id}, task_id: {task_id}",
-                    status_code=500,
+                    status_code=400,
                 )
             )
 
@@ -919,8 +938,23 @@ def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response
             process_model_with_form,
         )
 
+        try:
+            # form_contents is a str
+            form_dict = json.loads(form_contents)
+        except Exception as exception:
+            raise (
+                ApiError(
+                    error_code="error_loading_form",
+                    message=f"Could not load form schema from: {form_schema_file_name}. Error was: {str(exception)}",
+                    status_code=400,
+                )
+            ) from exception
+
+        if task.data:
+            _update_form_schema_with_task_data_as_needed(form_dict, task.data)
+
         if form_contents:
-            task.form_schema = form_contents
+            task.form_schema = form_dict
 
         if form_ui_schema_file_name:
             ui_form_contents = prepare_form_data(
@@ -963,7 +997,7 @@ def task_submit(
     if spiff_task.state != TaskState.READY:
         raise (
             ApiError(
-                code="invalid_state",
+                error_code="invalid_state",
                 message="You may not update a task unless it is in the READY state.",
                 status_code=400,
             )
@@ -1005,15 +1039,19 @@ def script_unit_test_create(
     process_group_id: str, process_model_id: str, body: Dict[str, Union[str, bool, int]]
 ) -> flask.wrappers.Response:
     """Script_unit_test_run."""
-    bpmn_task_identifier = get_required_parameter_or_raise("bpmn_task_identifier", body)
-    input_json = get_required_parameter_or_raise("input_json", body)
-    expected_output_json = get_required_parameter_or_raise("expected_output_json", body)
+    bpmn_task_identifier = _get_required_parameter_or_raise(
+        "bpmn_task_identifier", body
+    )
+    input_json = _get_required_parameter_or_raise("input_json", body)
+    expected_output_json = _get_required_parameter_or_raise(
+        "expected_output_json", body
+    )
 
     process_model = get_process_model(process_model_id, process_group_id)
     file = SpecFileService.get_files(process_model, process_model.primary_file_name)[0]
     if file is None:
         raise ApiError(
-            code="cannot_find_file",
+            error_code="cannot_find_file",
             message=f"Could not find the primary bpmn file for process_model: {process_model.id}",
             status_code=404,
         )
@@ -1035,7 +1073,7 @@ def script_unit_test_create(
     )
     if len(script_task_elements) == 0:
         raise ApiError(
-            code="missing_script_task",
+            error_code="missing_script_task",
             message=f"Cannot find a script task with id: {bpmn_task_identifier}",
             status_code=404,
         )
@@ -1094,9 +1132,11 @@ def script_unit_test_run(
     # FIXME: We should probably clear this somewhere else but this works
     current_app.config["THREAD_LOCAL_DATA"].process_instance_id = None
 
-    python_script = get_required_parameter_or_raise("python_script", body)
-    input_json = get_required_parameter_or_raise("input_json", body)
-    expected_output_json = get_required_parameter_or_raise("expected_output_json", body)
+    python_script = _get_required_parameter_or_raise("python_script", body)
+    input_json = _get_required_parameter_or_raise("input_json", body)
+    expected_output_json = _get_required_parameter_or_raise(
+        "expected_output_json", body
+    )
 
     result = ScriptUnitTestRunner.run_with_script_and_pre_post_contexts(
         python_script, input_json, expected_output_json
@@ -1109,7 +1149,7 @@ def get_file_from_request() -> Any:
     request_file = connexion.request.files.get("file")
     if not request_file:
         raise ApiError(
-            code="no_file_given",
+            error_code="no_file_given",
             message="Given request does not contain a file",
             status_code=400,
         )
@@ -1126,7 +1166,7 @@ def get_process_model(process_model_id: str, process_group_id: str) -> ProcessMo
     except ProcessEntityNotFoundError as exception:
         raise (
             ApiError(
-                code="process_model_cannot_be_found",
+                error_code="process_model_cannot_be_found",
                 message=f"Process model cannot be found: {process_model_id}",
                 status_code=400,
             )
@@ -1141,7 +1181,7 @@ def find_principal_or_raise() -> PrincipalModel:
     if principal is None:
         raise (
             ApiError(
-                code="principal_not_found",
+                error_code="principal_not_found",
                 message=f"Principal not found from user id: {g.user.id}",
                 status_code=400,
             )
@@ -1165,7 +1205,7 @@ def find_active_task_by_id_or_raise(
         )
         raise (
             ApiError(
-                code="task_not_found",
+                error_code="task_not_found",
                 message=message,
                 status_code=400,
             )
@@ -1183,7 +1223,7 @@ def find_process_instance_by_id_or_raise(
     if process_instance is None:
         raise (
             ApiError(
-                code="process_instance_cannot_be_found",
+                error_code="process_instance_cannot_be_found",
                 message=f"Process instance cannot be found: {process_instance_id}",
                 status_code=400,
             )
@@ -1234,7 +1274,7 @@ def get_spiff_task_from_process_instance(
     if spiff_task is None:
         raise (
             ApiError(
-                code="empty_task",
+                error_code="empty_task",
                 message="Processor failed to obtain task.",
                 status_code=500,
             )
@@ -1261,7 +1301,7 @@ def secret_list(
         .add_columns(
             UserModel.username,
         )
-        .paginate(page, per_page, False)
+        .paginate(page=page, per_page=per_page, error_out=False)
     )
     response_json = {
         "results": secrets.items,
@@ -1349,7 +1389,7 @@ def delete_allowed_process_path(allowed_process_path_id: int) -> Response:
     return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
 
 
-def get_required_parameter_or_raise(parameter: str, post_body: dict[str, Any]) -> Any:
+def _get_required_parameter_or_raise(parameter: str, post_body: dict[str, Any]) -> Any:
     """Get_required_parameter_or_raise."""
     return_value = None
     if parameter in post_body:
@@ -1358,10 +1398,68 @@ def get_required_parameter_or_raise(parameter: str, post_body: dict[str, Any]) -
     if return_value is None or return_value == "":
         raise (
             ApiError(
-                code="missing_required_parameter",
+                error_code="missing_required_parameter",
                 message=f"Parameter is missing from json request body: {parameter}",
                 status_code=400,
             )
         )
 
     return return_value
+
+
+# originally from: https://bitcoden.com/answers/python-nested-dictionary-update-value-where-any-nested-key-matches
+def _update_form_schema_with_task_data_as_needed(
+    in_dict: dict, task_data: dict
+) -> None:
+    """Update_nested."""
+    for k, value in in_dict.items():
+        if "anyOf" == k:
+            # value will look like the array on the right of "anyOf": ["options_from_task_data_var:awesome_options"]
+            if isinstance(value, list):
+                if len(value) == 1:
+                    first_element_in_value_list = value[0]
+                    if isinstance(first_element_in_value_list, str):
+                        if first_element_in_value_list.startswith(
+                            "options_from_task_data_var:"
+                        ):
+                            task_data_var = first_element_in_value_list.replace(
+                                "options_from_task_data_var:", ""
+                            )
+
+                            if task_data_var not in task_data:
+                                raise (
+                                    ApiError(
+                                        error_code="missing_task_data_var",
+                                        message=f"Task data is missing variable: {task_data_var}",
+                                        status_code=500,
+                                    )
+                                )
+
+                            select_options_from_task_data = task_data.get(task_data_var)
+                            if isinstance(select_options_from_task_data, list):
+                                if all(
+                                    "value" in d and "label" in d
+                                    for d in select_options_from_task_data
+                                ):
+
+                                    def map_function(
+                                        task_data_select_option: TaskDataSelectOption,
+                                    ) -> ReactJsonSchemaSelectOption:
+                                        """Map_function."""
+                                        return {
+                                            "type": "string",
+                                            "enum": [task_data_select_option["value"]],
+                                            "title": task_data_select_option["label"],
+                                        }
+
+                                    options_for_react_json_schema_form = list(
+                                        map(map_function, select_options_from_task_data)
+                                    )
+
+                                    in_dict[k] = options_for_react_json_schema_form
+        elif isinstance(value, dict):
+            _update_form_schema_with_task_data_as_needed(value, task_data)
+        elif isinstance(value, list):
+            for o in value:
+                if isinstance(o, dict):
+                    _update_form_schema_with_task_data_as_needed(o, task_data)

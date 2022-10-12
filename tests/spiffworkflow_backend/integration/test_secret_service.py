@@ -95,7 +95,7 @@ class TestSecretService(SecretServiceTestHelpers):
         self.add_test_secret(user)
         with pytest.raises(ApiError) as ae:
             self.add_test_secret(user)
-        assert ae.value.code == "create_secret_error"
+        assert ae.value.error_code == "create_secret_error"
 
     def test_get_secret(self, app: Flask, with_db_and_bpmn_file_cleanup: None) -> None:
         """Test_get_secret."""
@@ -154,7 +154,7 @@ class TestSecretService(SecretServiceTestHelpers):
         with pytest.raises(ApiError) as ae:
             SecretService.update_secret(secret.key + "x", "some_new_value", user.id)
         assert "Resource does not exist" in ae.value.message
-        assert ae.value.code == "update_secret_error"
+        assert ae.value.error_code == "update_secret_error"
 
     def test_delete_secret(
         self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None

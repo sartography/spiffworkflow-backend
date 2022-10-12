@@ -7,16 +7,19 @@ from flask import g
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
 
+from spiffworkflow_backend.models.group import GroupModel
 from spiffworkflow_backend.models.principal import PrincipalModel
 from spiffworkflow_backend.models.user import AdminSessionModel
 from spiffworkflow_backend.models.user import UserModel
+from spiffworkflow_backend.models.user_group_assignment import UserGroupAssignmentModel
 
 
 class UserService:
     """Provides common tools for working with users."""
 
+    @classmethod
     def create_user(
-        self,
+        cls,
         service: str,
         service_id: str,
         name: Optional[str] = "",
@@ -47,9 +50,10 @@ class UserService:
             except Exception as e:
                 db.session.rollback()
                 raise ApiError(
-                    code="add_user_error", message=f"Could not add user {username}"
+                    error_code="add_user_error",
+                    message=f"Could not add user {username}",
                 ) from e
-            self.create_principal(user_model.id)
+            cls.create_principal(user_model.id)
             return user_model
 
         else:
@@ -58,14 +62,15 @@ class UserService:
             #  Don't really want to send service_id.
             raise (
                 ApiError(
-                    code="user_already_exists",
+                    error_code="user_already_exists",
                     message=f"User already exists: {username}",
                     status_code=409,
                 )
             )
 
+    @classmethod
     def find_or_create_user(
-        self,
+        cls,
         service: str,
         service_id: str,
         name: Optional[str] = None,
@@ -75,7 +80,7 @@ class UserService:
         """Find_or_create_user."""
         user_model: UserModel
         try:
-            user_model = self.create_user(
+            user_model = cls.create_user(
                 service=service,
                 service_id=service_id,
                 name=name,
@@ -260,11 +265,12 @@ class UserService:
         if principal:
             return principal
         raise ApiError(
-            code="no_principal_found",
+            error_code="no_principal_found",
             message=f"No principal was found for user_id: {user_id}",
         )
 
-    def create_principal(self, user_id: int) -> PrincipalModel:
+    @classmethod
+    def create_principal(cls, user_id: int) -> PrincipalModel:
         """Create_principal."""
         principal: Optional[PrincipalModel] = PrincipalModel.query.filter_by(
             user_id=user_id
@@ -278,7 +284,14 @@ class UserService:
                 db.session.rollback()
                 current_app.logger.error(f"Exception in create_principal: {e}")
                 raise ApiError(
-                    code="add_principal_error",
+                    error_code="add_principal_error",
                     message=f"Could not create principal {user_id}",
                 ) from e
         return principal
+
+    @classmethod
+    def add_user_to_group(cls, user: UserModel, group: GroupModel) -> None:
+        """Add_user_to_group."""
+        ugam = UserGroupAssignmentModel(user_id=user.id, group_id=group.id)
+        db.session.add(ugam)
+        db.session.commit()
