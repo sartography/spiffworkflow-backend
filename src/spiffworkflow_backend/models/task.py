@@ -1,4 +1,5 @@
 """Task."""
+from dataclasses import dataclass
 import enum
 from typing import Any
 from typing import Optional
@@ -18,8 +19,31 @@ class MultiInstanceType(enum.Enum):
     sequential = "sequential"
 
 
+@dataclass
 class Task:
     """Task."""
+
+    id: str
+    name: str
+    title: str
+    type: str
+    state: str
+    lane: Union[str, None] = None
+    form: None = None
+    documentation: str = ""
+    data: Union[dict[str, Any], None] = None
+    # multi_instance_type: Union[MultiInstanceType, None] = None
+    multi_instance_count: str = ""
+    multi_instance_index: str = ""
+    process_name: str = ""
+    properties: Union[dict, None] = None
+    process_instance_id: Union[int, None] = None
+    process_model_display_name: Union[str, None] = None
+    process_group_identifier: Union[str, None] = None
+    process_model_identifier: Union[str, None] = None
+    form_schema: Union[str, None] = None
+    form_ui_schema: Union[str, None] = None
+    parent: Optional[str] = None
 
     ##########################################################################
     #    Custom properties and validations defined in Camunda form fields    #
@@ -155,37 +179,37 @@ class Task:
         if self.properties is None:
             self.properties = {}
 
-    @property
-    def serialized(self) -> dict[str, Any]:
-        """Return object data in serializeable format."""
-        multi_instance_type = None
-        if self.multi_instance_type:
-            MultiInstanceType(self.multi_instance_type)
-
-        return {
-            "id": self.id,
-            "name": self.name,
-            "title": self.title,
-            "type": self.type,
-            "state": self.state,
-            "lane": self.lane,
-            "form": self.form,
-            "documentation": self.documentation,
-            "data": self.data,
-            "multi_instance_type": multi_instance_type,
-            "multi_instance_count": self.multi_instance_count,
-            "multi_instance_index": self.multi_instance_index,
-            "process_name": self.process_name,
-            "properties": self.properties,
-            "process_instance_id": self.process_instance_id,
-            "process_model_display_name": self.process_model_display_name,
-            "process_group_identifier": self.process_group_identifier,
-            "process_model_identifier": self.process_model_identifier,
-            "form_schema": self.form_schema,
-            "form_ui_schema": self.form_ui_schema,
-            "parent": self.parent,
-        }
-
+    # @property
+    # def serialized(self) -> dict[str, Any]:
+    #     """Return object data in serializeable format."""
+    #     multi_instance_type = None
+    #     if self.multi_instance_type:
+    #         MultiInstanceType(self.multi_instance_type)
+    #
+    #     return {
+    #         "id": self.id,
+    #         "name": self.name,
+    #         "title": self.title,
+    #         "type": self.type,
+    #         "state": self.state,
+    #         "lane": self.lane,
+    #         "form": self.form,
+    #         "documentation": self.documentation,
+    #         "data": self.data,
+    #         "multi_instance_type": multi_instance_type,
+    #         "multi_instance_count": self.multi_instance_count,
+    #         "multi_instance_index": self.multi_instance_index,
+    #         "process_name": self.process_name,
+    #         "properties": self.properties,
+    #         "process_instance_id": self.process_instance_id,
+    #         "process_model_display_name": self.process_model_display_name,
+    #         "process_group_identifier": self.process_group_identifier,
+    #         "process_model_identifier": self.process_model_identifier,
+    #         "form_schema": self.form_schema,
+    #         "form_ui_schema": self.form_ui_schema,
+    #         "parent": self.parent,
+    #     }
+    #
     @classmethod
     def valid_property_names(cls) -> list[str]:
         """Valid_property_names."""

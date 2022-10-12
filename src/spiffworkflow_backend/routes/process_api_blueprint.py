@@ -4,7 +4,7 @@ import os
 import random
 import string
 import uuid
-from typing import Any
+from typing import Any, OrderedDict
 from typing import Dict
 from typing import Optional
 from typing import TypedDict
@@ -940,7 +940,8 @@ def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response
 
         try:
             # form_contents is a str
-            form_dict = json.loads(form_contents)
+            form_dict = json.loads(form_contents, object_pairs_hook=OrderedDict)
+            # form_dict = json.loads(form_contents)
         except Exception as exception:
             raise (
                 ApiError(
@@ -950,8 +951,8 @@ def task_show(process_instance_id: int, task_id: str) -> flask.wrappers.Response
                 )
             ) from exception
 
-        if task.data:
-            _update_form_schema_with_task_data_as_needed(form_dict, task.data)
+        # if task.data:
+        #     _update_form_schema_with_task_data_as_needed(form_dict, task.data)
 
         if form_contents:
             task.form_schema = form_dict
