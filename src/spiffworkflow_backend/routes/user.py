@@ -50,7 +50,6 @@ def verify_token(
 
     if request.endpoint:
         api_view_function = current_app.view_functions[request.endpoint]
-        # import pdb; pdb.set_trace()
         if (
             api_view_function
             and api_view_function.__name__.startswith("login")

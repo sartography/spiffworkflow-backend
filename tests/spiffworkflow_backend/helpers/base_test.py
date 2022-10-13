@@ -15,6 +15,8 @@ from flask_bpmn.models.db import db
 from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
 from werkzeug.test import TestResponse
 
+from spiffworkflow_backend.models.permission_assignment import Permission
+from spiffworkflow_backend.models.permission_target import PermissionTargetModel
 from spiffworkflow_backend.models.process_group import ProcessGroup
 from spiffworkflow_backend.models.process_group import ProcessGroupSchema
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
@@ -226,6 +228,46 @@ class BaseTest:
         db.session.add(process_instance)
         db.session.commit()
         return process_instance
+
+    @classmethod
+    def create_user_with_permission(
+        cls,
+        username: str,
+        target_uri: str = PermissionTargetModel.URI_ALL,
+        permission_names: Optional[list[str]] = None,
+    ) -> UserModel:
+        """Create_user_with_permission."""
+        user = BaseTest.find_or_create_user(username=username)
+        return cls.add_permissions_to_user(
+            user, target_uri=target_uri, permission_names=permission_names
+        )
+
+    @classmethod
+    def add_permissions_to_user(
+        cls,
+        user: UserModel,
+        target_uri: str = PermissionTargetModel.URI_ALL,
+        permission_names: Optional[list[str]] = None,
+    ) -> UserModel:
+        """Add_permissions_to_user."""
+        permission_target = PermissionTargetModel.query.filter_by(
+            uri=target_uri
+        ).first()
+        if permission_target is None:
+            permission_target = PermissionTargetModel(uri=target_uri)
+            db.session.add(permission_target)
+            db.session.commit()
+
+        if permission_names is None:
+            permission_names = [member.name for member in Permission]
+
+        for permission in permission_names:
+            AuthorizationService.create_permission_for_principal(
+                principal=user.principal,
+                permission_target=permission_target,
+                permission=permission,
+            )
+        return user
 
     @staticmethod
     def logged_in_headers(

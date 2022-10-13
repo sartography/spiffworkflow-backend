@@ -38,6 +38,35 @@ from spiffworkflow_backend.services.process_model_service import ProcessModelSer
 class TestProcessApi(BaseTest):
     """TestProcessAPi."""
 
+    def test_returns_403_if_user_does_not_have_permission(
+        self,
+        app: Flask,
+        client: FlaskClient,
+        with_db_and_bpmn_file_cleanup: None,
+    ) -> None:
+        """Test_returns_403_if_user_does_not_have_permission."""
+        user = self.find_or_create_user()
+        response = client.get(
+            "/v1.0/process-groups",
+            headers=self.logged_in_headers(user),
+        )
+        assert response.status_code == 403
+
+        self.add_permissions_to_user(
+            user, target_uri="/v1.0/process-groups", permission_names=["read"]
+        )
+        response = client.get(
+            "/v1.0/process-groups",
+            headers=self.logged_in_headers(user),
+        )
+        assert response.status_code == 200
+
+        response = client.post(
+            "/v1.0/process-groups",
+            headers=self.logged_in_headers(user),
+        )
+        assert response.status_code == 403
+
     def test_process_model_add(
         self,
         app: Flask,
