@@ -189,30 +189,30 @@ class AuthorizationService:
     @classmethod
     def should_disable_auth_for_request(cls) -> bool:
         """Should_disable_auth_for_request."""
-        authorization_exclusion_list = ["status"]
+        authentication_exclusion_list = ["status"]
         if request.method == "OPTIONS":
             return True
 
+        # if the endpoint does not exist then let the system 404
+        #
+        # for some reason this runs before connexion checks if the
+        # endpoint exists.
         if not request.endpoint:
-            raise ApiError(
-                error_code="request_endpoint_not_found",
-                message="Could not find the endpong from the rquest.",
-                status_code=500,
-            )
+            return True
 
         api_view_function = current_app.view_functions[request.endpoint]
         if (
             api_view_function
             and api_view_function.__name__.startswith("login")
             or api_view_function.__name__.startswith("logout")
-            or api_view_function.__name__ in authorization_exclusion_list
+            or api_view_function.__name__ in authentication_exclusion_list
         ):
             return True
 
         return False
 
     @classmethod
-    def get_permission_from_request_method(cls) -> Optional[str]:
+    def get_permission_from_http_method(cls, http_method: str) -> Optional[str]:
         """Get_permission_from_request_method."""
         request_method_mapper = {
             "POST": "create",
@@ -220,8 +220,8 @@ class AuthorizationService:
             "PUT": "update",
             "DELETE": "delete",
         }
-        if request.method in request_method_mapper:
-            return request_method_mapper[request.method]
+        if http_method in request_method_mapper:
+            return request_method_mapper[http_method]
 
         return None
 
@@ -236,6 +236,8 @@ class AuthorizationService:
         if cls.should_disable_auth_for_request():
             return None
 
+        authorization_exclusion_list = ["permissions_check"]
+
         if not hasattr(g, "user"):
             raise ApiError(
                 error_code="user_not_logged_in",
@@ -243,7 +245,15 @@ class AuthorizationService:
                 status_code=401,
             )
 
-        permission_string = cls.get_permission_from_request_method()
+        # request.endpoint is checked in should_disable_auth_for_request so ignore mypy here
+        api_view_function = current_app.view_functions[request.endpoint]  # type: ignore
+        if (
+            api_view_function
+            and api_view_function.__name__ in authorization_exclusion_list
+        ):
+            return None
+
+        permission_string = cls.get_permission_from_http_method(request.method)
         if permission_string:
             has_permission = AuthorizationService.user_has_permission(
                 user=g.user,

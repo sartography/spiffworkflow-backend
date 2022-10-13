@@ -67,6 +67,39 @@ class TestProcessApi(BaseTest):
         )
         assert response.status_code == 403
 
+    def test_permissions_check(
+        self,
+        app: Flask,
+        client: FlaskClient,
+        with_db_and_bpmn_file_cleanup: None,
+    ) -> None:
+        """Test_permissions_check."""
+        user = self.find_or_create_user()
+        self.add_permissions_to_user(
+            user, target_uri="/v1.0/process-groups", permission_names=["read"]
+        )
+        request_body = {
+            "requests_to_check": {
+                "/v1.0/process-groups": ["GET", "POST"],
+                "/v1.0/process-models": ["GET"],
+            }
+        }
+        expected_response_body = {
+            "results": {
+                "/v1.0/process-groups": {"GET": True, "POST": False},
+                "/v1.0/process-models": {"GET": False},
+            }
+        }
+        response = client.post(
+            "/v1.0/permissions-check",
+            headers=self.logged_in_headers(user),
+            content_type="application/json",
+            data=json.dumps(request_body),
+        )
+        assert response.status_code == 200
+        assert response.json is not None
+        assert response.json == expected_response_body
+
     def test_process_model_add(
         self,
         app: Flask,

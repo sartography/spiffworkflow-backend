@@ -52,6 +52,7 @@ from spiffworkflow_backend.models.secret_model import SecretModel
 from spiffworkflow_backend.models.secret_model import SecretModelSchema
 from spiffworkflow_backend.models.spiff_logging import SpiffLoggingModel
 from spiffworkflow_backend.models.user import UserModel
+from spiffworkflow_backend.services.authorization_service import AuthorizationService
 from spiffworkflow_backend.services.error_handling_service import ErrorHandlingService
 from spiffworkflow_backend.services.file_system_service import FileSystemService
 from spiffworkflow_backend.services.git_service import GitService
@@ -92,6 +93,39 @@ def status() -> flask.wrappers.Response:
     """Status."""
     ProcessInstanceModel.query.filter().first()
     return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
+
+
+def permissions_check(body: Dict[str, Dict[str, list[str]]]) -> flask.wrappers.Response:
+    """Permissions_check."""
+    if "requests_to_check" not in body:
+        raise (
+            ApiError(
+                error_code="could_not_requests_to_check",
+                message="The key 'requests_to_check' not found at root of request body.",
+                status_code=400,
+            )
+        )
+
+    response_dict: dict[str, dict[str, bool]] = {}
+    requests_to_check = body["requests_to_check"]
+
+    for target_uri, http_methods in requests_to_check.items():
+        if target_uri not in response_dict:
+            response_dict[target_uri] = {}
+
+        for http_method in http_methods:
+            permission_string = AuthorizationService.get_permission_from_http_method(
+                http_method
+            )
+            if permission_string:
+                has_permission = AuthorizationService.user_has_permission(
+                    user=g.user,
+                    permission=permission_string,
+                    target_uri=target_uri,
+                )
+                response_dict[target_uri][http_method] = has_permission
+
+    return make_response(jsonify({"results": response_dict}), 200)
 
 
 def process_group_add(
