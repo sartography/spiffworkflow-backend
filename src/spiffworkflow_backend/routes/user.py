@@ -28,7 +28,9 @@ from spiffworkflow_backend.services.user_service import UserService
 
 
 # authorization_exclusion_list = ['status']
-def verify_token(token: Optional[str] = None) -> Dict[str, Optional[Union[str, int]]]:
+def verify_token(
+    token: Optional[str] = None,
+) -> Optional[Dict[str, Optional[Union[str, int]]]]:
     """Verify the token for the user (if provided).
 
     If in production environment and token is not provided, gets user from the SSO headers and returns their token.
@@ -43,16 +45,21 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[Union[str, i
         ApiError:  If not on production and token is not valid, returns an 'invalid_token' 403 error.
         If on production and user is not authenticated, returns a 'no_user' 403 error.
     """
-
-    if request.method == 'OPTIONS':
+    if request.method == "OPTIONS":
         return None
 
-    api_view_function = current_app.view_functions[request.endpoint]
-    if api_view_function and api_view_function.__name__.startswith('login'):
-        return None
+    if request.endpoint:
+        api_view_function = current_app.view_functions[request.endpoint]
+        # import pdb; pdb.set_trace()
+        if (
+            api_view_function
+            and api_view_function.__name__.startswith("login")
+            or api_view_function.__name__.startswith("logout")
+        ):
+            return None
 
-    if not token and 'Authorization' in request.headers:
-        token = request.headers['Authorization'].removeprefix('Bearer ')
+    if not token and "Authorization" in request.headers:
+        token = request.headers["Authorization"].removeprefix("Bearer ")
 
     if token:
         user_model = None
@@ -120,8 +127,9 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[Union[str, i
         # If the user is valid, store the token for this session
         if g.user:
             g.token = token
-            scope = get_scope(token)
-            return {"uid": g.user.id, "sub": g.user.id, "scope": scope}
+            get_scope(token)
+            return None
+            # return {"uid": g.user.id, "sub": g.user.id, "scope": scope}
             # return validate_scope(token, user_info, user_model)
         else:
             raise ApiError(error_code="no_user_id", message="Cannot get a user id")

@@ -92,6 +92,7 @@ class BaseTest:
         exception_notification_addresses: Optional[list] = None,
         primary_process_id: Optional[str] = None,
         primary_file_name: Optional[str] = None,
+        user: Optional[UserModel] = None,
     ) -> TestResponse:
         """Create_process_model."""
         process_model_service = ProcessModelService()
@@ -125,7 +126,9 @@ class BaseTest:
             fault_or_suspend_on_exception=fault_or_suspend_on_exception,
             exception_notification_addresses=exception_notification_addresses,
         )
-        user = self.find_or_create_user()
+        if user is None:
+            user = self.find_or_create_user()
+
         response = client.post(
             "/v1.0/process-models",
             content_type="application/json",
@@ -143,6 +146,7 @@ class BaseTest:
         process_model: Optional[ProcessModelInfo] = None,
         file_name: str = "random_fact.svg",
         file_data: bytes = b"abcdef",
+        user: Optional[UserModel] = None,
     ) -> Any:
         """Test_create_spec_file."""
         if process_model is None:
@@ -150,7 +154,8 @@ class BaseTest:
                 process_model_id, process_group_id=process_group_id
             )
         data = {"file": (io.BytesIO(file_data), file_name)}
-        user = self.find_or_create_user()
+        if user is None:
+            user = self.find_or_create_user()
         response = client.post(
             f"/v1.0/process-models/{process_model.process_group_id}/{process_model.id}/files",
             data=data,

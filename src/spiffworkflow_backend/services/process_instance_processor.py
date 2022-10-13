@@ -889,11 +889,12 @@ class ProcessInstanceProcessor:
             self.process_bpmn_messages()
             self.queue_waiting_receive_messages()
 
-            if save:
-                self.save()
-
         except WorkflowTaskExecException as we:
             raise ApiError.from_workflow_exception("task_error", str(we), we) from we
+
+        finally:
+            if save:
+                self.save()
 
     def cancel_notify(self) -> None:
         """Cancel_notify."""

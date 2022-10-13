@@ -22,7 +22,8 @@ from spiffworkflow_backend.services.user_service import UserService
 
 
 class PermissionsFileNotSetError(Exception):
-    pass
+    """PermissionsFileNotSetError."""
+
 
 class AuthorizationService:
     """Determine whether a user has permission to perform their request."""
@@ -50,7 +51,9 @@ class AuthorizationService:
             elif permission_assignment.grant_type == "deny":
                 return False
             else:
-                raise Exception("Unknown grant type")
+                raise Exception(
+                    f"Unknown grant type: {permission_assignment.grant_type}"
+                )
 
         return False
 
@@ -81,7 +84,11 @@ class AuthorizationService:
     ) -> None:
         """Import_permissions_from_yaml_file."""
         if current_app.config["SPIFFWORKFLOW_BACKEND_PERMISSIONS_FILE_NAME"] is None:
-            raise(PermissionsFileNotSetError("SPIFFWORKFLOW_BACKEND_PERMISSIONS_FILE_NAME needs to be set in order to import permissions"))
+            raise (
+                PermissionsFileNotSetError(
+                    "SPIFFWORKFLOW_BACKEND_PERMISSIONS_FILE_NAME needs to be set in order to import permissions"
+                )
+            )
 
         permission_configs = None
         with open(current_app.config["PERMISSIONS_FILE_FULLPATH"]) as file:

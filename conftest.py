@@ -9,7 +9,11 @@ from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from tests.spiffworkflow_backend.helpers.base_test import BaseTest
 from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
 
+from spiffworkflow_backend.models.permission_assignment import Permission
+from spiffworkflow_backend.models.permission_assignment import PermissionAssignmentModel
+from spiffworkflow_backend.models.permission_target import PermissionTargetModel
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
+from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.services.process_instance_processor import (
     ProcessInstanceProcessor,
 )
@@ -64,6 +68,37 @@ def with_db_and_bpmn_file_cleanup() -> None:
         process_model_service = ProcessModelService()
         if os.path.exists(process_model_service.root_path()):
             shutil.rmtree(process_model_service.root_path())
+
+
+@pytest.fixture()
+def with_super_admin_user() -> UserModel:
+    """With_super_admin_user."""
+    user = BaseTest.find_or_create_user(username="super_admin")
+    permission_target = PermissionTargetModel.query.filter_by(
+        uri=PermissionTargetModel.URI_ALL
+    ).first()
+    if permission_target is None:
+        permission_target = PermissionTargetModel(uri=PermissionTargetModel.URI_ALL)
+        db.session.add(permission_target)
+        db.session.commit()
+
+    permission_names = [member.name for member in Permission]
+    for permission_name in permission_names:
+        permission_assignment = PermissionAssignmentModel.query.filter_by(
+            principal_id=user.principal.id,
+            permission_target_id=permission_target.id,
+            permission=permission_name,
+        ).first()
+        if permission_assignment is None:
+            permission_assignment = PermissionAssignmentModel(
+                principal_id=user.principal.id,
+                permission_target_id=permission_target.id,
+                permission=permission_name,
+                grant_type="permit",
+            )
+            db.session.add(permission_assignment)
+            db.session.commit()
+    return user
 
 
 @pytest.fixture()

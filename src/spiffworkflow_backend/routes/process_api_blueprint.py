@@ -4,14 +4,10 @@ import os
 import random
 import string
 import uuid
-from functools import wraps
 from typing import Any
-from typing import Callable
-from typing import cast
 from typing import Dict
 from typing import Optional
 from typing import TypedDict
-from typing import TypeVar
 from typing import Union
 
 import connexion  # type: ignore
@@ -92,13 +88,21 @@ class ReactJsonSchemaSelectOption(TypedDict):
 
 
 process_api_blueprint = Blueprint("process_api", __name__)
-authorization_exclusion_list = ['status']
+authorization_exclusion_list = ["status"]
 
 
+# TODO: we can add the before_request to the blueprint
+# directly when we switch over from connexion routes
+# to blueprint routes
+# @process_api_blueprint.before_request
 def check_for_permission() -> None:
     """Check_for_permission."""
-    if request.method == 'OPTIONS':
+    # print("WE CALL1")
+    if request.method == "OPTIONS":
         return None
+
+    # print("WE CALL")
+    # return None
 
     if not request.endpoint:
         raise ApiError(
@@ -108,7 +112,24 @@ def check_for_permission() -> None:
         )
 
     api_view_function = current_app.view_functions[request.endpoint]
-    if api_view_function and api_view_function.__name__ not in authorization_exclusion_list:
+    if (
+        api_view_function
+        and api_view_function.__name__.startswith("login")
+        or api_view_function.__name__.startswith("logout")
+    ):
+        return None
+
+    if not hasattr(g, "user"):
+        raise ApiError(
+            error_code="user_not_logged_in",
+            message="User is not logged in. Please log in",
+            status_code=401,
+        )
+
+    if (
+        api_view_function
+        and api_view_function.__name__ not in authorization_exclusion_list
+    ):
         permission_string = get_permission_from_request_method()
         if permission_string:
             has_permission = AuthorizationService.user_has_permission(
@@ -127,11 +148,12 @@ def check_for_permission() -> None:
 
 
 def get_permission_from_request_method() -> Optional[str]:
+    """Get_permission_from_request_method."""
     request_method_mapper = {
         "POST": "create",
         "GET": "read",
         "PUT": "update",
-        "DELETE": "delete"
+        "DELETE": "delete",
     }
     if request.method in request_method_mapper:
         return request_method_mapper[request.method]
@@ -868,8 +890,11 @@ def process_instance_report_show(
     return Response(json.dumps(result_dict), status=200, mimetype="application/json")
 
 
+# TODO: see comment for before_request
+# @process_api_blueprint.route("/v1.0/tasks", methods=["GET"])
 def task_list_my_tasks(page: int = 1, per_page: int = 100) -> flask.wrappers.Response:
     """Task_list_my_tasks."""
+    print("WE LIST")
     principal = find_principal_or_raise()
 
     active_tasks = (
