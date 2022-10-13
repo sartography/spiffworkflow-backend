@@ -1,6 +1,21 @@
 groups:
   admin:
-    users: [jakub, kb, alex, dan, mike, jason, amir, jarrad, elizabeth, jon, harmeet, sasha, manuchehr]
+    users:
+      [
+        jakub,
+        kb,
+        alex,
+        dan,
+        mike,
+        jason,
+        amir,
+        jarrad,
+        elizabeth,
+        jon,
+        harmeet,
+        sasha,
+        manuchehr,
+      ]
 
   finance:
     users: [finance_user1]
