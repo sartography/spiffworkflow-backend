@@ -1,15 +1,20 @@
 """Test_logging_service."""
 from flask.app import Flask
 from flask.testing import FlaskClient
-from spiffworkflow_backend.models.user import UserModel
 from tests.spiffworkflow_backend.helpers.base_test import BaseTest
+
+from spiffworkflow_backend.models.user import UserModel
 
 
 class TestLoggingService(BaseTest):
     """Test logging service."""
 
     def test_logging_service_spiff_logger(
-        self, app: Flask, client: FlaskClient, with_db_and_bpmn_file_cleanup: None, with_super_admin_user: UserModel,
+        self,
+        app: Flask,
+        client: FlaskClient,
+        with_db_and_bpmn_file_cleanup: None,
+        with_super_admin_user: UserModel,
     ) -> None:
         """Test_process_instance_run."""
         process_group_id = "test_logging_spiff_logger"
