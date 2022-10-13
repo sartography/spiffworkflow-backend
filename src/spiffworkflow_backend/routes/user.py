@@ -45,17 +45,8 @@ def verify_token(
         ApiError:  If not on production and token is not valid, returns an 'invalid_token' 403 error.
         If on production and user is not authenticated, returns a 'no_user' 403 error.
     """
-    if request.method == "OPTIONS":
+    if AuthorizationService.should_disable_auth_for_request():
         return None
-
-    if request.endpoint:
-        api_view_function = current_app.view_functions[request.endpoint]
-        if (
-            api_view_function
-            and api_view_function.__name__.startswith("login")
-            or api_view_function.__name__.startswith("logout")
-        ):
-            return None
 
     if not token and "Authorization" in request.headers:
         token = request.headers["Authorization"].removeprefix("Bearer ")

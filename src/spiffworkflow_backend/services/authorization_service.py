@@ -5,7 +5,7 @@ from typing import Union
 
 import jwt
 import yaml
-from flask import current_app
+from flask import current_app, g, request
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
 from sqlalchemy import text
@@ -183,6 +183,84 @@ class AuthorizationService:
             db.session.add(permission_assignment)
             db.session.commit()
         return permission_assignment
+
+
+    @classmethod
+    def should_disable_auth_for_request(cls) -> bool:
+        authorization_exclusion_list = ["status"]
+        if request.method == "OPTIONS":
+            return True
+
+        if not request.endpoint:
+            raise ApiError(
+                error_code="request_endpoint_not_found",
+                message="Could not find the endpong from the rquest.",
+                status_code=500,
+            )
+
+        api_view_function = current_app.view_functions[request.endpoint]
+        if (
+            api_view_function
+            and api_view_function.__name__.startswith("login")
+            or api_view_function.__name__.startswith("logout")
+            or api_view_function.__name__ in authorization_exclusion_list
+        ):
+            return True
+
+        return False
+
+
+    @classmethod
+    def get_permission_from_request_method(cls) -> Optional[str]:
+        """Get_permission_from_request_method."""
+        request_method_mapper = {
+            "POST": "create",
+            "GET": "read",
+            "PUT": "update",
+            "DELETE": "delete",
+        }
+        if request.method in request_method_mapper:
+            return request_method_mapper[request.method]
+
+        return None
+
+
+    # TODO: we can add the before_request to the blueprint
+    # directly when we switch over from connexion routes
+    # to blueprint routes
+    # @process_api_blueprint.before_request
+    @classmethod
+    def check_for_permission(cls) -> None:
+        """Check_for_permission."""
+        if cls.should_disable_auth_for_request():
+            return None
+
+        if not hasattr(g, "user"):
+            raise ApiError(
+                error_code="user_not_logged_in",
+                message="User is not logged in. Please log in",
+                status_code=401,
+            )
+
+        api_view_function = current_app.view_functions[request.endpoint]
+        if (
+            api_view_function
+        ):
+            permission_string = cls.get_permission_from_request_method()
+            if permission_string:
+                has_permission = AuthorizationService.user_has_permission(
+                    user=g.user,
+                    permission=permission_string,
+                    target_uri=request.path,
+                )
+                if has_permission:
+                    return None
+
+        raise ApiError(
+            error_code="unauthorized",
+            message="User is not authorized to perform requested action.",
+            status_code=403,
+        )
 
     # def refresh_token(self, token: str) -> str:
     #     """Refresh_token."""
