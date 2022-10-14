@@ -81,6 +81,18 @@ class AuthorizationService:
         return cls.has_permission(principals, permission, target_uri)
 
     @classmethod
+    def delete_all_permissions_and_recreate(cls) -> None:
+        for model in [PermissionAssignmentModel, PermissionTargetModel]:
+            db.session.query(model).delete()
+
+        # cascading to principals doesn't seem to work when attempting to delete all so do it like this instead
+        for group in GroupModel.query.all():
+            db.session.delete(group)
+
+        db.session.commit()
+        cls.import_permissions_from_yaml_file()
+
+    @classmethod
     def import_permissions_from_yaml_file(
         cls, raise_if_missing_user: bool = False
     ) -> None:

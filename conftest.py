@@ -58,6 +58,7 @@ def with_db_and_bpmn_file_cleanup() -> None:
     """Process_group_resource."""
     for model in SpiffworkflowBaseDBModel._all_subclasses():
         db.session.query(model).delete()
+    db.session.commit()
 
     try:
         yield
