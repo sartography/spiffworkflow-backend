@@ -1,10 +1,10 @@
 """Process_instance_processor."""
+import _strptime  # type: ignore
 import decimal
 import json
 import logging
 import os
 import time
-import _strptime  # type: ignore
 from datetime import datetime
 from typing import Any
 from typing import Callable
@@ -53,7 +53,6 @@ from SpiffWorkflow.spiff.serializer import UserTaskConverter
 from SpiffWorkflow.task import Task as SpiffTask  # type: ignore
 from SpiffWorkflow.task import TaskState
 from SpiffWorkflow.util.deep_merge import DeepMerge  # type: ignore
-
 from spiffworkflow_backend.models.active_task import ActiveTaskModel
 from spiffworkflow_backend.models.bpmn_process_id_lookup import BpmnProcessIdLookup
 from spiffworkflow_backend.models.file import File
