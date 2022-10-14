@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import time
+import _strptime  # type: ignore
 from datetime import datetime
 from typing import Any
 from typing import Callable
@@ -95,6 +96,7 @@ DEFAULT_GLOBALS.update(
         "datetime": datetime,
         "time": time,
         "decimal": decimal,
+        "_strptime": _strptime,
     }
 )
 # This will overwrite the standard builtins
