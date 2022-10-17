@@ -138,7 +138,7 @@ class PublicAuthenticationService:
     def get_auth_token_object(
         self, code: str, redirect_url: str = "/v1.0/login_return"
     ) -> dict:
-        """Get_id_token_object."""
+        """Get_auth_token_object."""
         (
             open_id_server_url,
             open_id_client_id,
