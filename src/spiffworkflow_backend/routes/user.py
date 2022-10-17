@@ -120,7 +120,7 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[Union[str, i
         # If the user is valid, store the token for this session
         if g.user:
             # This is an id token, so we don't have a refresh token yet
-            g.id_token = token
+            g.token = token
             scope = get_scope(token)
             return {"uid": g.user.id, "sub": g.user.id, "scope": scope}
             # return validate_scope(token, user_info, user_model)
@@ -217,7 +217,7 @@ def login_return(code: str, state: str, session_state: str) -> Optional[Response
 
                 if user_model:
                     g.user = user_model.id
-                    g.id_token = auth_token_object['id_token']
+                    g.token = auth_token_object['id_token']
                     UserService.store_refresh_token(user_model.id, auth_token_object['refresh_token'])
 
                 # this may eventually get too slow.
