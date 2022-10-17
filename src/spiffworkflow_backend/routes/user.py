@@ -116,27 +116,6 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[Union[str, i
     raise ApiError(
         error_code="invalid_token", message="Cannot validate token.", status_code=401
     )
-    # no token -- do we ever get here?
-    # else:
-    #     ...
-    # if current_app.config.get("DEVELOPMENT"):
-    #     # Fall back to a default user if this is not production.
-    #     g.user = UserModel.query.first()
-    #     if not g.user:
-    #         raise ApiError(
-    #             "no_user",
-    #             "You are in development mode, but there are no users in the database.  Add one, and it will use it.",
-    #         )
-    #     token_from_user = g.user.encode_auth_token()
-    #     token_info = UserModel.decode_auth_token(token_from_user)
-    #     return token_info
-    #
-    # else:
-    #     raise ApiError(
-    #         error_code="no_auth_token",
-    #         message="No authorization token was available.",
-    #         status_code=401,
-    #     )
 
 
 def validate_scope(token: Any) -> bool:
@@ -149,32 +128,6 @@ def validate_scope(token: Any) -> bool:
     # permissions = PublicAuthenticationService.get_permissions_by_token_for_resource_and_scope(token)
     # introspection = PublicAuthenticationService.introspect_token(basic_token)
     return True
-
-
-# def login_api(redirect_url: str = "/v1.0/ui") -> Response:
-#     """Api_login."""
-#     # TODO: Fix this! mac 20220801
-#     # token:dict = PublicAuthenticationService().get_public_access_token(uid, password)
-#     #
-#     # return token
-#     # if uid:
-#     #     sub = f"service:internal::service_id:{uid}"
-#     #     token = encode_auth_token(sub)
-#     #     user_model = UserModel(username=uid,
-#     #                            uid=uid,
-#     #                            service='internal',
-#     #                            name="API User")
-#     #     g.user = user_model
-#     #
-#     #     g.token = token
-#     #     scope = get_scope(token)
-#     #     return token
-#     #     return {"uid": uid, "sub": uid, "scope": scope}
-#     return login(redirect_url)
-
-
-# def login_api_return(code: str, state: str, session_state: str) -> Optional[Response]:
-#     print("login_api_return")
 
 
 def encode_auth_token(sub: str, token_type: Optional[str] = None) -> str:
