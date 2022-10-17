@@ -225,7 +225,7 @@ def login_return(code: str, state: str, session_state: str) -> Optional[Response
                 if user_model:
                     g.user = user_model.id
                     g.token = auth_token_object["id_token"]
-                    UserService.store_refresh_token(
+                    PublicAuthenticationService.store_refresh_token(
                         user_model.id, auth_token_object["refresh_token"]
                     )
 

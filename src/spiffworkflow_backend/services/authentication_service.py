@@ -10,6 +10,7 @@ import requests
 from flask import current_app
 from flask import redirect
 from flask_bpmn.api.api_error import ApiError
+from flask_bpmn.models.db import db
 from werkzeug.wrappers.response import Response
 
 from spiffworkflow_backend.models.refresh_token import RefreshTokenModel
@@ -215,6 +216,28 @@ class PublicAuthenticationService:
                 )
 
         return True
+
+    @staticmethod
+    def store_refresh_token(user_id: int, refresh_token: str) -> None:
+        """Store_refresh_token."""
+        refresh_token_model = RefreshTokenModel.query.filter(
+            RefreshTokenModel.user_id == user_id
+        ).first()
+        if refresh_token_model:
+            refresh_token_model.token = refresh_token
+        else:
+            refresh_token_model = RefreshTokenModel(
+                user_id=user_id, token=refresh_token
+            )
+        db.session.add(refresh_token_model)
+        try:
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            raise ApiError(
+                error_code="store_refresh_token_error",
+                message=f"We could not store the refresh token. Original error is {e}",
+            ) from e
 
     @staticmethod
     def get_refresh_token(user_id: int) -> Optional[str]:
