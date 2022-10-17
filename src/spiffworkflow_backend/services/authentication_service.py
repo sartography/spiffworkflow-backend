@@ -222,7 +222,7 @@ class PublicAuthenticationService:
         refresh_token_object: RefreshTokenModel = RefreshTokenModel.query.filter(
             RefreshTokenModel.user_id == user_id
         ).first()
-        assert refresh_token_object
+        assert refresh_token_object  # noqa: S101
         return refresh_token_object.token
 
     @classmethod
