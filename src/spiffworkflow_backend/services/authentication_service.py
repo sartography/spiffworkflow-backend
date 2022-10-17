@@ -217,13 +217,13 @@ class PublicAuthenticationService:
         return True
 
     @staticmethod
-    def get_refresh_token(user_id: int) -> str:
+    def get_refresh_token(user_id: int) -> Optional[str]:
         """Get_refresh_token."""
-        refresh_token_object = RefreshTokenModel.query.filter(
+        refresh_token_object: RefreshTokenModel = RefreshTokenModel.query.filter(
             RefreshTokenModel.user_id == user_id
         ).first()
-        if refresh_token_object:
-            return refresh_token_object.token
+        assert refresh_token_object
+        return refresh_token_object.token
 
     @classmethod
     def get_auth_token_from_refresh_token(cls, refresh_token: str) -> str:

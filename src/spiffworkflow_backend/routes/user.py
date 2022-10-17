@@ -67,22 +67,21 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[Union[str, i
                     user = UserService.get_user_by_service_and_service_id(
                         "open_id", decoded_token["sub"]
                     )
-                    refresh_token = PublicAuthenticationService.get_refresh_token(
-                        user.id
-                    )
-                    if refresh_token:
-                        auth_token = PublicAuthenticationService.get_auth_token_from_refresh_token(
-                            refresh_token
+                    if user:
+                        refresh_token = PublicAuthenticationService.get_refresh_token(
+                            user.id
                         )
-                        if auth_token and "error" not in auth_token:
-                            # redirect to original url, with auth_token?
-                            user_info = (
-                                PublicAuthenticationService.get_user_info_from_open_id(
+                        if refresh_token:
+                            auth_token = PublicAuthenticationService.get_auth_token_from_refresh_token(
+                                refresh_token
+                            )
+                            if auth_token and "error" not in auth_token:
+                                # redirect to original url, with auth_token?
+                                user_info = PublicAuthenticationService.get_user_info_from_open_id(
                                     auth_token
                                 )
-                            )
-                            if not user_info:
-                                raise ae
+                                if not user_info:
+                                    raise ae
                     else:
                         raise ae
                 except Exception as e:

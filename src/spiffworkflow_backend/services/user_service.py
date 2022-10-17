@@ -329,10 +329,10 @@ class UserService:
         service: str, service_id: str
     ) -> Optional[UserModel]:
         """Get_user_by_service_and_service_id."""
-        user = (
+        user: UserModel = (
             UserModel.query.filter(UserModel.service == service)
             .filter(UserModel.service_id == service_id)
             .first()
         )
-        if user:
-            return user
+        assert user
+        return user
