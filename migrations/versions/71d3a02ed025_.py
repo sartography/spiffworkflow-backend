@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 07ff3fbef405
+Revision ID: 71d3a02ed025
 Revises: 
-Create Date: 2022-10-13 07:56:01.234090
+Create Date: 2022-10-13 16:44:03.884031
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '07ff3fbef405'
+revision = '71d3a02ed025'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -134,6 +134,14 @@ def upgrade():
     op.create_index(op.f('ix_process_instance_report_identifier'), 'process_instance_report', ['identifier'], unique=False)
     op.create_index(op.f('ix_process_instance_report_process_group_identifier'), 'process_instance_report', ['process_group_identifier'], unique=False)
     op.create_index(op.f('ix_process_instance_report_process_model_identifier'), 'process_instance_report', ['process_model_identifier'], unique=False)
+    op.create_table('refresh_token',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.Column('token', sa.String(length=1024), nullable=False),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('user_id')
+    )
     op.create_table('secret',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('key', sa.String(length=50), nullable=False),
@@ -316,6 +324,7 @@ def downgrade():
     op.drop_table('active_task')
     op.drop_table('user_group_assignment')
     op.drop_table('secret')
+    op.drop_table('refresh_token')
     op.drop_index(op.f('ix_process_instance_report_process_model_identifier'), table_name='process_instance_report')
     op.drop_index(op.f('ix_process_instance_report_process_group_identifier'), table_name='process_instance_report')
     op.drop_index(op.f('ix_process_instance_report_identifier'), table_name='process_instance_report')
