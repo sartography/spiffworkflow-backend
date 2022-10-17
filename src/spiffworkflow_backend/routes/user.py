@@ -59,7 +59,7 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[Union[str, i
 
             elif "iss" in decoded_token.keys():
                 try:
-                    user_info = PublicAuthenticationService.get_user_info_from_open_id_using_id_token(
+                    user_info = PublicAuthenticationService.get_user_info_from_open_id(
                         token
                     )
                 except ApiError as ae:
@@ -70,7 +70,7 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[Union[str, i
                         auth_token = PublicAuthenticationService.get_auth_token_from_refresh_token(refresh_token)
                         if auth_token and "error" not in auth_token:
                             # redirect to original url, with auth_token?
-                            user_info = PublicAuthenticationService.get_user_info_from_open_id_using_id_token(
+                            user_info = PublicAuthenticationService.get_user_info_from_open_id(
                                 auth_token
                             )
                             if not user_info:
@@ -186,7 +186,7 @@ def login_return(code: str, state: str, session_state: str) -> Optional[Response
         id_token = auth_token_object["id_token"]
 
         if PublicAuthenticationService.validate_id_token(id_token):
-            user_info = PublicAuthenticationService.get_user_info_from_open_id_using_id_token(
+            user_info = PublicAuthenticationService.get_user_info_from_open_id(
                 auth_token_object["access_token"]
             )
             if user_info and "error" not in user_info:

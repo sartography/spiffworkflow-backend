@@ -48,8 +48,8 @@ class PublicAuthenticationService:
         )
 
     @classmethod
-    def get_user_info_from_open_id_using_id_token(cls, token: str) -> dict:
-        """This seems to work with basic tokens too."""
+    def get_user_info_from_open_id(cls, token: str) -> dict:
+        """The token is an auth_token."""
         (
             open_id_server_url,
             open_id_client_id,
