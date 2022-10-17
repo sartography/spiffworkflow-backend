@@ -239,7 +239,7 @@ class AuthenticationService:
         return refresh_token_object.token
 
     @classmethod
-    def get_auth_token_from_refresh_token(cls, refresh_token: str) -> str:
+    def get_auth_token_from_refresh_token(cls, refresh_token: str) -> dict:
         """Get a new auth_token from a refresh_token."""
         (
             open_id_server_url,
