@@ -23,13 +23,8 @@ class AuthenticationProviderTypes(enum.Enum):
     internal = "internal"
 
 
-class PublicAuthenticationService:
-    """PublicAuthenticationService."""
-
-    """Not sure where/if this ultimately lives.
-    It uses a separate public open_id client: spiffworkflow-frontend
-    Used during development to make testing easy.
-    """
+class AuthenticationService:
+    """AuthenticationService."""
 
     @staticmethod
     def get_open_id_args() -> tuple:
@@ -99,7 +94,7 @@ class PublicAuthenticationService:
             open_id_client_id,
             open_id_realm_name,
             open_id_client_secret_key,
-        ) = PublicAuthenticationService.get_open_id_args()
+        ) = AuthenticationService.get_open_id_args()
         request_url = (
             f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/logout?"
             + f"post_logout_redirect_uri={return_redirect_url}&"
@@ -123,7 +118,7 @@ class PublicAuthenticationService:
             open_id_client_id,
             open_id_realm_name,
             open_id_client_secret_key,
-        ) = PublicAuthenticationService.get_open_id_args()
+        ) = AuthenticationService.get_open_id_args()
         return_redirect_url = f"{self.get_backend_url()}{redirect_url}"
         login_redirect_url = (
             f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/auth?"
@@ -144,7 +139,7 @@ class PublicAuthenticationService:
             open_id_client_id,
             open_id_realm_name,
             open_id_client_secret_key,
-        ) = PublicAuthenticationService.get_open_id_args()
+        ) = AuthenticationService.get_open_id_args()
 
         backend_basic_auth_string = f"{open_id_client_id}:{open_id_client_secret_key}"
         backend_basic_auth_bytes = bytes(backend_basic_auth_string, encoding="ascii")
