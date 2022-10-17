@@ -9,6 +9,7 @@ from flask_bpmn.models.db import db
 
 from spiffworkflow_backend.models.group import GroupModel
 from spiffworkflow_backend.models.principal import PrincipalModel
+from spiffworkflow_backend.models.refresh_token import RefreshTokenModel
 from spiffworkflow_backend.models.user import AdminSessionModel
 from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.models.user_group_assignment import UserGroupAssignmentModel
@@ -299,3 +300,26 @@ class UserService:
         ugam = UserGroupAssignmentModel(user_id=user.id, group_id=group.id)
         db.session.add(ugam)
         db.session.commit()
+
+    @staticmethod
+    def store_refresh_token(user_id: int, refresh_token: str) -> None:
+        # TODO: maybe move this to authentication service
+        refresh_token_model = RefreshTokenModel.query.filter(RefreshTokenModel.user_id == user_id).first()
+        if refresh_token_model:
+            refresh_token_model.token = refresh_token
+        else:
+            refresh_token_model = RefreshTokenModel(user_id=user_id,
+                                                    token=refresh_token)
+        db.session.add(refresh_token_model)
+        try:
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            raise ApiError(error_code="store_refresh_token_error",
+                           message=f"We could not store the refresh token. Original error is {e}")
+
+    @staticmethod
+    def get_user_by_service_and_service_id(service: str, service_id: str) -> Optional[UserModel]:
+        user = UserModel.query.filter(UserModel.service == service).filter(UserModel.service_id == service_id).first()
+        if user:
+            return user

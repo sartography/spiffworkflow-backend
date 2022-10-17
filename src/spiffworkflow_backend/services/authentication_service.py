@@ -7,10 +7,13 @@ from typing import Optional
 
 import jwt
 import requests
+from flask import g
 from flask import current_app
 from flask import redirect
 from flask_bpmn.api.api_error import ApiError
 from werkzeug.wrappers.response import Response
+
+from spiffworkflow_backend.models.refresh_token import RefreshTokenModel
 
 
 class AuthenticationProviderTypes(enum.Enum):
@@ -45,7 +48,7 @@ class PublicAuthenticationService:
         )
 
     @classmethod
-    def get_user_info_from_id_token(cls, token: str) -> dict:
+    def get_user_info_from_open_id_using_id_token(cls, token: str) -> dict:
         """This seems to work with basic tokens too."""
         (
             open_id_server_url,
@@ -53,10 +56,6 @@ class PublicAuthenticationService:
             open_id_realm_name,
             open_id_client_secret_key,
         ) = cls.get_open_id_args()
-
-        # backend_basic_auth_string = f"{open_id_client_id}:{open_id_client_secret_key}"
-        # backend_basic_auth_bytes = bytes(backend_basic_auth_string, encoding="ascii")
-        # backend_basic_auth = base64.b64encode(backend_basic_auth_bytes)
 
         headers = {"Authorization": f"Bearer {token}"}
 
@@ -85,7 +84,8 @@ class PublicAuthenticationService:
             status_code=401,
         )
 
-    def get_backend_url(self) -> str:
+    @staticmethod
+    def get_backend_url() -> str:
         """Get_backend_url."""
         return str(current_app.config["SPIFFWORKFLOW_BACKEND_URL"])
 
@@ -135,7 +135,7 @@ class PublicAuthenticationService:
         )
         return login_redirect_url
 
-    def get_id_token_object(
+    def get_auth_token_object(
         self, code: str, redirect_url: str = "/v1.0/login_return"
     ) -> dict:
         """Get_id_token_object."""
@@ -162,8 +162,8 @@ class PublicAuthenticationService:
         request_url = f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/token"
 
         response = requests.post(request_url, data=data, headers=headers)
-        id_token_object: dict = json.loads(response.text)
-        return id_token_object
+        auth_token_object: dict = json.loads(response.text)
+        return auth_token_object
 
     @classmethod
     def validate_id_token(cls, id_token: str) -> bool:
@@ -204,10 +204,51 @@ class PublicAuthenticationService:
             return False
 
         if now > decoded_token["exp"]:
-            raise ApiError(
-                error_code="invalid_token",
-                message="Your token is expired. Please Login",
-                status_code=401,
-            )
+            refresh_token = cls.get_refresh_token(decoded_token['preferred_username'])
+            if refresh_token:
+                auth_token = cls.get_auth_token_from_refresh_token(refresh_token)
+                # TODO: Add redirecting code. Not sure where yet.
+            else:
+                raise ApiError(
+                    error_code="invalid_token",
+                    message="Your token is expired. Please Login",
+                    status_code=401,
+                )
 
         return True
+
+    @staticmethod
+    def get_refresh_token(user_id: int) -> str:
+        refresh_token_object = RefreshTokenModel.query.filter(RefreshTokenModel.user_id == user_id).first()
+        if refresh_token_object:
+            return refresh_token_object.token
+
+    @classmethod
+    def get_auth_token_from_refresh_token(cls, refresh_token: str) -> str:
+        (
+            open_id_server_url,
+            open_id_client_id,
+            open_id_realm_name,
+            open_id_client_secret_key,
+        ) = cls.get_open_id_args()
+
+        backend_basic_auth_string = f"{open_id_client_id}:{open_id_client_secret_key}"
+        backend_basic_auth_bytes = bytes(backend_basic_auth_string, encoding="ascii")
+        backend_basic_auth = base64.b64encode(backend_basic_auth_bytes)
+        headers = {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Authorization": f"Basic {backend_basic_auth.decode('utf-8')}",
+        }
+
+        data = {
+            "grant_type": "refresh_token",
+            "refresh_token": refresh_token,
+            "client_id": open_id_client_id,
+            "client_secret": open_id_client_secret_key
+        }
+
+        request_url = f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/token"
+
+        response = requests.post(request_url, data=data, headers=headers)
+        print("get_auth_token_from_refresh_token")
+        return response.text

@@ -59,11 +59,24 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[Union[str, i
 
             elif "iss" in decoded_token.keys():
                 try:
-                    user_info = PublicAuthenticationService.get_user_info_from_id_token(
+                    user_info = PublicAuthenticationService.get_user_info_from_open_id_using_id_token(
                         token
                     )
                 except ApiError as ae:
-                    raise ae
+                    # Try to refresh the token
+                    user = UserService.get_user_by_service_and_service_id('open_id', decoded_token['sub'])
+                    refresh_token = PublicAuthenticationService.get_refresh_token(user.id)
+                    if refresh_token:
+                        auth_token = PublicAuthenticationService.get_auth_token_from_refresh_token(refresh_token)
+                        if auth_token and "error" not in auth_token:
+                            # redirect to original url, with auth_token?
+                            user_info = PublicAuthenticationService.get_user_info_from_open_id_using_id_token(
+                                auth_token
+                            )
+                            if not user_info:
+                                raise ae
+                    else:
+                        raise ae
                 except Exception as e:
                     current_app.logger.error(f"Exception raised in get_token: {e}")
                     raise ApiError(
@@ -106,7 +119,8 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[Union[str, i
 
         # If the user is valid, store the token for this session
         if g.user:
-            g.token = token
+            # This is an id token, so we don't have a refresh token yet
+            g.id_token = token
             scope = get_scope(token)
             return {"uid": g.user.id, "sub": g.user.id, "scope": scope}
             # return validate_scope(token, user_info, user_model)
@@ -167,13 +181,13 @@ def login_return(code: str, state: str, session_state: str) -> Optional[Response
     state_dict = ast.literal_eval(base64.b64decode(state).decode("utf-8"))
     state_redirect_url = state_dict["redirect_url"]
 
-    id_token_object = PublicAuthenticationService().get_id_token_object(code)
-    if "id_token" in id_token_object:
-        id_token = id_token_object["id_token"]
+    auth_token_object = PublicAuthenticationService().get_auth_token_object(code)
+    if "id_token" in auth_token_object:
+        id_token = auth_token_object["id_token"]
 
         if PublicAuthenticationService.validate_id_token(id_token):
-            user_info = PublicAuthenticationService.get_user_info_from_id_token(
-                id_token_object["access_token"]
+            user_info = PublicAuthenticationService.get_user_info_from_open_id_using_id_token(
+                auth_token_object["access_token"]
             )
             if user_info and "error" not in user_info:
                 user_model = (
@@ -203,6 +217,8 @@ def login_return(code: str, state: str, session_state: str) -> Optional[Response
 
                 if user_model:
                     g.user = user_model.id
+                    g.id_token = auth_token_object['id_token']
+                    UserService.store_refresh_token(user_model.id, auth_token_object['refresh_token'])
 
                 # this may eventually get too slow.
                 # when it does, be careful about backgrounding, because
@@ -214,7 +230,7 @@ def login_return(code: str, state: str, session_state: str) -> Optional[Response
 
                 redirect_url = (
                     f"{state_redirect_url}?"
-                    + f"access_token={id_token_object['access_token']}&"
+                    + f"access_token={auth_token_object['access_token']}&"
                     + f"id_token={id_token}"
                 )
                 return redirect(redirect_url)
@@ -248,10 +264,10 @@ def login_api_return(code: str, state: str, session_state: str) -> str:
     state_dict = ast.literal_eval(base64.b64decode(state).decode("utf-8"))
     state_dict["redirect_url"]
 
-    id_token_object = PublicAuthenticationService().get_id_token_object(
+    auth_token_object = PublicAuthenticationService().get_auth_token_object(
         code, "/v1.0/login_api_return"
     )
-    access_token: str = id_token_object["access_token"]
+    access_token: str = auth_token_object["access_token"]
     assert access_token  # noqa: S101
     return access_token
     # return redirect("localhost:7000/v1.0/ui")
