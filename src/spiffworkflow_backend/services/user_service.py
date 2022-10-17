@@ -303,23 +303,36 @@ class UserService:
 
     @staticmethod
     def store_refresh_token(user_id: int, refresh_token: str) -> None:
+        """Store_refresh_token."""
         # TODO: maybe move this to authentication service
-        refresh_token_model = RefreshTokenModel.query.filter(RefreshTokenModel.user_id == user_id).first()
+        refresh_token_model = RefreshTokenModel.query.filter(
+            RefreshTokenModel.user_id == user_id
+        ).first()
         if refresh_token_model:
             refresh_token_model.token = refresh_token
         else:
-            refresh_token_model = RefreshTokenModel(user_id=user_id,
-                                                    token=refresh_token)
+            refresh_token_model = RefreshTokenModel(
+                user_id=user_id, token=refresh_token
+            )
         db.session.add(refresh_token_model)
         try:
             db.session.commit()
         except Exception as e:
             db.session.rollback()
-            raise ApiError(error_code="store_refresh_token_error",
-                           message=f"We could not store the refresh token. Original error is {e}")
+            raise ApiError(
+                error_code="store_refresh_token_error",
+                message=f"We could not store the refresh token. Original error is {e}",
+            ) from e
 
     @staticmethod
-    def get_user_by_service_and_service_id(service: str, service_id: str) -> Optional[UserModel]:
-        user = UserModel.query.filter(UserModel.service == service).filter(UserModel.service_id == service_id).first()
+    def get_user_by_service_and_service_id(
+        service: str, service_id: str
+    ) -> Optional[UserModel]:
+        """Get_user_by_service_and_service_id."""
+        user = (
+            UserModel.query.filter(UserModel.service == service)
+            .filter(UserModel.service_id == service_id)
+            .first()
+        )
         if user:
             return user

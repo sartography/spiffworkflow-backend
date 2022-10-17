@@ -64,14 +64,22 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[Union[str, i
                     )
                 except ApiError as ae:
                     # Try to refresh the token
-                    user = UserService.get_user_by_service_and_service_id('open_id', decoded_token['sub'])
-                    refresh_token = PublicAuthenticationService.get_refresh_token(user.id)
+                    user = UserService.get_user_by_service_and_service_id(
+                        "open_id", decoded_token["sub"]
+                    )
+                    refresh_token = PublicAuthenticationService.get_refresh_token(
+                        user.id
+                    )
                     if refresh_token:
-                        auth_token = PublicAuthenticationService.get_auth_token_from_refresh_token(refresh_token)
+                        auth_token = PublicAuthenticationService.get_auth_token_from_refresh_token(
+                            refresh_token
+                        )
                         if auth_token and "error" not in auth_token:
                             # redirect to original url, with auth_token?
-                            user_info = PublicAuthenticationService.get_user_info_from_open_id(
-                                auth_token
+                            user_info = (
+                                PublicAuthenticationService.get_user_info_from_open_id(
+                                    auth_token
+                                )
                             )
                             if not user_info:
                                 raise ae
@@ -217,8 +225,10 @@ def login_return(code: str, state: str, session_state: str) -> Optional[Response
 
                 if user_model:
                     g.user = user_model.id
-                    g.token = auth_token_object['id_token']
-                    UserService.store_refresh_token(user_model.id, auth_token_object['refresh_token'])
+                    g.token = auth_token_object["id_token"]
+                    UserService.store_refresh_token(
+                        user_model.id, auth_token_object["refresh_token"]
+                    )
 
                 # this may eventually get too slow.
                 # when it does, be careful about backgrounding, because

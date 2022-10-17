@@ -7,7 +7,6 @@ from typing import Optional
 
 import jwt
 import requests
-from flask import g
 from flask import current_app
 from flask import redirect
 from flask_bpmn.api.api_error import ApiError
@@ -204,9 +203,9 @@ class PublicAuthenticationService:
             return False
 
         if now > decoded_token["exp"]:
-            refresh_token = cls.get_refresh_token(decoded_token['preferred_username'])
+            refresh_token = cls.get_refresh_token(decoded_token["preferred_username"])
             if refresh_token:
-                auth_token = cls.get_auth_token_from_refresh_token(refresh_token)
+                cls.get_auth_token_from_refresh_token(refresh_token)
                 # TODO: Add redirecting code. Not sure where yet.
             else:
                 raise ApiError(
@@ -219,12 +218,16 @@ class PublicAuthenticationService:
 
     @staticmethod
     def get_refresh_token(user_id: int) -> str:
-        refresh_token_object = RefreshTokenModel.query.filter(RefreshTokenModel.user_id == user_id).first()
+        """Get_refresh_token."""
+        refresh_token_object = RefreshTokenModel.query.filter(
+            RefreshTokenModel.user_id == user_id
+        ).first()
         if refresh_token_object:
             return refresh_token_object.token
 
     @classmethod
     def get_auth_token_from_refresh_token(cls, refresh_token: str) -> str:
+        """Get a new auth_token from a refresh_token."""
         (
             open_id_server_url,
             open_id_client_id,
@@ -244,7 +247,7 @@ class PublicAuthenticationService:
             "grant_type": "refresh_token",
             "refresh_token": refresh_token,
             "client_id": open_id_client_id,
-            "client_secret": open_id_client_secret_key
+            "client_secret": open_id_client_secret_key,
         }
 
         request_url = f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/token"
