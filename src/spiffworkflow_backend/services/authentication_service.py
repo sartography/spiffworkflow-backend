@@ -204,16 +204,11 @@ class PublicAuthenticationService:
             return False
 
         if now > decoded_token["exp"]:
-            refresh_token = cls.get_refresh_token(decoded_token["preferred_username"])
-            if refresh_token:
-                cls.get_auth_token_from_refresh_token(refresh_token)
-                # TODO: Add redirecting code. Not sure where yet.
-            else:
-                raise ApiError(
-                    error_code="invalid_token",
-                    message="Your token is expired. Please Login",
-                    status_code=401,
-                )
+            raise ApiError(
+                error_code="invalid_token",
+                message="Your token is expired. Please Login",
+                status_code=401,
+            )
 
         return True
 
