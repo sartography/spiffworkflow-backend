@@ -266,5 +266,5 @@ class AuthenticationService:
         request_url = f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/token"
 
         response = requests.post(request_url, data=data, headers=headers)
-        print("get_auth_token_from_refresh_token")
-        return response.text
+        auth_token_object: dict = json.loads(response.text)
+        return auth_token_object

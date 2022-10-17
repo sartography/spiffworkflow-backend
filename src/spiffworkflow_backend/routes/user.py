@@ -77,11 +77,15 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[Union[str, i
                                 # redirect to original url, with auth_token?
                                 user_info = (
                                     AuthenticationService.get_user_info_from_open_id(
-                                        auth_token
+                                        auth_token['access_token']
                                     )
                                 )
                                 if not user_info:
                                     raise ae
+                            else:
+                                raise ae
+                        else:
+                            raise ae
                     else:
                         raise ae
                 except Exception as e:
