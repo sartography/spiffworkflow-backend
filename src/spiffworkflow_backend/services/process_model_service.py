@@ -145,20 +145,6 @@ class ProcessModelService(FileSystemService):
         process_groups.sort()
         return process_groups
 
-    def get_libraries(self) -> List[ProcessModelInfo]:
-        """Get_libraries."""
-        process_group = self.get_process_group(self.LIBRARY_SPECS)
-        if not process_group:
-            return []
-        return process_group.process_models
-
-    def get_standalones(self) -> List[ProcessModelInfo]:
-        """Get_standalones."""
-        process_group = self.get_process_group(self.STAND_ALONE_SPECS)
-        if not process_group:
-            return []
-        return process_group.process_models
-
     def get_process_group(self, process_group_id: str) -> ProcessGroup:
         """Look for a given process_group, and return it."""
         if os.path.exists(FileSystemService.root_path()):
@@ -280,13 +266,10 @@ class ProcessModelService(FileSystemService):
 
             spec = ProcessModelInfo(
                 id=name,
-                library=False,
-                standalone=False,
                 display_name=name,
                 description="",
                 display_order=0,
                 is_review=False,
-                libraries=[],
             )
             with open(spec_path, "w") as wf_json:
                 json.dump(self.WF_SCHEMA.dump(spec), wf_json, indent=4)

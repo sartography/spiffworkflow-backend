@@ -20,10 +20,6 @@ class FileSystemService:
     """ Simple Service meant for extension that provides some useful
     methods for dealing with the File system.
     """
-    LIBRARY_SPECS = "Library Specs"
-    STAND_ALONE_SPECS = "Stand Alone"
-    REFERENCE_FILES = "Reference Files"
-    SPECIAL_FOLDERS = [LIBRARY_SPECS, REFERENCE_FILES]
     CAT_JSON_FILE = "process_group.json"
     WF_JSON_FILE = "workflow.json"
 
@@ -39,13 +35,6 @@ class FileSystemService:
     def process_group_path(name: str) -> str:
         """Category_path."""
         return os.path.join(FileSystemService.root_path(), name)
-
-    @staticmethod
-    def library_path(name: str) -> str:
-        """Library_path."""
-        return os.path.join(
-            FileSystemService.root_path(), FileSystemService.LIBRARY_SPECS, name
-        )
 
     @staticmethod
     def full_path_from_relative_path(relative_path: str) -> str:

@@ -1,4 +1,5 @@
 """Process_instance_processor."""
+import _strptime  # type: ignore
 import decimal
 import json
 import logging
@@ -52,7 +53,6 @@ from SpiffWorkflow.spiff.serializer import UserTaskConverter
 from SpiffWorkflow.task import Task as SpiffTask  # type: ignore
 from SpiffWorkflow.task import TaskState
 from SpiffWorkflow.util.deep_merge import DeepMerge  # type: ignore
-
 from spiffworkflow_backend.models.active_task import ActiveTaskModel
 from spiffworkflow_backend.models.bpmn_process_id_lookup import BpmnProcessIdLookup
 from spiffworkflow_backend.models.file import File
@@ -95,6 +95,7 @@ DEFAULT_GLOBALS.update(
         "datetime": datetime,
         "time": time,
         "decimal": decimal,
+        "_strptime": _strptime,
     }
 )
 # This will overwrite the standard builtins
@@ -343,9 +344,7 @@ class ProcessInstanceProcessor:
                     f"The given process model was not found: {process_group_identifier}/{process_model_identifier}.",
                 )
             )
-        spec_files = SpecFileService.get_files(
-            process_model_info, include_libraries=True
-        )
+        spec_files = SpecFileService.get_files(process_model_info)
         return cls.get_spec(spec_files, process_model_info)
 
     @classmethod

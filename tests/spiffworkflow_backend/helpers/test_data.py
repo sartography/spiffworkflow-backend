@@ -38,7 +38,6 @@ def assure_process_group_exists(process_group_id: Optional[str] = None) -> Proce
 def load_test_spec(
     process_model_id: str,
     process_group_id: Optional[str] = None,
-    library: bool = False,
     bpmn_file_name: Optional[str] = None,
     process_model_source_directory: Optional[str] = None,
 ) -> ProcessModelInfo:
@@ -60,7 +59,6 @@ def load_test_spec(
             from_tests=True,
             display_name=process_model_id,
             process_group_id=process_group_id,
-            library=library,
             bpmn_file_name=bpmn_file_name,
             process_model_source_directory=process_model_source_directory,
         )
