@@ -54,9 +54,7 @@ class FileSystemService:
     @staticmethod
     def process_group_path_for_spec(spec: ProcessModelInfo) -> str:
         """Category_path_for_spec."""
-        return FileSystemService.process_group_path(
-            spec.process_group_id
-        )
+        return FileSystemService.process_group_path(spec.process_group_id)
 
     @staticmethod
     def workflow_path(spec: ProcessModelInfo) -> str:
