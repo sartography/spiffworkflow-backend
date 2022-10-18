@@ -117,7 +117,6 @@ class BaseTest:
             process_group_id=process_group.id,
             standalone=False,
             is_review=False,
-            is_master_spec=False,
             libraries=[],
             library=False,
             primary_process_id=primary_process_id,

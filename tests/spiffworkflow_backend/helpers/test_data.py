@@ -37,7 +37,6 @@ def assure_process_group_exists(process_group_id: Optional[str] = None) -> Proce
 
 def load_test_spec(
     process_model_id: str,
-    master_spec: bool = False,
     process_group_id: Optional[str] = None,
     library: bool = False,
     bpmn_file_name: Optional[str] = None,
@@ -48,9 +47,8 @@ def load_test_spec(
     process_model_service = ProcessModelService()
     if process_group_id is None:
         process_group_id = "test_process_group_id"
-    if not master_spec and not library:
-        process_group = assure_process_group_exists(process_group_id)
-        process_group_id = process_group.id
+    process_group = assure_process_group_exists(process_group_id)
+    process_group_id = process_group.id
 
     try:
         return process_model_service.get_process_model(
@@ -59,7 +57,6 @@ def load_test_spec(
     except ProcessEntityNotFoundError:
         spec = ExampleDataLoader().create_spec(
             process_model_id=process_model_id,
-            master_spec=master_spec,
             from_tests=True,
             display_name=process_model_id,
             process_group_id=process_group_id,

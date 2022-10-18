@@ -63,12 +63,6 @@ class ProcessModelService(FileSystemService):
     def save_process_model(self, process_model: ProcessModelInfo) -> None:
         """Save_process_model."""
         spec_path = self.workflow_path(process_model)
-        if (
-            process_model.is_master_spec
-            or process_model.library
-            or process_model.standalone
-        ):
-            process_model.process_group_id = ""
         os.makedirs(spec_path, exist_ok=True)
         json_path = os.path.join(spec_path, self.WF_JSON_FILE)
         with open(json_path, "w") as wf_json:
@@ -90,20 +84,6 @@ class ProcessModelService(FileSystemService):
         path = self.workflow_path(process_model)
         shutil.rmtree(path)
 
-    @property
-    def master_spec(self) -> Optional[ProcessModelInfo]:
-        """Master_spec."""
-        return self.get_master_spec()
-
-    def get_master_spec(self) -> Optional[ProcessModelInfo]:
-        """Get_master_spec."""
-        path = os.path.join(
-            FileSystemService.root_path(), FileSystemService.MASTER_SPECIFICATION
-        )
-        if os.path.exists(path):
-            return self.__scan_spec(path, FileSystemService.MASTER_SPECIFICATION)
-        return None
-
     @classmethod
     def get_process_model_from_relative_path(
         cls, relative_path: str
@@ -121,9 +101,6 @@ class ProcessModelService(FileSystemService):
         if not os.path.exists(FileSystemService.root_path()):
             raise ProcessEntityNotFoundError("process_model_not_found")
 
-        master_spec = self.get_master_spec()
-        if master_spec and master_spec.id == process_model_id:
-            return master_spec
         if group_id is not None:
             process_group = self.get_process_group(group_id)
             if process_group is not None:
@@ -240,14 +217,6 @@ class ProcessModelService(FileSystemService):
             process_groups = []
             for item in directory_items:
                 if item.is_dir() and not item.name[0] == ".":
-                    # if item.name == self.REFERENCE_FILES:
-                    #     continue
-                    # elif item.name == self.MASTER_SPECIFICATION:
-                    #     continue
-                    # elif item.name == self.LIBRARY_SPECS:
-                    #     continue
-                    # elif item.name == self.STAND_ALONE_SPECS:
-                    #     continue
                     process_groups.append(self.__scan_process_group(item))
             return process_groups
 
@@ -292,7 +261,6 @@ class ProcessModelService(FileSystemService):
     ) -> ProcessModelInfo:
         """__scan_spec."""
         spec_path = os.path.join(path, self.WF_JSON_FILE)
-        is_master = FileSystemService.MASTER_SPECIFICATION in spec_path
 
         if os.path.exists(spec_path):
             with open(spec_path) as wf_json:
@@ -314,7 +282,6 @@ class ProcessModelService(FileSystemService):
                 id=name,
                 library=False,
                 standalone=False,
-                is_master_spec=is_master,
                 display_name=name,
                 description="",
                 display_order=0,
