@@ -1251,6 +1251,8 @@
       "secret": "JXeQExm0JhQPLumgHtIIqf52bDalHz0q",
       "redirectUris": [
         "http://localhost:7000/*",
+        "http://67.205.133.116:7000/*",
+        "https://api.demo.spiffworkflow.org/*",
         "http://167.172.242.138:7000/*"
       ],
       "webOrigins": [],
@@ -1520,6 +1522,8 @@
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [
         "http://localhost:7001/*",
+        "http://67.205.133.116:7000/*",
+        "https://api.demo.spiffworkflow.org/*",
         "http://167.172.242.138:7001/*"
       ],
       "webOrigins": ["*"],
@@ -1588,6 +1592,8 @@
       "secret": "6o8kIKQznQtejHOdRhWeKorBJclMGcgA",
       "redirectUris": [
         "http://localhost:7001/*",
+        "http://67.205.133.116:7000/*",
+        "https://api.demo.spiffworkflow.org/*",
         "http://167.172.242.138:7001/*"
       ],
       "webOrigins": [],

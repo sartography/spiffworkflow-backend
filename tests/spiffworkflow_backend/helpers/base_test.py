@@ -13,7 +13,7 @@ from flask.testing import FlaskClient
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
 from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
-from werkzeug.test import TestResponse
+from werkzeug.test import TestResponse  # type: ignore
 
 from spiffworkflow_backend.models.permission_assignment import Permission
 from spiffworkflow_backend.models.permission_target import PermissionTargetModel
