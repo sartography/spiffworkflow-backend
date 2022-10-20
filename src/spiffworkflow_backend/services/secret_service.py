@@ -54,9 +54,7 @@ class SecretService:
     @staticmethod
     def get_secret(key: str) -> SecretModel:
         """Get_secret."""
-        secret = (
-            db.session.query(SecretModel).filter(SecretModel.key == key).first()
-        )
+        secret = db.session.query(SecretModel).filter(SecretModel.key == key).first()
         if secret is not None:
             return secret
         else:
