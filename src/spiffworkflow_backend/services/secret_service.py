@@ -52,9 +52,9 @@ class SecretService:
         return secret_model
 
     @staticmethod
-    def get_secret(key: str) -> Optional[SecretModel]:
+    def get_secret(key: str) -> SecretModel:
         """Get_secret."""
-        secret: SecretModel = (
+        secret = (
             db.session.query(SecretModel).filter(SecretModel.key == key).first()
         )
         if secret is not None:

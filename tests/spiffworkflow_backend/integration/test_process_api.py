@@ -1368,6 +1368,7 @@ class TestProcessApi(BaseTest):
             .filter(ProcessInstanceModel.id == process_instance_id)
             .first()
         )
+        assert process is not None
         assert process.status == "not_started"
 
         response = client.post(
@@ -1388,6 +1389,7 @@ class TestProcessApi(BaseTest):
             .filter(ProcessInstanceModel.id == process_instance_id)
             .first()
         )
+        assert process is not None
         assert process.status == "faulted"
 
     def test_error_handler_suspend(
@@ -1414,6 +1416,7 @@ class TestProcessApi(BaseTest):
             .filter(ProcessInstanceModel.id == process_instance_id)
             .first()
         )
+        assert process is not None
         assert process.status == "not_started"
 
         response = client.post(
@@ -1427,6 +1430,7 @@ class TestProcessApi(BaseTest):
             .filter(ProcessInstanceModel.id == process_instance_id)
             .first()
         )
+        assert process is not None
         assert process.status == "suspended"
 
     def test_error_handler_with_email(
@@ -1469,6 +1473,7 @@ class TestProcessApi(BaseTest):
             .filter(ProcessInstanceModel.id == process_instance_id)
             .first()
         )
+        assert process is not None
         assert process.status == "faulted"
 
     def test_process_model_file_create(
