@@ -10,6 +10,7 @@ import jwt
 from flask import current_app
 from flask import g
 from flask import redirect
+from flask import request
 from flask_bpmn.api.api_error import ApiError
 from werkzeug.wrappers import Response
 
@@ -26,13 +27,17 @@ from spiffworkflow_backend.services.user_service import UserService
 """
 
 
-def verify_token(token: Optional[str] = None) -> Dict[str, Optional[Union[str, int]]]:
+# authorization_exclusion_list = ['status']
+def verify_token(
+    token: Optional[str] = None, force_run: Optional[bool] = False
+) -> Optional[Dict[str, Optional[Union[str, int]]]]:
     """Verify the token for the user (if provided).
 
     If in production environment and token is not provided, gets user from the SSO headers and returns their token.
 
     Args:
         token: Optional[str]
+        force_run: Optional[bool]
 
     Returns:
         token: str
@@ -41,6 +46,12 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[Union[str, i
         ApiError:  If not on production and token is not valid, returns an 'invalid_token' 403 error.
         If on production and user is not authenticated, returns a 'no_user' 403 error.
     """
+    if not force_run and AuthorizationService.should_disable_auth_for_request():
+        return None
+
+    if not token and "Authorization" in request.headers:
+        token = request.headers["Authorization"].removeprefix("Bearer ")
+
     if token:
         user_model = None
         decoded_token = get_decoded_token(token)
@@ -107,8 +118,9 @@ def verify_token(token: Optional[str] = None) -> Dict[str, Optional[Union[str, i
         # If the user is valid, store the token for this session
         if g.user:
             g.token = token
-            scope = get_scope(token)
-            return {"uid": g.user.id, "sub": g.user.id, "scope": scope}
+            get_scope(token)
+            return None
+            # return {"uid": g.user.id, "sub": g.user.id, "scope": scope}
             # return validate_scope(token, user_info, user_model)
         else:
             raise ApiError(error_code="no_user_id", message="Cannot get a user id")
