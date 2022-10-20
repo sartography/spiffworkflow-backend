@@ -639,7 +639,7 @@ werkzeug = "*"
 type = "git"
 url = "https://github.com/sartography/flask-bpmn"
 reference = "main"
-resolved_reference = "70ee69c9ba14fb4f0f4b8701b319f22e5eba4b99"
+resolved_reference = "c8fd01df47518749a074772fec383256c482139f"
 
 [[package]]
 name = "Flask-Cors"
@@ -1902,21 +1902,19 @@ sqlcipher = ["sqlcipher3_binary"]
 [[package]]
 name = "sqlalchemy-stubs"
 version = "0.4"
-description = ""
+description = "SQLAlchemy stubs and mypy plugin"
 category = "dev"
 optional = false
 python-versions = "*"
-develop = false
+develop = true
 
 [package.dependencies]
 mypy = ">=0.790"
 typing-extensions = ">=3.7.4"
 
 [package.source]
-type = "git"
-url = "https://github.com/dropbox/sqlalchemy-stubs.git"
-reference = "master"
-resolved_reference = "0e59ea37e7909ccf0eebbe9a1c0ee60827ac6870"
+type = "directory"
+url = "../../sqlalchemy-stubs"
 
 [[package]]
 name = "stevedore"
@@ -2240,7 +2238,7 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9,<3.11"
-content-hash = "f1a91728d5e8a582afeb13e972d2235f41d6452f8b8b160ec70d355dbe9b0069"
+content-hash = "e13eb91dc5080a58312f8ebe4f7971a4cddb4bb551e1345af2ccc816cf40b181"
 
 [metadata.files]
 alabaster = [
