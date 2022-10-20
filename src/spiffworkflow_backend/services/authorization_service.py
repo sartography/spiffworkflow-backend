@@ -82,6 +82,7 @@ class AuthorizationService:
 
     @classmethod
     def delete_all_permissions_and_recreate(cls) -> None:
+        """Delete_all_permissions_and_recreate."""
         for model in [PermissionAssignmentModel, PermissionTargetModel]:
             db.session.query(model).delete()
 
@@ -257,8 +258,7 @@ class AuthorizationService:
                 status_code=401,
             )
 
-        # request.endpoint is checked in should_disable_auth_for_request so ignore mypy here
-        api_view_function = current_app.view_functions[request.endpoint]  # type: ignore
+        api_view_function = current_app.view_functions[request.endpoint]
         if (
             api_view_function
             and api_view_function.__name__ in authorization_exclusion_list

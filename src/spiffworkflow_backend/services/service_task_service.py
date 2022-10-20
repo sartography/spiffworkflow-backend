@@ -9,6 +9,10 @@ from spiffworkflow_backend.services.file_system_service import FileSystemService
 from spiffworkflow_backend.services.secret_service import SecretService
 
 
+class ConnectorProxyError(Exception):
+    """ConnectorProxyError."""
+
+
 def connector_proxy_url() -> Any:
     """Returns the connector proxy url."""
     return current_app.config["CONNECTOR_PROXY_URL"]
@@ -23,19 +27,20 @@ class ServiceTaskDelegate:
         if isinstance(value, dict):
             value = json.dumps(value)
 
-        secret_prefix = "secret:"  # noqa: S105
-        if value.startswith(secret_prefix):
-            key = value.removeprefix(secret_prefix)
-            secret = SecretService().get_secret(key)
-            assert secret  # noqa: S101
-            return secret.value
+        if isinstance(value, str):
+            secret_prefix = "secret:"  # noqa: S105
+            if value.startswith(secret_prefix):
+                key = value.removeprefix(secret_prefix)
+                secret = SecretService().get_secret(key)
+                assert secret  # noqa: S101
+                return secret.value
 
-        file_prefix = "file:"
-        if value.startswith(file_prefix):
-            file_name = value.removeprefix(file_prefix)
-            full_path = FileSystemService.full_path_from_relative_path(file_name)
-            with open(full_path) as f:
-                return f.read()
+            file_prefix = "file:"
+            if value.startswith(file_prefix):
+                file_name = value.removeprefix(file_prefix)
+                full_path = FileSystemService.full_path_from_relative_path(file_name)
+                with open(full_path) as f:
+                    return f.read()
 
         return value
 
@@ -48,7 +53,9 @@ class ServiceTaskDelegate:
         }
         params["spiff__task_data"] = json.dumps(task_data)
 
-        proxied_response = requests.get(f"{connector_proxy_url()}/v1/do/{name}", params)
+        proxied_response = requests.post(
+            f"{connector_proxy_url()}/v1/do/{name}", params
+        )
 
         if proxied_response.status_code != 200:
             print("got error from connector proxy")
@@ -73,3 +80,17 @@ class ServiceTaskService:
         except Exception as e:
             print(e)
             return []
+
+    @staticmethod
+    def authentication_list() -> Any:
+        """Returns a list of available authentications."""
+        try:
+            response = requests.get(f"{connector_proxy_url()}/v1/auths")
+
+            if response.status_code != 200:
+                return []
+
+            parsed_response = json.loads(response.text)
+            return parsed_response
+        except Exception as exception:
+            raise ConnectorProxyError(exception.__class__.__name__) from exception

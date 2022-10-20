@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 520f596b4f06
+Revision ID: cf862b761896
 Revises: 
-Create Date: 2022-10-13 15:02:03.824896
+Create Date: 2022-10-20 11:23:58.758922
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '520f596b4f06'
+revision = 'cf862b761896'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -137,8 +137,10 @@ def upgrade():
     op.create_table('secret',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('key', sa.String(length=50), nullable=False),
-    sa.Column('value', sa.String(length=255), nullable=False),
+    sa.Column('value', sa.Text(), nullable=False),
     sa.Column('creator_user_id', sa.Integer(), nullable=False),
+    sa.Column('updated_at_in_seconds', sa.Integer(), nullable=True),
+    sa.Column('created_at_in_seconds', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['creator_user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('key')
@@ -166,7 +168,7 @@ def upgrade():
     sa.Column('task_type', sa.String(length=50), nullable=True),
     sa.Column('task_status', sa.String(length=50), nullable=True),
     sa.Column('process_model_display_name', sa.String(length=255), nullable=True),
-    sa.Column('task_data', sa.Text(), nullable=True),
+    sa.Column('task_data', sa.Text(length=4294000000), nullable=True),
     sa.ForeignKeyConstraint(['assigned_principal_id'], ['principal.id'], ),
     sa.ForeignKeyConstraint(['process_instance_id'], ['process_instance.id'], ),
     sa.PrimaryKeyConstraint('id'),
