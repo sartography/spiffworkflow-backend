@@ -310,5 +310,6 @@ class UserService:
             .filter(UserModel.service_id == service_id)
             .first()
         )
-        assert user  # noqa: S101
-        return user
+        if user:
+            return user
+        return None
