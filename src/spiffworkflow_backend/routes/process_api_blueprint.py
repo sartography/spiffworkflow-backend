@@ -718,6 +718,9 @@ def process_instance_delete(
     """Create_process_instance."""
     process_instance = find_process_instance_by_id_or_raise(process_instance_id)
 
+    # import pdb; pdb.set_trace()
+    # (Pdb) db.session.delete
+    # <bound method delete of <sqlalchemy.orm.scoping.scoped_session object at 0x103eaab30>>
     db.session.delete(process_instance)
     db.session.commit()
     return Response(json.dumps({"ok": True}), status=200, mimetype="application/json")
