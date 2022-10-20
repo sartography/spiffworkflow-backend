@@ -29,7 +29,7 @@ from spiffworkflow_backend.services.user_service import UserService
 
 # authorization_exclusion_list = ['status']
 def verify_token(
-    token: Optional[str] = None,
+    token: Optional[str] = None, force_run: Optional[bool] = False
 ) -> Optional[Dict[str, Optional[Union[str, int]]]]:
     """Verify the token for the user (if provided).
 
@@ -37,6 +37,7 @@ def verify_token(
 
     Args:
         token: Optional[str]
+        force_run: Optional[bool]
 
     Returns:
         token: str
@@ -45,7 +46,7 @@ def verify_token(
         ApiError:  If not on production and token is not valid, returns an 'invalid_token' 403 error.
         If on production and user is not authenticated, returns a 'no_user' 403 error.
     """
-    if AuthorizationService.should_disable_auth_for_request():
+    if not force_run and AuthorizationService.should_disable_auth_for_request():
         return None
 
     if not token and "Authorization" in request.headers:

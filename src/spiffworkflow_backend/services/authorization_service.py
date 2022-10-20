@@ -202,7 +202,7 @@ class AuthorizationService:
     @classmethod
     def should_disable_auth_for_request(cls) -> bool:
         """Should_disable_auth_for_request."""
-        authentication_exclusion_list = ["status"]
+        authentication_exclusion_list = ["status", "authentication_callback"]
         if request.method == "OPTIONS":
             return True
 

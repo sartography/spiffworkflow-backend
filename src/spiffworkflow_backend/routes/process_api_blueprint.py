@@ -828,7 +828,7 @@ def authentication_callback(
     auth_method: str,
 ) -> werkzeug.wrappers.Response:
     """Authentication_callback."""
-    verify_token(request.args.get("token"))
+    verify_token(request.args.get("token"), force_run=True)
     response = request.args["response"]
     SecretService().update_secret(
         f"{service}/{auth_method}", response, g.user.id, create_if_not_exists=True
@@ -885,7 +885,6 @@ def process_instance_report_show(
 # @process_api_blueprint.route("/v1.0/tasks", methods=["GET"])
 def task_list_my_tasks(page: int = 1, per_page: int = 100) -> flask.wrappers.Response:
     """Task_list_my_tasks."""
-    print("WE LIST")
     principal = find_principal_or_raise()
 
     active_tasks = (

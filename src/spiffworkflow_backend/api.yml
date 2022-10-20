@@ -1,11 +1,12 @@
 openapi: "3.0.2"
 info:
   version: 1.0.0
-  title: Workflow Microservice
+  title: spiffworkflow-backend
   license:
     name: MIT
 servers:
   - url: http://localhost:5000/v1.0
+# this is handled in flask now
 security: []
 #  - jwt: ["secret"]
 #  - oAuth2AuthCode:

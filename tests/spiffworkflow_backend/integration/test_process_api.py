@@ -1135,7 +1135,7 @@ class TestProcessApi(BaseTest):
         assert len(task_events) == 1
         task_event = task_events[0]
         assert task_event.user_id == with_super_admin_user.id
-        # TODO: When with_super_admin_user tasks work, we need to add some more assertions for action, task_state, etc.
+        # TODO: When user tasks work, we need to add some more assertions for action, task_state, etc.
 
     def test_task_show(
         self,
