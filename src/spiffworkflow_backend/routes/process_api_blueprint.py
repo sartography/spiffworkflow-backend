@@ -796,7 +796,6 @@ def authentication_callback(
     """Authentication_callback."""
     verify_token(request.args.get("token"))
     response = request.args["response"]
-    print(f"response: {response}")
     SecretService().update_secret(
         f"{service}/{auth_method}", response, g.user.id, create_if_not_exists=True
     )
