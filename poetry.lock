@@ -1906,15 +1906,17 @@ description = "SQLAlchemy stubs and mypy plugin"
 category = "dev"
 optional = false
 python-versions = "*"
-develop = true
+develop = false
 
 [package.dependencies]
 mypy = ">=0.790"
 typing-extensions = ">=3.7.4"
 
 [package.source]
-type = "directory"
-url = "../../sqlalchemy-stubs"
+type = "git"
+url = "https://github.com/burnettk/sqlalchemy-stubs.git"
+reference = "scoped-session-delete"
+resolved_reference = "d1176931684ce5b327539cc9567d4a1cd8ef1efd"
 
 [[package]]
 name = "stevedore"
@@ -2238,7 +2240,7 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9,<3.11"
-content-hash = "e13eb91dc5080a58312f8ebe4f7971a4cddb4bb551e1345af2ccc816cf40b181"
+content-hash = "ade6f6f6e57ee6d16f141b173a11ec52a77393c897c8007260aa8ae35a24c4d4"
 
 [metadata.files]
 alabaster = [
