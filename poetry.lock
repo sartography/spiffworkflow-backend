@@ -1061,7 +1061,7 @@ mypy-extensions = "*"
 name = "mypy"
 version = "0.982"
 description = "Optional static typing for Python"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 
@@ -1079,7 +1079,7 @@ reports = ["lxml"]
 name = "mypy-extensions"
 version = "0.4.3"
 description = "Experimental type system extensions for programs checked with the mypy typechecker."
-category = "dev"
+category = "main"
 optional = false
 python-versions = "*"
 
@@ -1903,7 +1903,7 @@ sqlcipher = ["sqlcipher3_binary"]
 name = "sqlalchemy-stubs"
 version = "0.4"
 description = "SQLAlchemy stubs and mypy plugin"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "*"
 develop = false
@@ -1988,7 +1988,7 @@ test = ["mypy", "pytest", "typing-extensions"]
 name = "types-click"
 version = "7.1.8"
 description = "Typing stubs for click"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "*"
 
@@ -1996,7 +1996,7 @@ python-versions = "*"
 name = "types-Flask"
 version = "1.1.6"
 description = "Typing stubs for Flask"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "*"
 
@@ -2009,7 +2009,7 @@ types-Werkzeug = "*"
 name = "types-Jinja2"
 version = "2.11.9"
 description = "Typing stubs for Jinja2"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "*"
 
@@ -2020,7 +2020,7 @@ types-MarkupSafe = "*"
 name = "types-MarkupSafe"
 version = "1.1.10"
 description = "Typing stubs for MarkupSafe"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "*"
 
@@ -2028,7 +2028,7 @@ python-versions = "*"
 name = "types-pytz"
 version = "2022.5.0.0"
 description = "Typing stubs for pytz"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "*"
 
@@ -2036,7 +2036,7 @@ python-versions = "*"
 name = "types-PyYAML"
 version = "6.0.12"
 description = "Typing stubs for PyYAML"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "*"
 
@@ -2044,7 +2044,7 @@ python-versions = "*"
 name = "types-requests"
 version = "2.28.11.2"
 description = "Typing stubs for requests"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "*"
 
@@ -2055,7 +2055,7 @@ types-urllib3 = "<1.27"
 name = "types-urllib3"
 version = "1.26.25.1"
 description = "Typing stubs for urllib3"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "*"
 
@@ -2063,7 +2063,7 @@ python-versions = "*"
 name = "types-Werkzeug"
 version = "1.0.9"
 description = "Typing stubs for Werkzeug"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "*"
 
@@ -2240,7 +2240,7 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9,<3.11"
-content-hash = "ade6f6f6e57ee6d16f141b173a11ec52a77393c897c8007260aa8ae35a24c4d4"
+content-hash = "29b4ba7f1afdf87ad0a336216ef71d2e2659cd1bd3baecb009efdaac2937737a"
 
 [metadata.files]
 alabaster = [
