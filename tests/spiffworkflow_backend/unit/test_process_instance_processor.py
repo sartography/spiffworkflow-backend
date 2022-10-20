@@ -1,6 +1,11 @@
 """Test_process_instance_processor."""
 from flask.app import Flask
+from spiffworkflow_backend.models.group import GroupModel
+from spiffworkflow_backend.models.process_instance import ProcessInstanceModel, ProcessInstanceStatus
+from spiffworkflow_backend.services.authorization_service import AuthorizationService
+from spiffworkflow_backend.services.process_instance_service import ProcessInstanceService
 from tests.spiffworkflow_backend.helpers.base_test import BaseTest
+from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
 
 from spiffworkflow_backend.services.process_instance_processor import (
     ProcessInstanceProcessor,
@@ -34,3 +39,57 @@ class TestProcessInstanceProcessor(BaseTest):
             result
             == "Chuck Norris doesn’t read books. He stares them down until he gets the information he wants."
         )
+
+    def test_sets_permission_correctly_on_active_task(
+        self,
+        app: Flask,
+        with_db_and_bpmn_file_cleanup: None,
+    ) -> None:
+        testuser1 = self.find_or_create_user("testuser1")
+        testuser2 = self.find_or_create_user("testuser2")
+        assert testuser1.principal is not None
+        assert testuser2.principal is not None
+        AuthorizationService.import_permissions_from_yaml_file()
+
+        finance_group = GroupModel.query.filter_by(identifier="Finance Team").first()
+        assert finance_group is not None
+
+        process_model = load_test_spec(process_model_id="model_with_lanes", bpmn_file_name="lanes.bpmn")
+        process_instance = self.create_process_instance_from_process_model(process_model=process_model, user=testuser1)
+        processor = ProcessInstanceProcessor(process_instance)
+        processor.do_engine_steps(save=True)
+
+        assert len(process_instance.active_tasks) == 1
+        active_task = process_instance.active_tasks[0]
+        assert active_task.lane_assignment_id is None
+        assert len(active_task.potential_owners) == 1
+        assert active_task.potential_owners[0] == testuser1
+
+        task = processor.__class__.get_task_by_bpmn_identifier(active_task.task_name, processor.bpmn_process_instance)
+        ProcessInstanceService.complete_form_task(
+            processor, task, {}, testuser1
+        )
+
+        assert len(process_instance.active_tasks) == 1
+        active_task = process_instance.active_tasks[0]
+        assert active_task.lane_assignment_id == finance_group.id
+        assert len(active_task.potential_owners) == 1
+        assert active_task.potential_owners[0] == testuser2
+
+        task = processor.__class__.get_task_by_bpmn_identifier(active_task.task_name, processor.bpmn_process_instance)
+        ProcessInstanceService.complete_form_task(
+            processor, task, {}, testuser1
+        )
+
+        assert len(process_instance.active_tasks) == 1
+        active_task = process_instance.active_tasks[0]
+        assert active_task.lane_assignment_id is None
+        assert len(active_task.potential_owners) == 1
+        assert active_task.potential_owners[0] == testuser1
+
+        task = processor.__class__.get_task_by_bpmn_identifier(active_task.task_name, processor.bpmn_process_instance)
+        ProcessInstanceService.complete_form_task(
+            processor, task, {}, testuser1
+        )
+
+        assert process_instance.status == ProcessInstanceStatus.complete.value

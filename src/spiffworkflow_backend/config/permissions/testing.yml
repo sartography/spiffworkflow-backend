@@ -2,8 +2,8 @@ groups:
   admin:
     users: [testadmin1, testadmin2]
 
-  finance:
-    users: [testuser1, testuser2]
+  Finance Team:
+    users: [testuser2]
 
   hr:
     users: [testuser2, testuser3, testuser4]
@@ -16,13 +16,13 @@ permissions:
     uri: /*
 
   read-all:
-    groups: [finance, hr, admin]
+    groups: ["Finance Team", hr, admin]
     users: []
     allowed_permissions: [read]
     uri: /*
 
   finance-admin:
-    groups: [finance]
+    groups: ["Finance Team"]
     users: [testuser4]
     allowed_permissions: [create, read, update, delete]
     uri: /v1.0/process-groups/finance/*

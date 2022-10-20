@@ -886,7 +886,7 @@ def process_instance_report_show(
 def task_list_my_tasks(page: int = 1, per_page: int = 100) -> flask.wrappers.Response:
     """Task_list_my_tasks."""
     principal = find_principal_or_raise()
-
+    # TODO: use join table
     active_tasks = (
         ActiveTaskModel.query.filter_by(assigned_principal_id=principal.id)
         .order_by(desc(ActiveTaskModel.id))  # type: ignore
@@ -1089,6 +1089,7 @@ def task_submit(
 
     ProcessInstanceService.update_task_assignments(processor)
 
+    # TODO: update
     next_active_task_assigned_to_me = ActiveTaskModel.query.filter_by(
         assigned_principal_id=principal.id, process_instance_id=process_instance.id
     ).first()
@@ -1258,10 +1259,12 @@ def find_active_task_by_id_or_raise(
     process_instance_id: int, task_id: str, principal_id: PrincipalModel
 ) -> ActiveTaskModel:
     """Find_active_task_by_id_or_raise."""
+
+    # TODO: update
     active_task_assigned_to_me = ActiveTaskModel.query.filter_by(
         process_instance_id=process_instance_id,
         task_id=task_id,
-        assigned_principal_id=principal_id,
+        # assigned_principal_id=principal_id,
     ).first()
     if active_task_assigned_to_me is None:
         message = (

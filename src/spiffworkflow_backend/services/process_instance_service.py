@@ -282,8 +282,7 @@ class ProcessInstanceService:
         ProcessInstanceService.log_task_action(
             user.id, processor, spiff_task, TaskAction.COMPLETE.value
         )
-        processor.do_engine_steps()
-        processor.save()
+        processor.do_engine_steps(save=True)
 
     @staticmethod
     def log_task_action(

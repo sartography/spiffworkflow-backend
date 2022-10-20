@@ -164,14 +164,16 @@ class AuthorizationService:
                             )
                     if "users" in permission_config:
                         for username in permission_config["users"]:
-                            principal = (
-                                PrincipalModel.query.join(UserModel)
-                                .filter(UserModel.username == username)
-                                .first()
-                            )
-                            cls.create_permission_for_principal(
-                                principal, permission_target, allowed_permission
-                            )
+                            user = UserModel.query.filter_by(username=username).first()
+                            if user is not None:
+                                principal = (
+                                    PrincipalModel.query.join(UserModel)
+                                    .filter(UserModel.username == username)
+                                    .first()
+                                )
+                                cls.create_permission_for_principal(
+                                    principal, permission_target, allowed_permission
+                                )
 
     @classmethod
     def create_permission_for_principal(
