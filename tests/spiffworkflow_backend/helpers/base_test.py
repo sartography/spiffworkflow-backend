@@ -13,7 +13,7 @@ from flask.testing import FlaskClient
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
 from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
-from werkzeug.test import TestResponse
+from werkzeug.test import TestResponse  # type: ignore
 
 from spiffworkflow_backend.models.process_group import ProcessGroup
 from spiffworkflow_backend.models.process_group import ProcessGroupSchema
@@ -115,11 +115,7 @@ class BaseTest:
             display_name=process_model_display_name,
             description=process_model_description,
             process_group_id=process_group.id,
-            standalone=False,
             is_review=False,
-            is_master_spec=False,
-            libraries=[],
-            library=False,
             primary_process_id=primary_process_id,
             primary_file_name=primary_file_name,
             fault_or_suspend_on_exception=fault_or_suspend_on_exception,

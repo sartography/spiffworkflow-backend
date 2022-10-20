@@ -13,6 +13,7 @@ from flask_bpmn.models.db import db
 from flask_bpmn.models.db import migrate
 from flask_cors import CORS  # type: ignore
 from flask_mail import Mail  # type: ignore
+from werkzeug.exceptions import NotFound
 
 import spiffworkflow_backend.load_database_models  # noqa: F401
 from spiffworkflow_backend.config import setup_config
@@ -131,6 +132,8 @@ def get_hacked_up_app_for_script() -> flask.app.Flask:
         else:
             raise Exception(f"Could not find {full_process_model_path}")
     app = create_app()
+    setup_config(app)
+    configure_sentry(app)
     return app
 
 
@@ -139,6 +142,15 @@ def configure_sentry(app: flask.app.Flask) -> None:
     import sentry_sdk
     from flask import Flask
     from sentry_sdk.integrations.flask import FlaskIntegration
+
+    def before_send(event: Any, hint: Any) -> Any:
+        """Before_send."""
+        if "exc_info" in hint:
+            _exc_type, exc_value, _tb = hint["exc_info"]
+            # NotFound is mostly from web crawlers
+            if isinstance(exc_value, NotFound):
+                return None
+        return event
 
     sentry_sample_rate = app.config.get("SENTRY_SAMPLE_RATE")
     if sentry_sample_rate is None:
@@ -153,6 +165,7 @@ def configure_sentry(app: flask.app.Flask) -> None:
         # of transactions for performance monitoring.
         # We recommend adjusting this value in production.
         traces_sample_rate=float(sentry_sample_rate),
+        before_send=before_send,
     )
 
     app = Flask(__name__)
