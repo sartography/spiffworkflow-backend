@@ -9,7 +9,8 @@ from flask import current_app
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
 from SpiffWorkflow.task import Task as SpiffTask  # type: ignore
-from SpiffWorkflow.util.deep_merge import DeepMerge  # type: ignore
+from SpiffWorkflow.util.deep_merge import DeepMerge
+from spiffworkflow_backend.models.active_task import ActiveTaskModel  # type: ignore
 
 from spiffworkflow_backend.models.process_instance import ProcessInstanceApi
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
@@ -25,7 +26,13 @@ from spiffworkflow_backend.services.process_instance_processor import (
 )
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
 
-# from SpiffWorkflow.task import TaskState  # type: ignore
+
+class ActiveTaskNotFoundError(Exception):
+    pass
+
+
+class UserDoesNotHaveAccessToTaskError(Exception):
+    pass
 
 
 class ProcessInstanceService:
@@ -272,6 +279,13 @@ class ProcessInstanceService:
         Abstracted here because we need to do it multiple times when completing all tasks in
         a multi-instance task.
         """
+        active_task = ActiveTaskModel.query.filter_by(task_name=spiff_task.task_spec.name, process_instance_id=processor.process_instance_model.id).first()
+        if active_task is None:
+            raise ActiveTaskNotFoundError("Could find an active task with task name '{spiff_task.task_spec.name}' for process instance '{processor.process_instance_model.id}'")
+
+        if user not in active_task.potential_owners:
+            raise UserDoesNotHaveAccessToTaskError("User {user.username} does not have access to update task'{spiff_task.task_spec.name}' for process instance '{processor.process_instance_model.id}'")
+
         dot_dct = ProcessInstanceService.create_dot_dict(data)
         spiff_task.update_data(dot_dct)
         # ProcessInstanceService.post_process_form(spiff_task)  # some properties may update the data store.

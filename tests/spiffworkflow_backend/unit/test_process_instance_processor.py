@@ -1,9 +1,10 @@
 """Test_process_instance_processor."""
+import pytest
 from flask.app import Flask
 from spiffworkflow_backend.models.group import GroupModel
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel, ProcessInstanceStatus
 from spiffworkflow_backend.services.authorization_service import AuthorizationService
-from spiffworkflow_backend.services.process_instance_service import ProcessInstanceService
+from spiffworkflow_backend.services.process_instance_service import ProcessInstanceService, UserDoesNotHaveAccessToTaskError
 from tests.spiffworkflow_backend.helpers.base_test import BaseTest
 from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
 
@@ -65,9 +66,13 @@ class TestProcessInstanceProcessor(BaseTest):
         assert len(active_task.potential_owners) == 1
         assert active_task.potential_owners[0] == testuser1
 
-        task = processor.__class__.get_task_by_bpmn_identifier(active_task.task_name, processor.bpmn_process_instance)
+        spiff_task = processor.__class__.get_task_by_bpmn_identifier(active_task.task_name, processor.bpmn_process_instance)
+        with pytest.raises(UserDoesNotHaveAccessToTaskError):
+            ProcessInstanceService.complete_form_task(
+                processor, spiff_task, {}, testuser2
+            )
         ProcessInstanceService.complete_form_task(
-            processor, task, {}, testuser1
+            processor, spiff_task, {}, testuser1
         )
 
         assert len(process_instance.active_tasks) == 1
@@ -76,20 +81,24 @@ class TestProcessInstanceProcessor(BaseTest):
         assert len(active_task.potential_owners) == 1
         assert active_task.potential_owners[0] == testuser2
 
-        task = processor.__class__.get_task_by_bpmn_identifier(active_task.task_name, processor.bpmn_process_instance)
-        ProcessInstanceService.complete_form_task(
-            processor, task, {}, testuser1
-        )
+        spiff_task = processor.__class__.get_task_by_bpmn_identifier(active_task.task_name, processor.bpmn_process_instance)
+        with pytest.raises(UserDoesNotHaveAccessToTaskError):
+            ProcessInstanceService.complete_form_task(
+                processor, spiff_task, {}, testuser1
+            )
 
+        ProcessInstanceService.complete_form_task(
+            processor, spiff_task, {}, testuser2
+        )
         assert len(process_instance.active_tasks) == 1
         active_task = process_instance.active_tasks[0]
         assert active_task.lane_assignment_id is None
         assert len(active_task.potential_owners) == 1
         assert active_task.potential_owners[0] == testuser1
 
-        task = processor.__class__.get_task_by_bpmn_identifier(active_task.task_name, processor.bpmn_process_instance)
+        spiff_task = processor.__class__.get_task_by_bpmn_identifier(active_task.task_name, processor.bpmn_process_instance)
         ProcessInstanceService.complete_form_task(
-            processor, task, {}, testuser1
+            processor, spiff_task, {}, testuser1
         )
 
         assert process_instance.status == ProcessInstanceStatus.complete.value
