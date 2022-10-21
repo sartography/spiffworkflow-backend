@@ -7,14 +7,14 @@ from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
 from spiffworkflow_backend.models.group import GroupModel
 from spiffworkflow_backend.models.process_instance import ProcessInstanceStatus
 from spiffworkflow_backend.services.authorization_service import AuthorizationService
+from spiffworkflow_backend.services.authorization_service import (
+    UserDoesNotHaveAccessToTaskError,
+)
 from spiffworkflow_backend.services.process_instance_processor import (
     ProcessInstanceProcessor,
 )
 from spiffworkflow_backend.services.process_instance_service import (
     ProcessInstanceService,
-)
-from spiffworkflow_backend.services.process_instance_service import (
-    UserDoesNotHaveAccessToTaskError,
 )
 
 

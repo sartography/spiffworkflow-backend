@@ -10,8 +10,10 @@ from flask import g
 from flask import request
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
+from SpiffWorkflow.task import Task as SpiffTask
 from sqlalchemy import text
 
+from spiffworkflow_backend.models.active_task import ActiveTaskModel  # type: ignore
 from spiffworkflow_backend.models.group import GroupModel
 from spiffworkflow_backend.models.permission_assignment import PermissionAssignmentModel
 from spiffworkflow_backend.models.permission_target import PermissionTargetModel
@@ -20,11 +22,22 @@ from spiffworkflow_backend.models.principal import PrincipalModel
 from spiffworkflow_backend.models.user import UserModel
 from spiffworkflow_backend.models.user import UserNotFoundError
 from spiffworkflow_backend.models.user_group_assignment import UserGroupAssignmentModel
+from spiffworkflow_backend.services.process_instance_processor import (
+    ProcessInstanceProcessor,
+)
 from spiffworkflow_backend.services.user_service import UserService
 
 
 class PermissionsFileNotSetError(Exception):
     """PermissionsFileNotSetError."""
+
+
+class ActiveTaskNotFoundError(Exception):
+    """ActiveTaskNotFoundError."""
+
+
+class UserDoesNotHaveAccessToTaskError(Exception):
+    """UserDoesNotHaveAccessToTaskError."""
 
 
 class AuthorizationService:
@@ -364,196 +377,29 @@ class AuthorizationService:
                 "The Authentication token you provided is invalid. You need a new token. ",
             ) from exception
 
-    # def get_bearer_token_from_internal_token(self, internal_token):
-    #     """Get_bearer_token_from_internal_token."""
-    #     self.decode_auth_token(internal_token)
-    #     print(f"get_user_by_internal_token: {internal_token}")
+    @staticmethod
+    def assert_user_can_complete_spiff_task(
+        processor: ProcessInstanceProcessor,
+        spiff_task: SpiffTask,
+        user: UserModel,
+    ) -> bool:
+        """Assert_user_can_complete_spiff_task."""
+        active_task = ActiveTaskModel.query.filter_by(
+            task_name=spiff_task.task_spec.name,
+            process_instance_id=processor.process_instance_model.id,
+        ).first()
+        if active_task is None:
+            raise ActiveTaskNotFoundError(
+                f"Could find an active task with task name '{spiff_task.task_spec.name}'"
+                f" for process instance '{processor.process_instance_model.id}'"
+            )
 
-    # def introspect_token(self, basic_token: str) -> dict:
-    #     """Introspect_token."""
-    #     (
-    #         open_id_server_url,
-    #         open_id_client_id,
-    #         open_id_realm_name,
-    #         open_id_client_secret_key,
-    #     ) = AuthorizationService.get_open_id_args()
-    #
-    #     bearer_token = AuthorizationService().get_bearer_token(basic_token)
-    #     auth_bearer_string = f"Bearer {bearer_token['access_token']}"
-    #
-    #     headers = {
-    #         "Content-Type": "application/x-www-form-urlencoded",
-    #         "Authorization": auth_bearer_string,
-    #     }
-    #     data = {
-    #         "client_id": open_id_client_id,
-    #         "client_secret": open_id_client_secret_key,
-    #         "token": basic_token,
-    #     }
-    #     request_url = f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/token/introspect"
-    #
-    #     introspect_response = requests.post(request_url, headers=headers, data=data)
-    #     introspection = json.loads(introspect_response.text)
-    #
-    #     return introspection
-
-    # def get_permission_by_basic_token(self, basic_token: dict) -> list:
-    #     """Get_permission_by_basic_token."""
-    #     (
-    #         open_id_server_url,
-    #         open_id_client_id,
-    #         open_id_realm_name,
-    #         open_id_client_secret_key,
-    #     ) = AuthorizationService.get_open_id_args()
-    #
-    #     # basic_token = AuthorizationService().refresh_token(basic_token)
-    #     # bearer_token = AuthorizationService().get_bearer_token(basic_token['access_token'])
-    #     bearer_token = AuthorizationService().get_bearer_token(basic_token)
-    #     # auth_bearer_string = f"Bearer {bearer_token['access_token']}"
-    #     auth_bearer_string = f"Bearer {bearer_token}"
-    #
-    #     headers = {
-    #         "Content-Type": "application/x-www-form-urlencoded",
-    #         "Authorization": auth_bearer_string,
-    #     }
-    #     data = {
-    #         "client_id": open_id_client_id,
-    #         "client_secret": open_id_client_secret_key,
-    #         "grant_type": "urn:ietf:params:oauth:grant-type:uma-ticket",
-    #         "response_mode": "permissions",
-    #         "audience": open_id_client_id,
-    #         "response_include_resource_name": True,
-    #     }
-    #     request_url = f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/token"
-    #     permission_response = requests.post(request_url, headers=headers, data=data)
-    #     permission = json.loads(permission_response.text)
-    #     return permission
-
-    # def get_auth_status_for_resource_and_scope_by_token(
-    #     self, basic_token: dict, resource: str, scope: str
-    # ) -> str:
-    #     """Get_auth_status_for_resource_and_scope_by_token."""
-    #     (
-    #         open_id_server_url,
-    #         open_id_client_id,
-    #         open_id_realm_name,
-    #         open_id_client_secret_key,
-    #     ) = AuthorizationService.get_open_id_args()
-    #
-    #     # basic_token = AuthorizationService().refresh_token(basic_token)
-    #     bearer_token = AuthorizationService().get_bearer_token(basic_token)
-    #     auth_bearer_string = f"Bearer {bearer_token['access_token']}"
-    #
-    #     headers = {
-    #         "Content-Type": "application/x-www-form-urlencoded",
-    #         "Authorization": auth_bearer_string,
-    #     }
-    #     data = {
-    #         "client_id": open_id_client_id,
-    #         "client_secret": open_id_client_secret_key,
-    #         "grant_type": "urn:ietf:params:oauth:grant-type:uma-ticket",
-    #         "permission": f"{resource}#{scope}",
-    #         "response_mode": "permissions",
-    #         "audience": open_id_client_id,
-    #     }
-    #     request_url = f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/token"
-    #     auth_response = requests.post(request_url, headers=headers, data=data)
-    #
-    #     print("get_auth_status_for_resource_and_scope_by_token")
-    #     auth_status: str = json.loads(auth_response.text)
-    #     return auth_status
-
-    # def get_permissions_by_token_for_resource_and_scope(
-    #     self, basic_token: str, resource: str|None=None, scope: str|None=None
-    # ) -> str:
-    #     """Get_permissions_by_token_for_resource_and_scope."""
-    #     (
-    #         open_id_server_url,
-    #         open_id_client_id,
-    #         open_id_realm_name,
-    #         open_id_client_secret_key,
-    #     ) = AuthorizationService.get_open_id_args()
-    #
-    #     # basic_token = AuthorizationService().refresh_token(basic_token)
-    #     # bearer_token = AuthorizationService().get_bearer_token(basic_token['access_token'])
-    #     bearer_token = AuthorizationService().get_bearer_token(basic_token)
-    #     auth_bearer_string = f"Bearer {bearer_token['access_token']}"
-    #
-    #     headers = {
-    #         "Content-Type": "application/x-www-form-urlencoded",
-    #         "Authorization": auth_bearer_string,
-    #     }
-    #     permision = ""
-    #     if resource is not None and resource != '':
-    #         permision += resource
-    #     if scope is not None and scope != '':
-    #         permision += "#" + scope
-    #     data = {
-    #         "client_id": open_id_client_id,
-    #         "client_secret": open_id_client_secret_key,
-    #         "grant_type": "urn:ietf:params:oauth:grant-type:uma-ticket",
-    #         "response_mode": "permissions",
-    #         "permission": permision,
-    #         "audience": open_id_client_id,
-    #         "response_include_resource_name": True,
-    #     }
-    #     request_url = f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/token"
-    #     permission_response = requests.post(request_url, headers=headers, data=data)
-    #     permission: str = json.loads(permission_response.text)
-    #     return permission
-
-    # def get_resource_set(self, public_access_token, uri):
-    #     """Get_resource_set."""
-    #     (
-    #         open_id_server_url,
-    #         open_id_client_id,
-    #         open_id_realm_name,
-    #         open_id_client_secret_key,
-    #     ) = AuthorizationService.get_open_id_args()
-    #     bearer_token = AuthorizationService().get_bearer_token(public_access_token)
-    #     auth_bearer_string = f"Bearer {bearer_token['access_token']}"
-    #     headers = {
-    #         "Content-Type": "application/json",
-    #         "Authorization": auth_bearer_string,
-    #     }
-    #     data = {
-    #         "matchingUri": "true",
-    #         "deep": "true",
-    #         "max": "-1",
-    #         "exactName": "false",
-    #         "uri": uri,
-    #     }
-    #
-    #     # f"matchingUri=true&deep=true&max=-1&exactName=false&uri={URI_TO_TEST_AGAINST}"
-    #     request_url = f"{open_id_server_url}/realms/{open_id_realm_name}/authz/protection/resource_set"
-    #     response = requests.get(request_url, headers=headers, data=data)
-    #
-    #     print("get_resource_set")
-
-    # def get_permission_by_token(self, public_access_token: str) -> dict:
-    #     """Get_permission_by_token."""
-    #     # TODO: Write a test for this
-    #     (
-    #         open_id_server_url,
-    #         open_id_client_id,
-    #         open_id_realm_name,
-    #         open_id_client_secret_key,
-    #     ) = AuthorizationService.get_open_id_args()
-    #     bearer_token = AuthorizationService().get_bearer_token(public_access_token)
-    #     auth_bearer_string = f"Bearer {bearer_token['access_token']}"
-    #     headers = {
-    #         "Content-Type": "application/x-www-form-urlencoded",
-    #         "Authorization": auth_bearer_string,
-    #     }
-    #     data = {
-    #         "grant_type": "urn:ietf:params:oauth:grant-type:uma-ticket",
-    #         "audience": open_id_client_id,
-    #     }
-    #     request_url = f"{open_id_server_url}/realms/{open_id_realm_name}/protocol/openid-connect/token"
-    #     permission_response = requests.post(request_url, headers=headers, data=data)
-    #     permission: dict = json.loads(permission_response.text)
-    #
-    #     return permission
+        if user not in active_task.potential_owners:
+            raise UserDoesNotHaveAccessToTaskError(
+                f"User {user.username} does not have access to update task'{spiff_task.task_spec.name}'"
+                f" for process instance '{processor.process_instance_model.id}'"
+            )
+        return True
 
 
 class KeycloakAuthorization:

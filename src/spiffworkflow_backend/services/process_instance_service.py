@@ -11,7 +11,6 @@ from flask_bpmn.models.db import db
 from SpiffWorkflow.task import Task as SpiffTask  # type: ignore
 from SpiffWorkflow.util.deep_merge import DeepMerge
 
-from spiffworkflow_backend.models.active_task import ActiveTaskModel  # type: ignore
 from spiffworkflow_backend.models.process_instance import ProcessInstanceApi
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 from spiffworkflow_backend.models.process_instance import ProcessInstanceStatus
@@ -20,19 +19,12 @@ from spiffworkflow_backend.models.task import Task
 from spiffworkflow_backend.models.task_event import TaskAction
 from spiffworkflow_backend.models.task_event import TaskEventModel
 from spiffworkflow_backend.models.user import UserModel
+from spiffworkflow_backend.services.authorization_service import AuthorizationService
 from spiffworkflow_backend.services.git_service import GitService
 from spiffworkflow_backend.services.process_instance_processor import (
     ProcessInstanceProcessor,
 )
 from spiffworkflow_backend.services.process_model_service import ProcessModelService
-
-
-class ActiveTaskNotFoundError(Exception):
-    """ActiveTaskNotFoundError."""
-
-
-class UserDoesNotHaveAccessToTaskError(Exception):
-    """UserDoesNotHaveAccessToTaskError."""
 
 
 class ProcessInstanceService:
@@ -279,21 +271,9 @@ class ProcessInstanceService:
         Abstracted here because we need to do it multiple times when completing all tasks in
         a multi-instance task.
         """
-        active_task = ActiveTaskModel.query.filter_by(
-            task_name=spiff_task.task_spec.name,
-            process_instance_id=processor.process_instance_model.id,
-        ).first()
-        if active_task is None:
-            raise ActiveTaskNotFoundError(
-                f"Could find an active task with task name '{spiff_task.task_spec.name}'"
-                f" for process instance '{processor.process_instance_model.id}'"
-            )
-
-        if user not in active_task.potential_owners:
-            raise UserDoesNotHaveAccessToTaskError(
-                f"User {user.username} does not have access to update task'{spiff_task.task_spec.name}'"
-                f" for process instance '{processor.process_instance_model.id}'"
-            )
+        AuthorizationService.assert_user_can_complete_spiff_task(
+            processor, spiff_task, user
+        )
 
         dot_dct = ProcessInstanceService.create_dot_dict(data)
         spiff_task.update_data(dot_dct)
