@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 1e25676fed79
+Revision ID: 4ba2ed52a63a
 Revises: 
-Create Date: 2022-10-20 16:29:56.969687
+Create Date: 2022-10-21 09:31:30.520942
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '1e25676fed79'
+revision = '4ba2ed52a63a'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -134,6 +134,14 @@ def upgrade():
     op.create_index(op.f('ix_process_instance_report_identifier'), 'process_instance_report', ['identifier'], unique=False)
     op.create_index(op.f('ix_process_instance_report_process_group_identifier'), 'process_instance_report', ['process_group_identifier'], unique=False)
     op.create_index(op.f('ix_process_instance_report_process_model_identifier'), 'process_instance_report', ['process_model_identifier'], unique=False)
+    op.create_table('refresh_token',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.Column('token', sa.String(length=1024), nullable=False),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('user_id')
+    )
     op.create_table('secret',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('key', sa.String(length=50), nullable=False),
@@ -169,7 +177,6 @@ def upgrade():
     sa.Column('task_type', sa.String(length=50), nullable=True),
     sa.Column('task_status', sa.String(length=50), nullable=True),
     sa.Column('process_model_display_name', sa.String(length=255), nullable=True),
-    sa.Column('task_data', sa.Text(length=4294000000), nullable=True),
     sa.ForeignKeyConstraint(['actual_owner_id'], ['user.id'], ),
     sa.ForeignKeyConstraint(['lane_assignment_id'], ['group.id'], ),
     sa.ForeignKeyConstraint(['process_instance_id'], ['process_instance.id'], ),
@@ -334,6 +341,7 @@ def downgrade():
     op.drop_table('active_task')
     op.drop_table('user_group_assignment')
     op.drop_table('secret')
+    op.drop_table('refresh_token')
     op.drop_index(op.f('ix_process_instance_report_process_model_identifier'), table_name='process_instance_report')
     op.drop_index(op.f('ix_process_instance_report_process_group_identifier'), table_name='process_instance_report')
     op.drop_index(op.f('ix_process_instance_report_identifier'), table_name='process_instance_report')

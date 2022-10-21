@@ -257,7 +257,7 @@ class UserService:
     @staticmethod
     def get_principal_by_user_id(user_id: int) -> PrincipalModel:
         """Get_principal_by_user_id."""
-        principal: PrincipalModel = (
+        principal = (
             db.session.query(PrincipalModel)
             .filter(PrincipalModel.user_id == user_id)
             .first()
@@ -299,3 +299,17 @@ class UserService:
         ugam = UserGroupAssignmentModel(user_id=user.id, group_id=group.id)
         db.session.add(ugam)
         db.session.commit()
+
+    @staticmethod
+    def get_user_by_service_and_service_id(
+        service: str, service_id: str
+    ) -> Optional[UserModel]:
+        """Get_user_by_service_and_service_id."""
+        user: UserModel = (
+            UserModel.query.filter(UserModel.service == service)
+            .filter(UserModel.service_id == service_id)
+            .first()
+        )
+        if user:
+            return user
+        return None
