@@ -424,6 +424,50 @@ class AuthorizationService:
             )
         return True
 
+    @classmethod
+    def create_user_from_sign_in(cls, user_info: dict) -> UserModel:
+        """Create_user_from_sign_in."""
+        is_new_user = False
+        user_model = (
+            UserModel.query.filter(UserModel.service == "open_id")
+            .filter(UserModel.service_id == user_info["sub"])
+            .first()
+        )
+
+        if user_model is None:
+            current_app.logger.debug("create_user in login_return")
+            is_new_user = True
+            name = username = email = ""
+            if "name" in user_info:
+                name = user_info["name"]
+            if "username" in user_info:
+                username = user_info["username"]
+            elif "preferred_username" in user_info:
+                username = user_info["preferred_username"]
+            if "email" in user_info:
+                email = user_info["email"]
+            user_model = UserService().create_user(
+                service="open_id",
+                service_id=user_info["sub"],
+                name=name,
+                username=username,
+                email=email,
+            )
+
+        # this may eventually get too slow.
+        # when it does, be careful about backgrounding, because
+        # the user will immediately need permissions to use the site.
+        # we are also a little apprehensive about pre-creating users
+        # before the user signs in, because we won't know things like
+        # the external service user identifier.
+        cls.import_permissions_from_yaml_file()
+
+        if is_new_user:
+            UserService.add_user_to_active_tasks_if_appropriate(user_model)
+
+        # this cannot be None so ignore mypy
+        return user_model  # type: ignore
+
 
 class KeycloakAuthorization:
     """Interface with Keycloak server."""

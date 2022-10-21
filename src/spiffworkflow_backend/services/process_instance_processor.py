@@ -533,16 +533,6 @@ class ProcessInstanceProcessor:
             task_spec = ready_or_waiting_task.task_spec
             if not self.bpmn_process_instance._is_engine_task(task_spec):
                 ready_or_waiting_task.data["current_user"]["id"]
-                # principal = PrincipalModel.query.filter_by(user_id=user_id).first()
-                # if principal is None:
-                #     raise (
-                #         ApiError(
-                #             error_code="principal_not_found",
-                #             message=f"Principal not found from user id: {user_id}",
-                #             status_code=400,
-                #         )
-                #     )
-                # import pdb; pdb.set_trace()
                 task_lane = "process_initiator"
                 if task_spec.lane is not None:
                     task_lane = task_spec.lane
