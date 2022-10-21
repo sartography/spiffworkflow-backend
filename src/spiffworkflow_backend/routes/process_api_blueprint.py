@@ -898,7 +898,6 @@ def task_list_my_tasks(page: int = 1, per_page: int = 100) -> flask.wrappers.Res
         .add_columns(
             ProcessInstanceModel.process_model_identifier,
             ProcessInstanceModel.process_group_identifier,
-            ActiveTaskModel.task_data,
             ActiveTaskModel.task_name,
             ActiveTaskModel.task_title,
             ActiveTaskModel.task_type,
