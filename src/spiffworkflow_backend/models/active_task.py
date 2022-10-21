@@ -64,4 +64,9 @@ class ActiveTaskModel(SpiffworkflowBaseDBModel):
         if hasattr(task, "process_model_identifier"):
             new_task.process_model_identifier = task.process_model_identifier
 
+        # active tasks only have status when getting the list on the home page
+        # and it comes from the process_instance. it should not be confused with task_status.
+        if hasattr(task, "status"):
+            new_task.process_instance_status = task.status
+
         return new_task
