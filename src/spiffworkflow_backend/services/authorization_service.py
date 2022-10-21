@@ -204,6 +204,7 @@ class AuthorizationService:
     @classmethod
     def should_disable_auth_for_request(cls) -> bool:
         """Should_disable_auth_for_request."""
+        swagger_functions = ["get_json_spec"]
         authentication_exclusion_list = ["status", "authentication_callback"]
         if request.method == "OPTIONS":
             return True
@@ -220,7 +221,9 @@ class AuthorizationService:
             api_view_function
             and api_view_function.__name__.startswith("login")
             or api_view_function.__name__.startswith("logout")
+            or api_view_function.__name__.startswith("console_ui_")
             or api_view_function.__name__ in authentication_exclusion_list
+            or api_view_function.__name__ in swagger_functions
         ):
             return True
 
