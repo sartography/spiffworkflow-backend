@@ -52,10 +52,10 @@ class TestProcessInstanceProcessor(BaseTest):
         with_db_and_bpmn_file_cleanup: None,
     ) -> None:
         """Test_sets_permission_correctly_on_active_task."""
-        testuser1 = self.find_or_create_user("testuser1")
-        testuser2 = self.find_or_create_user("testuser2")
-        assert testuser1.principal is not None
-        assert testuser2.principal is not None
+        initiator_user = self.find_or_create_user("initiator_user")
+        finance_user = self.find_or_create_user("testuser2")
+        assert initiator_user.principal is not None
+        assert finance_user.principal is not None
         AuthorizationService.import_permissions_from_yaml_file()
 
         finance_group = GroupModel.query.filter_by(identifier="Finance Team").first()
@@ -65,7 +65,7 @@ class TestProcessInstanceProcessor(BaseTest):
             process_model_id="model_with_lanes", bpmn_file_name="lanes.bpmn"
         )
         process_instance = self.create_process_instance_from_process_model(
-            process_model=process_model, user=testuser1
+            process_model=process_model, user=initiator_user
         )
         processor = ProcessInstanceProcessor(process_instance)
         processor.do_engine_steps(save=True)
@@ -74,41 +74,41 @@ class TestProcessInstanceProcessor(BaseTest):
         active_task = process_instance.active_tasks[0]
         assert active_task.lane_assignment_id is None
         assert len(active_task.potential_owners) == 1
-        assert active_task.potential_owners[0] == testuser1
+        assert active_task.potential_owners[0] == initiator_user
 
         spiff_task = processor.__class__.get_task_by_bpmn_identifier(
             active_task.task_name, processor.bpmn_process_instance
         )
         with pytest.raises(UserDoesNotHaveAccessToTaskError):
             ProcessInstanceService.complete_form_task(
-                processor, spiff_task, {}, testuser2
+                processor, spiff_task, {}, finance_user
             )
-        ProcessInstanceService.complete_form_task(processor, spiff_task, {}, testuser1)
+        ProcessInstanceService.complete_form_task(processor, spiff_task, {}, initiator_user)
 
         assert len(process_instance.active_tasks) == 1
         active_task = process_instance.active_tasks[0]
         assert active_task.lane_assignment_id == finance_group.id
         assert len(active_task.potential_owners) == 1
-        assert active_task.potential_owners[0] == testuser2
+        assert active_task.potential_owners[0] == finance_user
 
         spiff_task = processor.__class__.get_task_by_bpmn_identifier(
             active_task.task_name, processor.bpmn_process_instance
         )
         with pytest.raises(UserDoesNotHaveAccessToTaskError):
             ProcessInstanceService.complete_form_task(
-                processor, spiff_task, {}, testuser1
+                processor, spiff_task, {}, initiator_user
             )
 
-        ProcessInstanceService.complete_form_task(processor, spiff_task, {}, testuser2)
+        ProcessInstanceService.complete_form_task(processor, spiff_task, {}, finance_user)
         assert len(process_instance.active_tasks) == 1
         active_task = process_instance.active_tasks[0]
         assert active_task.lane_assignment_id is None
         assert len(active_task.potential_owners) == 1
-        assert active_task.potential_owners[0] == testuser1
+        assert active_task.potential_owners[0] == initiator_user
 
         spiff_task = processor.__class__.get_task_by_bpmn_identifier(
             active_task.task_name, processor.bpmn_process_instance
         )
-        ProcessInstanceService.complete_form_task(processor, spiff_task, {}, testuser1)
+        ProcessInstanceService.complete_form_task(processor, spiff_task, {}, initiator_user)
 
         assert process_instance.status == ProcessInstanceStatus.complete.value

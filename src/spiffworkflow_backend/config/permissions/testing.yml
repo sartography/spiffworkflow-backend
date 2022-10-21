@@ -3,7 +3,7 @@ groups:
     users: [testadmin1, testadmin2]
 
   Finance Team:
-    users: [testuser2]
+    users: [testuser1, testuser2]
 
   hr:
     users: [testuser2, testuser3, testuser4]

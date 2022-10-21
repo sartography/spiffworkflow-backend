@@ -46,7 +46,7 @@ class TestAuthorizationService(BaseTest):
         assert len(users["testadmin1"].groups) == 1
         assert users["testadmin1"].groups[0].identifier == "admin"
         assert len(users["testuser1"].groups) == 1
-        assert users["testuser1"].groups[0].identifier == "finance"
+        assert users["testuser1"].groups[0].identifier == "Finance Team"
         assert len(users["testuser2"].groups) == 2
 
         self.assert_user_has_permission(
