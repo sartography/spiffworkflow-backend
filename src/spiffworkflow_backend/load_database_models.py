@@ -16,7 +16,6 @@ from spiffworkflow_backend.models.user_group_assignment import (
 )  # noqa: F401
 
 from spiffworkflow_backend.models.active_task import ActiveTaskModel  # noqa: F401
-from spiffworkflow_backend.models.active_task_user import (ActiveTaskUserModel)
 from spiffworkflow_backend.models.bpmn_process_id_lookup import (
     BpmnProcessIdLookup,
 )  # noqa: F401

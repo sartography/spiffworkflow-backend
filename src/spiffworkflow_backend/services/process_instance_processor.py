@@ -70,7 +70,6 @@ from spiffworkflow_backend.models.message_correlation_property import (
 )
 from spiffworkflow_backend.models.message_instance import MessageInstanceModel
 from spiffworkflow_backend.models.message_instance import MessageModel
-from spiffworkflow_backend.models.principal import PrincipalModel
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 from spiffworkflow_backend.models.process_instance import ProcessInstanceStatus
 from spiffworkflow_backend.models.process_model import ProcessModelInfo
@@ -112,7 +111,7 @@ class ProcessInstanceProcessorError(Exception):
 
 
 class NoPotentialOwnersForTaskError(Exception):
-    pass
+    """NoPotentialOwnersForTaskError."""
 
 
 class CustomBpmnScriptEngine(PythonScriptEngine):  # type: ignore
@@ -518,7 +517,6 @@ class ProcessInstanceProcessor:
             if self.bpmn_process_instance.is_completed():
                 self.process_instance_model.end_in_seconds = round(time.time())
 
-
         active_tasks = ActiveTaskModel.query.filter_by(
             process_instance_id=self.process_instance_model.id
         ).all()
@@ -534,7 +532,7 @@ class ProcessInstanceProcessor:
             # filter out non-usertasks
             task_spec = ready_or_waiting_task.task_spec
             if not self.bpmn_process_instance._is_engine_task(task_spec):
-                user_id = ready_or_waiting_task.data["current_user"]["id"]
+                ready_or_waiting_task.data["current_user"]["id"]
                 # principal = PrincipalModel.query.filter_by(user_id=user_id).first()
                 # if principal is None:
                 #     raise (
@@ -545,19 +543,29 @@ class ProcessInstanceProcessor:
                 #         )
                 #     )
                 # import pdb; pdb.set_trace()
-                task_lane = 'process_initiator'
+                task_lane = "process_initiator"
                 if task_spec.lane is not None:
                     task_lane = task_spec.lane
 
                 potential_owner_ids = []
                 lane_assignment_id = None
                 if re.match(r"(process.?)initiator", task_lane, re.IGNORECASE):
-                    potential_owner_ids = [self.process_instance_model.process_initiator_id]
+                    potential_owner_ids = [
+                        self.process_instance_model.process_initiator_id
+                    ]
                 else:
-                    group_model = GroupModel.query.filter_by(identifier=task_lane).first()
+                    group_model = GroupModel.query.filter_by(
+                        identifier=task_lane
+                    ).first()
                     if group_model is None:
-                        raise (NoPotentialOwnersForTaskError(f"Could not find a group with name matching lane: {task_lane}"))
-                    potential_owner_ids = [i.user_id for i in group_model.user_group_assignments]
+                        raise (
+                            NoPotentialOwnersForTaskError(
+                                f"Could not find a group with name matching lane: {task_lane}"
+                            )
+                        )
+                    potential_owner_ids = [
+                        i.user_id for i in group_model.user_group_assignments
+                    ]
                     lane_assignment_id = group_model.id
 
                 extensions = ready_or_waiting_task.task_spec.extensions
@@ -588,14 +596,15 @@ class ProcessInstanceProcessor:
                     task_title=ready_or_waiting_task.task_spec.description,
                     task_type=ready_or_waiting_task.task_spec.__class__.__name__,
                     task_status=ready_or_waiting_task.get_state_name(),
-                    task_data=json.dumps(ready_or_waiting_task.data),
                     lane_assignment_id=lane_assignment_id,
                 )
                 db.session.add(active_task)
                 db.session.commit()
 
                 for potential_owner_id in potential_owner_ids:
-                    active_task_user = ActiveTaskUserModel(user_id=potential_owner_id,active_task_id=active_task.id)
+                    active_task_user = ActiveTaskUserModel(
+                        user_id=potential_owner_id, active_task_id=active_task.id
+                    )
                     db.session.add(active_task_user)
                 db.session.commit()
 

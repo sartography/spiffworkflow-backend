@@ -1,4 +1,6 @@
+"""Active_task_user."""
 from __future__ import annotations
+
 from dataclasses import dataclass
 
 from flask_bpmn.models.db import db
@@ -11,6 +13,7 @@ from spiffworkflow_backend.models.user import UserModel
 
 @dataclass
 class ActiveTaskUserModel(SpiffworkflowBaseDBModel):
+    """ActiveTaskUserModel."""
 
     __tablename__ = "active_task_user"
 
@@ -26,6 +29,4 @@ class ActiveTaskUserModel(SpiffworkflowBaseDBModel):
     active_task_id = db.Column(
         ForeignKey(ActiveTaskModel.id), nullable=False, index=True  # type: ignore
     )
-    user_id = db.Column(
-        ForeignKey(UserModel.id), nullable=False, index=True
-    )
+    user_id = db.Column(ForeignKey(UserModel.id), nullable=False, index=True)

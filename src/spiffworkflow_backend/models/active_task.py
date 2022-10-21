@@ -9,18 +9,17 @@ from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import RelationshipProperty
-from spiffworkflow_backend.models.group import GroupModel
 
-from spiffworkflow_backend.models.principal import PrincipalModel
+from spiffworkflow_backend.models.group import GroupModel
 from spiffworkflow_backend.models.process_instance import ProcessInstanceModel
 from spiffworkflow_backend.models.task import Task
 from spiffworkflow_backend.models.user import UserModel
 
 
 if TYPE_CHECKING:
-    from spiffworkflow_backend.models.active_task_user import (
+    from spiffworkflow_backend.models.active_task_user import (  # noqa: F401
         ActiveTaskUserModel,
-    )  # noqa: F401
+    )
 
 
 @dataclass
@@ -34,9 +33,7 @@ class ActiveTaskModel(SpiffworkflowBaseDBModel):
         ),
     )
 
-    actual_owner: RelationshipProperty[UserModel] = relationship(
-        UserModel
-    )
+    actual_owner: RelationshipProperty[UserModel] = relationship(UserModel)
     id: int = db.Column(db.Integer, primary_key=True)
     process_instance_id: int = db.Column(
         ForeignKey(ProcessInstanceModel.id), nullable=False  # type: ignore

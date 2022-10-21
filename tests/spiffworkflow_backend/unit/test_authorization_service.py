@@ -22,6 +22,7 @@ class TestAuthorizationService(BaseTest):
     def test_does_not_fail_if_user_not_created(
         self, app: Flask, with_db_and_bpmn_file_cleanup: None
     ) -> None:
+        """Test_does_not_fail_if_user_not_created."""
         AuthorizationService.import_permissions_from_yaml_file()
 
     def test_can_import_permissions_from_yaml(

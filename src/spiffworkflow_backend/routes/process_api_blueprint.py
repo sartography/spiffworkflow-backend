@@ -1298,7 +1298,6 @@ def find_active_task_by_id_or_raise(
     process_instance_id: int, task_id: str, principal_id: PrincipalModel
 ) -> ActiveTaskModel:
     """Find_active_task_by_id_or_raise."""
-
     # TODO: update
     active_task_assigned_to_me = ActiveTaskModel.query.filter_by(
         process_instance_id=process_instance_id,
