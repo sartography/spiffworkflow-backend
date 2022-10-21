@@ -107,6 +107,19 @@ class AuthorizationService:
         cls.import_permissions_from_yaml_file()
 
     @classmethod
+    def associate_user_with_group(cls, user: UserModel, group: GroupModel) -> None:
+        """Associate_user_with_group."""
+        user_group_assignemnt = UserGroupAssignmentModel.query.filter_by(
+            user_id=user.id, group_id=group.id
+        ).first()
+        if user_group_assignemnt is None:
+            user_group_assignemnt = UserGroupAssignmentModel(
+                user_id=user.id, group_id=group.id
+            )
+            db.session.add(user_group_assignemnt)
+            db.session.commit()
+
+    @classmethod
     def import_permissions_from_yaml_file(
         cls, raise_if_missing_user: bool = False
     ) -> None:
@@ -121,6 +134,20 @@ class AuthorizationService:
         permission_configs = None
         with open(current_app.config["PERMISSIONS_FILE_FULLPATH"]) as file:
             permission_configs = yaml.safe_load(file)
+
+        default_group = None
+        if "default_group" in permission_configs:
+            default_group_identifier = permission_configs["default_group"]
+            default_group = GroupModel.query.filter_by(
+                identifier=default_group_identifier
+            ).first()
+            if default_group is None:
+                default_group = GroupModel(identifier=default_group_identifier)
+                db.session.add(default_group)
+                db.session.commit()
+                UserService.create_principal(
+                    default_group.id, id_column_name="group_id"
+                )
 
         if "groups" in permission_configs:
             for group_identifier, group_config in permission_configs["groups"].items():
@@ -140,15 +167,7 @@ class AuthorizationService:
                                 )
                             )
                         continue
-                    user_group_assignemnt = UserGroupAssignmentModel.query.filter_by(
-                        user_id=user.id, group_id=group.id
-                    ).first()
-                    if user_group_assignemnt is None:
-                        user_group_assignemnt = UserGroupAssignmentModel(
-                            user_id=user.id, group_id=group.id
-                        )
-                        db.session.add(user_group_assignemnt)
-                        db.session.commit()
+                    cls.associate_user_with_group(user, group)
 
         if "permissions" in permission_configs:
             for _permission_identifier, permission_config in permission_configs[
@@ -187,6 +206,10 @@ class AuthorizationService:
                                 cls.create_permission_for_principal(
                                     principal, permission_target, allowed_permission
                                 )
+
+        if default_group is not None:
+            for user in UserModel.query.all():
+                cls.associate_user_with_group(user, default_group)
 
     @classmethod
     def create_permission_for_principal(
@@ -295,7 +318,7 @@ class AuthorizationService:
 
         raise ApiError(
             error_code="unauthorized",
-            message="User is not authorized to perform requested action.",
+            message=f"User {g.user.username} is not authorized to perform requested action: {permission_string} - {request.path}",
             status_code=403,
         )
 

@@ -83,7 +83,9 @@ class TestProcessInstanceProcessor(BaseTest):
             ProcessInstanceService.complete_form_task(
                 processor, spiff_task, {}, finance_user
             )
-        ProcessInstanceService.complete_form_task(processor, spiff_task, {}, initiator_user)
+        ProcessInstanceService.complete_form_task(
+            processor, spiff_task, {}, initiator_user
+        )
 
         assert len(process_instance.active_tasks) == 1
         active_task = process_instance.active_tasks[0]
@@ -99,7 +101,9 @@ class TestProcessInstanceProcessor(BaseTest):
                 processor, spiff_task, {}, initiator_user
             )
 
-        ProcessInstanceService.complete_form_task(processor, spiff_task, {}, finance_user)
+        ProcessInstanceService.complete_form_task(
+            processor, spiff_task, {}, finance_user
+        )
         assert len(process_instance.active_tasks) == 1
         active_task = process_instance.active_tasks[0]
         assert active_task.lane_assignment_id is None
@@ -109,6 +113,8 @@ class TestProcessInstanceProcessor(BaseTest):
         spiff_task = processor.__class__.get_task_by_bpmn_identifier(
             active_task.task_name, processor.bpmn_process_instance
         )
-        ProcessInstanceService.complete_form_task(processor, spiff_task, {}, initiator_user)
+        ProcessInstanceService.complete_form_task(
+            processor, spiff_task, {}, initiator_user
+        )
 
         assert process_instance.status == ProcessInstanceStatus.complete.value

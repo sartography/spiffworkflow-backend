@@ -43,11 +43,13 @@ class TestAuthorizationService(BaseTest):
             users[username] = user
 
         AuthorizationService.import_permissions_from_yaml_file()
-        assert len(users["testadmin1"].groups) == 1
-        assert users["testadmin1"].groups[0].identifier == "admin"
-        assert len(users["testuser1"].groups) == 1
-        assert users["testuser1"].groups[0].identifier == "Finance Team"
-        assert len(users["testuser2"].groups) == 2
+        assert len(users["testadmin1"].groups) == 2
+        testadmin1_group_identifiers = sorted([g.identifier for g in users["testadmin1"].groups])
+        assert testadmin1_group_identifiers == ["admin", "everybody"]
+        assert len(users["testuser1"].groups) == 2
+        testuser1_group_identifiers = sorted([g.identifier for g in users["testuser1"].groups])
+        assert testuser1_group_identifiers == ["Finance Team", "everybody"]
+        assert len(users["testuser2"].groups) == 3
 
         self.assert_user_has_permission(
             users["testuser1"], "update", "/v1.0/process-groups/finance/model1"
@@ -61,6 +63,7 @@ class TestAuthorizationService(BaseTest):
         self.assert_user_has_permission(
             users["testuser4"], "update", "/v1.0/process-groups/finance/model1"
         )
+        # via the user, not the group
         self.assert_user_has_permission(
             users["testuser4"], "read", "/v1.0/process-groups/finance/model1"
         )
