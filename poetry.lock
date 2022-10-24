@@ -631,7 +631,7 @@ flask-marshmallow = "*"
 flask-migrate = "*"
 flask-restful = "*"
 sentry-sdk = "*"
-sphinx-autoapi = "^1.9.0"
+sphinx-autoapi = "^2.0.0"
 spiffworkflow = "*"
 werkzeug = "*"
 
@@ -639,7 +639,7 @@ werkzeug = "*"
 type = "git"
 url = "https://github.com/sartography/flask-bpmn"
 reference = "main"
-resolved_reference = "c7e2f98d1c42e3ff90a989957a346f4f87e622b8"
+resolved_reference = "aae17b7b4152fe09d4a365ac5ec85289218c663b"
 
 [[package]]
 name = "Flask-Cors"
@@ -1721,7 +1721,7 @@ test = ["cython", "html5lib", "pytest (>=4.6)", "typed_ast"]
 
 [[package]]
 name = "sphinx-autoapi"
-version = "1.9.0"
+version = "2.0.0"
 description = "Sphinx API documentation generator"
 category = "main"
 optional = false
@@ -1731,7 +1731,7 @@ python-versions = ">=3.7"
 astroid = ">=2.7"
 Jinja2 = "*"
 PyYAML = "*"
-sphinx = ">=3.0"
+sphinx = ">=4.0"
 unidecode = "*"
 
 [package.extras]
@@ -2248,7 +2248,7 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9,<3.11"
-content-hash = "93ffba25eeb5d003910d511e64b794058e12d0b284ff9b4b2f9b4f001d5b749c"
+content-hash = "6554c2f89f32ceedb433e0effada2d9c994a90d233c4e5a989ddb6ffd7031409"
 
 [metadata.files]
 alabaster = [
@@ -3414,8 +3414,8 @@ Sphinx = [
     {file = "sphinx-5.3.0-py3-none-any.whl", hash = "sha256:060ca5c9f7ba57a08a1219e547b269fadf125ae25b06b9fa7f66768efb652d6d"},
 ]
 sphinx-autoapi = [
-    {file = "sphinx-autoapi-1.9.0.tar.gz", hash = "sha256:c897ea337df16ad0cde307cbdfe2bece207788dde1587fa4fc8b857d1fc5dcba"},
-    {file = "sphinx_autoapi-1.9.0-py2.py3-none-any.whl", hash = "sha256:d217953273b359b699d8cb81a5a72985a3e6e15cfe3f703d9a3c201ffc30849b"},
+    {file = "sphinx-autoapi-2.0.0.tar.gz", hash = "sha256:97dcf1b5b54cd0d8efef867594e4a4f3e2d3a2c0ec1e5a891e0a61bc77046006"},
+    {file = "sphinx_autoapi-2.0.0-py2.py3-none-any.whl", hash = "sha256:dab2753a38cad907bf4e61473c0da365a26bfbe69fbf5aa6e4f7d48e1cf8a148"},
 ]
 sphinx-autobuild = [
     {file = "sphinx-autobuild-2021.3.14.tar.gz", hash = "sha256:de1ca3b66e271d2b5b5140c35034c89e47f263f2cd5db302c9217065f7443f05"},
