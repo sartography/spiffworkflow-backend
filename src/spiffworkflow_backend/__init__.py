@@ -111,7 +111,7 @@ def create_app() -> flask.app.Flask:
 
     app.json = MyJSONEncoder(app)
 
-    if app.config["PROCESS_WAITING_MESSAGES"]:
+    if app.config["RUN_BACKGROUND_SCHEDULER"]:
         start_scheduler(app)
 
     configure_sentry(app)
