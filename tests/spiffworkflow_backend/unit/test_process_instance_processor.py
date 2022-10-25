@@ -124,6 +124,7 @@ class TestProcessInstanceProcessor(BaseTest):
         app: Flask,
         with_db_and_bpmn_file_cleanup: None,
     ) -> None:
+        """Test_sets_permission_correctly_on_active_task_when_using_dict."""
         initiator_user = self.find_or_create_user("initiator_user")
         finance_user = self.find_or_create_user("testuser3")
         testadmin1 = self.find_or_create_user("testadmin1")
@@ -135,7 +136,8 @@ class TestProcessInstanceProcessor(BaseTest):
         assert finance_group is not None
 
         process_model = load_test_spec(
-            process_model_id="model_with_lanes", bpmn_file_name="lanes_with_owner_dict.bpmn"
+            process_model_id="model_with_lanes",
+            bpmn_file_name="lanes_with_owner_dict.bpmn",
         )
         process_instance = self.create_process_instance_from_process_model(
             process_model=process_model, user=initiator_user
@@ -199,8 +201,6 @@ class TestProcessInstanceProcessor(BaseTest):
             ProcessInstanceService.complete_form_task(
                 processor, spiff_task, {}, initiator_user
             )
-        ProcessInstanceService.complete_form_task(
-            processor, spiff_task, {}, testadmin1
-        )
+        ProcessInstanceService.complete_form_task(processor, spiff_task, {}, testadmin1)
 
         assert process_instance.status == ProcessInstanceStatus.complete.value
