@@ -28,9 +28,6 @@ export APPLICATION_ROOT="/"
 if [[ -n "${SPIFFWORKFLOW_BACKEND_LOAD_FIXTURE_DATA:-}" ]]; then
   ./bin/boot_server_in_docker
 else
-  if [[ -z "${RUN_BACKGROUND_SCHEDULER:-}" ]]; then
-    export RUN_BACKGROUND_SCHEDULER="true"
-  fi
   export FLASK_DEBUG=1
 
   if [[ "${SPIFFWORKFLOW_BACKEND_RUN_DATA_SETUP:-}" != "false" ]]; then
