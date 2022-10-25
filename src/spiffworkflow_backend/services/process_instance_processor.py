@@ -540,7 +540,11 @@ class ProcessInstanceProcessor:
             self.raise_if_no_potential_owners(
                 potential_owner_ids,
                 f"No users found in task data lane owner list for lane: {task_lane}. "
+<<<<<<< Updated upstream
                 f"The user list used: {task.data['lane_owners'][task_lane]}",
+=======
+                f"The user list used: {task.data['lane_owners'][task_lane]}"
+>>>>>>> Stashed changes
             )
         else:
             group_model = GroupModel.query.filter_by(identifier=task_lane).first()
@@ -554,10 +558,14 @@ class ProcessInstanceProcessor:
                 i.user_id for i in group_model.user_group_assignments
             ]
             lane_assignment_id = group_model.id
+<<<<<<< Updated upstream
             self.raise_if_no_potential_owners(
                 potential_owner_ids,
                 f"Could not find any users in group to assign to lane: {task_lane}",
             )
+=======
+            self.raise_if_no_potential_owners(potential_owner_ids, f"Could not find any users in group to assign to lane: {task_lane}")
+>>>>>>> Stashed changes
 
         return {
             "potential_owner_ids": potential_owner_ids,
@@ -597,9 +605,14 @@ class ProcessInstanceProcessor:
             # filter out non-usertasks
             task_spec = ready_or_waiting_task.task_spec
             if not self.bpmn_process_instance._is_engine_task(task_spec):
+<<<<<<< Updated upstream
                 potential_owner_hash = self.get_potential_owner_ids_from_task(
                     ready_or_waiting_task
                 )
+=======
+                print(f"ready_or_waiting_task.data['current_user']['id']: {ready_or_waiting_task.data['current_user']['id']}")
+                potential_owner_hash = self.get_potential_owner_ids_from_task(ready_or_waiting_task)
+>>>>>>> Stashed changes
                 extensions = ready_or_waiting_task.task_spec.extensions
 
                 form_file_name = None
