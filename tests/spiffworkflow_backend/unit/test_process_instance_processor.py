@@ -1,5 +1,6 @@
 """Test_process_instance_processor."""
 import pytest
+from flask import g
 from flask.app import Flask
 from tests.spiffworkflow_backend.helpers.base_test import BaseTest
 from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
@@ -177,6 +178,7 @@ class TestProcessInstanceProcessor(BaseTest):
                 processor, spiff_task, {}, initiator_user
             )
 
+        g.user = finance_user_three
         ProcessInstanceService.complete_form_task(
             processor, spiff_task, {}, finance_user_three
         )
