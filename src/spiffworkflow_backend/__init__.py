@@ -53,7 +53,9 @@ class MyJSONEncoder(DefaultJSONProvider):
         return super().dumps(obj, **kwargs)
 
 
-def start_scheduler(app: flask.app.Flask, scheduler_class: BaseScheduler = BackgroundScheduler) -> None:
+def start_scheduler(
+    app: flask.app.Flask, scheduler_class: BaseScheduler = BackgroundScheduler
+) -> None:
     """Start_scheduler."""
     scheduler = scheduler_class()
     scheduler.add_job(
