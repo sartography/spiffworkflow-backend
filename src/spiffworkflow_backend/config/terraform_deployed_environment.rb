@@ -14,4 +14,3 @@ SPIFFWORKFLOW_BACKEND_PERMISSIONS_FILE_NAME = environ.get(
 RUN_BACKGROUND_SCHEDULER = (
     environ.get("RUN_BACKGROUND_SCHEDULER", default="false") == "true"
 )
-

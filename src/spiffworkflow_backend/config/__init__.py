@@ -61,7 +61,7 @@ def setup_config(app: Flask) -> None:
     except ImportStringError as exception:
         if (
             os.environ.get("TERRAFORM_DEPLOYED_ENVIRONMENT") == "true"
-            and os.environment.get("SPIFFWORKFLOW_BACKEND_ENV") is not None
+            and os.environ.get("SPIFFWORKFLOW_BACKEND_ENV") is not None
         ):
             app.config.from_object("{env_config_prefix}terraform_deployed_environment")
         else:
