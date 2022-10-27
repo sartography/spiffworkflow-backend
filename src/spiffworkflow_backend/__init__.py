@@ -171,15 +171,12 @@ def configure_sentry(app: flask.app.Flask) -> None:
             FlaskIntegration(),
         ],
         environment=app.config["ENV_IDENTIFIER"],
-
         # sample_rate is the errors sample rate. we usually set it to 1 (100%)
         # so we get all errors in sentry.
         sample_rate=float(sentry_errors_sample_rate),
-
         # Set traces_sample_rate to capture a certain percentage
         # of transactions for performance monitoring.
         # We recommend adjusting this value to less than 1(00%) in production.
         traces_sample_rate=float(sentry_traces_sample_rate),
-
         before_send=before_send,
     )
