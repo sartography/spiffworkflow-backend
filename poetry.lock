@@ -639,7 +639,7 @@ werkzeug = "*"
 type = "git"
 url = "https://github.com/sartography/flask-bpmn"
 reference = "main"
-resolved_reference = "a8b90f2ca09ef1cbb24a491c36f1cc9437477325"
+resolved_reference = "a901d7ffb2b79abfec17c332bbe77c43c1d28705"
 
 [[package]]
 name = "Flask-Cors"
@@ -1873,7 +1873,7 @@ pytz = "*"
 type = "git"
 url = "https://github.com/sartography/SpiffWorkflow"
 reference = "main"
-resolved_reference = "12f81480a5f9e848e64221b9287c6cfa6cb682b4"
+resolved_reference = "3579c477eaf19a982a2822609fcf20b56c050eb5"
 
 [[package]]
 name = "SQLAlchemy"
