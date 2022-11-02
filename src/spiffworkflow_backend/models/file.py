@@ -4,12 +4,8 @@ from dataclasses import field
 from datetime import datetime
 from typing import Optional
 
-from flask_bpmn.models.db import db
-from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from marshmallow import INCLUDE
 from marshmallow import Schema
-from sqlalchemy.orm import deferred
-from sqlalchemy.orm import relationship
 
 from spiffworkflow_backend.helpers.spiff_enum import SpiffEnum
 
