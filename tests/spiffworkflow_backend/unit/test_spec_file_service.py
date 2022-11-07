@@ -2,9 +2,13 @@
 import os
 
 import pytest
+from SpiffWorkflow.dmn.parser.BpmnDmnParser import BpmnDmnParser
 from flask import Flask
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
+
+from spiffworkflow_backend.services.process_model_service import ProcessModelService
+from spiffworkflow_backend.services.spec_file_service import SpecFileService
 from tests.spiffworkflow_backend.helpers.base_test import BaseTest
 from tests.spiffworkflow_backend.helpers.test_data import load_test_spec
 
@@ -95,3 +99,37 @@ class TestSpecFileService(BaseTest):
             bpmn_process_id_lookups[0].bpmn_file_relative_path
             == self.call_activity_nested_relative_file_path
         )
+
+    def test_load_reference_information (
+        self, app: Flask, with_db_and_bpmn_file_cleanup: None
+    ) -> None:
+        """
+        When getting files from the spec_file service, each file includes
+        details about how the file can be referenced -- for instance
+        it is possible to reference a DMN file with a Decision.id or
+        a bpmn file with a process.id.  These Decisions and processes
+        can also have human readable display names, which should also be avaiable.
+        Note that a single bpmn file can contain many processes, and
+        a DMN file can (theoretically) contain many decisions.  So this
+        is an array.
+       """
+        load_test_spec(
+            "call_activity_nested",
+            process_model_source_directory="call_activity_nested")
+        process_model_info = ProcessModelService().get_process_model("call_activity_nested")
+        files = SpecFileService.get_files(process_model_info)
+
+        file = next(filter(lambda f : f.name == 'call_activity_level_3.bpmn', files))
+        ca_3 = SpecFileService.get_references_for_file(file, process_model_info, BpmnDmnParser)
+        assert(len(ca_3) == 1)
+        assert(ca_3[0].name == 'Level 3')
+        assert(ca_3[0].id == 'Level3')
+        assert(ca_3[0].type == 'process')
+
+        file = next(filter(lambda f : f.name == 'level2c.dmn', files))
+        dmn1 = SpecFileService.get_references_for_file(file, process_model_info, BpmnDmnParser)
+        assert(len(dmn1) == 1)
+        assert(dmn1[0].name == 'Decision 1')
+        assert(dmn1[0].id == 'Decision_0vrtcmk')
+        assert(dmn1[0].type == 'decision')
+

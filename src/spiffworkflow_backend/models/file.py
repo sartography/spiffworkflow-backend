@@ -4,11 +4,13 @@ from dataclasses import field
 from datetime import datetime
 from typing import Optional
 
+import marshmallow
+from flask_bpmn.models.db import db
+from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from marshmallow import INCLUDE
 from marshmallow import Schema
 
 from spiffworkflow_backend.helpers.spiff_enum import SpiffEnum
-
 
 class FileType(SpiffEnum):
     """FileType."""
@@ -60,6 +62,14 @@ CONTENT_TYPES = {
     "zip": "application/zip",
 }
 
+@dataclass()
+class FileReference:
+    """File Reference Information -- such as the process id and name for a BPMN,
+    or the Decision id and Decision name for a DMN file.  There may be more than
+    one reference that points to a particular file."""
+    id: str
+    name: str
+    type: str  # can be 'process', 'decision', or just 'file'
 
 @dataclass(order=True)
 class File:
@@ -70,17 +80,13 @@ class File:
     content_type: str
     name: str
     type: str
-    document: dict
     last_modified: datetime
     size: int
-    process_instance_id: Optional[int] = None
-    irb_doc_code: Optional[str] = None
-    data_store: Optional[dict] = field(default_factory=dict)
-    user_uid: Optional[str] = None
+    references: list[FileReference] = None
     file_contents: Optional[bytes] = None
     process_model_id: Optional[str] = None
     process_group_id: Optional[str] = None
-    archived: bool = False
+
 
     def __post_init__(self) -> None:
         """__post_init__."""
@@ -100,7 +106,6 @@ class File:
             name=file_name,
             content_type=content_type,
             type=file_type.value,
-            document={},
             last_modified=last_modified,
             size=file_size,
         )
@@ -118,32 +123,36 @@ class FileSchema(Schema):
             "id",
             "name",
             "content_type",
-            "process_instance_id",
-            "irb_doc_code",
             "last_modified",
             "type",
-            "archived",
             "size",
             "data_store",
-            "document",
             "user_uid",
             "url",
             "file_contents",
-            "process_model_id",
+            "references",
             "process_group_id",
+            "process_model_id"
+        ]
+        unknown = INCLUDE
+        references = marshmallow.fields.List(marshmallow.fields.Nested("FileReferenceSchema"))
+
+
+class FileReferenceSchema(Schema):
+    """FileSchema."""
+
+    class Meta:
+        """Meta."""
+
+        model = FileReference
+        fields = [
+            "id",
+            "name",
+            "type"
         ]
         unknown = INCLUDE
 
-    # url = Method("get_url")
-    #
-    # def get_url(self, obj):
-    #     token = 'not_available'
-    #     if hasattr(obj, 'id') and obj.id is not None:
-    #         file_url = url_for("/v1_0.crc_api_file_get_file_data_link", file_id=obj.id, _external=True)
-    #         if hasattr(flask.g, 'user'):
-    #             token = flask.g.user.encode_auth_token()
-    #         url = file_url + '?auth_token=' + urllib.parse.quote_plus(token)
-    #         return url
-    #     else:
-    #         return ""
-    #
+
+
+
+
