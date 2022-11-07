@@ -2,11 +2,10 @@
 import os
 import shutil
 from datetime import datetime
+from typing import Any
 from typing import List
 from typing import Optional
 
-from SpiffWorkflow.bpmn.parser.BpmnParser import BpmnParser
-from SpiffWorkflow.dmn.parser.BpmnDmnParser import BpmnDmnParser
 from flask_bpmn.api.api_error import ApiError
 from flask_bpmn.models.db import db
 from lxml import etree  # type: ignore
@@ -15,7 +14,8 @@ from lxml.etree import Element as EtreeElement
 from SpiffWorkflow.bpmn.parser.ValidationException import ValidationException  # type: ignore
 
 from spiffworkflow_backend.models.bpmn_process_id_lookup import BpmnProcessIdLookup
-from spiffworkflow_backend.models.file import File, FileReference
+from spiffworkflow_backend.models.file import File
+from spiffworkflow_backend.models.file import FileReference
 from spiffworkflow_backend.models.file import FileType
 from spiffworkflow_backend.models.message_correlation_property import (
     MessageCorrelationPropertyModel,
@@ -56,35 +56,39 @@ class SpecFileService(FileSystemService):
             )
         return files
 
-
     @staticmethod
-    def get_references_for_file(file: File, process_model_info: ProcessModelInfo, parser_class: any) -> \
-            list[FileReference]:
-        """ Uses spiffworkflow to parse BPMN and DMN files to determine how they can be externally referenced
+    def get_references_for_file(
+        file: File, process_model_info: ProcessModelInfo, parser_class: Any
+    ) -> list[FileReference]:
+        """Uses spiffworkflow to parse BPMN and DMN files to determine how they can be externally referenced.
+
         Returns a list of Reference objects that contain the type of reference, the id, the name.
         Ex.
         id = {str} 'Level3'
         name = {str} 'Level 3'
         type = {str} 'process'
         """
-        references = []
+        references: list[FileReference] = []
         file_path = SpecFileService.file_path(process_model_info, file.name)
         parser = parser_class()
         parser_type = None
         sub_parser = None
         if file.type == FileType.bpmn.value:
             parser.add_bpmn_file(file_path)
-            parser_type = 'process'
+            parser_type = "process"
             sub_parsers = list(parser.process_parsers.values())
         elif file.type == FileType.dmn.value:
             parser.add_dmn_file(file_path)
             sub_parsers = list(parser.dmn_parsers.values())
-            parser_type = 'decision'
+            parser_type = "decision"
         else:
-            return references;
+            return references
         for sub_parser in sub_parsers:
-            references.append(FileReference(
-                id=sub_parser.get_id(), name=sub_parser.get_name(), type=parser_type))
+            references.append(
+                FileReference(
+                    id=sub_parser.get_id(), name=sub_parser.get_name(), type=parser_type
+                )
+            )
         return references
 
     @staticmethod

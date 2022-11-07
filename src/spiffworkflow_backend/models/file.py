@@ -5,12 +5,11 @@ from datetime import datetime
 from typing import Optional
 
 import marshmallow
-from flask_bpmn.models.db import db
-from flask_bpmn.models.db import SpiffworkflowBaseDBModel
 from marshmallow import INCLUDE
 from marshmallow import Schema
 
 from spiffworkflow_backend.helpers.spiff_enum import SpiffEnum
+
 
 class FileType(SpiffEnum):
     """FileType."""
@@ -62,14 +61,20 @@ CONTENT_TYPES = {
     "zip": "application/zip",
 }
 
+
 @dataclass()
 class FileReference:
-    """File Reference Information -- such as the process id and name for a BPMN,
+    """File Reference Information.
+
+    Includes items such as the process id and name for a BPMN,
     or the Decision id and Decision name for a DMN file.  There may be more than
-    one reference that points to a particular file."""
+    one reference that points to a particular file.
+    """
+
     id: str
     name: str
     type: str  # can be 'process', 'decision', or just 'file'
+
 
 @dataclass(order=True)
 class File:
@@ -82,11 +87,10 @@ class File:
     type: str
     last_modified: datetime
     size: int
-    references: list[FileReference] = None
+    references: Optional[list[FileReference]] = None
     file_contents: Optional[bytes] = None
     process_model_id: Optional[str] = None
     process_group_id: Optional[str] = None
-
 
     def __post_init__(self) -> None:
         """__post_init__."""
@@ -132,10 +136,12 @@ class FileSchema(Schema):
             "file_contents",
             "references",
             "process_group_id",
-            "process_model_id"
+            "process_model_id",
         ]
         unknown = INCLUDE
-        references = marshmallow.fields.List(marshmallow.fields.Nested("FileReferenceSchema"))
+        references = marshmallow.fields.List(
+            marshmallow.fields.Nested("FileReferenceSchema")
+        )
 
 
 class FileReferenceSchema(Schema):
@@ -145,14 +151,5 @@ class FileReferenceSchema(Schema):
         """Meta."""
 
         model = FileReference
-        fields = [
-            "id",
-            "name",
-            "type"
-        ]
+        fields = ["id", "name", "type"]
         unknown = INCLUDE
-
-
-
-
-

@@ -64,8 +64,9 @@ from spiffworkflow_backend.services.error_handling_service import ErrorHandlingS
 from spiffworkflow_backend.services.file_system_service import FileSystemService
 from spiffworkflow_backend.services.git_service import GitService
 from spiffworkflow_backend.services.message_service import MessageService
+from spiffworkflow_backend.services.process_instance_processor import MyCustomParser
 from spiffworkflow_backend.services.process_instance_processor import (
-    ProcessInstanceProcessor, MyCustomParser,
+    ProcessInstanceProcessor,
 )
 from spiffworkflow_backend.services.process_instance_service import (
     ProcessInstanceService,
@@ -264,7 +265,9 @@ def process_model_show(process_group_id: str, process_model_id: str) -> Any:
     files = sorted(SpecFileService.get_files(process_model))
     process_model.files = files
     for file in process_model.files:
-        file.references = SpecFileService.get_references_for_file(file, process_model, MyCustomParser)
+        file.references = SpecFileService.get_references_for_file(
+            file, process_model, MyCustomParser
+        )
     process_model_json = ProcessModelInfoSchema().dump(process_model)
     return process_model_json
 
