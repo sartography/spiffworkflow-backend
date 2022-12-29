@@ -1,11 +1,5 @@
 default_group: everybody
 
-users:
-  admin:
-    email: admin@spiffworkflow.org
-    password: admin
-    preferred_username: Admin
-
 groups:
   admin:
     users:
@@ -60,28 +54,12 @@ groups:
         natalia@sartography.com,
       ]
 
-  admin-ro:
-    users:
-      [
-        j,
-      ]
-
 permissions:
   admin:
     groups: [admin]
     users: []
     allowed_permissions: [create, read, update, delete]
     uri: /*
-  admin-readonly:
-    groups: [admin-ro]
-    users: []
-    allowed_permissions: [read]
-    uri: /*
-  admin-process-instances-for-readonly:
-    groups: [admin-ro]
-    users: []
-    allowed_permissions: [create, read, update, delete]
-    uri: /process-instances/*
 
   # open system defaults for everybody
   read-all-process-groups:
