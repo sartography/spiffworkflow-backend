@@ -36,7 +36,7 @@ flask-bpmn = {git = "https://github.com/sartography/flask-bpmn", rev = "main"}
 mysql-connector-python = "*"
 pytest-flask = "^1.2.0"
 pytest-flask-sqlalchemy = "^1.1.0"
-psycopg2 = "^2.9.3"
+psycopg2 = "^2.9.5"
 typing-extensions = "^4.4.0"
 connexion = {extras = [ "swagger-ui",], version = "^2"}
 lxml = "^4.9.1"
